@@ -1,0 +1,151 @@
+{
+    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json",
+    "name": "vscode-taskexplorer",
+    "displayName": "Task Explorer",
+    "detailedDisplayName": "Task Explorer VSCode Extension",
+    "publicInfoProject": true,
+    "source": "typescript",
+    "builds": [
+        {
+            "name": "taskexplorer",
+            "target": "node",
+            "type": "module",
+            "debug": true,
+            "log": {
+                "color": "cyan"
+            },
+            "plugins": {
+                "licensefiles": true,
+                "upload": {
+                    "url": "https://${WPBUILD_APP1_SSH_UPLOAD_HOST}/res/app",
+                    "plink": {
+                        "user": "${WPBUILD_APP1_SSH_UPLOAD_USER}",
+                        "key": "${WPBUILD_APP1_SSH_UPLOAD_AUTH}"
+                    },
+                    "scp": {
+                        "user": "${WPBUILD_APP1_SSH_UPLOAD_USER}",
+                        "key": "${WPBUILD_APP1_SSH_UPLOAD_AUTH}"
+                    }
+                }
+            },
+            "vscode": {
+                "type": "extension"
+            }
+        },
+        {
+            "name": "webapp",
+            "target": "webworker",
+            "type": "webapp",
+            "entry": {
+                "home": "./home/home.ts",
+                "license": "./license/license.ts",
+                "monitor": "./monitor/monitor.tsx",
+                "parsingReport": "./parsingReport/parsingReport.ts",
+                "releaseNotes": "./releaseNotes/releaseNotes.ts",
+                "taskCount": "./taskCount/taskCount.ts",
+                "taskDetails": "./taskDetails/taskDetails.ts",
+                "taskUsage": "./taskUsage/taskUsage.ts",
+                "welcome": "./welcome/welcome.ts"
+            },
+            "log": {
+                "color": "magenta"
+            },
+            "paths": {
+                "ctx": "src/webview/app",
+                "dist": "res",
+                "src": "src"
+            }
+        },
+        {
+            "name": "types",
+            "target": "node",
+            "type": "types",
+            "log": {
+                "color": "white",
+                "colors": {
+                    "buildBracket": "cyan",
+                    "tagBracket": "cyan"
+                }
+            },
+            "paths": {
+                "dist": "types/build"
+            }
+        }
+    ],
+    "development": {
+        "builds": []
+    },
+    "production": {
+        "builds": []
+    },
+    "test": {
+        "builds": [
+            { "name": "webapp", "mode": "development" },
+            {
+                "name": "tests",
+                "log": {
+                    "color": "yellow"
+                },
+                "paths": {
+                    "ctx": "src/test",
+                    "dist": "dist/test",
+                    "src": "src/test"
+                },
+                "vscode": {
+                    "type": "tests"
+                }
+            }
+        ],
+        "log": {
+            "pad": {
+                "value": 60
+            }
+        }
+    },
+    "log": {
+        "level": 3,
+        "valueMaxLineLength": 100,
+        "pad": {
+            "base": 0,
+            "envTag": 23,
+            "value": 40,
+            "uploadFileName": 50
+        },
+        "colors": {
+            "default": "grey"
+        }
+    },
+    "paths": {
+        "dist": "dist",
+        "src": "src"
+    },
+    "exports": {
+        "cache": true,
+        "devtool": true,
+        "experiments": true,
+        "externals": true,
+        "ignorewarnings": true,
+        "minification": false,
+        "optimization": true,
+        "stats": true,
+        "watch": true
+    },
+    "plugins": {
+        "analyze": {
+            "circular": true,
+            "analyzer": false,
+            "visualizer": false
+        },
+        "banner": true,
+        "ignore": true,
+        "istanbul": false,
+        "licensefiles": false,
+        "loghooks": true,
+        "optimization": true,
+        "progress": false,
+        "scm": false,
+        "sourcemaps": true,
+        "upload": false,
+        "vendormod": true
+    }
+}

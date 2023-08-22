@@ -1,0 +1,24 @@
+{
+    "projectName":              "webpack-wrap",
+    "branch":                   "main",
+    "buildCommand":             "npm run rebuild-prod",
+    "changelogFile":            "CHANGELOG.md",
+    "distReleasePathSrc":       "dist",
+    "githubAssets": [
+        "CHANGELOG.md|Changelog File",
+        "dist\\webpack-wrap.tgz|NPM Tarball"
+    ],
+    "githubRelease":            "Y",
+    "githubUser":               "spmeesseman",
+    "githubReleasePostCommand": "npx rimraf -g \"*.tgz\"",
+    "npmPackDist":              "Y",
+    "npmRegistry":              "https://registry.npmjs.org",
+    "npmRelease":               "Y",
+    "npmScope":                 "@spmeesseman",
+    "promptVersion":            "Y",
+    "repo":                     "https://github.com/spmeesseman/webpack-wrap.git",
+    "repoType":                 "git",
+    "skipChangelogEdits":       "N",
+    "skipVersionEdits":         "Y",
+    "vcWebPath":                "https://github.com/spmeesseman/webpack-wrap"
+}

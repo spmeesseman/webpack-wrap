@@ -1,0 +1,103 @@
+{
+    "name": "@spmeesseman/webpack-wrap",
+    "version": "0.0.1",
+    "displayName": "Webpack Build Wrapper",
+    "description": "Webpack Build Wrapper - Webpack build made easy, adapt new projects with ease",
+    "publisher": "spmeesseman",
+    "license": "MIT",
+    "homepage": "https://github.com/spmeesseman/webpack-wrap/blob/master/README.md",
+    "author": {
+        "name": "Scott Meesseman",
+        "email": "spmeesseman@v.com"
+    },
+    "bugs": {
+        "email": "spmeesseman@gmail.com",
+        "url": "https://github.com/spmeesseman/webpack-wrap/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/spmeesseman/webpack-wrap.git"
+    },
+    "scripts": {
+        "build_types-upload_schema": "npm run build_types && npm run upload_schema",
+        "build_types": "node bin/generate-rc-types.js",
+        "build_types:test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./types/.wpbuildrc.schema.json -o types/rc.base.tmp.d.ts",
+        "upload_schema": "node bin/upload-rc-schema.js",
+        "types-check": "tsc --target es2020 --noEmit --skipLibCheck ./types/index.d.ts && tsc --target es2020 --noEmit --skipLibCheck --allowJs ./utils/constants.js"
+    },
+    "files": [
+        "exports",
+        "plugins",
+        "types/*.d.ts",
+        "types/typedefs.js",
+        "schema/.wpbuildrc.defaults.json",
+        "schema/.wpbuildrc.sample.json",
+        "utils"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "webpack",
+        "wrapper",
+        "javascript",
+        "typescript"
+    ],
+    "devDependencies": {
+		"@spmeesseman/eslint-plugin": "^1.0.0",
+		"@types/node": "^16.18.34",
+		"@types/webpack-bundle-analyzer": "^4.6.0",
+		"@typescript-eslint/eslint-plugin": "^5.11.0",
+		"@typescript-eslint/eslint-plugin-tslint": "^5.11.0",
+		"@typescript-eslint/parser": "^5.11.0","eslint": "^7.32.0",
+		"eslint-plugin-anti-trojan-source": "^1.1.1",
+		"eslint-plugin-import": "^2.22.1",
+		"eslint-plugin-jsdoc": "^46.4.4",
+		"eslint-plugin-no-null": "^1.0.2",
+		"eslint-plugin-prefer-arrow": "^1.2.3",
+		"eslint-plugin-prettier": "^3.3.1",
+        "json-schema-to-typescript": "^13.0.2",
+        "rimraf": "^3.0.2",
+		"typescript": "^4.5.5"
+    },
+    "dependencies": {
+        "@babel/cli": "^7.20.7",
+		"@babel/core": "^7.20.12",
+		"@babel/preset-env": "^7.20.2",
+		"@babel/preset-typescript": "^7.18.6",
+        "babel-loader": "^9.1.2",
+		"circular-dependency-plugin": "^5.2.2",
+		"clean-webpack-plugin": "^4.0.0",
+		"copy-asset-in-memory-webpack-plugin": "^4.0.1",
+		"copy-webpack-plugin": "^11.0.0",
+		"csp-html-webpack-plugin": "^5.1.0",
+		"css-loader": "^6.7.3",
+		"css-minimizer-webpack-plugin": "^4.2.2",
+		"dts-bundle": "^0.7.3",
+        "esbuild": "^0.17.8",
+		"esbuild-loader": "^2.21.0",
+        "glob": "^10.3.3",
+        "gradient-string": "^2.0.2",
+		"image-minimizer-webpack-plugin": "^3.8.1",
+		"json5": "^2.2.2",
+		"minimatch": "^5.1.2",
+		"mini-css-extract-plugin": "^2.7.2",
+		"node-fetch": "^3.3.1",
+		"path-browserify": "^1.0.1",
+		"prompt": "^1.3.0",
+		"sass": "^1.58.0",
+		"sass-loader": "^13.2.0",
+		"source-map": "^0.7.4",
+		"source-map-loader": "^4.0.1",
+		"source-map-support": "^0.5.21",
+		"string-replace-loader": "^3.1.0",
+		"ts-loader": "^8.0.17",
+		"tsc-alias": "^1.8.2",
+		"tsconfig-paths": "^4.1.2",
+        "webpack": "^5.88.0",
+		"webpack-bundle-analyzer": "^4.7.0",
+		"webpack-cli": "^5.1.4",
+		"webpack-node-externals": "^3.0.0",
+		"webpack-visualizer-plugin2": "^1.0.0"
+    }
+}

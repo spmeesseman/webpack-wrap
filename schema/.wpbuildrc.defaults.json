@@ -1,0 +1,114 @@
+{
+    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json",
+    "name": "vscode-taskexplorer",
+    "displayName": "Task Explorer",
+    "detailedDisplayName": "Task Explorer VSCode Extension",
+    "publicInfoProject": true,
+    "source": "typescript",
+    "builds": [
+        {
+            "name": "main",
+            "debug": true,
+            "log": {
+                "color": "cyan"
+            },
+            "plugins": {
+                "licensefiles": true
+            },
+            "vscode": {
+                "type": "extension"
+            }
+        }
+    ],
+    "development": {
+        "builds": [
+            { "name": "main" }
+        ]
+    },
+    "production": {
+        "builds": [
+            { "name": "main", "debug": false }
+        ]
+    },
+    "test": {
+        "builds": [
+            { "name": "main" },
+            {
+                "name": "tests",
+                "log": {
+                    "color": "yellow",
+                    "pad": {
+                        "value": 60
+                    }
+                },
+                "paths": {
+                    "dist": "dist/test",
+                    "src": "src/tests"
+                },
+                "plugins": {
+                    "istanbul": false
+                },
+                "vscode": {
+                    "type": "tests"
+                }
+            }
+        ]
+    },
+    "log": {
+        "level": 2,
+        "valueMaxLineLength": 100,
+        "pad": {
+            "base": 0,
+            "envTag": 22,
+            "value": 45,
+            "uploadFileName": 50
+        },
+        "colors": {
+            "default": "grey",
+            "buildBracket": "blue",
+            "buildText": "white",
+            "infoIcon": "magenta",
+            "valueStar": "cyan",
+            "valueStarText": "white",
+            "tagBracket": "blue",
+            "tagText": "white",
+            "uploadSymbol": "yellow"
+        }
+    },
+    "paths": {
+        "dist": "dist",
+        "src": "src"
+    },
+    "exports": {
+        "cache": true,
+        "devtool": true,
+        "experiments": true,
+        "externals": true,
+        "ignorewarnings": true,
+        "minification": false,
+        "optimization": true,
+        "stats": true,
+        "watch": true
+    },
+    "plugins": {
+        "analyze": {
+            "circular": true,
+            "analyzer": false,
+            "visualizer": false
+        },
+        "banner": false,
+        "ignore": true,
+        "istanbul": false,
+        "licensefiles": false,
+        "loghooks": true,
+        "optimization": true,
+        "progress": false,
+        "scm": false,
+        "sourcemaps": true,
+        "upload": false,
+        "vendormod": true
+    },
+    "vscode": {
+        "type": "none"
+    }
+}
