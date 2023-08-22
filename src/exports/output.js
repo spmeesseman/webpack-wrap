@@ -16,9 +16,9 @@ const { RegexTestsChunk } = require("../utils");
  */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackPathData}  WebpackPathData */
-/** @typedef {import("../../types").WebpackAssetInfo}  WebpackAssetInfo */
-/** @typedef {import("../../types").RequireKeys<WebpackPathData, "filename" | "chunk">} WebpackPathDataOutput */
+/** @typedef {import("../types").WebpackPathData}  WebpackPathData */
+/** @typedef {import("../types").WebpackAssetInfo}  WebpackAssetInfo */
+/** @typedef {import("../types").RequireKeys<WebpackPathData, "filename" | "chunk">} WebpackPathDataOutput */
 
 
 /**

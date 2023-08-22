@@ -142,7 +142,7 @@ module.exports = {
         "jsdoc/require-example": 0,
         "jsdoc/require-file-overview": 0,
         "jsdoc/require-hyphen-before-param-description": 0,
-        "jsdoc/require-jsdoc": 1, // Recommended
+        "jsdoc/require-jsdoc": 0, // Recommended
         "jsdoc/require-param": 0, // Recommended
         "jsdoc/require-param-description": 0, // Recommended
         "jsdoc/require-param-name": 1, // Recommended
@@ -151,7 +151,7 @@ module.exports = {
         "jsdoc/require-property-description": 1, // Recommended
         "jsdoc/require-property-name": 1, // Recommended
         "jsdoc/require-property-type": 1, // Recommended
-        "jsdoc/require-returns": 0, // Recommended
+        "jsdoc/require-returns": 1, // Recommended
         "jsdoc/require-returns-check": 1, // Recommended
         "jsdoc/require-returns-description": 0, // Recommended
         "jsdoc/require-returns-type": 1, // Recommended

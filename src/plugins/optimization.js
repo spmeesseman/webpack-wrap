@@ -11,7 +11,7 @@
 const webpack = require("webpack");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackPluginInstance} WebpackPluginInstance */
+/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**

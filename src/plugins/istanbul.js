@@ -12,13 +12,13 @@ const { apply, asArray } = require("../utils");
 const WpBuildPlugin = require("./base");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackAsset} WebpackAsset */
-/** @typedef {import("../../types").WebpackChunk} WebpackChunk */
-/** @typedef {import("../../types").WebpackSource} WebpackSource */
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../../types").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../../types").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("../types").WebpackAsset} WebpackAsset */
+/** @typedef {import("../types").WebpackChunk} WebpackChunk */
+/** @typedef {import("../types").WebpackSource} WebpackSource */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
+/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 
 
 /**
@@ -109,9 +109,9 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
 
     // const { createInstrumenter } = require("istanbul-lib-instrument");
     //
-    // /** @typedef {import("../../types").WebpackStatsAsset} WebpackStatsAsset */
+    // /** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
     // /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-    // /** @typedef {import("../../types").WebpackPluginInstance} WebpackPluginInstance */
+    // /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
     //
     //
     // /**

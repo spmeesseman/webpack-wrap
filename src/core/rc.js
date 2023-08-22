@@ -10,9 +10,9 @@
 
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
-const { globalEnv } = require("../../utils/global");
-const typedefs = require("../../types/typedefs");
-const WpBuildConsoleLogger = require("../../utils/console");
+const { globalEnv } = require("../utils/global");
+const typedefs = require("../types/typedefs");
+const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const {
@@ -20,7 +20,7 @@ const {
 } = require("../utils/utils");
 const {
     isWpBuildRcBuildType, isWpBuildWebpackMode, isWebpackTarget, WpBuildRcPackageJsonProps
-} = require("../../types/constants");
+} = require("../types/constants");
 
 
 const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
@@ -159,11 +159,11 @@ class WpBuildRc
 
         apply(this,
             this.getJson(this, ".wpbuildrc.json", resolve(__dirname, "..")),
-            this.getJson(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "schema"))
+            this.getJson(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "..", "schema"))
         );
 
         this.pkgJson = pick(
-            this.getJson(this.pkgJson, "package.json", resolve(__dirname, "..", "..")),
+            this.getJson(this.pkgJson, "package.json", resolve(__dirname, "..", "..", ".."), true),
             ...WpBuildRcPackageJsonProps
         );
 
@@ -216,7 +216,7 @@ class WpBuildRc
             if (typesBuild && arge.build !== typesBuild.name && (!rc.isSingleBuild || !existsSync(typesBuild.paths.dist)))
             {
                 rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
-                typesBuild.auto = true;
+                apply(typesBuild, { auto: true });
             }
         }
 
@@ -228,7 +228,7 @@ class WpBuildRc
                 throw WpBuildError.getErrorProperty("type", "utils/app.js");
             }
             wpConfigs.push(app.configureAppBuild());
-            app.build.active = true;
+            apply(app.build, { active: true });
         }
 
         return wpConfigs;
@@ -318,10 +318,11 @@ class WpBuildRc
      * @param {T} thisArg
      * @param {string} file
      * @param {string} dirPath
+     * @param {boolean} [scanUp]
      * @returns {T}
      * @throws {WpBuildError}
      */
-    getJson = (thisArg, file, dirPath = resolve()) =>
+    getJson = (thisArg, file, dirPath, scanUp) =>
     {
         const path = join(dirPath, file);
         try {
@@ -330,7 +331,7 @@ class WpBuildRc
         catch (error)
         {
             const parentDir = dirname(dirPath);
-            if (parentDir === dirPath) {
+            if (!scanUp || parentDir === dirPath) {
                 throw new WpBuildError(`Could not locate or parse '${basename(file)}', check existence or syntax`, "utils/rc.js");
             }
             return this.getJson(thisArg, file, parentDir);
@@ -369,7 +370,7 @@ class WpBuildRc
     getTarget = (build) =>
     {
         let target = build.target;
-        if (!target)
+        if (!isWebpackTarget(target))
         {
             target = "node";
             if (isWebpackTarget(this.args.target)) {
@@ -378,16 +379,10 @@ class WpBuildRc
             else if ((/web(?:worker|app|view)/).test(build.name) || build.type === "webapp") {
                 target = "webworker";
             }
-            else if ((/web|browser/).test(build.name) || build.type === "webmodule") {
+            else if ((/web|browser/).test(build.name)) {
                 target = "web";
             }
             else if ((/module|node/).test(build.name) || build.type === "module") {
-                target = "node";
-            }
-            else if ((/tests?/).test(build.name) && build.mode.startsWith("test")) {
-                target = "node";
-            }
-            else if ((/typ(?:es|ings)/).test(build.name)|| build.type === "types") {
                 target = "node";
             }
         }
@@ -413,17 +408,11 @@ class WpBuildRc
             else if ((/web(?:worker|app|view)/).test(build.name)) {
                 type = "webapp";
             }
-            else if ((/web|browser/).test(build.name)) {
-                type = "webmodule";
-            }
             else if ((/tests?/).test(build.name)) {
                 type = "tests";
             }
             else if ((/typ(?:es|ings)/).test(build.name)) {
                 type = "types";
-            }
-            else if (build.target === "web") {
-                type = "webmodule";
             }
             else if (build.target === "webworker") {
                 type = "webapp";

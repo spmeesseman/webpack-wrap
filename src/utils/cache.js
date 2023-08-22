@@ -11,7 +11,7 @@ const { resolve, isAbsolute } = require("path");
 const { readFileSync, existsSync, writeFileSync } = require("fs");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").IDisposable} IDisposable */
+/** @typedef {import("../types").IDisposable} IDisposable */
 
 
 /**

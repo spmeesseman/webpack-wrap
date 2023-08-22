@@ -1,26 +1,26 @@
+/* eslint-disable import/no-extraneous-dependencies */
 
 /**
- * 
  * @file types/webpack.d.ts
  * @version 0.0.1
  * @license MIT
  * @author @spmeesseman Scott Meesseman
- * 
+ *
  * Handy file links:
- * 
+ *
  * WEBPACK TYPES: file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
  * COMPILER  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
  * TAPABLE   : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
  * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
- * 
+ *
  * @description
- * 
+ *
  * This definition file provides some manipulated base webpack types specifically for this project.
  *
  * All types exported from this definition file are prepended with `Webpack`.
  *
  * Targets:
- * 
+ *
  * async-node[[X].Y]	    Compile for usage in a Node.js-like environment (uses fs and vm to load chunks asynchronously)
  * electron[[X].Y]-main	    Compile for Electron for main process.
  * electron[[X].Y]-renderer	Compile for Electron for renderer process, providing a target using JsonpTemplatePlugin,
@@ -42,7 +42,7 @@
 
 
 import { ConvertType, PickByType } from "./generic";
-import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable"
+import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable";
 import { Schema as WebpackSchema } from "schema-utils/declarations/validate";
 import {
     Asset as WebpackAsset, AssetInfo as WebpackAssetInfo, AssetEmittedInfo as WebpackAssetEmittedInfo,
@@ -50,7 +50,7 @@ import {
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, RuleSetUseItem, ResolveOptions as WebpackResolveOptions
-} from "webpack"
+} from "webpack";
 
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;

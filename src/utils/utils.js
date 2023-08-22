@@ -12,7 +12,7 @@ const JSON5 = require("json5");
 const { glob } = require("glob");
 const { promisify } = require("util");
 const { WebpackError } = require("webpack");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { spawnSync } = require("child_process");
 const { existsSync } = require("fs");
 const { join, resolve, basename, dirname, isAbsolute, relative } = require("path");
@@ -262,7 +262,7 @@ const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions
 
 
 /**
- * @param {import("../../types/typedefs").WpBuildRcBuild} build
+ * @param {import("../types/typedefs").WpBuildRcBuild} build
  * @returns {string | undefined}
  */
 const findTsConfig = (build) =>
@@ -348,7 +348,7 @@ const getExcludes = (app, srcConfig, allowTest, allowTypes, allowDts) =>
 
 
 /**
- * @param {import("../../types/typedefs").WpBuildRcBuild | string} build
+ * @param {import("../types/typedefs").WpBuildRcBuild | string} build
  * @param {string[]} xInclude
  * @returns {typedefs.WpBuildAppTsConfig | undefined}
  */

@@ -33,7 +33,7 @@
  */
 
 const { readFile } = require("fs/promises");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const { WebpackError, ModuleFilenameHelpers } = require("webpack");
 const { isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar } = require("../utils");

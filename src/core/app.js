@@ -11,9 +11,9 @@
  */
 
 const { existsSync } = require("fs");
-const wpexports = require("../../exports");
-const typedefs = require("../../types/typedefs");
-const WpBuildConsoleLogger = require("../../utils/console");
+const wpexports = require("../exports");
+const typedefs = require("../types/typedefs");
+const WpBuildConsoleLogger = require("../utils/console");
 const { isAbsolute, relative, sep, dirname } = require("path");
 const {
     apply, WpBuildError, isPromise, findTsConfig, getTsConfig, isArray, findFilesSync,
@@ -54,11 +54,11 @@ class WpBuildApp
     /**
      * @type {boolean}
      */
-    isMainTests;
+    isMainTest;
     /**
      * @type {boolean}
      */
-    isTests;
+    isTest;
     /**
      * @type {boolean}
      */
@@ -149,11 +149,11 @@ class WpBuildApp
 		{
             args: this.rc.args,
 			global: this.rc.global,
-            isTests: b.name === "tests" || b.type === "tests" ||b. mode.startsWith("test"),
-			isWeb: b.type === "webmodule" || b.type === "webapp" || b.target.startsWith("web"),
-			isMain: b.type === "module" || b.target === "web" || b.name === "main" || b.name === "module",
-			isMainProd: (b.type === "module" || b.target === "web" || b.name === "main" || b.name === "module") && b.mode === "production",
-			isMainTests: (b.type === "module" || b.target === "web" || b.name === "main" || b.name === "module") && b.mode === "test",
+            isTest: b.mode === "test" || b.type === "tests" || b.name.startsWith("test"),
+			isWeb: b.type === "webapp" || b.target.startsWith("web"),
+			isMain: b.type === "module",
+			isMainProd: b.type === "module" && b.mode === "production",
+			isMainTest: b.type === "module" && b.mode === "test",
             mode: b.mode || this.rc.mode,
             paths: b.paths,
             pkgJson: this.rc.pkgJson,

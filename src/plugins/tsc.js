@@ -13,7 +13,7 @@ const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
 const { findFiles, isString, isArray } = require("../utils");
 const { WebpackError } = require("webpack");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { access, readFile } = require("fs/promises");
 const { relative, dirname, join, basename, resolve } = require("path");
 

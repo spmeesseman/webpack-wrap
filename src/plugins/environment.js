@@ -11,9 +11,9 @@
 const WpBuildPlugin = require("./base");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackStatsAsset} WebpackStatsAsset */
-/** @typedef {import("../../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
+/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
 
 
 /**

@@ -15,12 +15,12 @@ const { join, posix, isAbsolute, normalize, relative } = require("path");
 const { isString, apply, WpBuildError } = require("../utils/utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../../types").WebpackPluginInstance} WebpackPluginInstance */
-/** @typedef {import("../../types").WebpackCompilationAssets} WebpackCompilationAssets */
-/** @typedef {import("../../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
+/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
+/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
 class WpBuildCopyPlugin extends WpBuildPlugin

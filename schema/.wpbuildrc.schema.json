@@ -71,6 +71,14 @@
     },
     "definitions":
     {
+        "BooleanDefaultFalse": {
+            "type": "boolean",
+            "default": false
+        },
+        "BooleanDefaultTrue": {
+            "type": "boolean",
+            "default": true
+        },
         "BooleanReadOnly": {
             "type": "boolean",
             "readOnly": true,
@@ -166,15 +174,13 @@
                     "maxLength": 30
                 },
                 "active": {
-                    "type": "boolean",
-                    "readOnly": true
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "auto": {
-                    "type": "boolean",
-                    "readOnly": true
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "debug": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "source": {
                     "$ref": "#/definitions/WpBuildRcSourceCodeType"
@@ -427,19 +433,20 @@
             "type": "string",
             "oneOf": [
                 {
-                    "const": "module"
+                    "const": "module",
+                    "description": "Main module build / application entry point"
                 },
                 {
-                    "const": "tests"
+                    "const": "tests",
+                    "description": "Test suite - e.g. Mocha tests, in which test files use the .test.* or .spec.* file extensions"
                 },
                 {
-                    "const": "types"
+                    "const": "types",
+                    "description": "Typescript types build, outputting .d.ts type definitions"
                 },
                 {
-                    "const": "webapp"
-                },
-                {
-                    "const": "webmodule"
+                    "const": "webapp",
+                    "description": "Webworker application extension(S) used internally by a main module"
                 }
             ]
         },
@@ -479,22 +486,21 @@
         "WpBuildRcExportsInternal": {
             "type": "object",
             "additionalProperties": false,
-            "readOnly": true,
             "properties": {
                 "entry": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "output": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "plugins": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "resolve": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "rules": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanReadOnly"
                 }
             }
         },
@@ -511,6 +517,7 @@
         },
         "WpBuildRcLog": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "color": {
                     "$ref": "#/definitions/WpBuildLogTrueColor"
@@ -563,44 +570,40 @@
                     "maxLength": 15
                 },
                 "envTagDisable": {
-                    "type": "boolean",
-                    "default": false,
-                    "readOnly": true
+                    "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "level": {
                     "type": "number",
                     "title": "WpBuildLogLevel",
-                    "oneOf": [
-                        {
-                            "const": 0,
-                            "description": "No logging"
-                        },
-                        {
-                            "const": 1,
-                            "description": "Logging level 1 - Errors, warnings, and function start/end"
-                        },
-                        {
-                            "const": 2,
-                            "description": "Logging level 2 - Level 1 + parameter values"
-                        },
-                        {
-                            "const": 3,
-                            "description": "Logging level 3 - Level 2 + non-looping processing detail"
-                        },
-                        {
-                            "const": 4,
-                            "description": "Logging level 4 - Level 3 + looping processing detail"
-                        },
-                        {
-                            "const": 5,
-                            "description": "Logging level 5 - Verbose"
-                        }
-                    ],
-                    "additionalProperties": false
+                    "oneOf": [{
+                        "const": 0,
+                        "description": "No logging"
+                    },
+                    {
+                        "const": 1,
+                        "description": "Logging level 1 - Errors, warnings, and function start/end"
+                    },
+                    {
+                        "const": 2,
+                        "description": "Logging level 2 - Level 1 + parameter values"
+                    },
+                    {
+                        "const": 3,
+                        "description": "Logging level 3 - Level 2 + non-looping processing detail"
+                    },
+                    {
+                        "const": 4,
+                        "description": "Logging level 4 - Level 3 + looping processing detail"
+                    },
+                    {
+                        "const": 5,
+                        "description": "Logging level 5 - Verbose"
+                    }]
                 },
                 "pad": {
                     "type": "object",
                     "title": "WpBuildRcLogPad",
+                    "additionalProperties": false,
                     "properties": {
                         "base": {
                             "type": "number",
@@ -618,37 +621,25 @@
                             "type": "number",
                             "default": 50
                         }
-                    },
-                    "additionalProperties": false,
-                    "required": []
+                    }
                 },
                 "timestamp": {
                     "type": "string",
                     "default": "hh:mm:ss:sss",
-                    "oneOf": [
-                        {
-                            "const": "mm:ss"
-                        },
-                        {
-                            "const": "mm:ss:sss"
-                        },
-                        {
-                            "const": "hh:mm:ss"
-                        },
-                        {
-                            "const": "hh:mm:ss:sss"
-                        }
-                    ],
-                    "additionalProperties": false
+                    "enum": [
+                        "mm:ss",
+                        "mm:ss:sss",
+                        "hh:mm:ss",
+                        "hh:mm:ss:sss"
+                    ]
                 },
                 "valueMaxLineLength": {
                     "type": "number",
                     "default": 100,
                     "minValue": 50,
-                    "maxValue": 200
+                    "maxValue": 250
                 }
-            },
-            "additionalProperties": false
+            }
         },
         "WpBuildRcPackageJson": {
             "type": "object",
@@ -768,28 +759,28 @@
                     "$ref": "#/definitions/WpBuildRcPluginConfigBanner"
                 },
                 "ignore": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "istanbul": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "licensefiles": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "loghooks": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "optimization": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "progress": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "scm": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "sourcemaps": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "upload": {
                     "$ref": "#/definitions/WpBuildRcPluginConfigUpload"
@@ -998,88 +989,44 @@
         },
         "WpBuildLogTrueColor": {
             "type": "string",
-            "oneOf": [{
-                "const": "black"
-            },
-            {
-                "const": "blue"
-            },
-            {
-                "const": "cyan"
-            },
-            {
-                "const": "green"
-            },
-            {
-                "const": "grey"
-            },
-            {
-                "const": "magenta"
-            },
-            {
-                "const": "red"
-            },
-            {
-                "const": "white"
-            },
-            {
-                "const": "yellow"
-            }]
+            "enum": [
+                "black",
+                "blue",
+                "cyan",
+                "green",
+                "grey",
+                "magenta",
+                "red",
+                "white",
+                "yellow"
+            ]
         },
         "WpBuildLogColor": {
             "type": "string",
-            "oneOf": [{
-                "const": "black"
-            },
-            {
-                "const": "blue"
-            },
-            {
-                "const": "cyan"
-            },
-            {
-                "const": "green"
-            },
-            {
-                "const": "grey"
-            },
-            {
-                "const": "magenta"
-            },
-            {
-                "const": "red"
-            },
-            {
-                "const": "system"
-            },
-            {
-                "const": "white"
-            },
-            {
-                "const": "yellow"
-            },
-            {
-                "const": "bold"
-            },
-            {
-                "const": "inverse"
-            },
-            {
-                "const": "italic"
-            },
-            {
-                "const": "underline"
-            }]
+            "enum": [
+                "black",
+                "blue",
+                "cyan",
+                "green",
+                "grey",
+                "magenta",
+                "red",
+                "system",
+                "white",
+                "yellow",
+                "bold",
+                "inverse",
+                "italic",
+                "underline"
+            ]
         },
         "WpBuildRcSourceCodeType": {
             "type": "string",
             "default": "typescript",
-            "oneOf": [{
-                "const": "javascript"
-            },
-            {
-                "const": "typescript"
-            }]
+            "enum": [
+                "javascript",
+                "typescript"
+            ]
         },
         "WpBuildRcVsCodeConfig": {
             "type": "object",
@@ -1111,6 +1058,7 @@
         },
         "WpBuildWebpackEntryObject": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "asyncChunks": {
                     "type": "boolean"
@@ -1196,6 +1144,7 @@
             "type": "object",
             "description": "mapping of module names to respective entry point file, relative to context directory",
             "minProperties": 1,
+            "additionalProperties": false,
             "patternProperties": {
                 "^[a-z][\\w\\-\\.]+$": {
                     "$ref": "#/definitions/WpBuildWebpackEntryValue"
@@ -1204,7 +1153,6 @@
             "propertyNames": {
                 "maxLength": 30
             },
-            "additionalProperties": false,
             "examples": [{
                 "entry": {
                     "modulename": "./path/to/entry.ts"
@@ -1244,19 +1192,12 @@
         "WpBuildWebpackMode":  {
             "type": "string",
             "default": "production",
-            "oneOf": [
-            {
-                "const": "development"
-            },
-            {
-                "const": "production"
-            },
-            {
-                "const": "none"
-            },
-            {
-                "const": "test"
-            }]
+            "enum": [
+                "development",
+                "production",
+                "none",
+                "test"
+            ]
         },
         "WpBuildWebpackAliasValue": {
             "anyOf": [{
@@ -1294,8 +1235,7 @@
                 }
             },
             {
-                "alias":
-                {
+                "alias": {
                     ":env": [
                         "src/lib/env/web", "src/webapp/tools/env/web"
                     ],
@@ -1319,111 +1259,57 @@
             "examples": [
             {
                 "context": "/usr/lib/projectname/src",
-                "resolve":
-                    {
-                        "alias":
-                        {
-                            ":env/*": "src/lib/env/node/*",
-                            ":types": "types"
-                        },
-                        "extensions": [ ".ts", ".tsx", ".js", ".jsx", ".json" ]
-                    }
+                "resolve": {
+                    "alias": {
+                        ":env/*": "src/lib/env/node/*",
+                        ":types": "types"
+                    },
+                    "extensions": [
+                        ".ts", ".tsx", ".js", ".jsx", ".json"
+                    ]
+                }
             }]
         },
         "WebpackTarget":  {
             "type": "string",
             "default": "web",
-            "oneOf": [{
-                "const": "node"
-            },
-            {
-                "const": "web"
-            },
-            {
-                "const": "webworker"
-            },
-            {
-                "const": "async-node"
-            },
-            {
-                "const": "node-webkit"
-            },
-            {
-                "const": "electron-main"
-            },
-            {
-                "const": "electron-renderer"
-            },
-            {
-                "const": "electron-preload"
-            },
-            {
-                "const": "nwjs"
-            },
-            {
-                "const": "esX"
-            },
-            {
-                "const": "browserlist"
-            }]
+            "enum": [
+                "node",
+                "web",
+                "webworker",
+                "async-node",
+                "node-webkit",
+                "electron-main",
+                "electron-renderer",
+                "electron-preload",
+                "nwjs",
+                "esX",
+                "browserlist"
+            ]
         },
         "WebpackLibraryType": {
             "type": "string",
             "default": "commonjs2",
-            "oneOf": [{
-                "const": "var"
-            },
-            {
-                "const": "module"
-            },
-            {
-                "const": "assign"
-            },
-            {
-                "const": "assign-properties"
-            },
-            {
-                "const": "this"
-            },
-            {
-                "const": "window"
-            },
-            {
-                "const": "self"
-            },
-            {
-                "const": "global"
-            },
-            {
-                "const": "commonjs"
-            },
-            {
-                "const": "commonjs2"
-            },
-            {
-                "const": "commonjs-module"
-            },
-            {
-                "const": "commonjs-static'"
-            },
-            {
-                "const": "amd"
-            },
-            {
-                "const": "amd-require"
-            },
-            {
-                "const": "umd'"
-            },
-            {
-                "const": "umd2"
-            },
-            {
-                "const": "jsonp"
-            },
-            {
-                "const": "system"
-            }]
+            "enum": [
+                "var",
+                "module",
+                "assign",
+                "assign-properties",
+                "this",
+                "window",
+                "self",
+                "global",
+                "commonjs",
+                "commonjs2",
+                "commonjs-module",
+                "commonjs-static'",
+                "amd",
+                "amd-require",
+                "umd'",
+                "umd2",
+                "jsonp",
+                "system"
+            ]
         }
     }
 }

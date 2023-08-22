@@ -13,8 +13,8 @@ const { isString } = require("../utils");
 
 
 /**
- * @param {import("../../types").WpBuildLogLevel | import("../../types").WebpackLogLevel | undefined} loglevel
- * @returns {import("../../types").WebpackLogLevel}
+ * @param {import("../types").WpBuildLogLevel | import("../types").WebpackLogLevel | undefined} loglevel
+ * @returns {import("../types").WebpackLogLevel}
  */
 const level = (loglevel) =>
 {

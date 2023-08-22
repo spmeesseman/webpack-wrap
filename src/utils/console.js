@@ -3,9 +3,9 @@
 // @ts-check
 
 const gradient = require("gradient-string");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { isString, isObject, isPrimitive, merge } = require("./utils");
-const { isWpBuildLogColor, WpBuildLogTrueColors } = require("../../types/constants");
+const { isWpBuildLogColor, WpBuildLogTrueColors } = require("../types/constants");
 
 
 /**
@@ -23,7 +23,7 @@ class WpBuildConsoleLogger
     options;
     /**
      * @private
-     * @type {import("../../types/typedefs").WpBuildLogColorMapping}
+     * @type {import("../types/typedefs").WpBuildLogColorMapping}
      */
     defaultColor;
     /**

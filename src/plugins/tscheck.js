@@ -9,7 +9,7 @@
  */
 
 const WpBuildPlugin = require("./base");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { apply, WpBuildError } = require("../utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 

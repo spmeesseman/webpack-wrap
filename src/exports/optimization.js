@@ -10,8 +10,8 @@ const { apply } = require("../utils");
  */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackOptimization} WebpackOptimization */
-/** @typedef {import("../../types").WpBuildWebpackConfig} WpBuildWebpackConfig */
+/** @typedef {import("../types").WebpackOptimization} WebpackOptimization */
+/** @typedef {import("../types").WpBuildWebpackConfig} WpBuildWebpackConfig */
 
 
 /**

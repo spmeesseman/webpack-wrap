@@ -5,7 +5,7 @@ const WpBuildApp = require("../core/app");
 const WpBuildCache = require("./cache");
 const { RegexTestsChunk } = require("./regex");
 const WpBuildConsoleLogger = require("./console");
-const {/* START_CONST_DEFS */ isWebpackMode, isWebpackTarget, isWpBuildLogColor, isWpBuildLogTrueColor, isWpBuildRcBuildType, isWpBuildRcPathsProp, isWpBuildRcSourceCodeType, isWpBuildWebpackMode, WebpackModes, WebpackTargets, WpBuildLogColors, WpBuildLogTrueColors, WpBuildRcBuildTypes, WpBuildRcPathsEnum, WpBuildRcPathsProps, WpBuildRcSourceCodeTypes, WpBuildWebpackModes /* END_CONST_DEFS */} = require("../../types/constants");
+const {/* START_CONST_DEFS */ isWebpackMode, isWebpackTarget, isWpBuildLogColor, isWpBuildLogTrueColor, isWpBuildRcBuildType, isWpBuildRcPathsProp, isWpBuildRcSourceCodeType, isWpBuildWebpackMode, WebpackModes, WebpackTargets, WpBuildLogColors, WpBuildLogTrueColors, WpBuildRcBuildTypes, WpBuildRcPathsEnum, WpBuildRcPathsProps, WpBuildRcSourceCodeTypes, WpBuildWebpackModes /* END_CONST_DEFS */} = require("../types/constants");
 
 const {
     apply, applyIf, asArray, capitalize, clone, execAsync, findTsConfig, getTsConfig, merge, mergeIf, isArray,

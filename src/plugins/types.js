@@ -12,7 +12,7 @@ const { resolve } = require("path");
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
 const WpBuildBaseTsPlugin = require("./tsc");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 
 
 /**

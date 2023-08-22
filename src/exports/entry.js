@@ -14,7 +14,7 @@
 
 const { glob } = require("glob");
 const { existsSync } = require("fs");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const { apply, WpBuildError, merge, isObjectEmpty, isString, WpBuildApp } = require("../utils");
 
 

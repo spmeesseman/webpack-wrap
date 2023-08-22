@@ -12,9 +12,9 @@
 const { EOL } = require("os");
 const { existsSync } = require("fs");
 const { resolve, join, basename } = require("path");
-const { execAsync } = require("../utils/utils");
+const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
-const WpBuildConsoleLogger = require("../utils/console");
+const WpBuildConsoleLogger = require("../src/utils/console");
 
 
 const generateEnums = true;
@@ -48,7 +48,7 @@ const requiredProperties = [
 ];
 
 const outputDtsFile = "rc.d.ts";
-const outputDtsDir = resolve(__dirname, "..",  "types");
+const outputDtsDir = resolve(__dirname, "..",  "src", "types");
 const outputDtsPath = join(outputDtsDir, outputDtsFile);
 
 /** @type {string[]} */
@@ -178,7 +178,9 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
           .replace(/ = \{ "= /g, "")
+          .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
+          .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
           // .replace(/export declare type WpBuildLogTrueColor =(?:.*?);\n/g, (v) => v + "\nexport declare type WpBuildLogTrueBaseColor = Omit<WpBuildLogTrueColor, \"system\">;\n")
           .replace(/"\}/g, "\"\n}")
           .replace(/\n/g, EOL);
@@ -279,7 +281,7 @@ const writeConstantsJs = async (hdr, data) =>
 
     let match;
     const rgx = /export declare type (\w*?) = (".*?");\r?\n/g,
-          rgx2 = new RegExp(`export declare type (WpBuildRcPackageJson|WpBuildRcPaths) = ${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
+          rgx2 = new RegExp(`export declare type (WpBuildRcPackageJson|WpBuildRcPaths) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
 
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
 
@@ -308,7 +310,7 @@ const writeConstantsJs = async (hdr, data) =>
     if (lines.length > 0)
     {
         const constantsFile = "constants.js",
-              constantsDir = resolve(__dirname, "..", "types"),
+              constantsDir = resolve(__dirname, "..", "src", "types"),
               constantsPath = join(constantsDir, constantsFile),
               constantsData = await readFile(constantsPath, "utf8");
 
@@ -347,21 +349,21 @@ const writeConstantsJs = async (hdr, data) =>
 const writeIndexJs = async () =>
 {
     const indexFile = "index.js",
-          indexPath= resolve(__dirname, "..", "utils", indexFile);
+          indexPath= resolve(__dirname, "..", "src", "utils", indexFile);
     let data = await readFile(indexPath, "utf8");
     data = data.replace(
         /\/\* START_RC_DEFS \*\/(?:.*?)\/\* END_RC_DEFS \*\//g,
         `/* START_RC_DEFS */ ${exported.sort((a, b) => a.localeCompare(b)).map(e => e.trim()).join(", ")} /* END_RC_DEFS */`
     );
     await writeFile(indexPath, data);
-    logger.success(`   updated exports in utils/${indexFile} (${indexPath})`);
+    logger.success(`   updated exports in src/utils/${indexFile} (${indexPath})`);
 };
 
 
 const writeTypedefsJs = async () =>
 {
     const typesFile = "typedefs.js",
-          typesPath= resolve(__dirname, "..", "types", typesFile);
+          typesPath= resolve(__dirname, "..", "src", "types", typesFile);
     let data = await readFile(typesPath, "utf8");
     data = data.replace(
         /\/\* START_RC_DEFS \*\/(?:[^]*?)\/\* END_RC_DEFS \*\//g,
@@ -371,20 +373,20 @@ const writeTypedefsJs = async () =>
                                             .join("\r\n")}\r\n/* END_RC_DEFS */`
     );
     await writeFile(typesPath, data);
-    logger.success(`   updated definitions in types/${typesFile} (${typesPath})`);
+    logger.success(`   updated definitions in src/types/${typesFile} (${typesPath})`);
 };
 
 
 cliWrap(async () =>
 {
     logger = new WpBuildConsoleLogger({
-        envTag1: "wpbuild", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
+        envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
     logger.printBanner("generate-rc-types.js", "0.0.1", `generating rc configuration file type definitions`);
 
     const inputFile = ".wpbuildrc.schema.json",
           schemaDir = resolve(__dirname, "..", "schema"),
-          indexPath = resolve(__dirname, "..", "types", "index.d.ts"),
+          indexPath = resolve(__dirname, "..", "src", "types", "index.d.ts"),
           jsontotsFlags = "-f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties";
 
     let data = await readFile(indexPath, "utf8");
@@ -396,7 +398,7 @@ cliWrap(async () =>
     data = await readFile(outputDtsPath, "utf8");
     const hdr =  match[0]
           .replace(" with `WpBuild`", " with `WpBuildRc`")
-          .replace("@file types/index.d.ts", `@file types/${outputDtsFile}`)
+          .replace("@file src/types/index.d.ts", `@file types/${outputDtsFile}`)
           .replace("@spmeesseman Scott Meesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
           .replace("Exports all types for this project", description);;
 
@@ -417,7 +419,7 @@ cliWrap(async () =>
         throw new Error(`Output file '${outputDtsFile}' does not exist`);
     }
 
-    logger.write(`      validating ${outputDtsFile}`);
+    logger.write(`   validating ${outputDtsFile}`);
     code = await execAsync({
         logger,
         logPad: "   ",
@@ -442,6 +444,6 @@ cliWrap(async () =>
     }
 
     logger.write(" ");
-    logger.success("rc types and typings created successfully", undefined, "", true);
+    logger.success("types and typings created successfully", undefined, "", true);
     logger.write(" ");
 })();

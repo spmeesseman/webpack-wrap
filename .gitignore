@@ -2,3 +2,5 @@ node_modules
 dist
 types/lib
 .dccache
+src/types/rc.d.ts
+src/types/constants.js

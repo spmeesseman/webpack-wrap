@@ -26,13 +26,12 @@
         "types-check": "tsc --target es2020 --noEmit --skipLibCheck ./types/index.d.ts && tsc --target es2020 --noEmit --skipLibCheck --allowJs ./utils/constants.js"
     },
     "files": [
-        "exports",
-        "plugins",
-        "types/*.d.ts",
-        "types/typedefs.js",
+        "bin/wpwrap.js",
+        "dist",
+        "example",
+        "res",
         "schema/.wpbuildrc.defaults.json",
-        "schema/.wpbuildrc.sample.json",
-        "utils"
+        "types/dist"
     ],
     "publishConfig": {
         "access": "public"

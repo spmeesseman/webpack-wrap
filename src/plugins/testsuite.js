@@ -15,14 +15,14 @@ const WpBuildBaseTsPlugin = require("./tsc");
 const { join, dirname, isAbsolute, resolve, relative } = require("path");;
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackSnapshot} WebpackSnapshot */
-/** @typedef {import("../../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("../../types").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../../types").WebpackPluginInstance} WebpackPluginInstance */
-/** @typedef {import("../../types").WebpackCompilationAssets} WebpackCompilationAssets */
-/** @typedef {import("../../types").WebpackCompilationParams} WebpackCompilationParams */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackSnapshot} WebpackSnapshot */
+/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
+/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
+/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("../types").WebpackCompilationParams} WebpackCompilationParams */
 
 
 class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin

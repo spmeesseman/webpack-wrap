@@ -13,10 +13,10 @@ const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
 const { rename, unlink, readdir } = require("fs/promises");
 
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackStatsAsset} WebpackStatsAsset */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
 
 
 /**

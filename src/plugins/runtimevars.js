@@ -40,12 +40,12 @@ const WpBuildPlugin = require("./base");
 const { isString, apply, isObjectEmpty, merge, WpBuildError } = require("../utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WebpackSource} WebpackSource */
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../../types").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("../types").WebpackSource} WebpackSource */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
+/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../../types").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 
 
 /**

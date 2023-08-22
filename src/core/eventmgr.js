@@ -8,7 +8,7 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 
 
 /**

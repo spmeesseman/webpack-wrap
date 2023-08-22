@@ -41,9 +41,9 @@ const WpBuildPlugin = require("./base");
 const { existsSync, readFileSync, readdirSync, writeFileSync } = require("fs");
 const { build } = require("esbuild");
 
-/** @typedef {import("../../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
 
 
 class WpBuildVendorModPlugin extends WpBuildPlugin

@@ -16,7 +16,7 @@
 const path = require("path");
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
-const typedefs = require("../../types/typedefs");
+const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes } = require("../utils");
 

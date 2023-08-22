@@ -10,7 +10,7 @@
  */
 
 const webpack = require("webpack");
-const { getExcludes } = require("../../utils");
+const { getExcludes } = require("../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 /** @typedef {import("../../../types/typedefs").WpBuildApp} WpBuildApp */
