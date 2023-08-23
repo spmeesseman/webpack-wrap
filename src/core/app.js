@@ -116,15 +116,12 @@ class WpBuildApp
 	 */
 	constructor(rc, build)
 	{
-console.log("A");
         this.rc = rc;
         this.build = build;
         this.errors = [];
         this.warnings = [];
         this.disposables = [];
-console.log("A");
 		this.applyAppRc();
-console.log("A");
         this.initLogger();
 	}
 

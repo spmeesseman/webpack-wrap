@@ -51,6 +51,11 @@ const { isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lo
 class WpBuildPlugin
 {
     /**
+     * @type {typedefs.WpBuildApp}
+     * @protected
+     */
+    app;
+    /**
      * @protected
      */
     cache;
@@ -65,10 +70,15 @@ class WpBuildPlugin
      */
     compiler;
     /**
-     * @type {typedefs.WpBuildApp}
+     * @type {Record<string, any>}
      * @protected
      */
-    app;
+    global;
+    /**
+     * @type {string}
+     * @protected
+     */
+    globalBaseProperty;
     /**
      * @protected
      */
@@ -429,12 +439,13 @@ class WpBuildPlugin
      */
     initGlobalCache()
     {
-        const baseProp = lowerCaseFirstChar(this.name.replace("WpBuild", "").replace("Plugin", ""));
+        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.name.replace("WpBuild", "").replace("Plugin", ""));
         if (!this.app.global[baseProp]) {
             this.app.global[baseProp] = {};
         }
-        this.options.globalCacheProps?.filter(p => !this.app.global[baseProp][p]).forEach(
-            (p) => { this.app.global[baseProp][p] = {}; }
+        this.global = this.app.global[baseProp];
+        this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.global[p]).forEach(
+            (/** @type {string} */p) => { this.global[p] = {}; }
         );
     };
 

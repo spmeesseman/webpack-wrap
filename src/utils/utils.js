@@ -711,7 +711,7 @@ class WpBuildError extends WebpackError
                 message += ` | mode:[${wpc.mode}]`;
             }
             if (wpc.target) {
-                message += ` | target:[${wpc.mode}]`;
+                message += ` | target:[${wpc.target}]`;
             }
         }
         message += ` | [${file}]`;
@@ -732,7 +732,7 @@ class WpBuildError extends WebpackError
      * @returns {WpBuildError}
      */
     static getErrorMissing = (property, file, wpc, detail) =>
-        this.get(`Could not locate wpbuild resource '${property}' environment'${property}'`, file, wpc, detail);
+        this.get(`Could not locate wp-wrap resource '${property}'`, file, wpc, detail);
 
 
     /**
@@ -749,7 +749,8 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, findTsConfig, getExcludes,
-    getTsConfig, isArray, isDate,isEmpty, isFunction, isObject, isObjectEmpty,isPrimitive, isPromise,
-    isString, lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativrPath, resolvePath
+    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, findTsConfig,
+    getExcludes, getTsConfig, isArray, isDate,isEmpty, isFunction, isObject, isObjectEmpty,
+    isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot,
+    uniq, WpBuildError, relativrPath, resolvePath
 };

@@ -325,6 +325,7 @@ const buildOptions =
 /**
  * @function
  * @private
+ * @returns {Record<string, any>}
  */
 const stripLoggingOptions = () => ({
 	multiple: [

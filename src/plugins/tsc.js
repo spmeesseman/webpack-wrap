@@ -38,7 +38,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		l.write("start bundle dts", 1);
 		l.value("   types source directory", typesDirSrc, 2);
 
-		if (!this.app.global.tsbundle.typesBundled && typesDirSrc && typesDirDist)
+		if (!this.global.typesBundled && typesDirSrc && typesDirDist)
 		{
 			const typesDistPathRel = this.app.getDistPath({ rel: true });
 
@@ -85,7 +85,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				};
 				try {
 					dts.bundle(bundleCfg);
-					this.app.global.tsbundle.typesBundled = true;
+					this.global.typesBundled = true;
 					this.compilation.buildDependencies.add(join(typesDirDist, bundleCfg.out));
 					// this.compilation.compilationDependencies.add();this.compilation.
 					// this.compilation.contextDependencies.add();

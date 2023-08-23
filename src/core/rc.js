@@ -90,6 +90,10 @@ class WpBuildRc
      */
     pkgJson;
     /**
+     * @type {string}
+     */
+    pkgJsonPath;
+    /**
      * @type {typedefs.WpBuildRcPlugins}
      */
     plugins;
@@ -147,9 +151,10 @@ class WpBuildRc
             throw WpBuildError.getErrorMissing("mode", "utils/rc.js");
         }
 
-        this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "..", "schema"));
-        this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps);
+        this.applyJsonFromFile(this, ".wpbuildrc.json");
+
+        this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps).path;
 
         //
         // Merge the base rc level and the environment level configurations into each
@@ -175,19 +180,19 @@ class WpBuildRc
      * @param {string} file
      * @param {string} [dirPath]
      * @param {string[]} properties
-     * @returns {T}
+     * @returns {{ path: string; data: T; }}
      * @throws {WpBuildError}
      */
     applyJsonFromFile = (thisArg, file, dirPath = resolve(), ...properties) =>
     {
         const path = join(dirPath, file);
         try {
-            const jso = JSON5.parse(readFileSync(path, "utf8"));
+            let data = JSON5.parse(readFileSync(path, "utf8"));
             if (properties.length > 0) {
-                return pick(jso, ...properties);
+                data = pick(data, ...properties);
             }
-            apply(thisArg, jso);
-            return jso;
+            apply(thisArg, data);
+            return { path, data };
         }
         catch (error)
         {
@@ -468,7 +473,7 @@ class WpBuildRc
 	 */
 	resolvePaths = (build) =>
 	{
-		const base = resolve(__dirname, "..", ".."),
+        const base = dirname(this.pkgJsonPath),
               ostemp = process.env.TEMP || process.env.TMP,
 			  temp = resolve(ostemp ? `${ostemp}${sep}${this.name}` : defaultTempDir, build.mode);
 

@@ -15,7 +15,7 @@ const typedefs = require("../types/typedefs");
 /**
  * @class WpBuildLogHookStagesPlugin
  */
-class WpBuildLogHookStagesPlugin extends WpBuildPlugin
+class WpBuildLogHooksPlugin extends WpBuildPlugin
 {
     /**
      * @class WpBuildLogHookStagesPlugin
@@ -170,10 +170,10 @@ class WpBuildLogHookStagesPlugin extends WpBuildPlugin
  * @function
  * @module
  * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildLogHookStagesPlugin | undefined}
+ * @returns {WpBuildLogHooksPlugin | undefined}
  */
 const loghooks = (app) =>
-	(app.build.plugins.loghooks ? new WpBuildLogHookStagesPlugin({ app }) : undefined);
+	(app.build.plugins.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined);
 
 
 module.exports = loghooks;
