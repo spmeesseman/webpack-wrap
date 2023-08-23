@@ -23,7 +23,7 @@ import { IDisposable } from "./generic";
 import { IWpBuildLogger } from "./logger";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
-    WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler
+    WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode
 } from "./webpack";
 import {
     WpBuildRcPaths, WpBuildWebpackEntry, WpBuildWebpackMode, WpBuildLogLevel, WpBuildRcBuild, WebpackTarget,
@@ -43,7 +43,7 @@ declare type WpBuildRcBuildModeConfigBase = Omit<WpBuildRcBuildModeConfig, "buil
 
 // declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
-declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs;
+declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpBuildWebpackMode | Exclude<WebpackMode, undefined> };
 
 
 declare interface IWpBuildAppSchema extends IWpBuildRcSchema

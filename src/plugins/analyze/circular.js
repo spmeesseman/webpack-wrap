@@ -10,15 +10,12 @@
  */
 
 const webpack = require("webpack");
-const { getExcludes } = require("../utils");
+const { getExcludes } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
-
-/** @typedef {import("../../../types/typedefs").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {import("../../types/typedefs").WpBuildApp} app
  * @returns {CircularDependencyPlugin | undefined}
  */
 const circular = (app) =>

@@ -96,13 +96,17 @@ class WpBuildApp
      */
     tsConfig;
     /**
-     * @type {typedefs.WpBuildWebpackConfig}
-     */
-    wpc;
-    /**
      * @type {typedefs.WpBuildRcVsCode}
      */
     vscode;
+    /**
+     * @type {string[]}
+     */
+    warnings;
+    /**
+     * @type {typedefs.WpBuildWebpackConfig}
+     */
+    wpc;
 
 
 	/**
@@ -115,6 +119,7 @@ class WpBuildApp
         this.rc = rc;
         this.build = build;
         this.errors = [];
+        this.warnings = [];
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
@@ -158,7 +163,7 @@ class WpBuildApp
             paths: b.paths,
             pkgJson: this.rc.pkgJson,
             target: b.target,
-            source: b.source || this.rc.source,
+            source: b.source || "typescript",
             vscode: b.vscode
 		});
 	};
@@ -481,7 +486,7 @@ class WpBuildApp
             if (isArray(value))
             {
                 if (value.includes(path)) {
-                    this.rc.warnings.push(`tsconfig alias extractions have same key/value ${value} / ${path}`);
+                    this.warnings.push(`tsconfig alias extractions have same key/value ${value} / ${path}`);
                 }
                 else {
                     value.push(path);

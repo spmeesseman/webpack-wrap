@@ -30,4 +30,4 @@ const globalEnv = {
 };
 
 
-module.exports = { globalEnv };
+module.exports = globalEnv;

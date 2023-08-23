@@ -10,8 +10,8 @@
 
 
 const { resolve } = require("path");
-const { execAsync } = require("../utils/utils");
-const WpBuildConsoleLogger = require("../utils/console");
+const { execAsync } = require("../src/utils/utils");
+const WpBuildConsoleLogger = require("../src/utils/console");
 
 
 //
@@ -118,8 +118,8 @@ cliWrap(async () =>
         execOptions: { cwd: resolve(__dirname, "..", "schema") },
         command: "pscp " + pscpArgs.join(" ")
     });
-    logger.write(" ");
-    logger.success("successfully uploaded rc schema", undefined, "", true);
-    logger.write(" ");
 
+    logger.blank(undefined, logger.icons.color.success);
+    logger.success("successfully uploaded rc schema", undefined, "", true);
+    logger.blank(undefined, logger.icons.color.success);
 })();

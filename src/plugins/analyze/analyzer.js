@@ -11,8 +11,8 @@
 
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
-/** @typedef {import("../../../types/typedefs").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
+/** @typedef {import("../../types/typedefs").WpBuildApp} WpBuildApp */
+/** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**

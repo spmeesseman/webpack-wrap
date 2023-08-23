@@ -10,7 +10,7 @@
 
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
-const { globalEnv } = require("../utils/global");
+const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
 const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
@@ -61,10 +61,6 @@ class WpBuildRc
      */
     displayName;
     /**
-     * @type {WpBuildError[]}
-     */
-    errors;
-    /**
      * @type {typedefs.WpBuildRcExports}
      */
     exports;
@@ -77,6 +73,8 @@ class WpBuildRc
      */
     log;
     /**
+     * Top level mode passed on command line or calcualted using build definitions
+     * Note that the mode for each defined build may not be of this top level mode
      * @type {typedefs.WpBuildWebpackMode}
      */
     mode;
@@ -105,10 +103,6 @@ class WpBuildRc
      */
     publicInfoProject;
     /**
-     * @type {typedefs.WpBuildRcSourceCodeType}
-     */
-    source;
-    /**
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
     test;
@@ -116,10 +110,6 @@ class WpBuildRc
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
     testproduction;
-    /**
-     * @type {string[]}
-     */
-    warnings;
 
 
     /**
@@ -150,6 +140,7 @@ class WpBuildRc
             warnings: [],
             args: apply({}, arge, argv),
             global: globalEnv,
+            pkgJson: {},
             mode: this.getMode(arge, argv, true)
         });
 
@@ -157,29 +148,15 @@ class WpBuildRc
             throw WpBuildError.getErrorMissing("mode", "utils/rc.js");
         }
 
-        apply(this,
-            this.getJson(this, ".wpbuildrc.json", resolve(__dirname, "..")),
-            this.getJson(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "..", "schema"))
-        );
-
-        this.pkgJson = pick(
-            this.getJson(this.pkgJson, "package.json", resolve(__dirname, "..", "..", ".."), true),
-            ...WpBuildRcPackageJsonProps
-        );
+        this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "..", "schema"));
+        this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps);
 
         //
         // Merge the base rc level and the environment level configurations into each
-        // build configuration and update`this.builds` with fully configured build defs.
+        // build configuration
         //
         this.configureBuilds();
-
-        // if (argv.mode && !isWebpackMode(this.mode))
-        // {
-        //     argv.mode = "none";
-        //     if (process.argv.includes("--mode")) {
-        //         process.argv[process.argv.indexOf("--mode") + 1] = "none";
-        //     }
-        // }
 
 		this.global.verbose = !!this.args.verbosity && this.args.verbosity !== "none";
         this.printBanner(this, arge, argv);
@@ -189,6 +166,38 @@ class WpBuildRc
     get hasTests() { return !!this.builds.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
     get hasTypes() { return !!this.getBuild("types"); }
     get isSingleBuild() { return !!this.args.build; }
+
+
+    /**
+     * @function
+     * @private
+     * @template {Record<string, any>} T
+     * @param {T} thisArg
+     * @param {string} file
+     * @param {string} [dirPath]
+     * @param {string[]} properties
+     * @returns {T}
+     * @throws {WpBuildError}
+     */
+    applyJsonFromFile = (thisArg, file, dirPath = resolve(), ...properties) =>
+    {
+        const path = join(dirPath, file);
+        try {
+            const jso = JSON5.parse(readFileSync(path, "utf8"));
+            if (properties.length > 0) {
+                return pick(jso, ...properties);
+            }
+            return apply(thisArg, jso);
+        }
+        catch (error)
+        {
+            const parentDir = dirname(dirPath);
+            if (parentDir === dirPath) {
+                throw new WpBuildError(`Could not locate or parse '${basename(file)}', check existence or syntax`, "utils/rc.js");
+            }
+            return this.applyJsonFromFile(thisArg, file, parentDir);
+        }
+    };
 
 
     /**
@@ -202,6 +211,14 @@ class WpBuildRc
      */
     static create = (argv, arge) =>
     {
+        // if (argv.mode && !isWebpackMode(this.mode))
+        // {
+        //     argv.mode = "none";
+        //     if (process.argv.includes("--mode")) {
+        //         process.argv[process.argv.indexOf("--mode") + 1] = "none";
+        //     }
+        // }
+
         const rc = new WpBuildRc(argv, arge);
 
         rc.apps.push(
@@ -253,7 +270,7 @@ class WpBuildRc
             dst.mode = dst.mode || this.mode;
             if (this.initializeBaseRc(dst) && this.initializeBaseRc(src))
             {
-                dst.source = dst.source || this.source || "typescript";
+                dst.source = dst.source || "typescript";
                 dst.target = this.getTarget(dst);
                 dst.type = this.getType(dst);
                 const ccColors = merge({}, dst.log.colors);
@@ -309,34 +326,6 @@ class WpBuildRc
      * @returns {typedefs.WpBuildRcBuild | undefined}
      */
     getBuild = (name) => this.builds.find(b => b.type === name || b.name === name);
-
-
-    /**
-     * @function
-     * @template T
-     * @private
-     * @param {T} thisArg
-     * @param {string} file
-     * @param {string} dirPath
-     * @param {boolean} [scanUp]
-     * @returns {T}
-     * @throws {WpBuildError}
-     */
-    getJson = (thisArg, file, dirPath, scanUp) =>
-    {
-        const path = join(dirPath, file);
-        try {
-            return JSON5.parse(readFileSync(path, "utf8"));
-        }
-        catch (error)
-        {
-            const parentDir = dirname(dirPath);
-            if (!scanUp || parentDir === dirPath) {
-                throw new WpBuildError(`Could not locate or parse '${basename(file)}', check existence or syntax`, "utils/rc.js");
-            }
-            return this.getJson(thisArg, file, parentDir);
-        }
-    };
 
 
     /**

@@ -35,9 +35,6 @@
             "maxLength": 30,
             "readOnly": true
         },
-        "source": {
-            "$ref": "#/definitions/WpBuildRcSourceCodeType"
-        },
         "builds": {
             "$ref": "#/definitions/WpBuildRcBuilds"
         },

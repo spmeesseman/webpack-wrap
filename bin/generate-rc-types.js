@@ -96,6 +96,7 @@ const isBaseType = (type) => [
 /**
  * @param {string} hdr
  * @param {string} data
+ * @returns {Promise<string>}
  */
 const parseTypesDts = async (hdr, data) =>
 {
@@ -443,7 +444,8 @@ cliWrap(async () =>
         await writeIndexJs();
     }
 
-    logger.write(" ");
+    logger.blank(undefined, logger.icons.color.success);
     logger.success("types and typings created successfully", undefined, "", true);
-    logger.write(" ");
+    logger.blank(undefined, logger.icons.color.success);
+
 })();

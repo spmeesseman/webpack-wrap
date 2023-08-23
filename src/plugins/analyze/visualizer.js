@@ -11,8 +11,8 @@
 
 const VisualizerPlugin = require("webpack-visualizer-plugin2");
 
-/** @typedef {import("../../../types/typedefs").WpBuildApp} WpBuildApp */
-/** @typedef {import("../../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
+/** @typedef {import("../../types/typedefs").WpBuildApp} WpBuildApp */
+/** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**

@@ -7,6 +7,7 @@ const { RegexTestsChunk } = require("./regex");
 const WpBuildConsoleLogger = require("./console");
 const {/* START_CONST_DEFS */ isWebpackMode, isWebpackTarget, isWpBuildLogColor, isWpBuildLogTrueColor, isWpBuildRcBuildType, isWpBuildRcPathsProp, isWpBuildRcSourceCodeType, isWpBuildWebpackMode, WebpackModes, WebpackTargets, WpBuildLogColors, WpBuildLogTrueColors, WpBuildRcBuildTypes, WpBuildRcPathsEnum, WpBuildRcPathsProps, WpBuildRcSourceCodeTypes, WpBuildWebpackModes /* END_CONST_DEFS */} = require("../types/constants");
 
+const utils = require("./utils");
 const {
     apply, applyIf, asArray, capitalize, clone, execAsync, findTsConfig, getTsConfig, merge, mergeIf, isArray,
     isDate, isEmpty, isFunction, isObject, isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar,
@@ -17,6 +18,6 @@ module.exports = {
     apply, applyIf, asArray, capitalize, clone, execAsync, WpBuildApp, findFiles, findFilesSync, findTsConfig,
     getExcludes, getTsConfig, isArray, isDate, isEmpty, isFunction, isObject, isObjectEmpty, isPrimitive, isPromise,
     isString, lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildCache, WpBuildConsoleLogger,
-    WpBuildError, WpBuildRc, RegexTestsChunk,
+    WpBuildError, WpBuildRc, RegexTestsChunk, utils,
     /* START_CONST_DEFS */ isWebpackMode, isWebpackTarget, isWpBuildLogColor, isWpBuildLogTrueColor, isWpBuildRcBuildType, isWpBuildRcPathsProp, isWpBuildRcSourceCodeType, isWpBuildWebpackMode, WebpackModes, WebpackTargets, WpBuildLogColors, WpBuildLogTrueColors, WpBuildRcBuildTypes, WpBuildRcPathsEnum, WpBuildRcPathsProps, WpBuildRcSourceCodeTypes, WpBuildWebpackModes /* END_CONST_DEFS */
 };

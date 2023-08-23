@@ -106,6 +106,13 @@ class WpBuildConsoleLogger
 
 
     /**
+     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {string | undefined | null | 0 | false} [icon]
+     */
+    blank(level, icon) { this.write(" ", level, "", icon); }
+
+
+    /**
      * @member
      * @private
      * @type {Record<typedefs.WpBuildLogColor, typedefs.WpBuildLogColorValue>}
