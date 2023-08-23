@@ -21,9 +21,9 @@ const { isString, isObject } = require("../utils/utils");
  */
 const banner = (app) =>
 {
-	if (app.build.banner)
+	if (app.build.plugins.banner)
 	{
-		let banner = isString(app.build.banner) ? app.build.banner : undefined;
+		let banner = isString(app.build.plugins.banner) ? app.build.plugins.banner : undefined;
 
 		if (!banner)
 		{

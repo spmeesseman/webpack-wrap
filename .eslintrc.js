@@ -148,7 +148,7 @@ module.exports = {
         "jsdoc/require-param-name": 1, // Recommended
         "jsdoc/require-param-type": 0, // Recommended
         "jsdoc/require-property": 1, // Recommended
-        "jsdoc/require-property-description": 1, // Recommended
+        "jsdoc/require-property-description": 0, // Recommended
         "jsdoc/require-property-name": 1, // Recommended
         "jsdoc/require-property-type": 1, // Recommended
         "jsdoc/require-returns": 1, // Recommended

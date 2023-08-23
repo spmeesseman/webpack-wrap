@@ -49,7 +49,7 @@ const devtool = (app) =>
 			else if (app.mode === "development") {
 				app.wpc.devtool = "eval-source-map";
 			}
-			else if (app.isTests) {
+			else if (app.isTest) {
 				app.wpc.devtool = "eval";
 			}
 		}

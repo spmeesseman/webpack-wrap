@@ -199,7 +199,7 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
  * @returns {WpBuildIstanbulPlugin | undefined}
  */
 const istanbul = (app) =>
-    (app.build.plugins.istanbul && app.isMainTests ? new WpBuildIstanbulPlugin({ app }) : undefined);
+    (app.build.plugins.istanbul && app.isMainTest ? new WpBuildIstanbulPlugin({ app }) : undefined);
 
 
 module.exports = istanbul;

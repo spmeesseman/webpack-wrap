@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
 /**
@@ -187,7 +186,8 @@ class WpBuildRc
             if (properties.length > 0) {
                 return pick(jso, ...properties);
             }
-            return apply(thisArg, jso);
+            apply(thisArg, jso);
+            return jso;
         }
         catch (error)
         {

@@ -183,28 +183,35 @@ const execAsync = async (options) =>
           ignores = asArray(options.ignoreOut),
           logPad = options.logPad || "",
           logger = options.logger,
-          colors = logger.colors,
+          colors = logger?.colors,
           stdout = [], stderr = [],
           program = options.program || options.command.split(" ")[0];
 
     const _handleOutput = (out, stdarr) =>
     {
-        const outs = out.split("\n");
-        outs.filter(o => !!o).map(o => o.toString().trim()).forEach((o) =>
+        if (options.stdout || !logger)
         {
-            if (ignores.every(i => !o.toLowerCase().includes(i.toLowerCase())))
+            console.log(out);
+        }
+        else
+        {
+            const outs = out.split("\n");
+            outs.filter(o => !!o).map(o => o.toString().trim()).forEach((o) =>
             {
-                if (o.startsWith(":") && stdarr.length > 0) {
-                    stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + o;
+                if (ignores.every(i => !o.toLowerCase().includes(i.toLowerCase())))
+                {
+                    if (o.startsWith(":") && stdarr.length > 0) {
+                        stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + o;
+                    }
+                    else if (stdarr.length > 0 && stdarr[stdarr.length - 1].endsWith(":")) {
+                        stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + " " + o;
+                    }
+                    else {
+                        stdarr.push(o);
+                    }
                 }
-                else if (stdarr.length > 0 && stdarr[stdarr.length - 1].endsWith(":")) {
-                    stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + " " + o;
-                }
-                else {
-                    stdarr.push(o);
-                }
-            }
-        });
+            });
+        }
     };
 
     child.stdout?.on("data", (data) => _handleOutput(data, stdout));
@@ -213,26 +220,29 @@ const execAsync = async (options) =>
     child.on("close", (code) =>
     {
         exitCode = code;
-        const clrCode = logger.withColor(code?.toString(), code === 0 ? colors.green : colors.red);
-        const _out = (name, out) =>
+        if (logger)
         {
-            if (out.length > 0)
+            const clrCode = logger.withColor(code?.toString(), code === 0 ? colors.green : colors.red);
+            const _out = (/** @type {string} */ name, /** @type {any[]} */ out) =>
             {
-                const hdr = logger.withColor(`${program} ${name}:`, exitCode !== 0 ? colors.red : colors.yellow);
-                out.forEach((m) =>
+                if (out.length > 0)
                 {
-                    const msg = logger.withColor(m, colors.grey),
-                        lvl = m.length <= 256 ? 1 : (m.length <= 512 ? 2 : (m.length <= 1024 ? 3 : 5));
-                    logger.log(
-                        `${logPad}${hdr} ${msg}`, lvl, "",
-                        exitCode !== 0 ? logger.icons.color.error : logger.icons.color.warning
-                    );
-                });
-            }
-        };
-        _out("stdout", stdout);
-        _out("stderr", stderr);
-        logger.log(`${logPad}${program} completed with exit code bold(${clrCode})`);
+                    const hdr = logger.withColor(`${program} ${name}:`, exitCode !== 0 ? colors.red : colors.yellow);
+                    out.forEach((m) =>
+                    {
+                        const msg = logger.withColor(m, colors.grey),
+                            lvl = m.length <= 256 ? 1 : (m.length <= 512 ? 2 : (m.length <= 1024 ? 3 : 5));
+                        logger.log(
+                            `${logPad}${hdr} ${msg}`, lvl, "",
+                            exitCode !== 0 ? logger.icons.color.error : logger.icons.color.warning
+                        );
+                    });
+                }
+            };
+            _out("stdout", stdout);
+            _out("stderr", stderr);
+            logger.log(`${logPad}${program} completed with exit code bold(${clrCode})`);
+        }
     });
 
     try {
@@ -644,6 +654,7 @@ const pickNot = (obj, ...keys) =>
 /**
  * @param {string} b base directory
  * @param {string} p configured path (relative or absolute)
+ * @returns {string}
  */
 const relativrPath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } return p; };
 
@@ -651,6 +662,7 @@ const relativrPath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } retu
 /**
  * @param {string} b base directory
  * @param {string} p configured path (relative or absolute)
+ * @returns {string}
  */
 const resolvePath = (b, p) => { if (!isAbsolute(p)) { p = resolve(b, p); } return p; };
 

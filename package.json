@@ -23,7 +23,7 @@
         "build_types": "node bin/generate-rc-types.js",
         "build_types:test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./types/.wpbuildrc.schema.json -o types/rc.base.tmp.d.ts",
         "upload_schema": "node bin/upload-rc-schema.js",
-        "types-check": "tsc --target es2020 --noEmit --skipLibCheck ./types/index.d.ts && tsc --target es2020 --noEmit --skipLibCheck --allowJs ./utils/constants.js"
+        "types-check": "tsc --target es2020 --noEmit --skipLibCheck ./src/types/index.d.ts && tsc --target es2020 --moduleResolution node --noEmit --skipLibCheck --allowJs ./src/core/rc.js"
     },
     "files": [
         "bin/wpwrap.js",
@@ -42,6 +42,9 @@
         "javascript",
         "typescript"
     ],
+    "bin": {
+        "wpwrap": "./bin/wpwrap.js"
+    },
     "devDependencies": {
         "@spmeesseman/eslint-plugin": "^1.0.0",
         "@types/circular-dependency-plugin": "^5.0.5",
@@ -66,6 +69,7 @@
         "@babel/core": "^7.20.12",
         "@babel/preset-env": "^7.20.2",
         "@babel/preset-typescript": "^7.18.6",
+        "@spmeesseman/arg-parser": "^1.2.0",
         "babel-loader": "^9.1.2",
         "circular-dependency-plugin": "^5.2.2",
         "clean-webpack-plugin": "^4.0.0",

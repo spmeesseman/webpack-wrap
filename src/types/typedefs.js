@@ -1,3 +1,4 @@
+/* eslint-disable spaced-comment */
 
 /**
  * @namespace typedefs
@@ -130,8 +131,9 @@
  * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
  * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
  * @property {string} [program] program name to diasplay in any logging
- * @property {typedefs.WpBuildConsoleLogger} logger a WpBuildConsoleLogger instance
+ * @property {typedefs.WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
+ * @property {boolean} [stdout] a padding to prepend any log messages with
  * @returns {Promise<number | null>}
  */
 

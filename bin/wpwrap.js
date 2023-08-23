@@ -1,38 +1,62 @@
 #!/usr/bin/env node
 /* eslint-disable prefer-arrow/prefer-arrow-functions */
+// @ts-check
+
+const { resolve } = require("path");
+const gradient = require("gradient-string");
+const { execAsync } = require("../src/utils/utils");
+const { wpwCliOptions } = require("../src/core/cli");
+const { parseArgs, displayHelp } = require("@spmeesseman/arg-parser");
+
+
 
 //
 // Command line runtime wrapper
 //
 const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
                 (/** @type {string[]} */ argv) => {
-                    exe(argv).catch(e => { try { (logger || console).error(e); } catch {} process.exit(1); });
+                    exe(process.argv.slice(2)).catch(e => { try { console.error(e); } catch {} process.exit(1); });
                 };
 
-async function run ()
+const parserOpts = {
+    enforceConstraints: false,
+    ignorePositional: [ "-p", "--profile" ]
+};
+const options = parseArgs(wpwCliOptions, parserOpts);
+
+for (const o in options)
 {
-    const { argv, childArgs, yargs } = await configUtil();
-
-    if (argv._.length === 0)
-    {
-        process.exitCode = 1;
-        yargs.showHelp();
-        return;
-    }
-
-    process.exitCode = 0;
-    foreground(childArgs, async () =>
-    {
-        const mainChildExitCode = process.exitCode;
-        try
-        {
-            console.log("TODO!!!");
-        }
-        catch (error) {
-            process.exitCode = process.exitCode || mainChildExitCode || 1;
-            console.error(error.message);
-        }
-    });
 }
 
-cliWrap(run)();
+//
+// If user specified '-h' or --help', then just display help and exit
+//
+if (options.help)
+{
+    const title =
+`----------------------------------------------------------------------------
+Detailed Help
+----------------------------------------------------------------------------
+`;
+    process.stdout.write(gradient("cyan", "pink").multiline(title, {interpolation: "hsv"}));
+    displayHelp(wpwCliOptions);
+    process.exit(0);
+}
+
+//
+// If user specified '--version', then just display version and exit
+//
+if (options.version)
+{
+    const title =
+`----------------------------------------------------------------------------
+WpWrap Version :  ${require("../package.json").version}
+----------------------------------------------------------------------------
+`;
+    process.stdout.write(gradient("cyan", "pink").multiline(title, {interpolation: "hsv"}));
+    process.exit(0);
+}
+
+cliWrap((argv) => execAsync({
+    command: `npx webpack ${argv.join(" ").replace(/(?:\-\-config|\-c) .*?\.js/, "")} --config ${resolve(__dirname, "..", "webpack.config.js")}`
+}))();
