@@ -118,7 +118,7 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
         for (const chunk of Array.from(compilation.chunks).filter(c => c.canBeInitial() && c.name && !RegexTestsChunk.test(c.name)))
         {
-            for (const file of Array.from(chunk.files).filter(f => this.matchObject(f)))
+            for (const file of Array.from(chunk.files))
             {
                 const asset = compilation.getAsset(file);
                 if (asset && chunk.name && (app.global.runtimeVars.next[chunk.name] !== app.global.runtimeVars.current[chunk.name] || !app.global.runtimeVars.previous[chunk.name]))

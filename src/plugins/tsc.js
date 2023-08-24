@@ -9,9 +9,9 @@
  */
 
 const dts = require("dts-bundle");
-const { existsSync } = require("fs");
+const { existsSync, unlinkSync } = require("fs");
 const WpBuildPlugin = require("./base");
-const { findFiles, isString, isArray } = require("../utils");
+const { findFiles, isString, isArray, WpBuildError } = require("../utils");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { access, readFile } = require("fs/promises");
@@ -42,7 +42,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		{
 			const typesDistPathRel = this.app.getDistPath({ rel: true });
 
-			Object.entries(assets).filter(([ file, _ ]) => this.matchObject(file) && this.isEntryAsset(file)).forEach(([ file, _ ]) =>
+			Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
 			{
 				const asset = this.compilation.getAsset(file);
 				if (asset) {
@@ -70,7 +70,12 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			}
 			if (existsSync(entryFile))
 			{
+				const outputFile = this.app.build.name + ".d.ts",
+					  outputPath = join(typesDirDist, outputFile);
 				l.value("  using tsconfig file", entryFile, 2);
+				if (existsSync(outputPath)) {
+					unlinkSync(outputPath);
+				}
 				/** @type {typedefs.WpBuildDtsBundleOptions} */
 				const bundleCfg = {
 					name: `${this.app.pkgJson.name}-${this.app.build.name}`,
@@ -78,7 +83,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 					headerPath: "",
 					headerText: "",
 					main: join(typesDistPathRel, basename(entryFile)),
-					out: this.app.build.name + ".d.ts",
+					out: outputFile,
 					outputAsModuleFolder: true,
 					// removeSource: true,
 					verbose: this.app.build.log.level === 5
@@ -113,21 +118,26 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 	/**
 	 * @function Executes a typescript build using the specified tsconfig
 	 * @protected
-	 * @param {typedefs.WpBuildAppTsConfig} tsc
+	 * @param {typedefs.WpwRcSourceCodeConfig} tsc
 	 * @param {string[]} args
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
+	 * @throws {WpBuildError}
 	 */
 	execTsBuild = async (tsc, args, identifier, outputDir, alias) =>
 	{
+		if (!tsc.path) {
+			this.handleError(new WpBuildError("Invalid source code configured path", "plugins/tsc.js"));
+			return;
+		}
 		// const babel = [
 		// 	"npx", "babel", tsConfig, "--out-dir", outputDir, "--extensions", ".ts",
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
 		const logger = this.app.logger;
 		let command = `npx tsc ${args.join(" ")}`;
-		logger.write(`   execute typescript build @ italic(${tsc?.path})`, 1);
+		logger.write(`   execute typescript build @ italic(${tsc.path})`, 1);
 
 		let code = await this.exec(command, "tsc");
 		if (code !== 0)

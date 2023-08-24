@@ -478,17 +478,6 @@ class WpBuildPlugin
 
 
     /**
-     * Webpack ModuleFilenameHelpers - matches properties `include`, `exclude`, and
-     * `test` on the plugin options object
-     * @function
-     * @protected
-     * @param {string} str
-     * @returns {boolean}
-     */
-    matchObject = (str) => ModuleFilenameHelpers.matchObject.bind(undefined, this.options, str);
-
-
-    /**
      * Called by extending class from apply()
      * @function
      * @protected
@@ -716,9 +705,9 @@ class WpBuildPlugin
               callback = options.callback,
               logMsg = this.breakProp(message);
         if (!options.async) {
-            return (...args) => { logger.start(logMsg, 1); callback.call(this, ...args); };
+            return (arg) => { logger.start(logMsg, 1); callback(arg); };
         }
-        return async (...args) => { logger.start(logMsg, 1); await callback.call(this, ...args); };
+        return async (arg) => { logger.start(logMsg, 1); await callback(arg); };
     }
 
 

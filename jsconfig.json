@@ -1,0 +1,42 @@
+{
+    "compilerOptions": {
+      "allowSyntheticDefaultImports": true,
+      "alwaysStrict": false,
+      "allowUnreachableCode": false,
+      "allowUnusedLabels": false,
+      "checkJs": true,
+      "experimentalDecorators": true,
+      "lib": [
+        "es2020"
+      ],
+      "module": "commonjs", // "amd", "commonJS", "es2015", "es6", "esnext", "none", "system", "umd"
+      "moduleResolution": "node",
+      "noFallthroughCasesInSwitch": false,
+      "noImplicitAny": false,
+      "noImplicitOverride": false,
+      "noImplicitReturns" : false,
+      "noImplicitUseStrict": true,
+      "noImplicitThis": false,
+      "noPropertyAccessFromIndexSignature": false,
+      "noUncheckedIndexedAccess": false,
+      "noUnusedLocals": false,
+      "noUnusedParameters": false,
+      "resolveJsonModule": true,
+      "skipLibCheck": true,
+      "strict": true, //,
+      "strictBindCallApply": true,
+      "strictFunctionTypes": true,
+      "strictNullChecks": true,
+      "strictPropertyInitialization": false,
+      "suppressImplicitAnyIndexErrors": true,
+      "suppressExcessPropertyErrors": true,
+      // "baseUrl": ".",
+      // "paths": {
+      //   "ClientApp/*": ["./ClientApp/*"]
+      // }
+      "target": "es2020",      // "es5", "es6", "es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext".
+      "useUnknownInCatchVariables": false
+    },
+    "exclude": [ "node_modules" ],
+    "include": [ "src/**/*.js", "bin/**/*.js", "schema/**/*.json" ]
+}

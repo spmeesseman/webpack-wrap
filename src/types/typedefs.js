@@ -4,89 +4,125 @@
  * @namespace typedefs
  */
 
-
 /***********************************************************************************************************************
- * WPBUILDRC
+ * WPBUILDRC - AUTO GENERATED / DO NOT MODIFY
  ***********************************************************************************************************************/
 
 /* START_RC_DEFS */
+/** @typedef {import("./rc").FileName} FileName */
+/** @typedef {import("./rc").FilePath} FilePath */
 /** @typedef {import("./rc").WpBuildRcLog} WpBuildRcLog */
+/** @typedef {import("./rc").DirectoryPath} DirectoryPath */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
-/** @typedef {import("./rc").WebpackTargets} WebpackTargets */
 /** @typedef {import("./rc").WpBuildRcBuild} WpBuildRcBuild */
 /** @typedef {import("./rc").WpBuildRcPaths} WpBuildRcPaths */
-/** @typedef {import("./rc").WpBuildRcPaths} WpBuildRcPaths */
-/** @typedef {import("./rc").isWebpackTarget} isWebpackTarget */
 /** @typedef {import("./rc").WpBuildLogColor} WpBuildLogColor */
+/** @typedef {import("./rc").WpBuildLogLevel} WpBuildLogLevel */
+/** @typedef {import("./rc").WpBuildRcBuilds} WpBuildRcBuilds */
 /** @typedef {import("./rc").WpBuildRcLogKey} WpBuildRcLogKey */
 /** @typedef {import("./rc").WpBuildRcLogPad} WpBuildRcLogPad */
+/** @typedef {import("./rc").WpBuildRcSchema} WpBuildRcSchema */
+/** @typedef {import("./rc").WpwRcSourceCode} WpwRcSourceCode */
+/** @typedef {import("./rc").FilePathRelative} FilePathRelative */
+/** @typedef {import("./rc").IWpBuildRcSchema} IWpBuildRcSchema */
 /** @typedef {import("./rc").TypeWpBuildRcLog} TypeWpBuildRcLog */
-/** @typedef {import("./rc").WpBuildLogColors} WpBuildLogColors */
 /** @typedef {import("./rc").WpBuildRcExports} WpBuildRcExports */
 /** @typedef {import("./rc").WpBuildRcPlugins} WpBuildRcPlugins */
-/** @typedef {import("./rc").isWpBuildLogColor} isWpBuildLogColor */
+/** @typedef {import("./rc").DirectoryPathGlob} DirectoryPathGlob */
 /** @typedef {import("./rc").WpBuildRcBuildKey} WpBuildRcBuildKey */
 /** @typedef {import("./rc").WpBuildRcPathsKey} WpBuildRcPathsKey */
+/** @typedef {import("./constants").WebpackTargets} WebpackTargets */
+/** @typedef {import("./rc").BooleanDefaultTrue} BooleanDefaultTrue */
 /** @typedef {import("./rc").TypeWpBuildRcBuild} TypeWpBuildRcBuild */
 /** @typedef {import("./rc").TypeWpBuildRcPaths} TypeWpBuildRcPaths */
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
 /** @typedef {import("./rc").WpBuildRcBuildType} WpBuildRcBuildType */
 /** @typedef {import("./rc").WpBuildRcLogColors} WpBuildRcLogColors */
 /** @typedef {import("./rc").WpBuildRcLogPadKey} WpBuildRcLogPadKey */
-/** @typedef {import("./rc").WpBuildRcPathsEnum} WpBuildRcPathsEnum */
 /** @typedef {import("./rc").WpBuildWebpackMode} WpBuildWebpackMode */
+/** @typedef {import("./rc").WpwRcSourceCodeKey} WpwRcSourceCodeKey */
+/** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
+/** @typedef {import("./rc").BooleanDefaultFalse} BooleanDefaultFalse */
 /** @typedef {import("./rc").TypeWpBuildRcLogPad} TypeWpBuildRcLogPad */
-/** @typedef {import("./rc").WebpackLibraryTypes} WebpackLibraryTypes */
+/** @typedef {import("./rc").TypeWpwRcSourceCode} TypeWpwRcSourceCode */
 /** @typedef {import("./rc").WpBuildLogTrueColor} WpBuildLogTrueColor */
-/** @typedef {import("./rc").WpBuildRcBuildTypes} WpBuildRcBuildTypes */
-/** @typedef {import("./rc").WpBuildRcPathsProps} WpBuildRcPathsProps */
-/** @typedef {import("./rc").WpBuildWebpackModes} WpBuildWebpackModes */
-/** @typedef {import("./rc").isWebpackLibraryType} isWebpackLibraryType */
-/** @typedef {import("./rc").isWpBuildRcBuildType} isWpBuildRcBuildType */
-/** @typedef {import("./rc").isWpBuildRcPathsProp} isWpBuildRcPathsProp */
-/** @typedef {import("./rc").isWpBuildWebpackMode} isWpBuildWebpackMode */
-/** @typedef {import("./rc").WpBuildLogTrueColors} WpBuildLogTrueColors */
-/** @typedef {import("./rc").WpBuildRcPackageJson} WpBuildRcPackageJson */
-/** @typedef {import("./rc").isWpBuildLogTrueColor} isWpBuildLogTrueColor */
-/** @typedef {import("./rc").WpBuildRcLogColorsKey} WpBuildRcLogColorsKey */
-/** @typedef {import("./rc").TypeWpBuildRcLogColors} TypeWpBuildRcLogColors */
-/** @typedef {import("./rc").WpBuildRcSourceCodeType} WpBuildRcSourceCodeType */
-/** @typedef {import("./rc").WpBuildRcSourceCodeTypes} WpBuildRcSourceCodeTypes */
-/** @typedef {import("./rc").isWpBuildRcSourceCodeType} isWpBuildRcSourceCodeType */
-/** @typedef {import("./rc").WpBuildRcPackageJsonProps} WpBuildRcPackageJsonProps */
-/** @typedef {import("./rc").isWpBuildRcPackageJsonProp} isWpBuildRcPackageJsonProp */
-/* END_RC_DEFS */
-
-/** @typedef {import("./rc").WpBuildRcBuilds} WpBuildRcBuilds */
-/** @typedef {import("./rc").WpBuildRcVsCode} WpBuildRcVsCode */
-/** @typedef {import("./rc").WpBuildLogLevel} WpBuildLogLevel */
-/** @typedef {import("./rc").IWpBuildRcSchema} IWpBuildRcSchema */
 /** @typedef {import("./rc").WpBuildWebpackEntry} WpBuildWebpackEntry */
-/** @typedef {import("./rc").WpBuildWebpackEntryValue} WpBuildWebpackEntryValue */
+/** @typedef {import("./rc").WpwRcSourceCodeType} WpwRcSourceCodeType */
+/** @typedef {import("./constants").WpBuildLogColors} WpBuildLogColors */
+/** @typedef {import("./rc").WpBuildRcExportsUser} WpBuildRcExportsUser */
+/** @typedef {import("./rc").WpBuildRcPackageJson} WpBuildRcPackageJson */
+/** @typedef {import("./rc").WpBuildRcPluginsUser} WpBuildRcPluginsUser */
+/** @typedef {import("./constants").isWpBuildLogColor} isWpBuildLogColor */
+/** @typedef {import("./rc").DirectoryPathRelative} DirectoryPathRelative */
+/** @typedef {import("./rc").WebpackConfigOverride} WebpackConfigOverride */
+/** @typedef {import("./rc").WpBuildRcLogColorsKey} WpBuildRcLogColorsKey */
+/** @typedef {import("./rc").WpBuildRcVsCodeConfig} WpBuildRcVsCodeConfig */
+/** @typedef {import("./rc").WpwRcSourceCodeConfig} WpwRcSourceCodeConfig */
+/** @typedef {import("./constants").WpBuildRcPathsEnum} WpBuildRcPathsEnum */
+/** @typedef {import("./rc").TypeWpBuildRcLogColors} TypeWpBuildRcLogColors */
+/** @typedef {import("./constants").WebpackLibraryTypes} WebpackLibraryTypes */
+/** @typedef {import("./constants").WpBuildRcBuildTypes} WpBuildRcBuildTypes */
+/** @typedef {import("./constants").WpBuildRcPathsProps} WpBuildRcPathsProps */
+/** @typedef {import("./constants").WpBuildWebpackModes} WpBuildWebpackModes */
+/** @typedef {import("./constants").isWebpackLibraryType} isWebpackLibraryType */
+/** @typedef {import("./constants").isWpBuildRcBuildType} isWpBuildRcBuildType */
+/** @typedef {import("./constants").isWpBuildRcPathsProp} isWpBuildRcPathsProp */
+/** @typedef {import("./constants").isWpBuildWebpackMode} isWpBuildWebpackMode */
+/** @typedef {import("./constants").WpBuildLogTrueColors} WpBuildLogTrueColors */
+/** @typedef {import("./constants").WpwRcSourceCodeTypes} WpwRcSourceCodeTypes */
 /** @typedef {import("./rc").WpBuildRcBuildModeConfig} WpBuildRcBuildModeConfig */
-/** @typedef {import("./rc").WpBuildWebpackEntryObject} WpBuildWebpackEntryObject */
+/** @typedef {import("./rc").WpBuildRcExportsInternal} WpBuildRcExportsInternal */
+/** @typedef {import("./rc").WpBuildRcPluginsInternal} WpBuildRcPluginsInternal */
+/** @typedef {import("./rc").WpBuildWebpackAliasValue} WpBuildWebpackAliasValue */
+/** @typedef {import("./rc").WpBuildWebpackEntryValue} WpBuildWebpackEntryValue */
+/** @typedef {import("./rc").WpwRcSourceCodeConfigKey} WpwRcSourceCodeConfigKey */
+/** @typedef {import("./constants").isWpBuildLogTrueColor} isWpBuildLogTrueColor */
+/** @typedef {import("./constants").isWpwRcSourceCodeType} isWpwRcSourceCodeType */
+/** @typedef {import("./rc").TypeWpwRcSourceCodeConfig} TypeWpwRcSourceCodeConfig */
 /** @typedef {import("./rc").WpBuildWebpackAliasConfig} WpBuildWebpackAliasConfig */
+/** @typedef {import("./rc").WpBuildWebpackEntryObject} WpBuildWebpackEntryObject */
+/** @typedef {import("./rc").FilePathRelativeLeadingDot} FilePathRelativeLeadingDot */
+/** @typedef {import("./rc").WpBuildRcPluginConfigBanner} WpBuildRcPluginConfigBanner */
+/** @typedef {import("./rc").WpBuildRcPluginConfigUpload} WpBuildRcPluginConfigUpload */
+/** @typedef {import("./rc").WpwRcSourceCodeNodeJsModule} WpwRcSourceCodeNodeJsModule */
+/** @typedef {import("./rc").WpwRcSourceCodeNodeJsTarget} WpwRcSourceCodeNodeJsTarget */
+/** @typedef {import("./rc").WpBuildRcPluginConfigAnalyze} WpBuildRcPluginConfigAnalyze */
+/** @typedef {import("./rc").WpwRcSourceCodeConfigOptions} WpwRcSourceCodeConfigOptions */
+/** @typedef {import("./constants").WpBuildRcPackageJsonProps} WpBuildRcPackageJsonProps */
+/** @typedef {import("./constants").isWpBuildRcPackageJsonProp} isWpBuildRcPackageJsonProp */
+/** @typedef {import("./rc").WpBuildRcPluginConfigVendorMod} WpBuildRcPluginConfigVendorMod */
+/** @typedef {import("./rc").WpwRcSourceCodeConfigOptionsKey} WpwRcSourceCodeConfigOptionsKey */
+/** @typedef {import("./constants").WpwRcSourceCodeNodeJsModules} WpwRcSourceCodeNodeJsModules */
+/** @typedef {import("./constants").WpwRcSourceCodeNodeJsTargets} WpwRcSourceCodeNodeJsTargets */
+/** @typedef {import("./rc").TypeWpwRcSourceCodeConfigOptions} TypeWpwRcSourceCodeConfigOptions */
+/** @typedef {import("./constants").isWpwRcSourceCodeNodeJsModule} isWpwRcSourceCodeNodeJsModule */
+/** @typedef {import("./constants").isWpwRcSourceCodeNodeJsTarget} isWpwRcSourceCodeNodeJsTarget */
+/** @typedef {import("./rc").WpwRcSourceCodeConfigCompilerOptions} WpwRcSourceCodeConfigCompilerOptions */
+/** @typedef {import("./rc").WpwRcSourceCodeNodeJsModuleResolution} WpwRcSourceCodeNodeJsModuleResolution */
+/** @typedef {import("./constants").WpwRcSourceCodeNodeJsModuleResolutions} WpwRcSourceCodeNodeJsModuleResolutions */
+/** @typedef {import("./constants").isWpwRcSourceCodeNodeJsModuleResolution} isWpwRcSourceCodeNodeJsModuleResolution */
+/* END_RC_DEFS */
 
 
 /***********************************************************************************************************************
- * WPBUILDAPP
+ * WPBUILDAPP APP.D.TS
  ***********************************************************************************************************************/
 
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
 /** @typedef {import("./app").IWpBuildAppSchema} IWpBuildAppSchema */
-/** @typedef {import("./app").WpBuildAppTsConfig} WpBuildAppTsConfig */
+/** @typedef {import("./app").WpBuildAppJsTsConfig} WpBuildAppJsTsConfig */
 /** @typedef {import("./app").WpBuildWebpackConfig} WpBuildWebpackConfig */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
-/** @typedef {import("./app").WpBuildAppTsConfigJson} WpBuildAppTsConfigJson */
+/** @typedef {import("./app").WpBuildAppJsTsConfigJson} WpBuildAppJsTsConfigJson */
 /** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
 /** @typedef {import("./app").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
 /** @typedef {import("./app").WpBuildCombinedRuntimeArgs} WpBuildCombinedRuntimeArgs */
 /** @typedef {import("./app").WpBuildRcBuildModeConfigBase} WpBuildRcBuildModeConfigBase */
-/** @typedef {import("./app").WpBuildAppTsConfigCompilerOptions} WpBuildAppTsConfigCompilerOptions */
+/** @typedef {import("./app").WpBuildAppJsTsConfigCompilerOptions} WpBuildAppJsTsConfigCompilerOptions */
 
 
 /***********************************************************************************************************************
- * PLUGINS
+ * PLUGINS PLUGIN.D.TS
  ***********************************************************************************************************************/
 
 /** @typedef {import("./plugin").WpBuildDtsBundleOptions} WpBuildDtsBundleOptions */
@@ -109,17 +145,8 @@
 
 
 /***********************************************************************************************************************
- * UTILS
+ * GENERIC.D.TS
  ***********************************************************************************************************************/
-
-/** @typedef {import("../utils").WpBuildRc} WpBuildRc */
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
-
-/** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
-/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
-/** @typedef {import("./logger").WpBuildLogColorValue} WpBuildLogColorValue */
-/** @typedef {import("./logger").WpBuildLogColorMapping} WpBuildLogColorMapping */
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
 /** @typedef {import("./generic").RequireKeys<WpBuildPluginOptions, "plugins">} WpBuildPluginOptionsRequired */
@@ -131,7 +158,7 @@
  * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
  * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
  * @property {string} [program] program name to diasplay in any logging
- * @property {typedefs.WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
+ * @property {WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
  * @property {boolean} [stdout] a padding to prepend any log messages with
  * @returns {Promise<number | null>}
@@ -146,10 +173,29 @@
 
 
 /***********************************************************************************************************************
+ * UTILS
+ ***********************************************************************************************************************/
+
+/** @typedef {import("../utils").WpBuildRc} WpBuildRc */
+/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
+
+
+/***********************************************************************************************************************
+ * LOGGER
+ ***********************************************************************************************************************/
+
+/** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
+/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
+/** @typedef {import("./logger").WpBuildLogColorValue} WpBuildLogColorValue */
+/** @typedef {import("./logger").WpBuildLogColorMapping} WpBuildLogColorMapping */
+
+
+/***********************************************************************************************************************
  * WEBPACK
  ***********************************************************************************************************************/
 
-/** @typedef {import("./webpack").EntryObject} EntryObject */
+/** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */
 /** @typedef {import("./webpack").WebpackSource} WebpackSource */

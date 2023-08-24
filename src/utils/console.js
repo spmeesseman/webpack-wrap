@@ -61,8 +61,8 @@ class WpBuildConsoleLogger
 
     dispose = () =>
     {
-        const msg = this.withColor("force reset console color to system default", this.colors.grey);
-        this.write(msg + this.withColor("", this.colors.system, true));
+        const msg = !this.options.envTagDisable ? this.withColor("force reset console color to system default", this.colors.grey) : "";
+        this.write(msg + this.withColor(" ", this.colors.system, true));
     };
 
 
@@ -76,9 +76,9 @@ class WpBuildConsoleLogger
      */
     applyOptions = (options) =>
     {
-        let envTagLen = options.envTag1 && options.envTag2 ? options.envTag1.length + options.envTag2.length + 2 : 0;
+        let envTagLen = options.envTag1 && options.envTag2 ? options.envTag1.length + options.envTag2.length + 6 : 0;
         if (envTagLen === 0) {
-            envTagLen = options.envTag1 ? options.envTag1.length + 2 : 0;
+            envTagLen = options.envTag1 ? options.envTag1.length + 6 : 0;
         }
         if (envTagLen === 0) {
             envTagLen = 22;
@@ -99,8 +99,8 @@ class WpBuildConsoleLogger
             }
         }, options);
 
-        if (envTagLen > /** @type {number} */(this.options.pad.envTag)) {
-            options.pad.envTag = envTagLen;
+        if (!options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
+            this.options.pad.envTag = envTagLen;
         }
     }
 
@@ -247,7 +247,7 @@ class WpBuildConsoleLogger
             {
                 msg = msg.replace(new RegExp(`${cKey}\\((.*?)\\)`, "g"), (_, g1) => this.withColor(g1, this.colors[cKey]));
             }
-            return " " + msg;
+            return msg;
         }
         return "";
     };
@@ -307,7 +307,7 @@ class WpBuildConsoleLogger
     {
         const instLogger = !!logger;
         logger = logger || new WpBuildConsoleLogger({
-            envTagDisable: true, envTag1: "wpbuild", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
+            envTagDisable: true, colors: { default: "grey" }, level: 5, pad: { value: 100 }
         });
         logger.sep();
         // console.log(gradient.rainbow(spmBanner(version), {interpolation: "hsv"}));
@@ -573,8 +573,8 @@ class WpBuildConsoleLogger
                             this.withColor(this.format(msg), envMsgClr) : this.format(msg),
                   envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
                             this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd((opts.pad.envTag || 25) + envTagClrLen) : "",
-                  envIcon = !opts.envTagDisable ? (isString(icon) ? icon : this.infoIcon) : "";
-            console.log(`${this.options.pad.base || ""}${envIcon} ${envTag}${pad}${envMsg.trimEnd()}`);
+                  envIcon = !opts.envTagDisable ? (isString(icon) ? icon + " " : this.infoIcon + " ") : "";
+            console.log(`${this.options.pad.base || ""}${envIcon}${envTag}${pad}${envMsg.trimEnd()}`);
         }
     };
 

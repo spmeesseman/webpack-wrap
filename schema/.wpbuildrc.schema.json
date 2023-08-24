@@ -59,6 +59,9 @@
         "production": {
             "$ref": "#/definitions/WpBuildRcBuildModeConfig"
         },
+        "source": {
+            "$ref": "#/definitions/WpwRcSourceCode"
+        },
         "test": {
             "$ref": "#/definitions/WpBuildRcBuildModeConfig"
         },
@@ -99,7 +102,7 @@
             "type": "string",
             "default": "src",
             "maxLength": 150,
-            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\\\/])?[\\w][~@!\\w\\.\\-\\\\\\/]+)$",
+            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\\\/])?[\\w][~@!\\w\\.\\-\\\\\\/\\:]+)$",
             "if": {
                 "pattern": "^\\.$"
             },
@@ -138,6 +141,12 @@
             "maxLength": 150,
             "pattern": "^[\\w\\.\\-]+\\.([cm]?jsx?|tsx?)$"
         },
+        "FilePath": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 150,
+            "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/\\:]+)?\\.[a-z0-9\\.]+$"
+        },
         "FilePathRelative": {
             "type": "string",
             "minLength": 5,
@@ -173,41 +182,41 @@
                 "active": {
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
+                "alias": {
+                    "$ref": "#/definitions/WpBuildWebpackAliasConfig"
+                },
                 "auto": {
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "debug": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
-                "source": {
-                    "$ref": "#/definitions/WpBuildRcSourceCodeType"
-                },
-                "type": {
-                    "$ref": "#/definitions/WpBuildRcBuildType"
-                },
                 "entry": {
                     "$ref": "#/definitions/WpBuildWebpackEntry"
-                },
-                "mode": {
-                    "$ref": "#/definitions/WpBuildWebpackMode"
-                },
-                "target": {
-                    "$ref": "#/definitions/WebpackTarget"
-                },
-                "alias": {
-                    "$ref": "#/definitions/WpBuildWebpackAliasConfig"
-                },
-                "log": {
-                    "$ref": "#/definitions/WpBuildRcLog"
-                },
-                "paths": {
-                    "$ref": "#/definitions/WpBuildRcPaths"
                 },
                 "exports": {
                     "$ref": "#/definitions/WpBuildRcExportsUser"
                 },
+                "log": {
+                    "$ref": "#/definitions/WpBuildRcLog"
+                },
+                "mode": {
+                    "$ref": "#/definitions/WpBuildWebpackMode"
+                },
+                "paths": {
+                    "$ref": "#/definitions/WpBuildRcPaths"
+                },
                 "plugins": {
                     "$ref": "#/definitions/WpBuildRcPlugins"
+                },
+                "source": {
+                    "$ref": "#/definitions/WpwRcSourceCode"
+                },
+                "target": {
+                    "$ref": "#/definitions/WebpackTarget"
+                },
+                "type": {
+                    "$ref": "#/definitions/WpBuildRcBuildType"
                 },
                 "vscode": {
                     "$ref": "#/definitions/WpBuildRcVsCodeConfig"
@@ -420,6 +429,9 @@
                 },
                 "plugins": {
                     "$ref": "#/definitions/WpBuildRcPluginsUser"
+                },
+                "source": {
+                    "$ref": "#/definitions/WpwRcSourceCode"
                 },
                 "vscode": {
                     "$ref": "#/definitions/WpBuildRcVsCodeConfig"
@@ -733,14 +745,6 @@
                     "$ref": "#/definitions/DirectoryPath",
                     "default": "node_modules/.cache/wpbuild/temp",
                     "description": "Path to a temporary directory, full path or relative to the project directory containing package.json"
-                },
-                "tsconfig": {
-                    "type": "string",
-                    "default": "tsconfig.json",
-                    "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/]+)?tsconfig[\\-\\.\\w]*?\\.json$",
-                    "minLength": 13,
-                    "maxLength": 150,
-                    "description": "Path to tsconfig file, full path or relative to the project directory containing package.json"
                 }
             },
             "additionalProperties": false
@@ -1017,12 +1021,313 @@
                 "underline"
             ]
         },
-        "WpBuildRcSourceCodeType": {
+        "WpwRcSourceCode": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {      
+                    "$ref": "#/definitions/WpwRcSourceCodeType"
+                },
+                "config": {
+                    "$ref": "#/definitions/WpwRcSourceCodeConfig"
+                }
+            },
+            "required": [
+                "type"
+            ]
+        },
+        "WpwRcSourceCodeConfig": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "dir": {
+                    "type": "string",
+                    "readOnly": true
+                },
+                "file": {
+                    "type": "string",
+                    "readOnly": true
+                },
+                "excludeAbs": {
+                    "type": "array",
+                    "readOnly": true,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "includeAbs": {
+                    "type": "array",
+                    "readOnly": true,
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "options": {      
+                    "$ref": "#/definitions/WpwRcSourceCodeConfigOptions"
+                },
+                "path": {
+                    "type": "string",
+                    "default": "tsconfig.json",
+                    "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/\\:]+)?(?:t|j)sconfig\\.(?:[\\w\\-]+?\\.)?json$",
+                    "minLength": 13,
+                    "maxLength": 150,
+                    "description": "Path to a [t|s]]sconfig[.*].json file, filename inclusive, full path or relative to the project base directory containing package.json"
+                },
+                "raw": {
+                    "type": "string",
+                    "readOnly": true
+                }
+            }
+        },
+        "WpwRcSourceCodeConfigOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "compilerOptions": {
+                    "$ref": "#/definitions/WpwRcSourceCodeConfigCompilerOptions"
+                },
+                "exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "include": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "extends": {
+                    "oneOf": [
+                    {
+                        "type": "string"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }]
+                }
+            }
+        },
+        "WpwRcSourceCodeConfigCompilerOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {                      
+                "allowJs": {
+                    "type": "boolean"
+                },
+                "alwaysStrict": {
+                    "type": "boolean"
+                },
+                "allowSyntheticDefaultImports": {
+                    "type": "boolean"
+                },
+                "allowUnreachableCode": {
+                    "type": "boolean"
+                },
+                "allowUnusedLabels": {
+                    "type": "boolean"
+                },
+                "baseUrl":{
+                    "type": "string"
+                },
+                "checkJs": {
+                    "type": "boolean"
+                },
+                "declaration": {
+                    "type": "boolean"
+                },
+                "declarationsDir": {
+                    "type": "string"
+                },
+                "declarationMap": {
+                    "type": "boolean"
+                },
+                "declarationsOnly": {
+                    "type": "boolean"
+                },
+                "downlevelIteration": {
+                    "type": "boolean"
+                },
+                "emitDecoratorMetadata":  {
+                    "type": "boolean"
+                },
+                "experimentalDecorators": {
+                    "type": "boolean"
+                },
+                "incremental": {
+                    "type": "boolean"
+                },  
+                "importHelpers": {
+                    "type": "boolean"
+                },
+                "inlineSources": {
+                    "type": "boolean"
+                },
+                "inlineSourceMap": {
+                    "type": "boolean"
+                },
+                "isolatedModules": {
+                    "type": "boolean"
+                },         
+                "jsx": {
+                    "type": "string"
+                },
+                "lib": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/WpwRcSourceCodeNodeJsTarget"
+                    }
+                },  
+                "mapRoot": {
+                    "type": "string"
+                },
+                "module": {
+                    "$ref": "#/definitions/WpwRcSourceCodeNodeJsModule"
+                },
+                "moduleResolution": {
+                    "$ref": "#/definitions/WpwRcSourceCodeNodeJsModuleResolution"
+                },
+                "noEmit": {
+                    "type": "boolean"
+                },
+                "noFallthroughCasesInSwitch": {
+                    "type": "boolean"
+                },
+                "noImplicitAny": {
+                    "type": "boolean"
+                },
+                "noImplicitOverride": {
+                    "type": "boolean"
+                },
+                "noImplicitReturns": {
+                    "type": "boolean"
+                },
+                "noImplicitThis": {
+                    "type": "boolean"
+                },
+                "noImplicitUseStrict": {
+                    "type": "boolean"
+                },
+                "noUncheckedIndexedAccess": {
+                    "type": "boolean"
+                },
+                "noUnusedLocals": {
+                    "type": "boolean"
+                },
+                "noUnusedParameters": {
+                    "type": "boolean"
+                },
+                "outFile": {
+                    "type": "string"
+                }, 
+                "outDir": {
+                    "type": "string"
+                }, 
+                "paths": {
+                    "$ref": "#/definitions/WpBuildWebpackAliasConfig"
+                }, 
+                "removeComments": {
+                    "type": "boolean"
+                },
+                "resolveJsonModule": {
+                    "type": "boolean"
+                },
+                "rootDir": {
+                    "type": "string"
+                },
+                "rootDirs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "skipLibCheck": {
+                    "type": "boolean"
+                },
+                "sourceMap": {
+                    "type": "boolean"
+                },
+                "sourceRoot": {
+                    "type": "string"
+                },
+                "strict": {
+                    "type": "boolean"
+                },
+                "strictPropertyInitialization": {
+                    "type": "boolean"
+                },
+                "strictFunctionTypes": {
+                    "type": "boolean"
+                },
+                "strictBindCallApply": {
+                    "type": "boolean"
+                }, 
+                "strictNullChecks": {
+                    "type": "boolean"
+                }, 
+                "suppressImplicitAnyIndexErrors": {
+                    "type": "boolean"
+                },
+                "suppressExcessPropertyErrors": {
+                    "type": "boolean"
+                },
+                "target": {
+                    "$ref": "#/definitions/WpwRcSourceCodeNodeJsTarget"
+                },
+                "tsBuildInfoFile": {
+                    "type": "string"
+                },                 
+                "typeRoots": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },                 
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "WpwRcSourceCodeType": {
             "type": "string",
             "default": "typescript",
             "enum": [
                 "javascript",
                 "typescript"
+            ]
+        },
+        "WpwRcSourceCodeNodeJsModuleResolution": {
+            "type": "string",
+            "enum": [
+                "node", "node10", "node16", "nodenext", "bundler"
+            ]
+        },
+        "WpwRcSourceCodeNodeJsModule": {
+            "type": "string",
+            "default": "commonjs",
+            "enum": [
+                "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "none", "system", "umd"
+            ]
+        },
+        "WpwRcSourceCodeNodeJsTarget": {
+            "type": "string",
+            "default": "es2020",
+            "enum": [
+                "es5", "es6", "es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext",
+                "ES5", "ES6", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ESNEXT"
             ]
         },
         "WpBuildRcVsCodeConfig": {

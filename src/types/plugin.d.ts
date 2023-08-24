@@ -26,7 +26,7 @@ import { WpBuildLogTrueColor } from "./logger";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
-    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage
+    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation
 } from "./webpack";
 
 
@@ -48,17 +48,22 @@ declare type WpBuildPluginOptions = IWpBuildPluginOptions;
 
 declare type WpBuildPluginCacheOptions = { file: string; }
 
-declare interface IWpBuildPluginTapOptions
+declare type WpwApplyCallbackCompilationParam = (arg: WebpackCompilation) => void | Promise<void>;
+declare type WpwApplyCallbackCompilerParam = (arg: WebpackCompiler) => void | Promise<void>;
+declare type WpwApplyCallbackAssetsParam = (arg: WebpackCompilationAssets) => void | Promise<void>;
+declare type WpwApplyCallbackCompilationParamsParam = (arg: WebpackCompilationParams) => void | Promise<void>;
+declare type WpwOnApplyCallback = WpwApplyCallbackCompilationParam | WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam
+
+declare type WpBuildPluginTapOptions =
 {
     async?: boolean;
     hook: WebpackCompilerHookName;
     hookCompilation?: WebpackCompilationHookName;
-    callback: (arg: WebpackCompiler | WebpackCompilationAssets | WebpackCompilationParams) => void | Promise<void>;
+    callback: WpwOnApplyCallback;
     stage?: WebpackCompilationHookStage;
     statsProperty?: string;
-    statsPropertyColor?: Exclude<WpBuildLogTrueColor, "system">;
-}
-declare type WpBuildPluginTapOptions = Readonly<Omit<IWpBuildPluginTapOptions, "hookCompilation">> & Pick<IWpBuildPluginTapOptions, "hookCompilation">;
+    statsPropertyColor?: WpBuildLogTrueColor;
+};
 declare type WpBuildPluginTapOptionsHash  = Record<string, WpBuildPluginTapOptions>
 
 declare interface IWpBuildPlugin

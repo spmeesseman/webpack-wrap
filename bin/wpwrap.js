@@ -35,7 +35,7 @@ if (options.help)
 {
     const title =
 `----------------------------------------------------------------------------
-Detailed Help
+ Detailed Help
 ----------------------------------------------------------------------------
 `;
     process.stdout.write(gradient("cyan", "pink").multiline(title, {interpolation: "hsv"}));
@@ -50,7 +50,7 @@ if (options.version)
 {
     const title =
 `----------------------------------------------------------------------------
-WpWrap Version :  ${require("../package.json").version}
+ WpWrap Version :  ${require("../package.json").version}
 ----------------------------------------------------------------------------
 `;
     process.stdout.write(gradient("cyan", "pink").multiline(title, {interpolation: "hsv"}));

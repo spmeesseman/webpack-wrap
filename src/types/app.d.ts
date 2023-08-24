@@ -58,7 +58,7 @@ declare interface IWpBuildApp extends IDisposable
     logger: IWpBuildLogger;
     rc: IWpBuildAppSchema;          // target js app info
     target: WebpackTarget;
-    tsConfig: WpBuildAppTsConfig | undefined;
+    jstsConfig: WpBuildAppJsTsConfig | undefined;
     wpc: WpBuildWebpackConfig;
 }
 
@@ -105,74 +105,6 @@ declare interface IWpBuildWebpackConfig extends WebpackConfig
 }
 declare type WpBuildWebpackConfig = IWpBuildWebpackConfig;
 
-export declare type WpBuildAppTsConfigPaths = { [k: string]: string[]; };
-
-declare type WpBuildAppTsConfigCompilerOptions =
-{
-    target?: string;                        // Specify ECMAScript target version?: 'ES3' (default);'ES5';'ES2015';'ES2016';'ES2017';or 'ESNEXT'
-    module?: string;                        // Specify module code generation: 'commonjs';'amd';'system';'umd' or 'es2015'
-    lib?: string[];                         // Specify library files to be included in the compilation:  */
-    allowJs?: boolean;                      // Allow javascript files to be compiled
-    checkJs?: boolean;                      // Report errors in .js files
-    jsx?: string;                           // Specify JSX code generation: 'preserve';'react-native';or 'react'
-    declaration?: boolean;                  // Generates corresponding '.d.ts' file
-    sourceMap?: boolean;                    // Generates corresponding '.map' file
-    outFile?: string                        // Concatenate and emit output to single file
-    outDir?: string;                        // Redirect output structure to the directory
-    rootDir?: string;                       // Specify the root directory of input files. Use to control the output directory structure with --outDir
-    removeComments?: boolean;               // Do not emit comments to output
-    noEmit?: boolean;                       // Do not emit outputs
-    importHelpers?: boolean;                // Import emit helpers from 'tslib'
-    downlevelIteration?: boolean;           // Provide full support for iterables in 'for-of';spread;and destructuring when targeting 'ES5' or 'ES3'
-    isolatedModules?: boolean;              // Transpile each file as a separate module (similar to 'ts.transpileModule')
-    strict?: boolean                        // Enable all strict type-checking options
-    noImplicitAny?: boolean;                // Raise error on expressions and declarations with an implied 'any' type
-    strictNullChecks?: boolean;             // Enable strict null checks
-    noImplicitThis?: boolean;               // Raise error on 'this' expressions with an implied 'any' type
-    alwaysStrict?: boolean;                 // Parse in strict mode and emit "use strict" for each source file
-    noUnusedLocals?: boolean;               // Report errors on unused locals
-    noUnusedParameters?: boolean;           // Report errors on unused parameters
-    noImplicitReturns?: boolean;            // Report error when not all code paths in function return a value
-    noFallthroughCasesInSwitch?: boolean;   // Report errors for fallthrough cases in switch statement
-    moduleResolution?: string;              // Specify module resolution strategy?: 'node' (Node.js) or 'classic' (TypeScript pre-1.6)
-    baseUrl?:string;                        // Base directory to resolve non-absolute module names
-    paths?: WpBuildAppTsConfigPaths;        // A series of entries which re-map imports to lookup locations relative to the 'baseUrl'
-    rootDirs?: string[];                    // List of root folders whose combined content represents the structure of the project at runtime
-    typeRoots?: string[];                   // List of folders to include type definitions from
-    types?: string[];                       // Type declaration files to be included in compilation
-    allowSyntheticDefaultImports?: boolean; // Allow default imports from modules with no default export. This does not affect code emit;just typechecking
-    sourceRoot?: string;                    // Specify the location where debugger should locate TypeScript files instead of source locations
-    mapRoot?: string;                       // Specify the location where debugger should locate map files instead of generated locations
-    inlineSourceMap?: boolean;              // Emit a single file with source maps instead of having a separate file
-    inlineSources?: boolean;                // Emit the source alongside the sourcemaps within a single file; requires '--inlineSourceMap' or '--sourceMap' to be set
-    experimentalDecorators?: boolean;       // Enables experimental support for ES7 decorators
-    emitDecoratorMetadata?:  boolean;       // Enables experimental support for emitting type metadata for decorators
-    incremental?: boolean;
-    declarationsDir?: string;
-    declarationsOnly?: boolean;
-    declarationMap?: boolean;
-    tsBuildInfoFile?: string;
-}
-
-declare type WpBuildAppTsConfigJson =
-{
-    compilerOptions: WpBuildAppTsConfigCompilerOptions;
-    exclude: string[];
-    files: string[];
-    include: string[];
-    extends?: string | string[];
-}
-
-declare type WpBuildAppTsConfig =
-{
-    dir: string;
-    excludeAbs: string[];
-    file: string;
-    includeAbs: string[];
-    json: WpBuildAppTsConfigJson;
-    path: string;
-    raw: string;
-};
 
 export {
     ClsWpBuildApp,
@@ -183,9 +115,9 @@ export {
     WpBuildAppGetPathOptions,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
-    WpBuildAppTsConfig,
-    WpBuildAppTsConfigJson,
-    WpBuildAppTsConfigCompilerOptions,
+    WpBuildAppJsTsConfig,
+    WpBuildAppJsTsConfigJson,
+    WpBuildAppJsTsConfigCompilerOptions,
     WpBuildWebpackConfig,
     __WPBUILD__
 };

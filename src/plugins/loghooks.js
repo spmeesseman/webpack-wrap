@@ -122,10 +122,9 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 			{
 				this.logger.write(
 					this.logger.tag("ASSET", this.logger.colors.green, this.logger.colors.white) + " " +
-					this.logger.withColor(asset.name, this.logger.colors.grey),
-					3
+					this.logger.withColor(asset.name, this.logger.colors.grey), 3
 				);
-				this.logger.value("   asset info", JSON.stringify(asset.info), 4);
+				this.logger.value("   asset info", JSON.stringify(asset.info), 5);
 			}
 		});
 		this.addCompilerHook("shouldEmit");
@@ -137,7 +136,7 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 		this.addCompilerHook("shutdown");
 		this.addCompilerHook("afterDone");
 		this.addCompilerHook("additionalPass");
-		this.addCompilerHook("failed", /** @param {Error} e */(e) => void this.logger.error(e));
+		this.addCompilerHook("failed", /** @param {Error} e */(e) => { this.logger.error(e); });
 		this.addCompilerHook("invalid");
 		this.addCompilerHook("watchRun");
 		this.addCompilerHook("watchClose");
@@ -172,8 +171,7 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildLogHooksPlugin | undefined}
  */
-const loghooks = (app) =>
-	(app.build.plugins.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined);
+const loghooks = (app) => app.build.plugins.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined;
 
 
 module.exports = loghooks;

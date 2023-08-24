@@ -18,9 +18,9 @@ const esbuild = require("esbuild");
 const { existsSync } = require("fs");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes } = require("../utils");
+const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
 
-/** @typedef {typedefs.WpBuildAppTsConfig} RulesConfig */
+/** @typedef {typedefs.WpwRcSourceCodeConfig} RulesConfig */
 
 
 const builds =
@@ -256,7 +256,7 @@ const getLoader = (app, rulesConfig, loader) =>
 	if (app.args.esbuild || loader === "esbuild") {
 		return buildOptions.esbuild(app, rulesConfig);
 	}
-	if (app.source === "javascript" || app.args.babel || loader === "babel") {
+	if (app.build.source.type === "javascript" || app.args.babel || loader === "babel") {
 		return buildOptions.babel(app, rulesConfig);
 	}
 	return buildOptions.ts(app, rulesConfig);
@@ -296,7 +296,7 @@ const buildOptions =
 				implementation: esbuild,
 				loader: "tsx",
 				target: "es2020",
-				tsconfigRaw: rulesConfig.json
+				tsconfigRaw: rulesConfig.options
 			}
 		};
 	},
@@ -385,16 +385,9 @@ const rules = (app) =>
 {
 	app.logger.start("create rules", 2);
 
-	const tsConfig = merge({}, app.tsConfig); // make a merged clone, 'include' will be altered
-	if (app.source === "typescript")
-	{
-		if (!app.tsConfig) {
-			throw WpBuildError.getErrorMissing("tsconfig file", "exports/rules.js", app.wpc);
-		}
-		app.logger.value("   using tsconfig file", tsConfig.path, 2);
-	}
-	else {
-		 apply(tsConfig, { include: [], exclude: [], files: [], json: {}, raw: "", dir: "", file: "", path: "" });
+	const tsConfig = merge({}, app.build.source.config); // make a merged clone, 'include' will be altered
+	if (isJsTsConfigPath(tsConfig.path)) {
+		app.logger.value("   using js/ts config file", tsConfig.path, 2);
 	}
 
 	const buildFn = builds[app.build.name] || builds[app.build.type];

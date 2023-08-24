@@ -9,11 +9,26 @@
             "name": "taskexplorer",
             "target": "node",
             "type": "module",
+            "debug": true,
             "log": {
                 "color": "cyan"
             },
-            "paths": {
-                "tsconfig": "tsconfig.node.json"
+            "plugins": {
+                "licensefiles": true,
+                "upload": {
+                    "url": "https://${WPBUILD_APP1_SSH_UPLOAD_HOST}/res/app",
+                    "plink": {
+                        "user": "${WPBUILD_APP1_SSH_UPLOAD_USER}",
+                        "key": "${WPBUILD_APP1_SSH_UPLOAD_AUTH}"
+                    },
+                    "scp": {
+                        "user": "${WPBUILD_APP1_SSH_UPLOAD_USER}",
+                        "key": "${WPBUILD_APP1_SSH_UPLOAD_AUTH}"
+                    }
+                }
+            },
+            "vscode": {
+                "type": "extension"
             }
         },
         {
@@ -37,31 +52,34 @@
             "paths": {
                 "ctx": "src/webview/app",
                 "dist": "res",
-                "src": "src/webview/app"
+                "src": "src"
+            }
+        },
+        {
+            "name": "types",
+            "target": "node",
+            "type": "types",
+            "log": {
+                "color": "white",
+                "colors": {
+                    "buildBracket": "cyan",
+                    "tagBracket": "cyan"
+                }
+            },
+            "paths": {
+                "dist": "types/build"
             }
         }
     ],
-    "development":
-    {
-        "builds": [
-            { "name": "taskexplorer" },
-            {
-                "name": "webapp"
-            }
-        ]
-    },
-    "production":
-    {
+    "development": {
         "builds": []
     },
-    "test":
-    {
+    "production": {
+        "builds": []
+    },
+    "test": {
         "builds": [
-            { "name": "taskexplorer", "mode": "test" },
-            {
-                "name": "webapp",
-                "mode": "development"
-            },
+            { "name": "webapp", "mode": "development" },
             {
                 "name": "tests",
                 "log": {
@@ -71,6 +89,9 @@
                     "ctx": "src/test",
                     "dist": "dist/test",
                     "src": "src/test"
+                },
+                "vscode": {
+                    "type": "tests"
                 }
             }
         ],
@@ -80,37 +101,24 @@
             }
         }
     },
-    "log":
-    {
-        "level": 2,
+    "log": {
+        "level": 3,
         "valueMaxLineLength": 100,
         "pad": {
             "base": 0,
-            "envTag": 22,
+            "envTag": 23,
             "value": 40,
             "uploadFileName": 50
         },
-        "colors":
-        {
-            "default": "grey",
-            "buildBracket": "blue",
-            "buildText": "white",
-            "infoIcon": "magenta",
-            "valueStar": "cyan",
-            "valueStarText": "white",
-            "tagBracket": "blue",
-            "tagText": "white",
-            "uploadSymbol": "yellow"
+        "colors": {
+            "default": "grey"
         }
     },
-    "paths":
-    {
-        "ctx": ".",
+    "paths": {
         "dist": "dist",
         "src": "src"
     },
-    "exports":
-    {
+    "exports": {
         "cache": true,
         "devtool": true,
         "experiments": true,
@@ -121,32 +129,22 @@
         "stats": true,
         "watch": true
     },
-    "plugins":
-    {
-        "analyze": true,
+    "plugins": {
+        "analyze": {
+            "circular": true,
+            "analyzer": false,
+            "visualizer": false
+        },
         "banner": true,
-        "clean": true,
-        "copy": true,
-        "dispose": true,
-        "environment": true,
-        "hash": true,
-        "html": true,
-        "ignore": false,
-        "istanbul": true,
-        "licensefiles": true,
+        "ignore": true,
+        "istanbul": false,
+        "licensefiles": false,
         "loghooks": true,
         "optimization": true,
         "progress": false,
-        "runtimevars": true,
-        "scm": true,
+        "scm": false,
         "sourcemaps": true,
-        "testsuite": false,
-        "tscheck": true,
-        "upload": true,
-        "vendormod": true,
-        "wait": false
-    },
-    "vscode": {
-        "testsEntry": "./src/test/runTest.ts"
+        "upload": false,
+        "vendormod": true
     }
 }

@@ -22,6 +22,13 @@ const generateEnums = true;
 const description = "Provides types macthing the .wpbuildrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
+const excludeTypedefs = [
+    "BooleanReadOnly"
+];
+
+/**
+ * Types that will be auto populated/required at runtime, but are optional in json schema
+ */
 const requiredProperties = [
     [ "build", "WpBuildRcBuild" ],
     [ "colors", "WpBuildRcLog" ],
@@ -34,6 +41,8 @@ const requiredProperties = [
     [ "level", "WpBuildRcLog" ],
     [ "entry", "WpBuildRcBuild" ],
     [ "alias", "WpBuildRcBuild" ],
+    [ "source", "WpBuildRcBuild" ],
+    [ "config", "WpwRcSourceCode" ],
     [ "log", "WpBuildRcBuild" ],
     [ "paths", "WpBuildRcBuild" ],
     [ "exports", "WpBuildRcBuild" ],
@@ -44,7 +53,11 @@ const requiredProperties = [
     [ "ctx", "WpBuildRcPaths" ],
     [ "dist", "WpBuildRcPaths" ],
     [ "src", "WpBuildRcPaths" ],
-    [ "temp", "WpBuildRcPaths" ]
+    [ "temp", "WpBuildRcPaths" ],
+    [ "includeAbs", "WpwRcSourceCodeConfig" ],
+    [ "excludeAbs", "WpwRcSourceCodeConfig" ],
+    [ "options", "WpwRcSourceCodeConfig" ],
+    [ "compilerOptions", "WpwRcSourceCodeConfigOptions" ]
 ];
 
 const outputDtsFile = "rc.d.ts";
@@ -63,7 +76,7 @@ const properties = [];
 /** @type {string[]} */
 const lines = [];
 
-/** @type {string[]} */
+/** @type {[ string, string ][]} */
 const typedefs = [];
 
 /** @type {WpBuildConsoleLogger} */
@@ -89,7 +102,8 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
  */
 const isBaseType = (type) => [
         "WpBuildRcExports", "WpBuildRcLog", "WpBuildRcLogPad", "WpBuildRcPaths", "WpBuildRcVsCode",
-        "WpBuildRcPlugins", "WpBuildRcBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors"
+        "WpBuildRcPlugins", "WpBuildRcBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
+        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions"
     ].includes(type);
 
 
@@ -129,11 +143,18 @@ const parseTypesDts = async (hdr, data) =>
                       return `\nexport declare type Type${m1} = `;
                   }
                   else if (m1 !== "WpBuildRcSchema") {
+                      pushTypedef("rc", m1);
                       return `\nexport declare type ${m1} = `;
+                  }
+                  else {
+                      pushTypedef("rc", m1);
                   }
                   return v;
           })
-          .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, (v, m1, m2) => `export declare interface I${m1} ${m2}\n}\nexport declare type ${m1} = I${m1};\n`)
+          .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, (v, m1, m2) => {
+              pushTypedef("rc", "I" + m1);
+              return `export declare interface I${m1} ${m2}\n}\nexport declare type ${m1} = I${m1};\n`;
+          })
           .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, (v, m1, m2) =>
           {
                   let src = v;
@@ -145,7 +166,7 @@ const parseTypesDts = async (hdr, data) =>
                       requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
                           src = src.replace(new RegExp(`${p}\\?\\: `, "g"), `${p}: `);
                       });
-                      pushTypedef(m1, `${m1}Key`, `Type${m1}`);
+                      pushTypedef("rc", m1, `${m1}Key`, `Type${m1}`);
                       if (generateEnums)
                       {
                           const valuesFmt = m2.replace(/ *\= */, "")
@@ -162,9 +183,15 @@ const parseTypesDts = async (hdr, data) =>
                           logger.log(`      modified type ${m1}`);
                       }
                   }
+                  else {
+                      pushTypedef("rc", m1);
+                  }
                   return src;
           })
-          .replace(/\nexport type /g, "\nexport declare type ")
+          .replace(/\nexport type (.*?) =/g, (v, m) => {
+              pushTypedef("rc", m);
+              return v.replace("export type", "export declare type");
+          })
           .replace(/([^\|]) \{\n    /g, (_, m) => m + " \n{\n    ")
           .replace(/\n    \| +(["0-9])/g, (_, m) => " | " + m)
           .replace(/(?:\n){3,}/g, "\n\n")
@@ -252,7 +279,7 @@ const pushExport = (property, suffix, values, valueType) =>
     const enumeration = enums.find(e => e.includes(`${property}Enum`));
     if (enumeration) {
         lines.push(enumeration);
-        pushTypedef(`${property}Enum`);
+        pushTypedef("constants", `${property}Enum`);
         exported.push(`    ${property}Enum`);
     }
     logger.log(`      added runtime constants for type ${property}`);
@@ -261,12 +288,16 @@ const pushExport = (property, suffix, values, valueType) =>
 
 
 /**
+ * @param {string} source
  * @param {string[]} properties
  */
-const pushTypedef = (...properties) =>
+const pushTypedef = (source, ...properties) =>
 {
-    typedefs.push(...properties);
-    for (const property of properties) {
+    const incProps = properties.filter(
+        (p) => !excludeTypedefs.includes(p) && typedefs.every(t => t[0] !== source || t[1] !== p)
+    );
+    typedefs.push(.../** @type {[string, string][]} */(incProps.map(p => [ source, p ])));
+    for (const property of incProps) {
         logger.log(`      added typedef for type ${property}`);
     }
 };
@@ -288,24 +319,24 @@ const writeConstantsJs = async (hdr, data) =>
 
     while ((match = rgx.exec(data)) !== null)
     {
-        pushTypedef(match[1]);
+        pushTypedef("rc", match[1]);
         properties.push(match[1]);
-        pushTypedef(...pushExport(match[1], "s", match[2]));
+        pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
     }
 
     while ((match = rgx2.exec(data)) !== null)
     {
-        pushTypedef(match[1]);
+        pushTypedef("rc", match[1]);
         const propFmt = match[1].replace("Type", ""),
               valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
                                       .replace(/(?:, ""|"", )/g, "");
-        pushTypedef(...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+        pushTypedef("constants", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
     }
 
     const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
     while ((match = rgx3.exec(data)) !== null)
     {
-        pushTypedef(match[1]);
+        pushTypedef("rc", match[1]);
     }
 
     if (lines.length > 0)
@@ -368,10 +399,11 @@ const writeTypedefsJs = async () =>
     let data = await readFile(typesPath, "utf8");
     data = data.replace(
         /\/\* START_RC_DEFS \*\/(?:[^]*?)\/\* END_RC_DEFS \*\//g,
-        `/* START_RC_DEFS */\r\n${typedefs.sort((a, b) => (a.length - b.length) || a.localeCompare(b))
-                                            .map(e => e.trim())
-                                            .map(e => `/** @typedef {import("./rc").${e}} ${e} */`)
-                                            .join("\r\n")}\r\n/* END_RC_DEFS */`
+        `/* START_RC_DEFS */\r\n${typedefs // .sort((a, b) => ((a[0].length + a[1].length) - (b[0].length + b[1].length) || a[1].localeCompare(b[1])))
+                                          .map(e => [ e[0], e[1].trim() ])
+                                          .map(e => `/** @typedef {import("./${e[0]}").${e[1]}} ${e[1]} */`)
+                                          .sort((a, b) => (a.length - b.length || a.localeCompare(b)))
+                                          .join("\r\n")}\r\n/* END_RC_DEFS */`
     );
     await writeFile(typesPath, data);
     logger.success(`   updated definitions in src/types/${typesFile} (${typesPath})`);

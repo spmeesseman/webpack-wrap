@@ -98,6 +98,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
      * @private
      * @member info
      * @param {WebpackAssetInfo} info
+     * @returns {WebpackAssetInfo}
      */
     info = (info) => apply({ ...(info || {}) }, { runtimeVars: true });
 
@@ -161,7 +162,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
               hashCurrent = app.global.runtimeVars.current;
         this.readAssetState();
         logger.write("validate cached hashes for all entry assets", 2);
-        Object.entries(assets).filter(([ file, _ ]) => this.matchObject(file) && this.isEntryAsset(file)).forEach(([ file, _ ]) =>
+        Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
 		{
             const chunkName = this.fileNameStrip(file, true),
                   asset = this.compilation.getAsset(file);
@@ -216,7 +217,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
         const hashMap = this.app.global.runtimeVars.next,
               updates = /** @type {string[]} */([]);
         this.logger.write("replace runtime placeholder variables", 1);
-		Object.entries(assets).filter(([ f ]) => this.matchObject(f)).forEach(([ file ]) =>
+		Object.entries(assets).forEach(([ file ]) =>
 		{
             const asset = this.compilation.getAsset(file);
             if (asset && isString(asset.info.contenthash))

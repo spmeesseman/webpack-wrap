@@ -55,7 +55,7 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
     istanbulTags(assets)
     {
 		this.logger.write("istanbul ignore tag insertion for external requires");
-		Object.keys(assets).filter(f => this.matchObject(f) && this.isEntryAsset(f)).forEach((file) =>
+		Object.keys(assets).filter(f => this.isEntryAsset(f)).forEach((file) =>
 		{
             this.logger.value("   update asset with tag insertion", file, 4);
             this.compilation.updateAsset(

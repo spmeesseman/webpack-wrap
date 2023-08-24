@@ -13,12 +13,9 @@
 const { existsSync } = require("fs");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
+const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { isAbsolute, relative, sep, dirname } = require("path");
-const {
-    apply, WpBuildError, isPromise, findTsConfig, getTsConfig, isArray, findFilesSync,
-    resolvePath, relativrPath
-} = require("../utils/utils");
+const { apply, WpBuildError, isPromise, resolvePath, pickNot } = require("../utils/utils");
 
 
 /**
@@ -44,6 +41,10 @@ class WpBuildApp
      */
     errors;
     /**
+     * @type {typedefs.WpBuildGlobalEnvironment}
+     */
+    global;
+    /**
      * @type {boolean}
      */
     isMain;
@@ -64,9 +65,9 @@ class WpBuildApp
      */
     isWeb;
     /**
-     * @type {typedefs.WpBuildGlobalEnvironment}
+     * @type {typedefs.WpBuildAppJsTsConfig | undefined}
      */
-    global;
+    jstsConfig;
     /**
      * @type {WpBuildConsoleLogger}
      */
@@ -84,7 +85,7 @@ class WpBuildApp
      */
     rc;
     /**
-     * @type {typedefs.WpBuildRcSourceCodeType}
+     * @type {typedefs.WpwRcSourceCodeConfig}
      */
     source;
     /**
@@ -92,11 +93,7 @@ class WpBuildApp
      */
     target;
     /**
-     * @type {typedefs.WpBuildAppTsConfig | undefined}
-     */
-    tsConfig;
-    /**
-     * @type {typedefs.WpBuildRcVsCode}
+     * @type {typedefs.WpBuildRcVsCodeConfig}
      */
     vscode;
     /**
@@ -170,6 +167,35 @@ class WpBuildApp
 
 
     /**
+     * @function
+     * @returns {typedefs.WpBuildWebpackConfig}
+     */
+    buildApp = () =>
+    {
+        if (this.build.type === "types")
+        {
+            apply(this.build.plugins, {
+                tsbundle: true,
+                tscheck: false
+            });
+        }
+        else if (this.build.type === "tests")
+        {
+            apply(this.build.plugins, {
+                tsbundle: true,
+                tscheck: false
+            });
+        }
+        else {
+            apply(this.build.plugins, {
+                tscheck: this.build.source.type === "typescript"
+            });
+        }
+        return this.buildWebpackConfig();
+    };
+
+
+    /**
      * Called by top level rc wrapper after instantiating this app wrapper instance.
      * Calls each ./exports/* default export to construct a {@link typedefs.WpBuildWebpackConfig webpack build configuration}.
      *
@@ -190,78 +216,35 @@ class WpBuildApp
             resolve: {},
             target: build.target
         };
-        wpexports.cache(this);          // Asset cache
-        wpexports.experiments(this);    // Set any experimental flags that will be used
-        wpexports.entry(this);          // Entry points for built output
-        wpexports.externals(this);      // External modules
-        wpexports.ignorewarnings(this); // Warnings from the compiler to ignore
-        wpexports.optimization(this);   // Build optimization
-        wpexports.minification(this);   // Minification / Terser plugin options
-        wpexports.output(this);         // Output specifications
-        wpexports.devtool(this);        // Dev tool / sourcemap control
-        wpexports.resolve(this);        // Resolve config
-        wpexports.rules(this);          // Loaders & build rules
-        wpexports.stats(this);          // Stats i.e. console output & webpack verbosity
-        wpexports.watch(this);          // Watch-mode options
-        wpexports.plugins(this);        // Plugins - exports.plugins() inits all plugin.plugins
-        this.printBuildProperties();
+        try
+        {
+            wpexports.cache(this);          // Asset cache
+            wpexports.experiments(this);    // Set any experimental flags that will be used
+            wpexports.entry(this);          // Entry points for built output
+            wpexports.externals(this);      // External modules
+            wpexports.ignorewarnings(this); // Warnings from the compiler to ignore
+            wpexports.optimization(this);   // Build optimization
+            wpexports.minification(this);   // Minification / Terser plugin options
+            wpexports.output(this);         // Output specifications
+            wpexports.devtool(this);        // Dev tool / sourcemap control
+            wpexports.resolve(this);        // Resolve config
+            wpexports.rules(this);          // Loaders & build rules
+            wpexports.stats(this);          // Stats i.e. console output & webpack verbosity
+            wpexports.watch(this);          // Watch-mode options
+            wpexports.plugins(this);        // Plugins - exports.plugins() inits all plugin.plugins
+            this.printBuildProperties();
+            this.printWpcProperties();
+        }
+        catch (e) {
+            this.logger.blank(undefined, this.logger.icons.color.error);
+            this.logger.error("An error was encountered while creating the webpack configuration export");
+            this.logger.error("Using the following build parameters:");
+            this.logger.blank(undefined, this.logger.icons.color.error);
+            this.printBuildProperties();
+            this.logger.blank(undefined, this.logger.icons.color.error);
+            throw e;
+        }
         return this.wpc;
-    };
-
-
-    /**
-     * @function
-     * @returns {typedefs.WpBuildWebpackConfig}
-     */
-    configureAppBuild = () =>
-    {
-        this.configureTypescript();
-        this.resolveAliasPaths();
-        if (this.build.type === "types")
-        {
-            apply(this.build.plugins, {
-                tsbundle: true,
-                tscheck: false
-            });
-        }
-        else if (this.build.type === "tests")
-        {
-            apply(this.build.plugins, {
-                tsbundle: true,
-                tscheck: false
-            });
-        }
-        else {
-            apply(this.build.plugins, {
-                tscheck: this.source === "typescript"
-            });
-        }
-        return this.buildWebpackConfig();
-    };
-
-
-	/**
-	 * @function
-	 * @private
-	 */
-    configureTypescript = () =>
-    {
-        const build = this.build;
-        if (build.source === "typescript")
-        {
-            build.paths.tsconfig = build.paths.tsconfig ?
-                                   resolvePath(build.paths.base, build.paths.tsconfig) :
-                                   findTsConfig(build);
-            if (build.paths.tsconfig)
-            {
-                this.tsConfig = getTsConfig(build);
-                if (!this.tsConfig) {
-                    // build.paths.tsconfig = undefined;
-                    // this.warnings.push("Could not locate tsconfig file while configuring build" + build.name);
-                    throw WpBuildError.getErrorMissing("tsconfig file", "utils/rc.js");
-                }
-            }
-        }
     };
 
 
@@ -454,17 +437,16 @@ class WpBuildApp
         l.value("   source tests directory", this.getSrcPath({ rel: true, build: "tests" }), 2);
         l.value("   source types directory", this.getSrcPath({ rel: true, build: "types" }), 2);
         l.value("   temp directory", this.getRcPath("temp"), 2);
-        l.value("   tsconfig path", this.build.paths.tsconfig, 2);
         l.sep();
-        l.write("Webpack Configuration:", 1, "", 0, l.colors.white);
-        l.value("   mode", this.wpc.mode, 1);
-        l.value("   target",this.wpc.target, 1);
-        l.value("   context directory", this.wpc.context, 1);
-        l.value("   output directory", this.wpc.output.path, 1);
-        l.value("   entry", JSON.stringify(this.wpc.entry), 3);
-        l.value("   resolve", JSON.stringify(this.wpc.resolve), 3);
-        l.value("   output", JSON.stringify(this.wpc.output), 3);
-        l.value("   rules", JSON.stringify(this.wpc.module.rules), 3);
+        l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
+        l.value("   source code type", this.build.source.type, 1);
+        l.value("   ts/js config file", this.build.source.config.file, 2);
+        l.value("   ts/js config directory", this.build.source.config.dir, 2);
+        l.value("   ts/js config path", this.build.source.config.path, 2);
+        l.value("   source code base configuration", JSON.stringify(pickNot(this.build.source.config, "raw", "options")), 3);
+        l.value("   ts/js configured options", JSON.stringify(pickNot(this.build.source.config.options, "compilerOptions", "files")), 3);
+        l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);
+        l.value("   ts/js configured files", JSON.stringify(this.build.source.config.options.files), 4);
         l.sep();
     };
 
@@ -472,49 +454,23 @@ class WpBuildApp
     /**
      * @function
      * @private
+     * @member logEnvironment
      */
-    resolveAliasPaths = () =>
-    {
-        const build = this.build,
-              alias = this.build.alias,
-              tsConfig = this.tsConfig,
-              tscPaths = tsConfig?.json.compilerOptions.paths;
-
-        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
-        {
-            const value = alias[key];
-            if (isArray(value))
-            {
-                if (value.includes(path)) {
-                    this.warnings.push(`tsconfig alias extractions have same key/value ${value} / ${path}`);
-                }
-                else {
-                    value.push(path);
-                }
-            }
-            else { alias[key] = [ path ]; }
-        };
-
-        if (tscPaths)
-        {
-            Object.entries(tscPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
-            {
-                paths.forEach((p) => _pushAlias(key, resolvePath(dirname(tsConfig.path), p)), this);
-            });
-        }
-
-        if (!alias[":env"])
-        {
-            const basePath = build.paths.base,
-                  srcPath = relativrPath(basePath, build.paths.src),
-                  envGlob = `**/${srcPath}/**/{env,environment,target}/${build.target}/`,
-                  envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
-            if (envDirs.length >= 0)
-            {
-                envDirs.forEach((path) => _pushAlias(":env", path), this);
-            }
-        }
-    };
+     printWpcProperties = () =>
+     {
+         const l = this.logger;
+         l.write("Webpack Configuration:", 1, "", 0, l.colors.white);
+         l.value("   build name", this.wpc.name, 1);
+         l.value("   mode", this.wpc.mode, 1);
+         l.value("   target",this.wpc.target, 1);
+         l.value("   context directory", this.wpc.context, 1);
+         l.value("   output directory", this.wpc.output.path, 1);
+         l.value("   entry", JSON.stringify(this.wpc.entry), 3);
+         l.value("   resolve", JSON.stringify(this.wpc.resolve), 3);
+         l.value("   output", JSON.stringify(this.wpc.output), 3);
+         l.value("   rules", JSON.stringify(this.wpc.module.rules), 3);
+         l.sep();
+     };
 
 }
 

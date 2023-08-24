@@ -1,58 +1,18 @@
 {
     "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json",
-    "name": "vscode-taskexplorer",
-    "displayName": "Task Explorer",
+    "name": "wpw-app",
+    "displayName": "Webpack Wrap Application",
     "detailedDisplayName": "Task Explorer VSCode Extension",
     "publicInfoProject": true,
-    "source": "typescript",
-    "builds": [
-        {
-            "name": "main",
-            "debug": true,
-            "log": {
-                "color": "cyan"
-            },
-            "plugins": {
-                "licensefiles": true
-            },
-            "vscode": {
-                "type": "extension"
-            }
-        }
-    ],
+    "builds": [],
     "development": {
-        "builds": [
-            { "name": "main" }
-        ]
+        "builds": []
     },
     "production": {
-        "builds": [
-            { "name": "main", "debug": false }
-        ]
+        "builds": []
     },
     "test": {
-        "builds": [
-            { "name": "main" },
-            {
-                "name": "tests",
-                "log": {
-                    "color": "yellow",
-                    "pad": {
-                        "value": 60
-                    }
-                },
-                "paths": {
-                    "dist": "dist/test",
-                    "src": "src/tests"
-                },
-                "plugins": {
-                    "istanbul": false
-                },
-                "vscode": {
-                    "type": "tests"
-                }
-            }
-        ]
+        "builds": []
     },
     "log": {
         "level": 2,

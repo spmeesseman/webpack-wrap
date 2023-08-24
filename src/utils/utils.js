@@ -13,10 +13,8 @@ const { glob } = require("glob");
 const { promisify } = require("util");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
-const { spawnSync } = require("child_process");
-const { existsSync } = require("fs");
-const { join, resolve, basename, dirname, isAbsolute, relative } = require("path");
 const exec = promisify(require("child_process").exec);
+const { resolve, isAbsolute, relative } = require("path");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -27,20 +25,23 @@ const globOptions = {
  * @function
  * @template {{}} T
  * @template {{}} U extends T
- * @param {T | Partial<T>} object
+ * @param {T | Partial<T> | undefined} object
  * @param {U | T | Partial<T> | undefined} config
  * @param {U | T | Partial<T> | undefined} [defaults]
  * @returns {T}
  */
 const apply = (object, config, defaults) =>
 {
+    if (object === undefined) {
+        object = {};
+    }
     if (isObject(object))
     {
         if (isObject(defaults)) {
             apply(object, defaults);
         }
         if (isObject(config)) {
-            Object.keys(config).forEach(i => { object[i] = config[i]; });
+            Object.keys(config).forEach(i => { /** @type {{}} */(object)[i] = config[i]; });
         }
     }
     return /** @type {T} */(object);
@@ -220,7 +221,7 @@ const execAsync = async (options) =>
     child.on("close", (code) =>
     {
         exitCode = code;
-        if (logger)
+        if (logger && colors)
         {
             const clrCode = logger.withColor(code?.toString(), code === 0 ? colors.green : colors.red);
             const _out = (/** @type {string} */ name, /** @type {any[]} */ out) =>
@@ -265,75 +266,15 @@ const findFiles = async (pattern, options) => (await glob(pattern, merge(globOpt
 /**
  * @function
  * @param {string} pattern
- * @param {import("glob").GlobOptions} options
+ * @param {import("glob").GlobOptions} [options]
  * @returns {string[]}
  */
 const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions, options)).map((f) => f.toString());
 
 
 /**
- * @param {import("../types/typedefs").WpBuildRcBuild} build
- * @returns {string | undefined}
- */
-const findTsConfig = (build) =>
-{
-    /**
-     * @param {string | undefined} base
-     * @returns {string | undefined}
-     */
-    const _find = (base) =>
-    {
-        if (base)
-        {
-            let tsCfg = join(base, `tsconfig.${build.name}.json`);
-            if (!existsSync(tsCfg))
-            {
-                tsCfg = join(base, `tsconfig.${build.target}.json`);
-                if (!existsSync(tsCfg))
-                {
-                    tsCfg = join(base, `tsconfig.${build.mode}.json`);
-                    if (!existsSync(tsCfg))
-                    {
-                        tsCfg = join(base,`tsconfig.${build.type}.json`);
-                        if (!existsSync(tsCfg))
-                        {
-                            tsCfg = join(base, build.name, "tsconfig.json");
-                            if (!existsSync(tsCfg))
-                            {
-                                tsCfg = join(base, build.type || build.name, "tsconfig.json");
-                                if (!existsSync(tsCfg)) {
-                                    tsCfg = join(base,"tsconfig.json");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return tsCfg;
-        }
-    };
-
-    if (build.paths.tsconfig && existsSync(build.paths.tsconfig)) {
-        return build.paths.tsconfig;
-    }
-
-    const tryPaths = [
-        build.paths.src, join(build.paths.ctx, build.name), join(build.paths.base, build.name),
-        join(build.paths.ctx, build.type), join(build.paths.base, build.type), build.paths.ctx, build.paths.base
-    ];
-    for (const base of tryPaths)
-    {
-        const tsConfig = _find(base);
-        if (tsConfig && existsSync(tsConfig)) {
-            return tsConfig;
-        }
-    }
-};
-
-
-/**
  * @param {typedefs.WpBuildApp} app
- * @param {typedefs.WpBuildAppTsConfig} [srcConfig]
+ * @param {typedefs.WpBuildAppJsTsConfig} [srcConfig]
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]
  * @param {boolean} [allowDts]
@@ -353,91 +294,6 @@ const getExcludes = (app, srcConfig, allowTest, allowTypes, allowDts) =>
     }
     // ex.push(...rulesConfig.excludeAbs);
     return ex;
-};
-
-
-
-/**
- * @param {import("../types/typedefs").WpBuildRcBuild | string} build
- * @param {string[]} xInclude
- * @returns {typedefs.WpBuildAppTsConfig | undefined}
- */
-const getTsConfig = (build, ...xInclude) =>
-{
-    const tsConfigPath = isString(build) ? build : findTsConfig(build);
-    const _getData= (/** @type {string} */ file, /** @type {string} */ dir) =>
-    {
-        const result = spawnSync("npx", [ "tsc", `-p ${file}`, "--showConfig" ], { cwd: dir, encoding: "utf8", shell: true }),
-              data = result.stdout,
-              start = data.indexOf("{"),
-              end = data.lastIndexOf("}") + 1,
-              raw = data.substring(start, end);
-        return { raw, json: /** @type {typedefs.WpBuildAppTsConfigJson} */(JSON5.parse(raw)) };
-    };
-
-    if (tsConfigPath && existsSync(tsConfigPath))
-    {
-        const exclude = [],
-              include = [ ...xInclude ],
-              dir = dirname(tsConfigPath),
-              json = /** @type {typedefs.WpBuildAppTsConfigJson} */({});
-
-        asArray(json.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
-        {
-            merge(json, _getData(basename(extendFile), dirname(extendFile)).json);
-        });
-
-        const buildJson = _getData(dirname(tsConfigPath), dir);
-        merge(json, buildJson.json);
-
-        if (!json.compilerOptions) {
-            json.compilerOptions = {};
-        }
-        if (json.compilerOptions.rootDir) {
-            include.push(resolve(dir, json.compilerOptions.rootDir));
-        }
-
-        if (isArray(json.include)) {
-            include.push(
-                ...json.include.filter(p => !include.includes(p))
-                   .map((path) => isAbsolute(path) ? path : resolve(dir, path.replace(/\*/g, "")))
-            );
-        }
-        else if (isString(json.include)) {
-            include.push(json.include);
-        }
-
-        if (!json.files) {
-            json.files = [];
-        }
-
-        if (isArray(json.exclude))
-        {
-            // exclude.push(...rulesConfig.json.exclude.map(
-            // 	(glob) => {
-            // 		let base = rulesConfig.dir;
-            // 		glob = glob.replace(/\\/g, "/");
-            // 		while (glob.startsWith("../")) {
-            // 			base = resolve(base, "..");
-            // 			glob = glob.replace("../", "");
-            // 		}
-            // 		const rel = relative(app.getContextPath(), base);
-            // 		glob = ((rel ? rel + "/" : "") + glob).replace(/\*\*/g, "(?:.*?)").replace(/\*/g, "(?:.*?)");
-            // 		return new RegExp(glob);
-            // 	}
-            // ));
-        }
-
-	    return {
-            json,
-            raw: buildJson.raw,
-            path: tsConfigPath,
-            includeAbs: uniq(include),
-            excludeAbs: uniq(exclude),
-            dir: dirname(tsConfigPath),
-            file: basename(tsConfigPath)
-        };
-    }
 };
 
 
@@ -470,6 +326,14 @@ const isEmpty = (v, allowEmpStr) => v === null || v === undefined || (!allowEmpS
  * @returns {boolean}
  */
 const isFunction = (v) => !!v && typeof v === "function";
+
+
+/**
+ * @function
+ * @param {string | undefined} path
+ * @returns {boolean}
+ */
+const isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/](?:j|t)sconfig\.(?:[\w\-]+?\.)?json/.test(path);
 
 
 /**
@@ -654,17 +518,17 @@ const pickNot = (obj, ...keys) =>
 /**
  * @param {string} b base directory
  * @param {string} p configured path (relative or absolute)
- * @returns {string}
+ * @returns {string} a relative path
  */
-const relativrPath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } return p; };
+const relativePath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } return p; };
 
 
 /**
  * @param {string} b base directory
- * @param {string} p configured path (relative or absolute)
- * @returns {string}
+ * @param {string | undefined} p configured path (relative or absolute)
+ * @returns {string} an absolute path
  */
-const resolvePath = (b, p) => { if (!isAbsolute(p)) { p = resolve(b, p); } return p; };
+const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } return p || b; };
 
 
 /**
@@ -749,8 +613,7 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, findTsConfig,
-    getExcludes, getTsConfig, isArray, isDate,isEmpty, isFunction, isObject, isObjectEmpty,
-    isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot,
-    uniq, WpBuildError, relativrPath, resolvePath
+    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray,
+    isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString,
+    lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath
 };

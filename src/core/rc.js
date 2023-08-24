@@ -11,15 +11,17 @@ const JSON5 = require("json5");
 const WpBuildApp = require("./app");
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
+const { spawnSync } = require("child_process");
 const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
-const { resolve, basename, join, dirname, sep } = require("path");
-const {
-    WpBuildError, apply, pick, isString, merge, isArray, mergeIf, applyIf, resolvePath
-} = require("../utils/utils");
+const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const {
     isWpBuildRcBuildType, isWpBuildWebpackMode, isWebpackTarget, WpBuildRcPackageJsonProps
 } = require("../types/constants");
+const {
+    WpBuildError, apply, pick, isString, merge, isArray, mergeIf, applyIf, resolvePath, asArray, uniq,
+    findFilesSync, relativePath, isJsTsConfigPath
+} = require("../utils/utils");
 
 
 const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
@@ -158,18 +160,17 @@ class WpBuildRc
 
         //
         // Merge the base rc level and the environment level configurations into each
-        // build configuration
+        // base build configuration
         //
         this.configureBuilds();
 
-		this.global.verbose = !!this.args.verbosity && this.args.verbosity !== "none";
-        this.printBanner(this, arge, argv);
+		this.printBanner(this, arge, argv);
     };
 
 
     get hasTests() { return !!this.builds.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
     get hasTypes() { return !!this.getBuild("types"); }
-    get isSingleBuild() { return !!this.args.build; }
+    get isSingleBuild() { return !!this.args.build && this.apps.length <= 1; }
 
 
     /**
@@ -224,14 +225,14 @@ class WpBuildRc
         //     }
         // }
 
+        //
+        // Create the top level build wrapper
+        //
         const rc = new WpBuildRc(argv, arge);
 
-        rc.apps.push(
-            ...rc.builds.filter(
-                (b) => !arge.build || b.name === arge.build).map((b) => new WpBuildApp(rc, merge({}, b))
-            )
-        );
-
+        //
+        // Some build require types to be built, auto-add the types build if defined, and a dependency of the single build
+        //
         if (rc.hasTypes)
         {
             const typesBuild = rc.getBuild("types");
@@ -242,6 +243,17 @@ class WpBuildRc
             }
         }
 
+        if (rc.isSingleBuild && rc.apps.length === 0) // if single build, allow logger to auto-adjust the env-tag length
+        {
+            rc.builds.forEach(b => { b.log.pad.envTag = undefined; });
+        }
+
+        rc.apps.push(
+            ...rc.builds.filter(
+                (b) => !arge.build || b.name === arge.build).map((b) => new WpBuildApp(rc, merge({}, b))
+            )
+        );
+
         const wpConfigs = [];
         for (const app of rc.apps)
         {
@@ -249,7 +261,7 @@ class WpBuildRc
             {
                 throw WpBuildError.getErrorProperty("type", "utils/app.js");
             }
-            wpConfigs.push(app.configureAppBuild());
+            wpConfigs.push(app.buildApp());
             apply(app.build, { active: true });
         }
 
@@ -275,7 +287,6 @@ class WpBuildRc
             dst.mode = dst.mode || this.mode;
             if (this.initializeBaseRc(dst) && this.initializeBaseRc(src))
             {
-                dst.source = dst.source || "typescript";
                 dst.target = this.getTarget(dst);
                 dst.type = this.getType(dst);
                 const ccColors = merge({}, dst.log.colors);
@@ -292,6 +303,7 @@ class WpBuildRc
                 applyIf(dst.exports, src.exports);
                 applyIf(dst.plugins, src.plugins);
                 mergeIf(dst.alias, src.alias);
+                mergeIf(dst.source, src.source);
                 mergeIf(dst.vscode, src.vscode);
             }
             return dst;
@@ -313,7 +325,101 @@ class WpBuildRc
             }
         });
 
-        this.builds.forEach(this.resolvePaths, this);
+        this.builds.forEach((build) =>
+        {
+            this.resolvePaths(build);
+            this.configureSourceCode(build);
+            this.resolveAliasPaths(build);
+        });
+    };
+
+
+	/**
+	 * @function
+	 * @private
+	 * @param {typedefs.WpBuildRcBuild} build
+	 */
+    configureSourceCode = (build) =>
+    {
+        const config = this.getJsTsConfig(build);
+        if (!config) {
+            // build.paths.tsconfig = undefined;
+            // this.warnings.push("Could not locate tsconfig file while configuring build" + build.name);
+            throw WpBuildError.getErrorMissing("tsconfig file", "utils/rc.js");
+        }
+        const compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
+        merge(build.source.config, config, { options: { compilerOptions: compilerOptionsCc }});
+    };
+
+
+    /**
+     * @function
+     * @private
+     * @param {typedefs.WpBuildRcBuild} build
+     * @returns {string | undefined}
+     */
+    findJsTsConfig = (build) =>
+    {
+        const cfgFile = build.source.type === "typescript" ? "tsconfig" : "jsconfig";
+        /**
+         * @param {string | undefined} base
+         * @returns {string | undefined}
+         */
+        const _find = (base) =>
+        {
+            if (base)
+            {
+                let tsCfg = join(base, `${cfgFile}.${build.name}.json`);
+                if (!existsSync(tsCfg))
+                {
+                    tsCfg = join(base, `${cfgFile}.${build.target}.json`);
+                    if (!existsSync(tsCfg))
+                    {
+                        tsCfg = join(base, `${cfgFile}.${build.mode}.json`);
+                        if (!existsSync(tsCfg))
+                        {
+                            tsCfg = join(base, `${cfgFile}.${build.type}.json`);
+                            if (!existsSync(tsCfg))
+                            {
+                                tsCfg = join(base, build.name, `${cfgFile}.json`);
+                                if (!existsSync(tsCfg))
+                                {
+                                    tsCfg = join(base, build.type || build.name, `${cfgFile}.json`);
+                                    if (!existsSync(tsCfg)) {
+                                        tsCfg = join(base, `${cfgFile}.json`);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return tsCfg;
+            }
+        };
+
+        if (isJsTsConfigPath(build.source[cfgFile]))
+        {
+            const curPath = resolvePath(build.paths.base, build.source[cfgFile]);
+            if (curPath && existsSync(curPath)) {
+                return curPath;
+            }
+        }
+
+        const tryPaths = [
+            build.paths.src, join(build.paths.ctx, build.name), join(build.paths.base, build.name),
+            join(build.paths.ctx, build.type), join(build.paths.base, build.type), build.paths.ctx, build.paths.base
+        ];
+        for (const base of tryPaths)
+        {
+            const configFile = _find(base);
+            if (configFile && existsSync(configFile)) {
+                return configFile;
+            }
+        }
+        const globFiles = findFilesSync(`**/${cfgFile}.${build.mode}.json`, { cwd: build.paths.base, absolute: true });
+        if (globFiles.length > 0) {
+            return globFiles[0];
+        }
     };
 
 
@@ -331,6 +437,94 @@ class WpBuildRc
      * @returns {typedefs.WpBuildRcBuild | undefined}
      */
     getBuild = (name) => this.builds.find(b => b.type === name || b.name === name);
+
+
+    /**
+     * @function
+     * @private
+     * @param {typedefs.WpBuildRcBuild} build
+     * @returns {typedefs.WpwRcSourceCodeConfig | undefined}
+     */
+    getJsTsConfig = (build) =>
+    {
+        const tsConfigPath = this.findJsTsConfig(build);
+
+        const _getData= (/** @type {string} */ file, /** @type {string} */ dir) =>
+        {
+            const result = spawnSync("npx", [ "tsc", `-p ${file}`, "--showConfig" ], { cwd: dir, encoding: "utf8", shell: true }),
+                  data = result.stdout,
+                  start = data.indexOf("{"),
+                  end = data.lastIndexOf("}") + 1,
+                  raw = data.substring(start, end);
+            return { raw, json: /** @type {typedefs.WpwRcSourceCodeConfigOptions} */(JSON5.parse(raw)) };
+        };
+
+        if (tsConfigPath)
+        {
+            const exclude = [],
+                  include = [],
+                  dir = dirname(tsConfigPath),
+                  file = basename(tsConfigPath),
+                  json = /** @type {typedefs.WpwRcSourceCodeConfigOptions} */({});
+
+            asArray(json.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
+            {
+                merge(json, _getData(basename(extendFile), dirname(extendFile)).json);
+            });
+
+            const buildJson = _getData(file, dir);
+            merge(json, buildJson.json);
+
+            if (!json.compilerOptions) {
+                json.compilerOptions = {};
+            }
+            if (json.compilerOptions.rootDir) {
+                include.push(resolve(dir, json.compilerOptions.rootDir));
+            }
+            if (json.compilerOptions.rootDirs) {
+                json.compilerOptions.rootDirs.forEach(d => include.push(resolve(dir, d)));
+            }
+
+            if (isArray(json.include)) {
+                include.push(
+                    ...json.include.filter(p => !include.includes(p))
+                       .map((path) => isAbsolute(path) ? path : resolve(dir, path.replace(/\*/g, "")))
+                );
+            }
+            else if (isString(json.include)) {
+                include.push(json.include);
+            }
+
+            if (!json.files) {
+                json.files = [];
+            }
+
+            if (isArray(json.exclude))
+            {
+                exclude.push(...json.exclude.map(
+                	(glob) => {
+                		let base = dir;
+                		glob = glob.replace(/\\/g, "/");
+                		while (glob.startsWith("../")) {
+                			base = resolve(base, "..");
+                			glob = glob.replace("../", "");
+                		}
+                		const rel = relativePath(build.paths.ctx, base);
+                		return ((rel ? rel + "/" : "") + glob).replace(/\*\*/g, "(?:.*?)").replace(/\*/g, "(?:.*?)");
+                	}
+                ));
+            }
+
+            return {
+                dir, file,
+                options: json,
+                raw: buildJson.raw,
+                path: tsConfigPath,
+                includeAbs: uniq(include),
+                excludeAbs: uniq(exclude)
+            };
+        }
+    };
 
 
     /**
@@ -425,13 +619,17 @@ class WpBuildRc
      */
     printBanner = (rc, arge, argv) =>
     {
-        WpBuildConsoleLogger.printBanner(rc.displayName, rc.pkgJson.version || "1.0.0", ` Start ${rc.detailedDisplayName || rc.displayName} Webpack Build`, (logger) =>
-        {
-            logger.write("   Mode  : " + logger.withColor(rc.mode, logger.colors.grey), 1, "", 0, logger.colors.white);
-            logger.write("   Argv  : " + logger.withColor(JSON.stringify(argv), logger.colors.grey), 1, "", 0, logger.colors.white);
-            logger.write("   Env   : " + logger.withColor(JSON.stringify(arge), logger.colors.grey), 1, "", 0, logger.colors.white);
-            logger.sep();
-        });
+        WpBuildConsoleLogger.printBanner(
+            rc.displayName,
+            rc.pkgJson.version || "1.0.0",
+            ` Start ${rc.detailedDisplayName || rc.displayName} Webpack Build`,
+            (logger) => {
+                logger.write("   Mode  : " + logger.withColor(rc.mode, logger.colors.grey), 1, "", 0, logger.colors.white);
+                logger.write("   Argv  : " + logger.withColor(JSON.stringify(argv), logger.colors.grey), 1, "", 0, logger.colors.white);
+                logger.write("   Env   : " + logger.withColor(JSON.stringify(arge), logger.colors.grey), 1, "", 0, logger.colors.white);
+                logger.sep();
+            }
+        );
     };
 
 
@@ -462,7 +660,63 @@ class WpBuildRc
             if (!rc.paths.ctx) { rc.paths.ctx = "."; }
             if (!rc.paths.temp) { rc.paths.temp = defaultTempDir; }
         }
+        if (!rc.source) {
+            rc.source = { type: "typescript", config: { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }};
+        }
+        else {
+            if (!rc.source.type) { rc.source.type = "typescript"; }
+            if (!rc.source.config) { rc.source.config = { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }; }
+            if (!rc.source.config.options) { rc.source.config.options = { compilerOptions: {} }; }
+        }
         return true;
+    };
+
+
+    /**
+     * @function
+     * @private
+     * @param {typedefs.WpBuildRcBuild} build
+     */
+    resolveAliasPaths = (build) =>
+    {
+        const alias = build.alias,
+              jstsConfig = build.source.config,
+              jstsDir = jstsConfig.dir,
+              jstsPaths = jstsConfig.options.compilerOptions.paths;
+
+        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
+        {
+            const value = alias[key];
+            if (isArray(value))
+            {
+                if (!value.includes(path)) {
+                    value.push(path);
+                }
+            }
+            else { alias[key] = [ path ]; }
+        };
+
+        if (jstsDir && jstsPaths)
+        {
+            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
+            {
+                if (paths) {
+                    asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
+                }
+            });
+        }
+
+        if (!alias[":env"])
+        {
+            const basePath = build.paths.base,
+                  srcPath = relativePath(basePath, build.paths.src),
+                  envGlob = `**/${srcPath}/**/{env,environment,target}/${build.target}/`,
+                  envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
+            if (envDirs.length >= 0)
+            {
+                envDirs.forEach((path) => _pushAlias(":env", path), this);
+            }
+        }
     };
 
 
