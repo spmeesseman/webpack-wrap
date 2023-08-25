@@ -13,9 +13,9 @@
  *
  */
 
-const path = require("path");
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
+const { resolve, join } = require("path");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
@@ -90,7 +90,7 @@ const builds =
 		app.wpc.module.rules.push(
 		{
 			test: /index\.js$/,
-			include: path.join(buildPath, "node_modules", "nyc"),
+			include: join(buildPath, "node_modules", "nyc"),
 			loader: "string-replace-loader",
 			options: {
 				search: "selfCoverageHelper = require('../self-coverage-helper')",
@@ -156,6 +156,14 @@ const builds =
 				// include: uniq([ mainSrcPath, typesSrcPath ]),
 				include: getIncludes(app, rulesConfig),
 				exclude: getExcludes(app, rulesConfig, false, true, true)
+			},
+			{
+				test: /\.ts$/,
+				use:
+				{
+					loader: resolve(__dirname, "../loaders/dts.js"),
+					options: {}
+				}
 			});
 		}
 	},

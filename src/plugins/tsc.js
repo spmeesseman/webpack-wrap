@@ -50,6 +50,11 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				}
 			});
 
+			const outputFile = this.app.build.name + ".d.ts",
+				  outputPath = join(typesDirDist, outputFile);
+			if (existsSync(outputPath)) {
+				unlinkSync(outputPath);
+			}
 			// let entryFile = Object.valuthis.app.wpc.entryes().map(
 			// 	/** @type {typedefs.WpBuildWebpackEntryValue} */(v) => resolve(typesDirDist, !isString(v) ? v.import : v)
 			// )[0]?.replace(".ts", ".d.ts");
@@ -70,12 +75,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			}
 			if (existsSync(entryFile))
 			{
-				const outputFile = this.app.build.name + ".d.ts",
-					  outputPath = join(typesDirDist, outputFile);
 				l.value("  using tsconfig file", entryFile, 2);
-				if (existsSync(outputPath)) {
-					unlinkSync(outputPath);
-				}
 				/** @type {typedefs.WpBuildDtsBundleOptions} */
 				const bundleCfg = {
 					name: `${this.app.pkgJson.name}-${this.app.build.name}`,

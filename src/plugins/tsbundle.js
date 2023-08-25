@@ -11,6 +11,8 @@
 const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
 const { existsSync } = require("fs");
+const { resolve } = require("path");
+const { isString } = require("../utils");
 
 
 /**
@@ -37,7 +39,9 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
     apply(compiler)
     {
 		const distPath = this.app.getDistPath({ build: "types" });
-		if (distPath && existsSync(distPath) && this.app.args.build === this.app.build.name)
+		const entry = this.app.wpc.entry[this.app.build.name];
+		const entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
+		if (entryFile && existsSync(entryFile) && this.app.args.build === this.app.build.name)
 		{
 			this.onApply(compiler,
 			{
@@ -58,11 +62,20 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					hook: "afterEmit",
 					statsProperty: "tsbundle",
 					statsPropertyColor: this.app.build.log.color,
-					callback: this.bundleDts.bind(this)
+					callback: this.bundleDtsAfterEmit.bind(this)
 				}
 			});
 		}
     }
+
+	/**
+	 * @param {typedefs.WebpackCompilation} compilation
+	 */
+	bundleDtsAfterEmit = (compilation) =>
+	{
+		this.compilation = compilation;
+		this.bundleDts(compilation.assets);
+	};
 
 }
 
