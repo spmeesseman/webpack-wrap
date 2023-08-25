@@ -18,16 +18,6 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 class WpBuildTsForkerPlugin extends WpBuildPlugin
 {
-    // /**
-    //  * @class WpBuildTsForkerPlugin
-    //  * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
-    //  */
-	// constructor(options)
-    // {
-    //     super(apply(options, { wrapVendorPlugin: true }));
-    // }
-
-
     /**
      * @function Called by webpack runtime to initialize this plugin
      * @override
@@ -60,48 +50,47 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 	/**
 	 * @function
-	 * @protected
 	 * @override
-	 * @returns {typedefs.WpBuildPluginVendorOptions}
+	 * @returns {typedefs.WebpackPluginInstance}
 	 */
-	getOptions = () =>
+	getVendorPlugin = () =>
 	{
+		/** @type {[ string, "write-dts" | "write-tsbuildinfo" | "readonly" | "write-dts" , string? ]} */
+		let tsParams;
 		const app = this.app,
-			  tsParams = [],
 			  tsConfig = app.build.source.config,
-			  tsConfigPath = tsConfig.path;
+			  tsConfigPath = /** @type {string} */(tsConfig.path);
 
 		if (app.build.type === "tests")
 		{
-			tsParams.push(tsConfigPath, "write-tsbuildinfo");
+			tsParams = [ tsConfigPath, "write-tsbuildinfo" ];
 		}
 		else if (app.build.type === "types")
 		{
-			tsParams.push(tsConfigPath, "write-dts");
+			tsParams = [ tsConfigPath, "write-dts" ];
 		}
 		else {
-			tsParams.push(tsConfigPath, tsConfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly");
+			tsParams = [ tsConfigPath, tsConfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly" ];
 		}
 
-		app.logger.write(`add config file '${tsParams[0]}' to tsforkcheck [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
+		app.logger.write("get vendor plugin");
+		app.logger.write("   create plugin fork-ts-checker-webpack-plugin");
+		app.logger.write(`   add config file '${tsParams[0]}' to tsforkcheck [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
 
-		return {
-			ctor: ForkTsCheckerWebpackPlugin,
-			options:
-			{
-				async: false,
-				formatter: "basic",
-				typescript: {
-					build: !!tsParams[2],
-					mode: tsParams[1],
-					configFile: tsParams[0]
-				},
-				logger: app.logger.level < 5 ? undefined : {
-					error: app.logger.error,
-					log: (/** @type {string} msg */msg) => app.logger.write("bold(tsforkchecker): " + msg)
-				}
+		return new ForkTsCheckerWebpackPlugin(
+		{
+			async: false,
+			formatter: "basic",
+			typescript: {
+				build: !!tsParams[2],
+				mode: tsParams[1],
+				configFile: tsParams[0]
+			},
+			logger: app.logger.level < 5 ? undefined : {
+				error: app.logger.error,
+				log: (/** @type {string} msg */msg) => app.logger.write("bold(tsforkchecker): " + msg)
 			}
-		};
+		});
 	};
 
 
@@ -136,6 +125,17 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	{
 		this.compilation = compilation;
 		this.logger.start("tsforkchecker start");
+		if (this.logger.level >= 2)
+		{
+			if (filesChange.changedFiles) {
+				this.logger.write(`changed files (#: ${filesChange.changedFiles.length})`, 2);
+				filesChange.changedFiles.forEach(f => { this.logger.write(f, 3, "   "); });
+			}
+			if (filesChange.deletedFiles) {
+				this.logger.write(`deleted files (#: ${filesChange.deletedFiles.length})`, 2);
+				filesChange.deletedFiles.forEach(f => { this.logger.write(f, 3, "   "); });
+			}
+		}
 		return filesChange;
 	}
 
@@ -155,7 +155,7 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsForkerPlugin | undefined}
  */
-const tscheck = (app) => WpBuildPlugin.wrap(app, WpBuildTsForkerPlugin, app.build.plugins.tscheck);
+const tscheck = (app) => WpBuildPlugin.wrap(WpBuildTsForkerPlugin, app, app.build.plugins.tscheck);
 
 
 module.exports = tscheck;

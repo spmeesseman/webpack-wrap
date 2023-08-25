@@ -32,10 +32,11 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
+const events = require("events");
 const { readFile } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
-const { WebpackError, ModuleFilenameHelpers } = require("webpack");
+const { WebpackError } = require("webpack");
 const { isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar } = require("../utils");
 
 //
@@ -71,10 +72,9 @@ class WpBuildPlugin
     compiler;
     /**
      * @abstract
-     * @protected
-     * @type {(...args: any[]) => typedefs.WpBuildPluginVendorOptions}
+     * @type {(...args: any[]) => typedefs.WebpackPluginInstance}
      */
-    getOptions;
+    getVendorPlugin;
     /**
      * @type {Record<string, any>}
      * @protected
@@ -99,11 +99,16 @@ class WpBuildPlugin
      */
     name;
     /**
+     * @type {events.EventEmitter}
+     */
+    onPluginEvent;
+    /**
      * @protected
      */
     options;
     /**
      * @private
+     * @type {typedefs.WebpackPluginInstance[]}
      */
     plugins;
     /**
@@ -140,6 +145,7 @@ class WpBuildPlugin
         this.logger = this.app.logger;
         this.wpConfig = options.app.wpc;
         this.name = this.constructor.name;
+        this.onPluginEvent = new events.EventEmitter();
         this.options = /** @type {typedefs.WpBuildPluginOptionsRequired} */(mergeIf(options, { plugins: [] }));
         this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
@@ -597,7 +603,7 @@ class WpBuildPlugin
         {
             if (stageEnum && options.hookCompilation === "processAssets")
             {
-                const logMsg = this.breakProp(optionName).padEnd(this.app.build.log.pad.value - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
+                const logMsg = this.breakProp(optionName).padEnd(this.app.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
                 if (!options.async) {
                     hook.tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options).bind(this));
                 }
@@ -700,6 +706,27 @@ class WpBuildPlugin
 
 
     /**
+     * Wraps a vendor plugin. vendor plugin instantiation is done via the constructor's call to
+     * the {@link WpBuildPlugin.getOptions getOptions()} override
+     *
+     * @template {WpBuildPlugin} T
+     * @param {new(arg1: typedefs.WpBuildPluginOptions) => T} clsType the extended WpBuildPlugin class type
+     * @param {typedefs.WpBuildApp} app current build wrapper
+     * @param {boolean} [checkFlag] convenience param - flag to check if plugin is enabled in the current build
+     * @returns {T | undefined}
+     */
+    static wrap = (clsType, app, checkFlag) =>
+    {
+        if (checkFlag !== false)
+        {
+            const plugin = new clsType({ app, wrapPlugin: true });
+            plugin.plugins.push(plugin.getVendorPlugin());
+            return plugin;
+        }
+    }
+
+
+    /**
      * @function
      * @private
      * @param {string} message If camel-cased, will be formatted with {@link WpBuildPlugin.breakProp breakProp()}
@@ -712,31 +739,9 @@ class WpBuildPlugin
               callback = options.callback,
               logMsg = this.breakProp(message);
         if (!options.async) {
-            return (arg) => { logger.start(logMsg, 1); callback(arg); };
+            return (arg) => { logger.start(logMsg, 1); callback(arg); this.onPluginEvent.emit("hook", this.name, options.hook); };
         }
-        return async (arg) => { logger.start(logMsg, 1); await callback(arg); };
-    }
-
-
-    /**
-     * Wraps a vendor plugin. vendor plugin instantiation is done via the constructor's call to
-     * the {@link WpBuildPlugin.getOptions getOptions()} override
-     *
-     * @template {WpBuildPlugin} T
-     * @param {typedefs.WpBuildApp} app current build wrapper
-     * @param {new(...args: any[]) => T} clsType the extended WpBuildPlugin class type
-     * @param {boolean} [checkFlag] convenience param - flag to check if plugin is enabled in the current build
-     * @returns {T | undefined}
-     */
-    static wrap = (app, clsType, checkFlag) =>
-    {
-        if (checkFlag !== false)
-        {
-            const plugin = new clsType({ app, wrapPlugin: true });
-            const pluginOptions = plugin.getOptions();
-            plugin.plugins.push(new pluginOptions.ctor(pluginOptions.options));
-            return plugin;
-        }
+        return async (arg) => { logger.start(logMsg, 1); await callback(arg); this.onPluginEvent.emit("hook", this.name, options.hook); };
     }
 
     // /**

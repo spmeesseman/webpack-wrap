@@ -219,8 +219,7 @@ class WpBuildApp
             target: build.target
         };
         try
-        {
-            wpexports.cache(this);          // Asset cache
+        {   wpexports.cache(this);          // Asset cache
             wpexports.experiments(this);    // Set any experimental flags that will be used
             wpexports.entry(this);          // Entry points for built output
             wpexports.externals(this);      // External modules
@@ -237,8 +236,8 @@ class WpBuildApp
             this.printBuildProperties();
             this.printWpcProperties();
         }
-        catch (e) {
-            this.logger.blank(undefined, this.logger.icons.color.error);
+        catch (e)
+        {   this.logger.blank(undefined, this.logger.icons.color.error);
             this.logger.error("An error was encountered while creating the webpack configuration export");
             this.logger.error("Using the following build parameters:");
             this.logger.blank(undefined, this.logger.icons.color.error);
@@ -308,7 +307,9 @@ class WpBuildApp
     {
         let path;
         const opts = /** @type {typedefs.WpBuildAppGetPathOptions} */(apply({}, options)),
-              basePath = (opts.ctx ? this.build.paths.ctx : this.build.paths.base) || process.cwd();
+              basePath = (opts.ctx ? this.build.paths.ctx : this.build.paths.base) || process.cwd(),
+              buildName = opts.build || this.build.name,
+              build = this.rc.builds.find(b => b.name === buildName || b.type === buildName);
 
         const _getPath = /** @param {string | undefined} path */(path) =>
         {
@@ -352,8 +353,6 @@ class WpBuildApp
             }
         };
 
-        const buildName = opts.build || this.build.name,
-              build = this.rc.builds.find(b => b.name === buildName || b.type === buildName);
         if (build) {
             path = _getPath(build.paths[pathKey]);
         }

@@ -589,18 +589,18 @@ class WpBuildRc
      */
     initializeBaseRc = (rc) =>
     {
-        if (!rc.log) { rc.log = { level: 2, colors: { default: "grey" }, pad: { value: 50 } }; }
-        if (!rc.log.colors) { rc.log.colors = { default: "grey" }; }
-        else if (!rc.log.colors.default) { rc.log.colors.default = "grey"; }
-        if (!rc.log.pad) { rc.log.pad = { value: 50 }; }
         if (!rc.plugins) { rc.plugins = {}; }
         if (!rc.exports) { rc.exports = {}; }
         if (!rc.alias) { rc.alias = {}; }
         if (!rc.vscode) { rc.vscode = { type: "none" }; }
         else if (!rc.vscode.type) { rc.vscode.type = "none"; }
-        if (!rc.paths) {
-            rc.paths = { base: ".", src: "src", dist: "dist", ctx: ".", temp: defaultTempDir };
+        if (!rc.log) { rc.log = WpBuildConsoleLogger.defaultOptions(); }
+        else {
+            if (!rc.log.colors) { rc.log.colors = WpBuildConsoleLogger.defaultOptions().colors; }
+            else if (!rc.log.colors.default) { rc.log.colors.default = WpBuildConsoleLogger.defaultOptions().colors.default; }
+            if (!rc.log.pad) { rc.log.pad = WpBuildConsoleLogger.defaultOptions().pad; }
         }
+        if (!rc.paths) { rc.paths = { base: ".", src: "src", dist: "dist", ctx: ".", temp: defaultTempDir }; }
         else {
             if (!rc.paths.base) { rc.paths.base = "."; }
             if (!rc.paths.src) { rc.paths.src = "src"; }
@@ -608,9 +608,7 @@ class WpBuildRc
             if (!rc.paths.ctx) { rc.paths.ctx = "."; }
             if (!rc.paths.temp) { rc.paths.temp = defaultTempDir; }
         }
-        if (!rc.source) {
-            rc.source = { type: "typescript", config: { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }};
-        }
+        if (!rc.source) { rc.source = { type: "typescript", config: { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }}; }
         else {
             if (!rc.source.type) { rc.source.type = "typescript"; }
             if (!rc.source.config) { rc.source.config = { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }; }

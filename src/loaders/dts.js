@@ -15,7 +15,7 @@ const schema = {
 };
 
 const logger = new WpBuildConsoleLogger({
-  envTag1: "wpc", envTag2: "dts-loader", colors: { default: "grey" }, level: 5, pad: { value: 100 }
+  envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
 });
 
 

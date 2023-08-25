@@ -620,11 +620,11 @@
                         },
                         "envTag": {
                             "type": "number",
-                            "default": 25
+                            "default": 22
                         },
                         "value": {
                             "type": "number",
-                            "default": 45
+                            "default": 40
                         },
                         "uploadFileName": {
                             "type": "number",

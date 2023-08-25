@@ -125,23 +125,13 @@
  * PLUGINS PLUGIN.D.TS
  ***********************************************************************************************************************/
 
+/** @typedef {import("./plugin").WpBuildPluginOptions} WpBuildPluginOptions */
 /** @typedef {import("./plugin").WpBuildDtsBundleOptions} WpBuildDtsBundleOptions */
 /** @typedef {import("./plugin").WpBuildPluginTapOptions} WpBuildPluginTapOptions */
 /** @typedef {import("./plugin").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 /** @typedef {import("./plugin").WpBuildPluginTapOptionsHash} WpBuildPluginTapOptionsHash */
-/** @typedef {import("./generic").RequireKeys<WpBuildPluginTapOptions, "stage" | "hookCompilation">} WpBuildPluginCompilationOptions */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
-
-/**
- * @typedef {object} WpBuildPluginOptions
- * @property {WpBuildApp} app
- * @property {string} [build]
- * @property {string[]} [globalCacheProps]
- * @property {boolean} [registerVendorPluginsFirst]
- * @property {boolean} [registerVendorPluginsOnly]
- * @property {boolean} [wrapPlugin]
- * @property {WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[]} [plugins]
- */
+/** @typedef {import("./generic").RequireKeys<WpBuildPluginTapOptions, "stage" | "hookCompilation">} WpBuildPluginCompilationOptions */
 
 
 /***********************************************************************************************************************

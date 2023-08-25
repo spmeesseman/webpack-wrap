@@ -40,7 +40,7 @@ class WpBuildConsoleLogger
 
     /**
      * @class WpBuildConsoleLogger
-     * @param {typedefs.WpBuildRcLog} options
+     * @param {Partial<typedefs.WpBuildRcLog>} options
      */
     constructor(options)
     {
@@ -67,12 +67,13 @@ class WpBuildConsoleLogger
 
 
     get level() { return this.options.level; }
+    get valuePad() { return /** @type {number} */(this.options.pad.value); }
 
 
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcLog} options
+     * @param {Partial<typedefs.WpBuildRcLog>} options
      */
     applyOptions = (options) =>
     {
@@ -84,22 +85,19 @@ class WpBuildConsoleLogger
             envTagLen = 22;
         }
 
-        this.options = merge({
-            valueMaxLineLength: 150,
-            envTag1: "wpbuild",
-            envTag2: "info",
-            level: 2,
-            colors: {
-                default: "grey"
+        this.options = merge(
+            WpBuildConsoleLogger.defaultOptions(),
+            {
+                envTag1: "wpbuild",
+                envTag2: "info",
+                pad: {
+                    envTag: envTagLen
+                }
             },
-            pad: {
-                value: 100,
-                base: 0,
-                envTag: envTagLen
-            }
-        }, options);
+            options
+        );
 
-        if (!options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
+        if (!options.pad || !options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
             this.options.pad.envTag = envTagLen;
         }
     }
@@ -155,40 +153,11 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @type {typedefs.WpBuildLogIconSet}
+     * @function
+     * @static
+     * @returns {typedefs.WpBuildRcLog}
      */
-    icons =
-    {
-        bullet: "●",
-        error: "✘",
-        info: "ℹ",
-        star: "★",
-        start: "▶",
-        success: "✔",
-        up: "△",
-        warning: "⚠",
-        blue:
-        {
-            error: this.withColor("✘", this.colors.blue),
-            info: this.withColor("ℹ", this.colors.blue),
-            success: this.withColor("✔", this.colors.blue),
-            warning: this.withColor("⚠", this.colors.blue)
-        },
-        color:
-        {
-            bullet: this.withColor("●", this.colors.white),
-            errorTag: this.withColor("[", this.colors.white) + this.withColor("ERROR", this.colors.red) + this.withColor("]", this.colors.white),
-            info: this.withColor("ℹ", this.colors.magenta),
-            star: this.withColor("★", this.colors.yellow),
-            starCyan: this.withColor("★", this.colors.cyan),
-            start: this.withColor("▶", this.colors.green),
-            success: this.withColor("✔", this.colors.green),
-            successTag: this.withColor("[", this.colors.white) + this.withColor("SUCCESS", this.colors.green) + this.withColor("]", this.colors.white),
-            up: this.withColor("△", this.colors.white),
-            warning: this.withColor("⚠", this.colors.yellow),
-            error: this.withColor("✘", this.colors.red)
-        }
-    };
+    static defaultOptions = () => ({ level: 2, valueMaxLineLength: 100, colors: { default: "grey" }, pad: { value: 40, base: 0 }});
 
 
     /**
@@ -279,6 +248,43 @@ class WpBuildConsoleLogger
             }
         }
         return this.colors[this.options.colors.infoIcon || this.options.color || "blue"];
+    };
+
+
+    /**
+     * @type {typedefs.WpBuildLogIconSet}
+     */
+    icons =
+    {
+        bullet: "●",
+        error: "✘",
+        info: "ℹ",
+        star: "★",
+        start: "▶",
+        success: "✔",
+        up: "△",
+        warning: "⚠",
+        blue:
+        {
+            error: this.withColor("✘", this.colors.blue),
+            info: this.withColor("ℹ", this.colors.blue),
+            success: this.withColor("✔", this.colors.blue),
+            warning: this.withColor("⚠", this.colors.blue)
+        },
+        color:
+        {
+            bullet: this.withColor("●", this.colors.white),
+            errorTag: this.withColor("[", this.colors.white) + this.withColor("ERROR", this.colors.red) + this.withColor("]", this.colors.white),
+            info: this.withColor("ℹ", this.colors.magenta),
+            star: this.withColor("★", this.colors.yellow),
+            starCyan: this.withColor("★", this.colors.cyan),
+            start: this.withColor("▶", this.colors.green),
+            success: this.withColor("✔", this.colors.green),
+            successTag: this.withColor("[", this.colors.white) + this.withColor("SUCCESS", this.colors.green) + this.withColor("]", this.colors.white),
+            up: this.withColor("△", this.colors.white),
+            warning: this.withColor("⚠", this.colors.yellow),
+            error: this.withColor("✘", this.colors.red)
+        }
     };
 
 

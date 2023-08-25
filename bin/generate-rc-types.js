@@ -33,7 +33,6 @@ const requiredProperties = [
     [ "build", "WpBuildRcBuild" ],
     [ "colors", "WpBuildRcLog" ],
     [ "mode", "WpBuildRcBuild" ],
-    [ "value", "WpBuildRcLogPad" ],
     [ "log", "WpBuildRc" ],
     [ "pad", "WpBuildRcLog" ],
     [ "default", "WpBuildRcLogColors" ],

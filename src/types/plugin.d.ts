@@ -29,6 +29,17 @@ import {
     WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation, WebpackStats
 } from "./webpack";
 
+declare type WpBuildPluginOptions =
+{
+    app: WpBuildApp;
+    build?: string;
+    globalCacheProps?: string[];
+    registerVendorPluginsFirst?: boolean;
+    registerVendorPluginsOnly?: boolean;
+    wrapPlugin?: boolean;
+    plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
+    [ key: string ]: any;
+};
 
 declare type WpBuildPluginVendorOptions =
 {
@@ -36,15 +47,6 @@ declare type WpBuildPluginVendorOptions =
     options: Readonly<Record<string, any>>;
     [ key: string ]: any;
 }
-
-declare interface IWpBuildPluginOptions extends Record<string, any>
-{
-    app: IWpBuildApp,
-    plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[],
-    registerVendorPluginsFirst?: boolean;
-    registerVendorPluginsOnly?: boolean;
-}
-declare type WpBuildPluginOptions = IWpBuildPluginOptions;
 
 declare type WpBuildPluginCacheOptions = { file: string; }
 
