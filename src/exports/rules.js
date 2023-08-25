@@ -158,7 +158,7 @@ const builds =
 				exclude: getExcludes(app, rulesConfig, false, true, true)
 			},
 			{
-				test: /\.ts$/,
+				test: /\.ts$/, // TODO - Loader for DTS bundle
 				use:
 				{
 					loader: resolve(__dirname, "../loaders/dts.js"),

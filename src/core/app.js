@@ -172,24 +172,26 @@ class WpBuildApp
      */
     buildApp = () =>
     {
-        if (this.build.type === "types")
+        if (this.build.source.type === "typescript")
         {
-            apply(this.build.plugins, {
-                tsbundle: true,
-                tscheck: false
-            });
-        }
-        else if (this.build.type === "tests")
-        {
-            apply(this.build.plugins, {
-                tsbundle: true,
-                tscheck: false
-            });
-        }
-        else {
-            apply(this.build.plugins, {
-                tscheck: this.build.source.type === "typescript"
-            });
+            if (this.build.type === "types")
+            {
+                apply(this.build.plugins, {
+                    tsbundle: this.build.plugins.tsbundle !== false,
+                    tscheck: this.build.plugins.tscheck === true
+                });
+            }
+            else if (this.build.type === "tests")
+            {
+                apply(this.build.plugins, {
+                    tscheck: this.build.plugins.tscheck === true
+                });
+            }
+            else {
+                apply(this.build.plugins, {
+                    tscheck: true
+                });
+            }
         }
         return this.buildWebpackConfig();
     };

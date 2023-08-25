@@ -94,7 +94,7 @@ const capitalize = (value) =>
     }
     if (value === "Webapp") { value = "WebApp"; }
     else if (value === "Webmodule") { value = "WebModule"; }
-    return value || '';
+    return value || "";
 };
 
 

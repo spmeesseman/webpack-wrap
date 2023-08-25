@@ -133,7 +133,7 @@
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
 
 /**
- * @typedef {Record<string, any>} WpBuildPluginOptions
+ * @typedef {object} WpBuildPluginOptions
  * @property {WpBuildApp} app
  * @property {string} [build]
  * @property {string[]} [globalCacheProps]

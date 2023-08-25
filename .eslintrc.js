@@ -206,7 +206,14 @@ module.exports = {
             "warn",
             "consistent-as-needed"
         ],
-        radix: "off",
+        "quotes": [
+            "warn",
+            "double",
+            {
+                avoidEscape: true
+            }
+        ],
+        "radix": "off",
         "space-before-function-paren": "off",
         "space-in-parens": [
             "warn",

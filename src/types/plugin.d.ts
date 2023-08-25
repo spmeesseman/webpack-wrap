@@ -26,16 +26,16 @@ import { WpBuildLogTrueColor } from "./logger";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
-    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation
+    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation, WebpackStats
 } from "./webpack";
 
 
-declare interface IWpBuildPluginVendorOptions extends Record<string, any>
+declare type WpBuildPluginVendorOptions =
 {
-    ctor: new(...args: any[]) => WebpackPluginInstance,
-    options: Readonly<Record<string, any>>
+    ctor: new(...args: any[]) => WebpackPluginInstance;
+    options: Readonly<Record<string, any>>;
+    [ key: string ]: any;
 }
-declare type WpBuildPluginVendorOptions = IWpBuildPluginVendorOptions;
 
 declare interface IWpBuildPluginOptions extends Record<string, any>
 {
@@ -52,7 +52,8 @@ declare type WpwApplyCallbackCompilationParam = (arg: WebpackCompilation) => voi
 declare type WpwApplyCallbackCompilerParam = (arg: WebpackCompiler) => void | Promise<void>;
 declare type WpwApplyCallbackAssetsParam = (arg: WebpackCompilationAssets) => void | Promise<void>;
 declare type WpwApplyCallbackCompilationParamsParam = (arg: WebpackCompilationParams) => void | Promise<void>;
-declare type WpwOnApplyCallback = WpwApplyCallbackCompilationParam | WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam
+declare type WpwApplyCallbackStatsParam = (arg: WebpackStats) => void | Promise<void>;
+declare type WpwOnApplyCallback = WpwApplyCallbackStatsParam | WpwApplyCallbackCompilationParam | WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam;
 
 declare type WpBuildPluginTapOptions =
 {

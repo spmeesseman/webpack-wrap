@@ -70,6 +70,12 @@ class WpBuildPlugin
      */
     compiler;
     /**
+     * @abstract
+     * @protected
+     * @type {(...args: any[]) => typedefs.WpBuildPluginVendorOptions}
+     */
+    getOptions;
+    /**
      * @type {Record<string, any>}
      * @protected
      */
@@ -138,17 +144,20 @@ class WpBuildPlugin
         this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.cache = new WpBuildCache(this.app, `plugincache_${this.app.mode}_${this.name.replace(/WpBuild|Plugin/g, "")}.json`);
-        if (options.wrapPlugin) {
-            this.plugins = [ ...this.options.plugins.map(p => new p.ctor(this.getOptions())), this ];
-        }
-        else if (options.registerVendorPluginsOnly) {
-            this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)) ];
-        }
-        else if (options.registerVendorPluginsFirst) {
-            this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)), this ];
+        if (!this.options.wrapPlugin)
+        {
+            if (options.registerVendorPluginsOnly) {
+                this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)) ];
+            }
+            else if (options.registerVendorPluginsFirst) {
+                this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)), this ];
+            }
+            else {
+                this.plugins = [ this, ...this.options.plugins.map(p => new p.ctor(p.options)) ];
+            }
         }
         else {
-            this.plugins = [ this, ...this.options.plugins.map(p => new p.ctor(p.options)) ];
+            this.plugins = [];
         }
     }
 
@@ -390,14 +399,6 @@ class WpBuildPlugin
 
     /**
      * @function
-     * @protected
-     * @abstract
-     */
-    getOptions() {}
-
-
-    /**
-     * @function
      * @public
      * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpBuildPlugin>)[]}
      */
@@ -482,43 +483,49 @@ class WpBuildPlugin
      * @function
      * @protected
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @param {typedefs.WpBuildPluginTapOptionsHash} options
+     * @param {typedefs.WpBuildPluginTapOptionsHash} [options]
      * @throws {WebpackError}
      */
     onApply(compiler, options)
     {
-        this.validateApplyOptions(compiler, options);
-
-        const optionsArray = Object.entries(options);
         this.compiler = compiler;
         this.wpCache = compiler.getCache(this.name);
         this.wpLogger = compiler.getInfrastructureLogger(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.app.wpc.output.hashDigestLength || 20;
 
-        const hasCompilationHook = optionsArray.find(([ _, tapOpts ]) => tapOpts.hook === "compilation") ||
-                                   optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
-        if (hasCompilationHook)
+        if (options)
         {
-            this.tapCompilationHooks(optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation"));
-        }
-
-        for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
-        {
-            const hook = compiler.hooks[tapOpts.hook];
-            if (!tapOpts.async)
+            this.validateApplyOptions(compiler, options);
+            const optionsArray = Object.entries(options),
+                  hasCompilationHook = optionsArray.find(([ _, tapOpts ]) => tapOpts.hook === "compilation") ||
+                                       optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
+            if (hasCompilationHook)
             {
-                hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
+                this.tapCompilationHooks(optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation"));
             }
-            else
-            {   if (this.isAsyncHook(hook))
+
+            for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
+            {
+                const hook = compiler.hooks[tapOpts.hook];
+                if (!tapOpts.async)
                 {
-                    hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
+                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
                 }
-                else {
-                    this.handleError(new WebpackError(`Invalid async hook parameters specified: ${tapOpts.hook}`));
-                    return;
+                else
+                {   if (this.isAsyncHook(hook))
+                    {
+                        hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
+                    }
+                    else {
+                        this.handleError(new WebpackError(`Invalid async hook parameters specified: ${tapOpts.hook}`));
+                        return;
+                    }
                 }
             }
+        }
+        else if (this.options.wrapPlugin && this.plugins.length === 1)
+        {
+            this.plugins[0].apply.call(this.plugins[0], compiler);
         }
     }
 
@@ -712,12 +719,25 @@ class WpBuildPlugin
 
 
     /**
-     * @param {typeof WpBuildPlugin} clsType Plugin options to be applied
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
-     * @returns {WpBuildPlugin}
+     * Wraps a vendor plugin. vendor plugin instantiation is done via the constructor's call to
+     * the {@link WpBuildPlugin.getOptions getOptions()} override
+     *
+     * @template {WpBuildPlugin} T
+     * @param {typedefs.WpBuildApp} app current build wrapper
+     * @param {new(...args: any[]) => T} clsType the extended WpBuildPlugin class type
+     * @param {boolean} [checkFlag] convenience param - flag to check if plugin is enabled in the current build
+     * @returns {T | undefined}
      */
-    static wrapVendorPlugin = (clsType, options) => new clsType({ wrapPlugin: true, ...options });
-
+    static wrap = (app, clsType, checkFlag) =>
+    {
+        if (checkFlag !== false)
+        {
+            const plugin = new clsType({ app, wrapPlugin: true });
+            const pluginOptions = plugin.getOptions();
+            plugin.plugins.push(new pluginOptions.ctor(pluginOptions.options));
+            return plugin;
+        }
+    }
 
     // /**
     //  * @template T

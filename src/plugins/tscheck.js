@@ -8,15 +8,26 @@
  * @author Scott Meesseman @spmeesseman
  */
 
+const { apply } = require("../utils");
 const WpBuildPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const { apply, WpBuildError } = require("../utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
-
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
 
 class WpBuildTsForkerPlugin extends WpBuildPlugin
 {
+    // /**
+    //  * @class WpBuildTsForkerPlugin
+    //  * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+    //  */
+	// constructor(options)
+    // {
+    //     super(apply(options, { wrapVendorPlugin: true }));
+    // }
+
+
     /**
      * @function Called by webpack runtime to initialize this plugin
      * @override
@@ -26,6 +37,7 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
      */
     apply(compiler)
     {
+		this.onApply(compiler);
 		const logLevel = this.app.logger.level;
 		if (logLevel > 1)
 		{
@@ -50,60 +62,46 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	 * @function
 	 * @protected
 	 * @override
-	 * @returns {typedefs.WpBuildPluginVendorOptions[]}
-	 * @throws {WpBuildError}
+	 * @returns {typedefs.WpBuildPluginVendorOptions}
 	 */
 	getOptions = () =>
 	{
-		const app = this.app;
-		const plugins = [];
+		const app = this.app,
+			  tsParams = [],
+			  tsConfig = app.build.source.config,
+			  tsConfigPath = tsConfig.path;
 
-		if (app.tsConfig)
+		if (app.build.type === "tests")
 		{
-			const tsConfigParams = [],
-			  	  tsConfig = app.tsConfig,
-				  tsConfigPath = tsConfig.path;
-
-			if (app.build.type === "tests")
-			{
-				tsConfigParams.push(tsConfigPath, "write-tsbuildinfo");
-			}
-			else if (app.build.type === "types")
-			{
-				tsConfigParams.push(tsConfigPath, "write-dts");
-			}
-			else {
-				tsConfigParams.push(tsConfigPath, tsConfig.json.compilerOptions.declaration === true ? "write-dts" : "readonly");
-			}
-
-			app.logger.write(`add tsconfig file '${tsConfigParams[0]}' to tsforkchecker (build=${!!tsConfigParams[2]})`, 2);
-			plugins.push({
-				ctor: ForkTsCheckerWebpackPlugin,
-				options:
-				{
-					async: false,
-					formatter: "basic",
-					typescript: {
-						build: !!tsConfigParams[2],
-						mode: tsConfigParams[1],
-						configFile: tsConfigParams[0]
-					},
-					logger: app.logger.level < 5 ? undefined : {
-						error: app.logger.error,
-						/** @param {string} msg */
-						log: (msg) => app.logger.write("bold(tsforkchecker): " + msg)
-					}
-				}
-			});
+			tsParams.push(tsConfigPath, "write-tsbuildinfo");
+		}
+		else if (app.build.type === "types")
+		{
+			tsParams.push(tsConfigPath, "write-dts");
 		}
 		else {
-			throw WpBuildError.get(
-				`Could not run ts fork-checker, no associated tsconfig file for '${app.mode}' environment`,
-				"plugin/tsforker.js"
-			);
+			tsParams.push(tsConfigPath, tsConfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly");
 		}
 
-		return plugins;
+		app.logger.write(`add config file '${tsParams[0]}' to tsforkcheck [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
+
+		return {
+			ctor: ForkTsCheckerWebpackPlugin,
+			options:
+			{
+				async: false,
+				formatter: "basic",
+				typescript: {
+					build: !!tsParams[2],
+					mode: tsParams[1],
+					configFile: tsParams[0]
+				},
+				logger: app.logger.level < 5 ? undefined : {
+					error: app.logger.error,
+					log: (/** @type {string} msg */msg) => app.logger.write("bold(tsforkchecker): " + msg)
+				}
+			}
+		};
 	};
 
 
@@ -111,16 +109,17 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	 * @function
 	 * @private
 	 */
-	tsForkCheckerError = () => this.logger.error("tsforkchecker error");
+	tsForkCheckerError = () => { this.logger.error("tsforkchecker error"); }
 
 
 	/**
 	 * @function
 	 * @private
-	 * @param {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue[]} issues
+	 * @param {TsCheckIssue[]} issues
+	 * @returns {TsCheckIssue[]}
 	 */
 	tsForkCheckerIssues = (issues) =>
-{
+	{
 		this.logger.start("tsforkchecker filter issues");
 		return issues.filter(i => i.severity === "error");
 	};
@@ -129,29 +128,34 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	/**
 	 * @function
 	 * @private
+	 * @param {TsCheckFilesChange} filesChange
+	 * @param {typedefs.WebpackCompilation} compilation
+	 * @returns {TsCheckFilesChange}
 	 */
-	tsForkCheckerStart = () => this.logger.start("tsforkchecker start");
+	tsForkCheckerStart = (filesChange, compilation) =>
+	{
+		this.compilation = compilation;
+		this.logger.start("tsforkchecker start");
+		return filesChange;
+	}
 
 
 	/**
 	 * @function
 	 * @private
 	 */
-	tsForkCheckerWaiting = () => this.logger.start("tsforkchecker waiting for issues");
+	tsForkCheckerWaiting = () => { this.logger.start("tsforkchecker waiting for issues"); }
 
 }
 
 
 /**
- * Returns a `WpBuildTsForkerPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.tsforker`
- * property to a boolean value of  `true` or `false`
  * @function
  * @module
  * @param {typedefs.WpBuildApp} app
- * @returns {ForkTsCheckerWebpackPlugin | undefined}
+ * @returns {WpBuildTsForkerPlugin | undefined}
  */
-const tscheck = (app) => app.build.plugins.tscheck ? (new WpBuildTsForkerPlugin({ app }).getPlugins()[0]) : undefined;
+const tscheck = (app) => WpBuildPlugin.wrap(app, WpBuildTsForkerPlugin, app.build.plugins.tscheck);
 
 
 module.exports = tscheck;

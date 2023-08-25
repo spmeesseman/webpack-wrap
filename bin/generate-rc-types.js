@@ -415,7 +415,7 @@ cliWrap(async () =>
     logger = new WpBuildConsoleLogger({
         envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
-    logger.printBanner("generate-rc-types.js", "0.0.1", `generating rc configuration file type definitions`);
+    logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
 
     const inputFile = ".wpbuildrc.schema.json",
           schemaDir = resolve(__dirname, "..", "schema"),
@@ -425,7 +425,7 @@ cliWrap(async () =>
     let data = await readFile(indexPath, "utf8");
     const match = data.match(/\/\*\*(?:[^]*?)\*\//);
     if (!match) {
-        throw new Error(`Could not read header from index file 'index.d.ts'`);
+        throw new Error("Could not read header from index file 'index.d.ts'");
     }
 
     data = await readFile(outputDtsPath, "utf8");
@@ -446,7 +446,7 @@ cliWrap(async () =>
     });
 
     if (code !== 0) {
-        throw new Error(`   json2ts exited with failure code`);
+        throw new Error("   json2ts exited with failure code");
     }
     else if (!existsSync(outputDtsPath)) {
         throw new Error(`Output file '${outputDtsFile}' does not exist`);
