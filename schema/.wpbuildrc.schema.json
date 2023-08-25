@@ -11,7 +11,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[\\/\\\\]|https\\:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:\\-pre\\.[0-9]{1,2})?)\\/\\.wpbuildrc\\.schema\\.json$"
+            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-pre\\.[0-9]{1,2})?)\\/\\.wpbuildrc\\.schema\\.json$"
         },
         "name": {
             "type": "string",
@@ -54,7 +54,7 @@
             "$ref": "#/definitions/WpBuildRcExportsUser"
         },
         "plugins": {
-            "$ref": "#/definitions/WpBuildRcPluginsUser"
+            "$ref": "#/definitions/WpBuildRcPlugins"
         },
         "production": {
             "$ref": "#/definitions/WpBuildRcBuildModeConfig"
@@ -87,7 +87,7 @@
         "DirectoryPathRelative": {
             "type": "string",
             "maxLength": 100,
-            "pattern": "^(?:\\.{1,2}[\\\\\\/][\\w\\.\\-\\\\\\/]+|\\.\\.?)$",
+            "pattern": "^(?:\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+|\\.\\.?)$",
             "if": {
                 "pattern": "^\\.$"
             },
@@ -102,7 +102,7 @@
             "type": "string",
             "default": "src",
             "maxLength": 150,
-            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\\\/])?[\\w][~@!\\w\\.\\-\\\\\\/\\:]+)$",
+            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/:]+)$",
             "if": {
                 "pattern": "^\\.$"
             },
@@ -116,16 +116,16 @@
         "DirectoryPathGlob": {
             "$ref": "#/definitions/DirectoryPath",
             "minLength": 4,
-            "pattern": "^(?:\\.{1,2}[\\\\\\/])\\*{0,2}(?:\\.|(?:\\.[\\\\\\/])?[\\w][~@!\\w\\.\\-\\\\\\/]+)\\*{0,2}$",
+            "pattern": "^(?:\\.{1,2}[\\\\/])\\*{0,2}(?:\\.|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/]+)\\*{0,2}$",
             "if": {
-                "pattern": "^\\.{1,2}[\\\\\\/]"
+                "pattern": "^\\.{1,2}[\\\\/]"
             },
             "then": {
                 "if": {
-                    "pattern": "^\\.\\.[\\\\\\/]\\*{0,2}\\"
+                    "pattern": "^\\.\\.[\\\\/]\\*{0,2}[\\\\/]"
                 },
                 "then": {
-                    "minLength": 4
+                    "minLength": 5
                 },
                 "else": {
                     "minLength": 3
@@ -428,7 +428,7 @@
                     "$ref": "#/definitions/WpBuildRcExportsUser"
                 },
                 "plugins": {
-                    "$ref": "#/definitions/WpBuildRcPluginsUser"
+                    "$ref": "#/definitions/WpBuildRcPlugins"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwRcSourceCode"
@@ -805,10 +805,10 @@
             "additionalProperties": false,
             "properties": {
                 "clean": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "copy": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "dispose": {
                     "$ref": "#/definitions/BooleanReadOnly"
@@ -820,53 +820,22 @@
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "runtimevars": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "testsuite": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "tsbundle": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "tscheck": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "types": {
-                    "$ref": "#/definitions/BooleanReadOnly"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "wait": {
                     "$ref": "#/definitions/BooleanReadOnly"
-                }
-            },
-            "dependencies": {
-                "tsbundle": {
-                    "allOf": [
-                    {
-                        "if": {
-                            "properties": {
-                                "tsbundle": { 
-                                    "const": true
-                                }
-                            }
-                        },
-                        "then": { 
-                            "oneOf": [
-                            {
-                                "properties": {
-                                    "dts": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": {
-                                        "const": true
-                                    }
-                                }
-                            }]
-                        }
-                    }]
                 }
             }
         },
@@ -898,7 +867,7 @@
                 "type": "string",
                 "minLength": 2,
                 "maxLength": 500,
-                "pattern": "^[\\w\\-\\.,\\&\\%\\# \\|\\(\\)\\@\\[\\]\\r\\n]+$"
+                "pattern": "^[\\w\\-\\.,&%# |\\(\\)@\\[\\]\\r\\n]+$"
             }]
         },
         "WpBuildRcPluginConfigUpload": {
@@ -912,7 +881,7 @@
                     "url": {
                         "type": "string",
                         "maxLength": 150,
-                        "pattern": "^https?\\:\\/\\/[\\$\\{\\}\\w\\.\\-]+[\\\\\\/\\?][\\$\\{\\}\\w\\W\\.\\-\\\\\\//\\&]+"
+                        "pattern": "^https?:\\/\\/[${}\\w\\.\\-]+[\\\\/?][${}\\w\\W\\.\\-\\\\/&]+"
                     },
                     "plink": {
                         "type": "object",
@@ -1068,7 +1037,7 @@
                 "path": {
                     "type": "string",
                     "default": "tsconfig.json",
-                    "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/\\:]+)?(?:t|j)sconfig\\.(?:[\\w\\-]+?\\.)?json$",
+                    "pattern": "^(?:(?:\\.[\\\\/])?[~@!\\w\\.\\-\\\\/:]+)?(?:t|j)sconfig\\.(?:[\\w\\-]+?\\.)?json$",
                     "minLength": 13,
                     "maxLength": 150,
                     "description": "Path to a [t|s]]sconfig[.*].json file, filename inclusive, full path or relative to the project base directory containing package.json"
@@ -1521,7 +1490,7 @@
             "type": "object",
             "minProperties": 0,
             "patternProperties": {
-                "^[a-zA-Z\\:\\@][\\w\\:\\@]+$": {
+                "^[a-zA-Z:@][\\w:@]+$": {
                     "$ref": "#/definitions/WpBuildWebpackAliasValue"
                 }
             },

@@ -9,6 +9,7 @@
 
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
+const { validate } = require("schema-utils");
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
 const { spawnSync } = require("child_process");
@@ -23,12 +24,10 @@ const {
     findFilesSync, relativePath, isJsTsConfigPath
 } = require("../utils/utils");
 
-const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
-
 
 /**
  * @class
- * @implements {typedefs.IWpBuildRcSchema}s
+ * @implements {typedefs.IWpBuildRcSchema}
  */
 class WpBuildRc
 {
@@ -48,6 +47,10 @@ class WpBuildRc
      * @type {typedefs.WpBuildRcBuilds}
      */
     builds;
+    /**
+     * @type {string}
+     */
+    defaultTempDir;
     /**
      * @type {string}
      */
@@ -107,6 +110,14 @@ class WpBuildRc
      */
     publicInfoProject;
     /**
+     * @type {{ [key: string ]: typedefs.IWpBuildRcSchema }}
+     */
+    schema;
+    /**
+     * @type {string}
+     */
+    schemaDir;
+    /**
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
     test;
@@ -132,6 +143,9 @@ class WpBuildRc
      */
     constructor(argv, arge)
     {
+        this.schema = {};
+        this.schemaDir = resolve(__dirname, "..", "..", "schema");
+        this.defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
         Object.keys(arge).filter(k => isString(arge[k]) && /true|false/i.test(arge[k])).forEach((k) => {
             arge[k] = arge[k].toLowerCase() === "true";
         });
@@ -144,8 +158,8 @@ class WpBuildRc
             pkgJson: {}
         });
         this.applyModeArgument(argv, arge);
-        this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", resolve(__dirname, "..", "..", "schema"));
-        this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.validateSchema(this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir).data);
+        this.validateSchema(this.applyJsonFromFile(this, ".wpbuildrc.json").data);
         this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps).path;
         this.configureBuilds();
 		this.printBanner(arge, argv);
@@ -290,6 +304,7 @@ class WpBuildRc
             this.resolvePaths(build);
             this.configureSourceCode(build);
             this.resolveAliasPaths(build);
+            this.validateSchema(build, "build");
         });
     };
 
@@ -600,13 +615,13 @@ class WpBuildRc
             else if (!rc.log.colors.default) { rc.log.colors.default = WpBuildConsoleLogger.defaultOptions().colors.default; }
             if (!rc.log.pad) { rc.log.pad = WpBuildConsoleLogger.defaultOptions().pad; }
         }
-        if (!rc.paths) { rc.paths = { base: ".", src: "src", dist: "dist", ctx: ".", temp: defaultTempDir }; }
+        if (!rc.paths) { rc.paths = { base: ".", src: "src", dist: "dist", ctx: ".", temp: this.defaultTempDir }; }
         else {
             if (!rc.paths.base) { rc.paths.base = "."; }
             if (!rc.paths.src) { rc.paths.src = "src"; }
             if (!rc.paths.dist) { rc.paths.dist = "dist"; }
             if (!rc.paths.ctx) { rc.paths.ctx = "."; }
-            if (!rc.paths.temp) { rc.paths.temp = defaultTempDir; }
+            if (!rc.paths.temp) { rc.paths.temp = this.defaultTempDir; }
         }
         if (!rc.source) { rc.source = { type: "typescript", config: { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }}; }
         else {
@@ -674,16 +689,37 @@ class WpBuildRc
 	{
         const base = dirname(this.pkgJsonPath),
               ostemp = process.env.TEMP || process.env.TMP,
-			  temp = resolve(ostemp ? `${ostemp}${sep}${this.name}` : defaultTempDir, build.mode);
+			  temp = resolve(ostemp ? `${ostemp}${sep}${this.name}` : this.defaultTempDir, build.mode);
 		if (!existsSync(temp)) {
 			mkdirSync(temp, { recursive: true });
 		}
         build.paths.base = base;
-        build.paths.temp = build.paths.temp && build.paths.temp !== defaultTempDir ? build.paths.temp : temp;
+        build.paths.temp = build.paths.temp && build.paths.temp !== this.defaultTempDir ? build.paths.temp : temp;
         build.paths.ctx = build.paths.ctx ? resolvePath(base, build.paths.ctx) : base;
         build.paths.src = resolvePath(base, build.paths.src || "src");
         build.paths.dist = resolvePath(base, build.paths.dist || "dist");
 	};
+
+
+    /**
+     * @function
+     * @private
+     * @param {*} options
+     * @param {string} [subschema]
+     */
+    validateSchema = (options, subschema) =>
+    {
+        try {
+            const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
+                  schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`,
+                  schema = this.schema[schemaKey] || JSON5.parse(readFileSync(join(this.schemaDir, schemaFile), "utf8"));
+            validate(schema, options, { name: schemaKey, baseDataPath: subschema });
+            this.schema[schemaKey] = schema;
+        }
+        catch (e) {
+            throw WpBuildError.get("schema validation failed: " + e.message, "core/rc/js");
+        }
+    };
 
 }
 

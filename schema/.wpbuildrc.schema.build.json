@@ -1,0 +1,256 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "WpBuild configuration file schema",
+    "title": "WpBuildRcBuild",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+        },
+        "active": {
+            "$ref": "#/definitions/BooleanReadOnly"
+        },
+        "alias": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildWebpackAliasConfig"
+        },
+        "auto": {
+            "$ref": "#/definitions/BooleanReadOnly"
+        },
+        "debug": {
+            "$ref": "#/definitions/BooleanDefaultFalse"
+        },
+        "entry": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildWebpackEntry"
+        },
+        "exports": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildRcExportsUser"
+        },
+        "log": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildRcLog"
+        },
+        "mode": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildWebpackMode"
+        },
+        "paths": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildRcPaths"
+        },
+        "plugins": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/WpBuildRcPlugins"
+        },
+        "source": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/definitions/definitions/WpwRcSourceCode"
+        },
+        "target": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/definitions/definitions/WebpackTarget"
+        },
+        "type": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/definitions/definitions/WpBuildRcBuildType"
+        },
+        "vscode": {
+            "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json/definitions/definitions/WpBuildRcVsCodeConfig"
+        }
+    },
+    "dependencies": {
+        "debug": {
+            "if": {
+                "properties": {
+                    "debug": {
+                        "const": true
+                    }
+                }
+            },
+            "then": {
+                "allOf": [
+                {
+                    "properties": {
+                        "type": {
+                            "enum": [
+                                "module"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "anyOf": [
+                    {
+                        "properties": {
+                            "plugins": {
+                                "properties": {
+                                    "sourcemaps": {
+                                        "const": true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "properties": {
+                            "exports": {
+                                "properties": {
+                                    "devtool": {
+                                        "const": true
+                                    }
+                                }
+                            }
+                        }
+                    }]
+                }]
+            }
+        },
+        "plugins": {
+            "properties": {
+                "dts": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "dts": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "properties": {
+                                "type": { 
+                                    "enum": [
+                                        "types", "module"
+                                    ]
+                                }
+                            }
+                        }
+                    }]
+                },
+                "hash": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "hash": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "properties": {
+                                "type": {
+                                    "not": {
+                                        "enum": [
+                                            "tests", "types"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }]
+                },
+                "bundleDts": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "bundle": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "properties": {
+                                "type": { 
+                                    "enum": [
+                                        "types", "module"
+                                    ]
+                                },
+                                "dts": {
+                                    "not": {
+                                        "const": false
+                                    }
+                                }
+                            }
+                        }
+                    }]
+                }
+            }
+        },
+        "type": {
+            "allOf": [
+            {
+                "if": {
+                    "properties": {
+                        "type": { 
+                            "enum": [
+                                "webapp", "webmodule"
+                            ]
+                        }
+                    }
+                },
+                "then": { 
+                    "properties": {
+                        "target": { 
+                            "enum": [
+                                "web", "webworker"
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "if": {
+                    "properties": {
+                        "type": { 
+                            "enum": [ "types", "module", "tests" ]
+                        }
+                    }
+                },
+                "then": { 
+                    "properties": {
+                        "target": { 
+                            "const": "node"
+                        }
+                    }
+                }
+            }]
+        },
+        "vscode": {
+            "if": {
+                "properties": {
+                    "vscode": {
+                        "properties": {
+                            "type": {
+                                "enum": [ "languageclient", "languageserver" ]
+                            }
+                        }
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "vscode": {
+                        "properties": {
+                            "type": {
+                                "enum": [ "languageclient", "languageserver" ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions":
+    {
+        "BooleanDefaultFalse": {
+            "type": "boolean",
+            "default": false
+        },
+        "BooleanDefaultTrue": {
+            "type": "boolean",
+            "default": true
+        },
+        "BooleanReadOnly": {
+            "type": "boolean",
+            "readOnly": true,
+            "default": false
+        }
+    }
+}

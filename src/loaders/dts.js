@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
-const { urlToRequest } = require("loader-utils");
 const { validate } = require("schema-utils");
+const { urlToRequest } = require("loader-utils");
 const WpBuildConsoleLogger = require("../utils/console");
 
 /** @type {import("schema-utils/declarations/validate").Schema} */
