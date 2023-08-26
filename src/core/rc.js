@@ -76,6 +76,10 @@ class WpBuildRc
      */
     log;
     /**
+     * @type {WpBuildConsoleLogger}
+     */
+    logger;
+    /**
      * Top level mode passed on command line or calcualted using build definitions
      * Note that the mode for each defined build may not be of this top level mode
      * @type {typedefs.WpBuildWebpackMode}
@@ -149,20 +153,16 @@ class WpBuildRc
         Object.keys(arge).filter(k => isString(arge[k]) && /true|false/i.test(arge[k])).forEach((k) => {
             arge[k] = arge[k].toLowerCase() === "true";
         });
-        apply(this, {
-            apps: [],
-            errors: [],
-            warnings: [],
-            args: apply({}, arge, argv),
-            global: globalEnv,
-            pkgJson: {}
-        });
+        apply(this, { apps: [], errors: [], warnings: [], args: apply({}, arge, argv), global: globalEnv, pkgJson: {} });
+        const rcDefaults = this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir);
+        const rcProject = this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.logger = new WpBuildConsoleLogger({ envTag1: "rc", envTag2: "init", ...this.log });
+		this.printBanner(arge, argv);
         this.applyModeArgument(argv, arge);
-        this.validateSchema(this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir).data);
-        this.validateSchema(this.applyJsonFromFile(this, ".wpbuildrc.json").data);
+        this.validateSchema(rcDefaults.data);
+        this.validateSchema(rcProject.data);
         this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps).path;
         this.configureBuilds();
-		this.printBanner(arge, argv);
     };
 
 
@@ -578,27 +578,6 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
-     * @param {typedefs.WebpackRuntimeArgs} argv
-     */
-    printBanner = (arge, argv) =>
-    {
-        WpBuildConsoleLogger.printBanner(
-            this.displayName, this.pkgJson.version || "1.0.0",
-            ` Start ${this.detailedDisplayName || this.displayName} Webpack Build`,
-            (logger) => {
-                logger.write("   Mode  : " + logger.withColor(this.mode, logger.colors.grey), 1, "", 0, logger.colors.white);
-                logger.write("   Argv  : " + logger.withColor(JSON.stringify(argv), logger.colors.grey), 1, "", 0, logger.colors.white);
-                logger.write("   Env   : " + logger.withColor(JSON.stringify(arge), logger.colors.grey), 1, "", 0, logger.colors.white);
-                logger.sep();
-            }
-        );
-    };
-
-
-    /**
-     * @function
-     * @private
      * @param {typedefs.WpBuildRcBuildModeConfigBase} rc
      * @returns {rc is Required<typedefs.WpBuildRcBuildModeConfigBase>}
      */
@@ -630,6 +609,27 @@ class WpBuildRc
             if (!rc.source.config.options) { rc.source.config.options = { compilerOptions: {} }; }
         }
         return true;
+    };
+
+
+    /**
+     * @function
+     * @private
+     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
+     * @param {typedefs.WebpackRuntimeArgs} argv
+     */
+    printBanner = (arge, argv) =>
+    {
+        WpBuildConsoleLogger.printBanner(
+            this.displayName, this.pkgJson.version || "1.0.0",
+            ` Start ${this.detailedDisplayName || this.displayName} Webpack Build`,
+            (l) => {
+                l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
+                l.write("   Argv  : " + l.withColor(JSON.stringify(argv), l.colors.grey), 1, "", 0, l.colors.white);
+                l.write("   Env   : " + l.withColor(JSON.stringify(arge), l.colors.grey), 1, "", 0, l.colors.white);
+                l.sep();
+            }, this.logger
+        );
     };
 
 
@@ -709,15 +709,15 @@ class WpBuildRc
      */
     validateSchema = (options, subschema) =>
     {
+        const schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
         try {
             const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
-                  schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`,
                   schema = this.schema[schemaKey] || JSON5.parse(readFileSync(join(this.schemaDir, schemaFile), "utf8"));
             validate(schema, options, { name: schemaKey, baseDataPath: subschema });
             this.schema[schemaKey] = schema;
         }
         catch (e) {
-            throw WpBuildError.get("schema validation failed: " + e.message, "core/rc/js");
+            throw WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`, "core/rc/js");
         }
     };
 

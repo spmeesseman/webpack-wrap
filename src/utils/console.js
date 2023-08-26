@@ -326,8 +326,8 @@ class WpBuildConsoleLogger
             logger.write(gradient("purple", "blue", "pink", "green", "purple", "blue").multiline(subtitle));
             logger.sep();
         }
+        cb?.(logger);
         if (!instLogger) {
-            cb?.(logger);
             logger.dispose();
         }
     };

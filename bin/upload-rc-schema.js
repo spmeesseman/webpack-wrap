@@ -21,40 +21,14 @@ const WpBuildConsoleLogger = require("../src/utils/console");
 /** @type {WpBuildConsoleLogger} */
 let logger;
 
-let localPath = ".wpbuildrc.schema.json",
-    remotePath = resolve(__dirname, "..", "schema", ".wpbuildrc.schema.json");
+const remotePath = resolve(__dirname, "..", "schema");
 
 const host = process.env.WPBUILD_APP1_SSH_UPLOAD_HOST,
       user = process.env.WPBUILD_APP1_SSH_UPLOAD_USER,
       rBasePath = process.env.WPBUILD_APP1_SSH_UPLOAD_PATH,
       sshAuth = process.env.WPBUILD_APP1_SSH_UPLOAD_AUTH,
       sshAuthFlag = process.env.WPBUILD_APP1_SSH_UPLOAD_FLAG,
-      version = require("../package.json").version,
-      args = process.argv.splice(2);
-
-if (args.length === 1)
-{
-    remotePath = args[0];
-}
-else if (args.length > 1)
-{
-    args.forEach((v, i, a) =>
-    {
-        if (v.startsWith("-"))
-        {
-            switch(v.replace(/^\-\-?/, ""))
-            {
-                case "i":
-                    localPath = args[i + 1];
-                    break;
-                case "o":
-                    remotePath = args[i + 1];
-                    break;
-            }
-        }
-    });
-}
-
+      version = require("../package.json").version;
 
 //
 // Command line runtime wrapper
@@ -67,11 +41,7 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
 
 cliWrap(async () =>
 {
-    if (!localPath || !remotePath)
-    {
-        throw new Error("Invalid input or output path");
-    }
-    else if (!host || !user || !rBasePath ||  !sshAuth || !sshAuthFlag)
+    if (!host || !user || !rBasePath ||  !sshAuth || !sshAuthFlag)
     {
         throw new Error("Required environment variables for upload are not set");
     }
@@ -79,12 +49,13 @@ cliWrap(async () =>
     logger = new WpBuildConsoleLogger({
         envTag1: "wpbuild", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
-    logger.printBanner("generate-rc-types.js", "0.0.1", `generating rc configuration file type definitions`);
+    logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
 
     const plinkCmds = [
         `mkdir ${rBasePath}/wpbuild`,
         `mkdir ${rBasePath}/wpbuild/v${version}`,
-        `rm -f ${rBasePath}/wpbuild/v${version}/.wpbuildrc.schema.json"`
+        `mkdir ${rBasePath}/wpbuild/v${version}/schema`,
+        `rm -f ${rBasePath}/wpbuild/v${version}/schema/.wpbuildrc.*.json"`
     ];
 
     const plinkArgs = [
@@ -100,22 +71,23 @@ cliWrap(async () =>
         sshAuthFlag,  // auth flag
         sshAuth,      // auth key
         "-q",         // quiet, don't show statistics
+        "-r",         // copy directories recursively
         remotePath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
-        `${user}@${host}:"${rBasePath}/wpbuild/v${version}/.wpbuildrc.schema.json"` // uploaded, and created if not exists
+        `${user}@${host}:"${rBasePath}/wpbuild/v${version}"` // uploaded, and created if not exists
     ];
 
     logger.log("   plink: create / clear remmote directory");
     await execAsync({
         logger,
         logPad: "   ",
-        execOptions: { cwd: resolve(__dirname, "..", "schema") },
+        execOptions: { cwd: resolve(__dirname, "..") },
         command: "plink " + plinkArgs.join(" ")
     });
     logger.log("   pscp: upload files");
     await execAsync({
         logger,
         logPad: "   ",
-        execOptions: { cwd: resolve(__dirname, "..", "schema") },
+        execOptions: { cwd: resolve(__dirname, "..") },
         command: "pscp " + pscpArgs.join(" ")
     });
 

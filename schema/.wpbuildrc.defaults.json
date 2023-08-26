@@ -1,5 +1,5 @@
 {
-    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json",
+    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
     "name": "wpw-app",
     "displayName": "Webpack Wrap Application",
     "detailedDisplayName": "Task Explorer VSCode Extension",

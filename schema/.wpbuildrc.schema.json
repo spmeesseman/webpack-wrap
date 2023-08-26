@@ -1,5 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
     "description": "WpBuild configuration file schema",
     "title": "WpBuildRcSchema",
     "type": "object",
@@ -11,7 +12,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-pre\\.[0-9]{1,2})?)\\/\\.wpbuildrc\\.schema\\.json$"
+            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-pre\\.[0-9]{1,2})?)\\/schema\\/\\.wpbuildrc\\.schema\\.json(?:.*?)$"
         },
         "name": {
             "type": "string",
@@ -73,19 +74,23 @@
     {
         "BooleanDefaultFalse": {
             "type": "boolean",
+            "$id": "#/definitions/BooleanDefaultFalse",
             "default": false
         },
         "BooleanDefaultTrue": {
             "type": "boolean",
+            "$id": "#/definitions/BooleanDefaultTrue",
             "default": true
         },
         "BooleanReadOnly": {
             "type": "boolean",
+            "$id": "#/definitions/BooleanReadOnly",
             "readOnly": true,
             "default": false
         },
         "DirectoryPathRelative": {
             "type": "string",
+            "$id": "#/definitions/DirectoryPathRelative",
             "maxLength": 100,
             "pattern": "^(?:\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+|\\.\\.?)$",
             "if": {
@@ -100,6 +105,7 @@
         },
         "DirectoryPath": {
             "type": "string",
+            "$id": "#/definitions/DirectoryPath",
             "default": "src",
             "maxLength": 150,
             "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/:]+)$",
@@ -114,6 +120,7 @@
             }
         },
         "DirectoryPathGlob": {
+            "$id": "#/definitions/DirectoryPathGlob",
             "$ref": "#/definitions/DirectoryPath",
             "minLength": 4,
             "pattern": "^(?:\\.{1,2}[\\\\/])\\*{0,2}(?:\\.|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/]+)\\*{0,2}$",
@@ -136,30 +143,35 @@
             }
         },
         "FileName": {
+            "$id": "#/definitions/FileName",
             "type": "string",
             "minLength": 3,
             "maxLength": 150,
             "pattern": "^[\\w\\.\\-]+\\.([cm]?jsx?|tsx?)$"
         },
         "FilePath": {
+            "$id": "#/definitions/FilePath",
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
             "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/\\:]+)?\\.[a-z0-9\\.]+$"
         },
         "FilePathRelative": {
+            "$id": "#/definitions/FilePathRelative",
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
             "pattern": "^\\.[\\\\\\/][\\w\\.\\-\\\\\\/]+\\.([cm]?jsx?|tsx?)$"
         },
         "FilePathRelativeLeadingDot": {
+            "$id": "#/references/FilePathRelativeLeadingDot",
             "type": "string",
             "minLength": 6,
             "maxLength": 150,
             "pattern": "^\\.{1,2}[\\\\\\/][\\w\\.\\-\\\\\\/]+?\\.\\w+$"
         },
         "WpBuildRcBuilds": {
+            "$id": "#/references/WpBuildRcBuilds",
             "type": "array",
             "uniqueItems": true,
             "minItems": 0,
@@ -168,6 +180,7 @@
             }
         },
         "WpBuildRcBuild": {
+            "$id": "#/references/WpBuildRcBuild",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -409,6 +422,7 @@
             }
         },
         "WpBuildRcBuildModeConfig": {
+            "$id": "#/references/WpBuildRcBuildModeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -439,6 +453,7 @@
             }
         },
         "WpBuildRcBuildType": {
+            "$id": "#/references/WpBuildRcBuildType",
             "type": "string",
             "oneOf": [
                 {
@@ -460,6 +475,7 @@
             ]
         },
         "WpBuildRcExportsUser": {
+            "$id": "#/references/WpBuildRcExportsUser",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -493,6 +509,7 @@
             }
         },
         "WpBuildRcExportsInternal": {
+            "$id": "#/references/WpBuildRcExportsInternal",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -514,6 +531,7 @@
             }
         },
         "WpBuildRcExports": {
+            "$id": "#/references/WpBuildRcExports",
             "type": "object",
             "allOf": [
                 {
@@ -525,6 +543,7 @@
             ]
         },
         "WpBuildRcLog": {
+            "$id": "#/references/WpBuildRcLog",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -651,6 +670,7 @@
             }
         },
         "WpBuildRcPackageJson": {
+            "$id": "#/references/WpBuildRcPackageJson",
             "type": "object",
             "description": "Required package.json properties",
             "additionalProperties": false,
@@ -718,6 +738,7 @@
             }
         },
         "WpBuildRcPaths": {
+            "$id": "#/references/WpBuildRcPaths",
             "type": "object",
             "properties": {
                 "base": {
@@ -750,6 +771,7 @@
             "additionalProperties": false
         },
         "WpBuildRcPluginsUser": {
+            "$id": "#/references/WpBuildRcPluginsUser",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -792,6 +814,7 @@
             }
         },
         "WpBuildRcPlugins": {
+            "$id": "#/references/WpBuildRcPlugins",
             "type": "object",
             "anyOf": [{
                 "$ref": "#/definitions/WpBuildRcPluginsUser"
@@ -801,6 +824,7 @@
             }]
         },
         "WpBuildRcPluginsInternal": {
+            "$id": "#/references/WpBuildRcPluginsInternal",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -837,9 +861,48 @@
                 "wait": {
                     "$ref": "#/definitions/BooleanReadOnly"
                 }
+            },
+            "dependencies": {
+                "tsbundle": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "tsbundle": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "anyOf": [
+                            {
+                                "properties": {
+                                    "dts": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "tscheck": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "types": {
+                                        "const": true
+                                    }
+                                }
+                            }]
+                        }
+                    }]
+                }
             }
         },
         "WpBuildRcPluginConfigAnalyze": {
+            "$id": "#/references/WpBuildRcPluginConfigAnalyze",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -860,6 +923,7 @@
             }]
         },
         "WpBuildRcPluginConfigBanner": {
+            "$id": "#/references/WpBuildRcPluginConfigBanner",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -871,6 +935,7 @@
             }]
         },
         "WpBuildRcPluginConfigUpload": {
+            "$id": "#/references/WpBuildRcPluginConfigUpload",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -938,6 +1003,7 @@
             }]
         },
         "WpBuildRcPluginConfigVendorMod": {
+            "$id": "#/references/WpBuildRcPluginConfigVendorMod",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -958,6 +1024,7 @@
             }]
         },
         "WpBuildLogTrueColor": {
+            "$id": "#/references/WpBuildLogTrueColor",
             "type": "string",
             "enum": [
                 "black",
@@ -972,6 +1039,7 @@
             ]
         },
         "WpBuildLogColor": {
+            "$id": "#/references/WpBuildLogColor",
             "type": "string",
             "enum": [
                 "black",
@@ -991,6 +1059,7 @@
             ]
         },
         "WpwRcSourceCode": {
+            "$id": "#/references/WpwRcSourceCode",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1006,6 +1075,7 @@
             ]
         },
         "WpwRcSourceCodeConfig": {
+            "$id": "#/references/WpwRcSourceCodeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1049,6 +1119,7 @@
             }
         },
         "WpwRcSourceCodeConfigOptions": {
+            "$id": "#/references/WpwRcSourceCodeConfigOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1088,6 +1159,7 @@
             }
         },
         "WpwRcSourceCodeConfigCompilerOptions": {
+            "$id": "#/references/WpwRcSourceCodeConfigCompilerOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {                      
@@ -1271,6 +1343,7 @@
             }
         },
         "WpwRcSourceCodeType": {
+            "$id": "#/references/WpwRcSourceCodeType",
             "type": "string",
             "default": "typescript",
             "enum": [
@@ -1279,12 +1352,14 @@
             ]
         },
         "WpwRcSourceCodeNodeJsModuleResolution": {
+            "$id": "#/references/WpwRcSourceCodeNodeJsModuleResolution",
             "type": "string",
             "enum": [
                 "node", "node10", "node16", "nodenext", "bundler"
             ]
         },
         "WpwRcSourceCodeNodeJsModule": {
+            "$id": "#/references/WpwRcSourceCodeNodeJsModule",
             "type": "string",
             "default": "commonjs",
             "enum": [
@@ -1292,6 +1367,7 @@
             ]
         },
         "WpwRcSourceCodeNodeJsTarget": {
+            "$id": "#/references/WpwRcSourceCodeNodeJsTarget",
             "type": "string",
             "default": "es2020",
             "enum": [
@@ -1300,6 +1376,7 @@
             ]
         },
         "WpBuildRcVsCodeConfig": {
+            "$id": "#/references/WpBuildRcVsCodeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1328,6 +1405,7 @@
             }]
         },
         "WpBuildWebpackEntryObject": {
+            "$id": "#/references/WpBuildWebpackEntryObject",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1403,6 +1481,7 @@
             ]
         },
         "WpBuildWebpackEntryValue": {
+            "$id": "#/references/WpBuildWebpackEntryValue",
             "anyOf": [
             {
                 "$ref": "#/definitions/FilePathRelativeLeadingDot"
@@ -1412,6 +1491,7 @@
             }]
         },
         "WpBuildWebpackEntry": {
+            "$id": "#/references/WpBuildWebpackEntry",
             "type": "object",
             "description": "mapping of module names to respective entry point file, relative to context directory",
             "minProperties": 1,
@@ -1461,6 +1541,7 @@
             }]
         },
         "WpBuildWebpackMode":  {
+            "$id": "#/references/WpBuildWebpackMode",
             "type": "string",
             "default": "production",
             "enum": [
@@ -1471,6 +1552,7 @@
             ]
         },
         "WpBuildWebpackAliasValue": {
+            "$id": "#/references/WpBuildWebpackAliasValue",
             "anyOf": [{
                 "$ref": "#/definitions/DirectoryPathGlob"
             },
@@ -1487,6 +1569,7 @@
             }]
         },
         "WpBuildWebpackAliasConfig": {
+            "$id": "#/references/WpBuildWebpackAliasConfig",
             "type": "object",
             "minProperties": 0,
             "patternProperties": {
@@ -1515,6 +1598,7 @@
             }]
         },
         "WebpackConfigOverride": {
+            "$id": "WebpackConfigOverride",
             "type": "object",
             "minProperties": 0,
             "additionalProperties": true,
@@ -1542,6 +1626,7 @@
             }]
         },
         "WebpackTarget":  {
+            "$id": "WebpackTarget",
             "type": "string",
             "default": "web",
             "enum": [
@@ -1559,6 +1644,7 @@
             ]
         },
         "WebpackLibraryType": {
+            "$id": "WebpackLibraryType",
             "type": "string",
             "default": "commonjs2",
             "enum": [

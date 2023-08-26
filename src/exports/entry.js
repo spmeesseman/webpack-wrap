@@ -18,7 +18,7 @@ const typedefs = require("../types/typedefs");
 const { apply, WpBuildError, merge, isObjectEmpty, isString, WpBuildApp } = require("../utils");
 
 
-const globTestSuiteFiles= `**/*.{test,tests,spec,specs}.ts`;
+const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
 
 
 const builds =
@@ -94,11 +94,12 @@ const builds =
 	 * @function
 	 * @private
 	 * @param {string} testsPathAbs
+	 * @returns {typedefs.WpBuildWebpackEntry}
 	 */
 	testRunner: (testsPathAbs) =>
 	{
 		return glob.sync(
-			`**/*.ts`, {
+			"**/*.ts", {
 				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true, ignore: [ globTestSuiteFiles ]
 			}
 		)
@@ -116,6 +117,7 @@ const builds =
 	 * @function
 	 * @private
 	 * @param {string} testsPathAbs
+	 * @returns {typedefs.WpBuildWebpackEntry}
 	 */
 	testSuite: (testsPathAbs) =>
 	{
@@ -160,7 +162,7 @@ const builds =
 	 * @private
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
-	types: (app) => builds.typesWrap(app.build, app)
+	types: (app) => { builds.typesWrap(app.build, app); }
 
 
 	// /**
