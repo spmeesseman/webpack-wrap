@@ -41,7 +41,7 @@ const plugins = (app) =>
 		tscheck(app),            // compiler.hooks.afterEnvironment, hooks.afterCompile
 		tsbundle(app),           // compiler.hooks.afterEnvironment, hooks.afterCompile
 		...webviewPlugins(app),  // webapp specific plugins
-		sourcemaps(app),         // compiler.hooks.compilation -> compilation.hooks.processAssets
+		...sourcemaps(app),      // compiler.hooks.compilation -> compilation.hooks.processAssets
 		...copy([], app),        // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 		...optimization(app),    // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
 		analyze.analyzer(app),   // compiler.hooks.done
