@@ -12,11 +12,13 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
-const { apply, isString } = require("../utils");
-// const { Compilation } = require("webpack");
 const WpBuildPlugin = require("./base");
+// const { Compilation } = require("webpack");
+const { apply, WpBuildError, requireResolve } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
+// const webpack = require("webpack");
+/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
@@ -44,7 +46,6 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
      * @override
      * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -71,32 +72,43 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
     renameMap = (assets) =>
     {
         this.logger.write("rename sourcemaps with entry module contenthash", 1);
-		Object.entries(assets).filter(([ file ]) => file.endsWith(".map")).forEach(([ file ]) =>
-		{
-			const asset = this.compilation.getAsset(file);
-			if (asset)
-			{
-                const entryHash = this.app.global.runtimeVars.next[this.fileNameStrip(file, true)],
-                      newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
-				this.logger.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
-				this.logger.value("   current filename", file, 3);
-				this.logger.value("   new filename", newFile, 3);
-				this.logger.value("   asset info", JSON.stringify(asset.info), 4);
-				this.compilation.renameAsset(file, newFile);
-				const srcAsset = this.compilation.getAsset(newFile.replace(".map", ""));
-				if (srcAsset && srcAsset.info.related && srcAsset.info.related.sourceMap)
-				{
-                    const sources = this.compiler.webpack.sources,
-                          { source, map } = srcAsset.source.sourceAndMap(),
-                          newInfo = apply({ ...srcAsset.info }, { related: { ...srcAsset.info.related, sourceMap: newFile }});
-                    let newSource = source;
-					this.logger.write("   update source entry asset with new sourcemap filename", 2);
-                    this.logger.value("   source entry asset info", JSON.stringify(srcAsset.info), 4);
-                    newSource = source.toString().replace(file, newFile);
-                    this.compilation.updateAsset(srcAsset.name, new sources.SourceMapSource(newSource, srcAsset.name, map), newInfo);
+        if (this.app.global.runtimeVars)
+        {
+            Object.entries(assets).filter(([ file ]) => file.endsWith(".map")).forEach(([ file ]) =>
+            {
+                const asset = this.compilation.getAsset(file);
+                if (asset)
+                {
+                    const entryHash = this.app.global.runtimeVars.next[this.fileNameStrip(file, true)],
+                        newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
+                    this.logger.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
+                    this.logger.value("   current filename", file, 3);
+                    this.logger.value("   new filename", newFile, 3);
+                    this.logger.value("   asset info", JSON.stringify(asset.info), 4);
+                    this.compilation.renameAsset(file, newFile);
+                    const srcAsset = this.compilation.getAsset(newFile.replace(".map", ""));
+                    if (srcAsset && srcAsset.info.related && srcAsset.info.related.sourceMap)
+                    {
+                        const sources = this.compiler.webpack.sources,
+                            { source, map } = srcAsset.source.sourceAndMap(),
+                            newInfo = apply({ ...srcAsset.info }, { related: { ...srcAsset.info.related, sourceMap: newFile }});
+                        let newSource = source;
+                        this.logger.write("   update source entry asset with new sourcemap filename", 2);
+                        this.logger.value("   source entry asset info", JSON.stringify(srcAsset.info), 4);
+                        newSource = source.toString().replace(file, newFile);
+                        this.compilation.updateAsset(srcAsset.name, new sources.SourceMapSource(newSource, srcAsset.name, map), newInfo);
+                    }
                 }
-			}
-		});
+            });
+        }
+        else {
+            this.app.addWarning(
+                WpBuildError.get(
+                    "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
+                    "plugins/ssourcemaps.js"
+                )
+            );
+        }
     };
 
 
@@ -155,7 +167,7 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 /**
  * @param {WpBuildApp} app
- * @returns {(webpack.SourceMapDevToolPlugin | WpBuildSourceMapPlugin)[]}
+ * @returns {(WpBuildSourceMapPlugin)[]}
  */
 const sourcemaps = (app) => app.build.options.sourcemaps &&  app.isMain ?  new WpBuildSourceMapPlugin({ app }).getPlugins() : [];
 

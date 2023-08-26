@@ -968,6 +968,9 @@
                     "clean_plugin": {
                         "type": "boolean"
                     },
+                    "source_map_plugin": {
+                        "type": "boolean"
+                    },
                     "ts_loader": {
                         "type": "boolean"
                     }

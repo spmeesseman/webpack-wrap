@@ -9,8 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
-const { getExcludes } = require("../../utils");
+const { getExcludes, WpBuildError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 
@@ -30,7 +29,7 @@ const circular = (app) =>
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                compilation.warnings.push(new webpack.WebpackError(paths.join(" -> ")));
+                compilation.warnings.push(new WpBuildError(paths.join(" -> "), "plugins/analyze/circular.js"));
             }
         });
     }

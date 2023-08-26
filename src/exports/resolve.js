@@ -7,9 +7,16 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const { apply } = require("../utils");
+const { apply, resolvePath } = require("../utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+
+
+const moduleResolution = (app) => [
+	resolvePath(__dirname, "../../node_modules"),
+	resolvePath(app.build.paths.base, "node_modules"),
+	"node_modules"
+];
 
 
 /**
@@ -18,10 +25,16 @@ const { apply } = require("../utils");
  */
 const resolve = (app) =>
 {
-	apply(app.wpc.resolve,
+	const modules = moduleResolution(app);
+	apply(app.wpc,
 	{
-		alias: app.build.alias,
-		extensions: [ ".ts", ".tsx", ".js", ".jsx", ".json" ]
+		resolve: {
+			// modules,
+			restrictions: [ /webpack\-wrap[\\\/]node_modules[\\\/]webpack[\\\/]lib[\\\/]javascript[\\\/]JavascriptModulesPlugin.js/ ],
+			alias: app.build.alias,
+			extensions: [ ".ts", ".tsx", ".js", ".jsx", ".json" ]
+		},
+		resolveLoader: { modules }
 	});
 
 

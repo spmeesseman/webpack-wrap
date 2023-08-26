@@ -187,6 +187,7 @@
  * WEBPACK
  ***********************************************************************************************************************/
 
+/** @typedef {import("./webpack").WebpackType} WebpackType */
 /** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */

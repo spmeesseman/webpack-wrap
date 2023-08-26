@@ -8,7 +8,10 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
+const { requireResolve } = require("../utils");
+/*  // const webpack = require("webpack"); */
+/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */

@@ -15,6 +15,7 @@ const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative } = require("path");
+const Module = require("module");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -523,6 +524,15 @@ const pickNot = (obj, ...keys) =>
 const relativePath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } return p; };
 
 
+// * @returns {import("../../package.json").dependencies[T]}
+/**
+ * @template {string} T
+ * @param {T} id
+ * @returns {any}
+ */
+const requireResolve = (id) => require(require.resolve(id, { paths: [ require.main?.path || process.cwd() ] }));
+
+
 /**
  * @param {string} b base directory
  * @param {string | undefined} p configured path (relative or absolute)
@@ -613,7 +623,7 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray,
+    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray, requireResolve,
     isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString,
     lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath
 };

@@ -8,14 +8,18 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
+const { requireResolve } = require("../utils");
+/*  // const webpack = require("webpack"); */
+/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("webpack").ProgressPlugin} ProgressPlugin */
 
 
 /**
  * @param {WpBuildApp} app
- * @returns {webpack.ProgressPlugin | undefined}
+ * @returns {ProgressPlugin | undefined}
  */
 const progress = (app) =>
 {

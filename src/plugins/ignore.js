@@ -8,18 +8,22 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
+const { requireResolve } = require("../utils");
+/*  // const webpack = require("webpack"); */
+/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("webpack").IgnorePlugin} IgnorePlugin */
 
 
 /**
  * @param {WpBuildApp} app
- * @returns {webpack.IgnorePlugin | undefined}
+ * @returns {IgnorePlugin | undefined}
  */
 const ignore = (app) =>
 {
-    /** @type {webpack.IgnorePlugin | undefined} */
+    /** @type {IgnorePlugin | undefined} */
     let plugin;
     if (app.build.options.ignore) //  && app.build.mode === "production")
     {

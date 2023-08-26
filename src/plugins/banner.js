@@ -8,16 +8,20 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const webpack = require("webpack");
 const WpBuildPlugin = require("./base");
-const { isString, isObject } = require("../utils/utils");
+const { isString, requireResolve } = require("../utils");
 
+/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
+/*  // const webpack = require("webpack"); */
+/*  // const webpack = require("webpack"); */
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("webpack").BannerPlugin} BannerPlugin */
 
 
 /**
  * @param {WpBuildApp} app
- * @returns {webpack.BannerPlugin | undefined}
+ * @returns {BannerPlugin | undefined}
  */
 const banner = (app) =>
 {

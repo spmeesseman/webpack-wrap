@@ -15,7 +15,7 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { apply, WpBuildError, isPromise, resolvePath, pickNot } = require("../utils/utils");
+const { apply, WpBuildError, isPromise, resolvePath, pickNot, isString } = require("../utils/utils");
 
 
 /**
@@ -97,7 +97,7 @@ class WpBuildApp
      */
     vscode;
     /**
-     * @type {string[]}
+     * @type {WpBuildError[]}
      */
     warnings;
     /**
@@ -135,8 +135,46 @@ class WpBuildApp
                 await result;
             }
         }
+        if (this.warnings.length > 0) {
+            this.logger.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
+            this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
+        }
+        if (this.errors.length > 0) {
+            this.logger.warning("REPORTED NON-FATAL ERRORS FOR THIS BUILD:");
+            this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
+        }
         this.logger.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
         this.logger.dispose();
+    };
+
+
+    /**
+     * @function
+     * @param {WpBuildError | string} e
+     * @param {string} [pad]
+     */
+    addError = (e, pad) =>
+    {
+        if (isString(e)) {
+            e = WpBuildError.get(e, "n/a");
+        }
+        this.logger.error(e, pad);
+        this.errors.push(e);
+    };
+
+
+    /**
+     * @function
+     * @param {WpBuildError | string} w
+     * @param {string} [pad]
+     */
+    addWarning = (w, pad) =>
+    {
+        if (isString(w)) {
+            w = WpBuildError.get(w, "n/a");
+        }
+        this.logger.warning(w.message, pad);
+        this.warnings.push(w);
     };
 
 
@@ -461,6 +499,19 @@ class WpBuildApp
         l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);
         l.value("   ts/js configured files", JSON.stringify(this.build.source.config.options.files), 4);
         l.sep();
+    };
+
+
+    /**
+     * @function
+     * @private
+     * @param {WpBuildError} e
+     * @param {Function} fn
+     */
+    printNonFatalIssue = (e, fn) =>
+    {
+        fn.call(this.logger, `Location: ${e.file}`);
+        fn.call(this.logger, "   " + e.message);
     };
 
 

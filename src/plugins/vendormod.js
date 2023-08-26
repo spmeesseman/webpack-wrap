@@ -36,10 +36,9 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
-const { basename, join } = require("path");
+const { basename, join, resolve } = require("path");
 const WpBuildPlugin = require("./base");
 const { existsSync, readFileSync, readdirSync, writeFileSync } = require("fs");
-const { build } = require("esbuild");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
@@ -53,9 +52,7 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
     /**
      * @function Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -75,10 +72,18 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
 	 */
 	modifyVendorSource = () =>
 	{
-		if (!WpBuildVendorModPlugin.ranOnce)
+		const options = this.app.build.options.vendormod;
+		if (!WpBuildVendorModPlugin.ranOnce && options)
 		{
-			this.cleanPLugin();
-			this.tsLoader();
+			if (options === true || options.clean_plugin) {
+				this.cleanPlugin();
+			}
+			if (options === true || options.source_map_plugin) {
+				this.sourceMapPlugin();
+			}
+			if (options === true || options.ts_loader) {
+				this.tsLoader();
+			}
 		}
 		WpBuildVendorModPlugin.ranOnce = true;
 	};
@@ -88,7 +93,7 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
 	 * @function
 	 * @private
 	 */
-	cleanPLugin = () =>
+	cleanPlugin = () =>
 	{   //
 		// Make a lil change to the copy-plugin to initialize the current assets array to
 		// the existing contents of the dist directory.  By default it's current assets list
@@ -107,6 +112,52 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
 			writeFileSync(cleanPlugin, content);
 		}
 	}
+
+
+	/**
+	 * @function
+	 * @private
+	 */
+	sourceMapPlugin = () =>
+	{
+		// if (!(compilation instanceof Compilation)) {
+		// 	throw new TypeError(
+		// 		"The 'compilation' argument must be an instance of Compilation"
+		// 	);
+		// }
+		//
+		// WEBPACK.SOURCEMAPPLUGIN
+		// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js
+		//
+		// A hck to remove a check added in Webpack 5 using 'instanceof' to check the compilation parameter.
+		// If multiple webpack installs are present, the follwoing error occurs, regardlkess if Wp versions are the same:
+		//
+		// TypeError: The 'compilation' argument must be an instance of Compilation
+    	//    at Function.getCompilationHooks (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js:164:10)
+    	//    at SourceMapDevToolModuleOptionsPlugin.apply (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolModuleOptionsPlugin.js:54:27)
+    	//    at C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolPlugin.js:184:53
+    	//    at Hook.eval [as call] (eval at create (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
+    	//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\Hook.js:14:14)
+		//	  ....
+		//
+		// Seeing it's a module resolution issue, this was patched for this plugin using 'require.resolve'
+		// in the cwd when importing this plugin in plugins/sourcemaps.js.
+		//
+		// This is a "in the worst case" fix, where we can "kind if" safley remove this check, and
+		// consider it patched if redundant testing yields no side effects,
+		//
+		const sourceMapPlugin = resolve(
+			this.app.getRcPath("base"), "..", "@spmeesseman", "webpack-wrap", "node_modules", "webpack", "lib", "javascript", "JavascriptModulesPlugin.js"
+		);
+		if (existsSync(sourceMapPlugin))
+		{
+			const content = readFileSync(sourceMapPlugin, "utf8").replace(
+				/if \(\!\(compilation instanceof Compilation\)\)/,
+				"if (false)"
+			);
+			writeFileSync(sourceMapPlugin, content);
+		}
+	};
 
 
 	/**

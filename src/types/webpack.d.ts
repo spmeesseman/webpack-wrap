@@ -44,14 +44,13 @@
 import { ConvertType, PickByType } from "./generic";
 import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable";
 import { Schema as WebpackSchema } from "schema-utils/declarations/validate";
-import {
+import webpack, {
     Asset as WebpackAsset, AssetInfo as WebpackAssetInfo, AssetEmittedInfo as WebpackAssetEmittedInfo,
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, RuleSetUseItem, ResolveOptions as WebpackResolveOptions
-} from "webpack";
-
+}from "webpack";
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
 
@@ -142,8 +141,10 @@ declare type WebpackRuleSetUse = Exclude<RuleSetUse, string>;
 // declare type WebpackRuleSetUseItem = Exclude<RuleSetUseItem, (string | undefined)>;
 declare type WebpackRuleSetUseItem = { ident?: string; loader?: string; options: Record<string, any> };
 
+declare type WebpackType = typeof webpack;
 
 export {
+    WebpackType,
     WebpackRuntimeArgs,
     WebpackRuntimeEnvArgs,
     WebpackAsset,

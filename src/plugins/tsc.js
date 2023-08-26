@@ -14,7 +14,7 @@ const WpBuildPlugin = require("./base");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { access, unlink } = require("fs/promises");
-const { relative, join, basename, resolve } = require("path");
+const { relative, join, resolve } = require("path");
 const { findFiles, isString, WpBuildError } = require("../utils");
 
 
@@ -113,7 +113,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				try {
 					dts.bundle(bundleCfg);
 					this.global.typesBundled = true;
-					//this.compilation.fileDependencies.clear();
+					// this.compilation.fileDependencies.clear();
 					this.compilation.fileDependencies.add(join(typesDirDist, outputFile));
 					//
 					// Remove js file produced by webpack bundler, by default there's no way to load source
