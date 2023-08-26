@@ -10,6 +10,7 @@
 
 /* START_RC_DEFS */
 /** @typedef {import("./rc").WpBuildRcLog} WpBuildRcLog */
+/** @typedef {import("./rc").VersionString} VersionString */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
 /** @typedef {import("./rc").WpBuildRcBuild} WpBuildRcBuild */
 /** @typedef {import("./rc").WpBuildRcPaths} WpBuildRcPaths */

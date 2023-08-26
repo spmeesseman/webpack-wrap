@@ -131,7 +131,7 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\n\}\nexport /g, "\n}\n\nexport ")
           .replace(/author\?\:[^]*?(?:\}|\));/, "author?: string | { name: string; email?: string };")
           .replace(/export type WebpackEntry =\s+\|(?:[^]*?)\};/g, (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " "))
-          .replace(/ *\$schema\?\: string;\n/, "")
+          // .replace(/ *\$schema\?\: string;\n/, "")
           .replace(/(export type (?:.*?)\n)(export type)/g, (_, m1, m2) => `\n${m1}\n${m2}`)
           .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
           .replace(/\nexport interface (.*?) /g, (v, m1) =>

@@ -29,22 +29,22 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
     {
 		this.onApply(compiler);
 		const logLevel = this.app.logger.level;
-		// if (logLevel > 1)
-		// {
-		// 	const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-		// 	tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
-		// 	if (logLevel >= 2)
-		// 	{
-		// 		tsForkCheckerHooks.start.tap(this.name, this.tsForkCheckerStart.bind(this));
-		// 		if (logLevel >= 3)
-		// 		{
-		// 			tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
-		// 			if (logLevel >= 4) {
-		// 				tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
-		// 			}
-		// 		}
-		// 	}
-		// }
+		if (logLevel > 1)
+		{
+			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+			tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
+			if (logLevel >= 2)
+			{
+				tsForkCheckerHooks.start.tapPromise(this.name, this.tsForkCheckerStart.bind(this));
+				if (logLevel >= 3)
+				{
+					tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
+					if (logLevel >= 4) {
+						tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
+					}
+				}
+			}
+		}
 	}
 
 
@@ -120,9 +120,9 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	 * @private
 	 * @param {TsCheckFilesChange} filesChange
 	 * @param {typedefs.WebpackCompilation} compilation
-	 * @returns {TsCheckFilesChange}
+	 * @returns {Promise<TsCheckFilesChange>}
 	 */
-	tsForkCheckerStart = (filesChange, compilation) =>
+	tsForkCheckerStart = async (filesChange, compilation) =>
 	{
 		this.compilation = compilation;
 		this.logger.start("tsforkchecker start");

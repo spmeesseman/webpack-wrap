@@ -64,10 +64,6 @@ class WpBuildRc
      */
     displayName;
     /**
-     * @type {typedefs.WpBuildRcExports}
-     */
-    exports;
-    /**
      * @type {typedefs.WpBuildGlobalEnvironment}
      */
     global;
@@ -102,9 +98,9 @@ class WpBuildRc
      */
     pkgJsonPath;
     /**
-     * @type {typedefs.WpBuildRcPlugins}
+     * @type {typedefs.WpwRcBuildOptions}
      */
-    plugins;
+    options;
     /**
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
@@ -120,7 +116,15 @@ class WpBuildRc
     /**
      * @type {string}
      */
+    $schema;
+    /**
+     * @type {string}
+     */
     schemaDir;
+    /**
+     * @type {typedefs.VersionString}
+     */
+    schemaVersion;
     /**
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
@@ -129,6 +133,14 @@ class WpBuildRc
      * @type {typedefs.WpBuildRcBuildModeConfig}
      */
     testproduction;
+    /**
+     * @type {typedefs.VersionString}
+     */
+    version;
+    /**
+     * @type {typedefs.VersionString}
+     */
+    wpwVersion;
 
 
     /**
@@ -157,10 +169,11 @@ class WpBuildRc
         const rcDefaults = this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir);
         const rcProject = this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.logger = new WpBuildConsoleLogger({ envTag1: "rc", envTag2: "init", ...this.log });
-		this.printBanner(arge, argv);
-        this.applyModeArgument(argv, arge);
+		this.applyModeArgument(argv, arge);
+        this.printBanner(arge, argv);
         this.validateSchema(rcDefaults.data);
         this.validateSchema(rcProject.data);
+        this.applyVersions();
         this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps).path;
         this.configureBuilds();
     };
@@ -200,6 +213,47 @@ class WpBuildRc
             }
             return this.applyJsonFromFile(thisArg, file, parentDir);
         }
+    };
+
+
+    /**
+     * @function
+     * @private
+     * @param {typedefs.WebpackRuntimeArgs} argv
+     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
+     */
+    applyModeArgument = (argv, arge) =>
+    {
+        apply(this, { mode: this.getMode(arge, argv, true) });
+        if (!isWpBuildWebpackMode(this.mode)) {
+            throw WpBuildError.getErrorMissing("mode", "utils/rc.js");
+        }
+        // if (argv.mode && !isWebpackMode(this.mode))
+        // {
+        //     argv.mode = "none";
+        //     if (process.argv.includes("--mode")) {
+        //         process.argv[process.argv.indexOf("--mode") + 1] = "none";
+        //     }
+        // }
+    };
+
+
+    /**
+     * @function
+     * @private
+     */
+    applyVersions = () =>
+    {
+        let schemaVersion = "0.0.1";
+        const wpwVersion = require("../../package.json").version;
+        const match = this.$schema.match(/\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//);
+        if (match) {
+            schemaVersion = match[1];       }
+        apply(this, {
+            schemaVersion,
+            version: this.pkgJson.version, // user app version
+            wpwVersion
+        });
     };
 
 
@@ -285,9 +339,8 @@ class WpBuildRc
         };
 
         this.builds.forEach((build) => _applyBase(build, this));
-
         const modeRc = /** @type {Partial<typedefs.WpBuildRcBuildModeConfig>} */(this[this.mode]);
-        modeRc?.builds?.filter(b => isArray(b)).forEach((modeBuild) =>
+        asArray(modeRc?.builds).forEach((modeBuild) =>
         {
             const baseBuild = this.builds.find(base => base.name === modeBuild.name);
             if (baseBuild) {
@@ -318,28 +371,6 @@ class WpBuildRc
         const config = this.getJsTsConfig(build);
         const compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
         merge(build.source.config, config, { options: { compilerOptions: compilerOptionsCc }});
-    };
-
-
-    /**
-     * @function
-     * @private
-     * @param {typedefs.WebpackRuntimeArgs} argv
-     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
-     */
-    applyModeArgument = (argv, arge) =>
-    {
-        apply(this, { mode: this.getMode(arge, argv, true) });
-        if (!isWpBuildWebpackMode(this.mode)) {
-            throw WpBuildError.getErrorMissing("mode", "utils/rc.js");
-        }
-        // if (argv.mode && !isWebpackMode(this.mode))
-        // {
-        //     argv.mode = "none";
-        //     if (process.argv.includes("--mode")) {
-        //         process.argv[process.argv.indexOf("--mode") + 1] = "none";
-        //     }
-        // }
     };
 
 

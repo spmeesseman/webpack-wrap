@@ -529,8 +529,9 @@ class WpBuildPlugin
                 }
             }
         }
-        else if (this.options.wrapPlugin && this.plugins.length === 1)
+        if (this.options.wrapPlugin)
         {
+            console.log("***************************" + this.name);
             this.plugins[0].apply.call(this.plugins[0], compiler);
         }
     }

@@ -12,7 +12,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-pre\\.[0-9]{1,2})?)\\/schema\\/\\.wpbuildrc\\.schema\\.json(?:.*?)$"
+            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/\\.wpbuildrc\\.schema\\.json(?:.*?)$"
         },
         "name": {
             "type": "string",
@@ -57,6 +57,9 @@
         "production": {
             "$ref": "#/definitions/WpBuildRcBuildModeConfig"
         },
+        "schemaVersion": {
+            "$ref": "#/definitions/VersionString"
+        },
         "source": {
             "$ref": "#/definitions/WpwRcSourceCode"
         },
@@ -65,6 +68,12 @@
         },
         "vscode": {
             "$ref": "#/definitions/WpBuildRcVsCodeConfig"
+        },
+        "version": {
+            "$ref": "#/definitions/VersionString"
+        },
+        "wpwVersion": {
+            "$ref": "#/definitions/VersionString"
         }
     },
     "definitions":
@@ -166,6 +175,12 @@
             "minLength": 6,
             "maxLength": 150,
             "pattern": "^\\.{1,2}[\\\\\\/][\\w\\.\\-\\\\\\/]+?\\.\\w+$"
+        },
+        "VersionString": {
+            "$id": "#/VersionString",
+            "type": "string",
+            "readOnly": true,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?$"
         },
         "WpBuildRcBuilds": {
             "$id": "#/WpBuildRcBuilds",

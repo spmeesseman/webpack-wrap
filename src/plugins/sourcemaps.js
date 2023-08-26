@@ -3,10 +3,6 @@
 
 /**
  * @file plugin/sourcemaps.js
- * IMPORTANT NOTE:
- * This module contains project specifc code and the sync script should be modified
- * if necessary when changes are made to this file.
- * TODO - Make it not project specific somehow
  * @version 0.0.1
  * @license MIT
  * @author Scott Meesseman @spmeesseman
@@ -29,16 +25,6 @@ const WpBuildPlugin = require("./base");
 
 class WpBuildSourceMapPlugin extends WpBuildPlugin
 {
-	/**
-	 * @class WpBuildCopyPlugin
-	 * @param {WpBuildPluginOptions} options Plugin options to be applied
-	 */
-	constructor(options)
-    {
-        super(apply(options, { plugins: WpBuildSourceMapPlugin.vendorPlugins(options.app), registerVendorPluginsFirst: true }));
-    }
-
-
     /**
      * @function Called by webpack runtime to initialize this plugin
      * @override
@@ -48,18 +34,15 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
      */
     apply(compiler)
     {
-		if (this.app.isMain)
-		{
-			this.onApply(compiler,
-			{
-				renameSourceMaps: {
-					hook: "compilation",
-					stage: "DEV_TOOLING",
-					hookCompilation: "processAssets",
-					callback: this.renameMap.bind(this)
-				}
-			});
-		}
+        this.onApply(compiler,
+        {
+            renameSourceMaps: {
+                hook: "compilation",
+                stage: "DEV_TOOLING",
+                hookCompilation: "processAssets",
+                callback: this.renameMap.bind(this)
+            }
+        });
     }
 
 
@@ -102,44 +85,40 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 	/**
 	 * @function
-	 * @private
-	 * @param {WpBuildApp} app
-	 * @returns {WpBuildPluginVendorOptions[]}
+	 * @override
+	 * @returns {WebpackPluginInstance}
 	 */
-	static vendorPlugins = (app) =>
+	getVendorPlugin = () =>
 	{
-		return [
+		return new webpack.SourceMapDevToolPlugin(
         {
-            ctor: webpack.SourceMapDevToolPlugin,
-            options: {
-                test: /\.(js|jsx)($|\?)/i,
-                exclude: // !app.isTests ?
-                        /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/, // :
-                                       //  /(?:node_modules|(?:vendor|runtime)(?:\.[a-f0-9]{16,})?\.js)/,
-                // filename: "[name].js.map",
-                filename: "[name].[contenthash].js.map",
-                //
-                // The bundled node_modules will produce reference tags within the main entry point
-                // files in the form:
-                //
-                //     external commonjs "vscode"
-                //     external-node commonjs "crypto"
-                //     ...etc...
-                //
-                // This breaks the istanbul reporting library when the tests have completed and the
-                // coverage report is being built (via nyc.report()).  Replace the quote and space
-                // characters in this external reference name with filename firiendly characters.
-                //
-                /** @type {any} */moduleFilenameTemplate: (/** @type {any} */info) =>
-                {
-                    if ((/[\" \|]/).test(info.absoluteResourcePath)) {
-                        return info.absoluteResourcePath.replace(/\"/g, "").replace(/[ \|]/g, "_");
-                    }
-                    return `${info.absoluteResourcePath}`;
-                },
-                fallbackModuleFilenameTemplate: "[absolute-resource-path]?[hash]"
-            }
-        }];
+            test: /\.(js|jsx)($|\?)/i,
+            exclude: // !app.isTests ?
+                    /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/, // :
+                                    //  /(?:node_modules|(?:vendor|runtime)(?:\.[a-f0-9]{16,})?\.js)/,
+            // filename: "[name].js.map",
+            filename: "[name].[contenthash].js.map",
+            //
+            // The bundled node_modules will produce reference tags within the main entry point
+            // files in the form:
+            //
+            //     external commonjs "vscode"
+            //     external-node commonjs "crypto"
+            //     ...etc...
+            //
+            // This breaks the istanbul reporting library when the tests have completed and the
+            // coverage report is being built (via nyc.report()).  Replace the quote and space
+            // characters in this external reference name with filename firiendly characters.
+            //
+            /** @type {any} */moduleFilenameTemplate: (/** @type {any} */info) =>
+            {
+                if ((/[\" \|]/).test(info.absoluteResourcePath)) {
+                    return info.absoluteResourcePath.replace(/\"/g, "").replace(/[ \|]/g, "_");
+                }
+                return `${info.absoluteResourcePath}`;
+            },
+            fallbackModuleFilenameTemplate: "[absolute-resource-path]?[hash]"
+        });
         // {
         //     ctor: CopyInMemoryPlugin,
         //     options: {
@@ -155,9 +134,9 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 /**
  * @param {WpBuildApp} app
- * @returns {(webpack.SourceMapDevToolPlugin | WpBuildSourceMapPlugin)[]}
+ * @returns {webpack.SourceMapDevToolPlugin | WpBuildSourceMapPlugin | undefined}
  */
-const sourcemaps = (app) => app.build.options.sourcemaps &&  app.isMain ?  new WpBuildSourceMapPlugin({ app }).getPlugins() : [];
+const sourcemaps = (app) => WpBuildPlugin.wrap(WpBuildSourceMapPlugin, app, app.build.options.sourcemaps && app.isMain);
 
 
 module.exports = sourcemaps;

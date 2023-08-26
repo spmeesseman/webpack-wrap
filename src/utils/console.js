@@ -394,14 +394,14 @@ class WpBuildConsoleLogger
      * @returns {string}
      */
     tag = (tagMsg, bracketColor, msgColor) =>
-        tagMsg ? (this.withColor("[",
-                      bracketColor ||
-                      (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
-                      (this.options.color ? this.colors[this.options.color] : null) ||
-                      this.defaultColor
-                  ) +
-                 this.withColor(tagMsg, msgColor || this.colors.grey)  +
-                 this.withColor("]", bracketColor || this.colors.blue)) : "";
+    {
+        const bClr = bracketColor ||
+                    (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
+                    (this.options.color ? this.colors[this.options.color] : null) || this.defaultColor;
+        return tagMsg ?
+            (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
+    };
+
 
     /**
      * @function
