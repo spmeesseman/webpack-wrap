@@ -144,7 +144,7 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildVendorModPlugin | undefined}
  */
-const vendormod = (app) => app.build.plugins.vendormod ? new WpBuildVendorModPlugin({ app }) : undefined;
+const vendormod = (app) => app.build.options.vendormod ? new WpBuildVendorModPlugin({ app }) : undefined;
 
 
 module.exports = vendormod;

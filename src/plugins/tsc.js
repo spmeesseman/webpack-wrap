@@ -9,13 +9,13 @@
  */
 
 const dts = require("dts-bundle");
-const { existsSync, unlinkSync } = require("fs");
+const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
-const { findFiles, isString, isArray, WpBuildError } = require("../utils");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
-const { access, readFile } = require("fs/promises");
-const { relative, dirname, join, basename, resolve } = require("path");
+const { access, unlink } = require("fs/promises");
+const { relative, join, basename, resolve } = require("path");
+const { findFiles, isString, WpBuildError } = require("../utils");
 
 
 /**
@@ -29,7 +29,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 	 * @protected
 	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
-	bundleDts = (assets) =>
+	bundleDts = async (assets) =>
 	{
 		const l = this.app.logger,
 			  typesDirSrc = this.app.getSrcPath({ stat: true }),
@@ -37,6 +37,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 
 		l.write("start bundle dts", 1);
 		l.value("   types source directory", typesDirSrc, 2);
+		l.value("   types output directory", typesDirDist, 2);
 
 		if (!this.global.typesBundled && typesDirSrc && typesDirDist)
 		{
@@ -47,42 +48,63 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				const asset = this.compilation.getAsset(file);
 				if (asset) {
 					asset.info.tsbundle = true;
+					l.value("   asset tagged for bundling", asset.name, 3);
 				}
 			});
 
 			const outputFile = this.app.build.name + ".d.ts",
 				  outputPath = join(typesDirDist, outputFile);
 			if (existsSync(outputPath)) {
-				unlinkSync(outputPath);
+				l.write("   clean/remove prior bundle output @ " + outputPath, 2);
+				await unlink(outputPath);
 			}
 			// let entryFile = Object.valuthis.app.wpc.entryes().map(
 			// 	/** @type {typedefs.WpBuildWebpackEntryValue} */(v) => resolve(typesDirDist, !isString(v) ? v.import : v)
 			// )[0]?.replace(".ts", ".d.ts");
-			const entry = this.app.wpc.entry[this.app.build.name];
+			l.write("   locating entry file", 2);
+			const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
 			let entryFile = resolve(typesDirDist, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
 			if (!entryFile ||!existsSync(entryFile))
 			{
 				entryFile = join(typesDirDist, "index.d.ts");
-				if (!existsSync(entryFile)) {
+				if (!existsSync(entryFile))
+				{
 					entryFile = join(typesDirDist, "types.d.ts");
-					if (!existsSync(entryFile)) {
+					if (!existsSync(entryFile))
+					{
 						const mainBuild = this.app.getAppBuild("module");
 						if (mainBuild) {
 							entryFile = join(typesDirDist, mainBuild.name + ".d.ts");
+						}
+					}
+					if (!existsSync(entryFile))
+					{
+						l.write("   entry file not found in output directory, scanning sub-directories", 2);
+						entryFile = (await findFiles("**/index.d.ts", { maxDepth: 2, cwd: typesDirDist }))[0];
+						if (!entryFile || !existsSync(resolve(typesDirDist, entryFile)))
+						{
+							entryFile = (await findFiles("**/types.d.ts", { maxDepth: 2, cwd: typesDirDist }))[0];
+							if (!existsSync(resolve(typesDirDist, entryFile)))
+							{
+								const mainBuild = this.app.getAppBuild("module");
+								if (mainBuild) {
+									entryFile = await findFiles(`**/${mainBuild.name}.d.ts`, { maxDepth: 2, cwd: typesDirDist })[0];
+								}
+							}
 						}
 					}
 				}
 			}
 			if (existsSync(entryFile))
 			{
-				l.value("  using tsconfig file", entryFile, 2);
+				l.value("   using main entry file", entryFile, 2);
 				/** @type {typedefs.WpBuildDtsBundleOptions} */
 				const bundleCfg = {
 					name: `${this.app.pkgJson.name}-${this.app.build.name}`,
 					baseDir: typesDistPathRel,
 					headerPath: "",
 					headerText: "",
-					main: join(typesDistPathRel, basename(entryFile)),
+					main: join(typesDistPathRel, relative(typesDirDist, entryFile)),
 					out: outputFile,
 					outputAsModuleFolder: true,
 					// removeSource: true,
@@ -91,17 +113,28 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				try {
 					dts.bundle(bundleCfg);
 					this.global.typesBundled = true;
-					this.compilation.buildDependencies.add(join(typesDirDist, bundleCfg.out));
+					//this.compilation.fileDependencies.clear();
+					this.compilation.fileDependencies.add(join(typesDirDist, outputFile));
+					//
+					// Remove js file produced by webpack bundler, by default there's no way to load source
+					// code without specifying an entry point that will in the end produce a js bundle, which,
+					// of course, is what Web[packis for and does.  In the case of building declarations/types
+					// though, it doesnt really fit "module" definition as defined by Webpack.
+					//
+					// entryFile = join(typesDirDist, basename(entryFile).replace(".d.ts", ".js"));
+					// if (existsSync(entryFile)) {
+					// 	await unlink(entryFile);
+					// }
 					// this.compilation.compilationDependencies.add();this.compilation.
 					// this.compilation.contextDependencies.add();
-					l.write("   dts bundle created successfully @ " + join(bundleCfg.baseDir, bundleCfg.out), 1);
+					l.write("   dts bundle created successfully @ " + join(bundleCfg.baseDir, outputFile), 1);
 				}
 				catch (e) {
-					this.handleError(e, "call to dts-bundle package falied");
+					this.handleError(e, "call to dts-bundle package failed");
 				}
 			}
 			else {
-				l.warning("   types entry file could not be located, dts bundling skipped");
+				l.warning(`   types entry file '${entryFile}' could not be located, dts bundling skipped`);
 			}
 		}
 		else if (!typesDirDist) {

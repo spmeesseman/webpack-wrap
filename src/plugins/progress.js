@@ -19,7 +19,7 @@ const webpack = require("webpack");
  */
 const progress = (app) =>
 {
-	if (app.build.plugins.progress)
+	if (app.build.options.progress)
 	{
 		return new webpack.ProgressPlugin();
 	}

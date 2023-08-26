@@ -22,7 +22,7 @@ const VisualizerPlugin = require("webpack-visualizer-plugin2");
 const visualizer = (app) =>
 {
 	let plugin;
-	if (app.rc.args.analyze && app.build.plugins.banner) {
+	if (app.rc.args.analyze && app.build.options.analyze) {
 		plugin = new VisualizerPlugin({ filename: "../.coverage/visualizer.html" });
 	}
 	// @ts-ignore

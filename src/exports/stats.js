@@ -24,25 +24,21 @@ const level = (loglevel) =>
 	}
 	else if (loglevel === 1)
 	{
-		return "error";
+		return "warn";
 	}
 	else if (loglevel === 2)
 	{
-		return "warn";
+		return "info";
 	}
 	else if (loglevel === 3)
 	{
-		return "info";
-	}
-	else if (loglevel === 4)
-	{
 		return "log";
 	}
-	else if (loglevel === 5)
+	else if (loglevel === 4 || loglevel === 5)
 	{
 		return "verbose";
 	}
-	return "none";
+	return "error";
 };
 
 
@@ -52,7 +48,8 @@ const level = (loglevel) =>
  */
 const stats = (app) =>
 {
-	if (app.args.loglevel !== 0 && app.args.loglevel !== "none" && app.build.exports.stats)
+	const logLevel = app.logger.level || app.args.loglevel || app.build.log.level || 0;
+	if (logLevel !== 0 && logLevel !== "none") // && app.build.exports.stats)
 	{
 		app.wpc.stats = {
 			preset: "errors-warnings",
@@ -67,7 +64,7 @@ const stats = (app) =>
 
 		app.wpc.infrastructureLogging = {
 			colors: true,
-			level: level(app.args.loglevel)
+			level: level(logLevel)
 			// debug: /webpack\.cache/
 		};
 	}

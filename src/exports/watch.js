@@ -17,7 +17,7 @@
 const watch = (app) =>
 {
 	app.wpc.watch = !!app.args.watch || !!app.args.WEBPACK_WATCH;
-	if (app.args.watch && app.build.exports.watch)
+	if (app.args.watch && app.build.options.watch)
 	{
 		app.wpc.watchOptions =
 		{

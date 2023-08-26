@@ -176,19 +176,19 @@ class WpBuildApp
         {
             if (this.build.type === "types")
             {
-                apply(this.build.plugins, {
-                    tsbundle: this.build.plugins.tsbundle !== false,
-                    tscheck: this.build.plugins.tscheck === true
+                apply(this.build.options, {
+                    tsbundle: this.build.options.tsbundle !== false,
+                    tscheck: this.build.options.tscheck === true
                 });
             }
             else if (this.build.type === "tests")
             {
-                apply(this.build.plugins, {
-                    tscheck: this.build.plugins.tscheck === true
+                apply(this.build.options, {
+                    tscheck: this.build.options.tscheck === true
                 });
             }
             else {
-                apply(this.build.plugins, {
+                apply(this.build.options, {
                     tscheck: true
                 });
             }
@@ -406,6 +406,7 @@ class WpBuildApp
         l.value("   name", this.rc.name, 1);
         l.value("   mode", this.rc.mode, 1);
         l.value("   version", this.rc.pkgJson.version, 1);
+        l.value("   logging level", this.rc.log.level, 2);
         l.value("   # of builds", this.rc.builds.length, 2);
         l.value("   # of active builds", this.rc.apps.length, 2);
         l.sep();
@@ -414,19 +415,20 @@ class WpBuildApp
         l.value("   type", this.build.type, 1);
         l.value("   target", this.build.target, 1);
         l.value("   source type", this.build.source, 2);
+        l.value("   logging level", this.build.log.level, 2);
         l.value("   is vscode extension", this.build.vscode && this.build.vscode.type && this.build.vscode.type !== "none", 2);
         l.value("   alias configuration", JSON.stringify(this.build.alias), 3);
         l.value("   log configuration", JSON.stringify(this.build.log), 3);
-        l.value("   exports configuration", JSON.stringify(this.build.exports), 3);
+        l.value("   options configuration", JSON.stringify(this.build.options), 3);
         l.value("   paths configuration", JSON.stringify(this.build.paths), 3);
         l.sep();
-        l.write("Build Plugins Configuration:", 2, "", 0, l.colors.white);
-        l.value("   testsuite enabled", !!this.build.plugins.testsuite, 2);
-        l.value("   types enabled", !!this.build.plugins.types, 2);
-        l.value("   tsbundle enabled", !!this.build.plugins.tsbundle, 2);
-        l.value("   tscheck enabled", !!this.build.plugins.tscheck, 2);
-        l.value("   upload enabled", !!this.build.plugins.upload, 2);
-        l.value("   plugins configuration", JSON.stringify(this.build.plugins), 3);
+        l.write("Build Options Configuration:", 2, "", 0, l.colors.white);
+        l.value("   testsuite enabled", !!this.build.options.testsuite, 2);
+        l.value("   types enabled", !!this.build.options.types, 2);
+        l.value("   tsbundle enabled", !!this.build.options.tsbundle, 2);
+        l.value("   tscheck enabled", !!this.build.options.tscheck, 2);
+        l.value("   upload enabled", !!this.build.options.upload, 2);
+        l.value("   plugins configuration", JSON.stringify(this.build.options), 3);
         l.sep();
         l.write("Build Paths Configuration:", 2, "", 0, l.colors.white);
         l.value("   base/project directory", this.getRcPath("base"), 2);
@@ -464,6 +466,7 @@ class WpBuildApp
          l.value("   build name", this.wpc.name, 1);
          l.value("   mode", this.wpc.mode, 1);
          l.value("   target",this.wpc.target, 1);
+         l.value("   infrastructure logging level", this.wpc.infrastructureLogging?.level || "none", 2);
          l.value("   context directory", this.wpc.context, 1);
          l.value("   output directory", this.wpc.output.path, 1);
          l.value("   entry", JSON.stringify(this.wpc.entry), 3);

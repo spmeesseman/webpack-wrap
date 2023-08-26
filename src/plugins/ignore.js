@@ -21,7 +21,7 @@ const ignore = (app) =>
 {
     /** @type {webpack.IgnorePlugin | undefined} */
     let plugin;
-    if (app.build.plugins.ignore) //  && app.build.mode === "production")
+    if (app.build.options.ignore) //  && app.build.mode === "production")
     {
         plugin = new webpack.IgnorePlugin(
         {

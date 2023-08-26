@@ -48,7 +48,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	 */
 	async types(assets)
 	{
-		const tsc = this.app.tsConfig;
+		const tsc = this.app.source;
 		if (tsc)
 		{
 			const logger = this.logger,
@@ -64,7 +64,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				if (typesDirSrc && !existsSync(typesDirDist))
 				{
 					logger.write("   force clean tsbuildinfo file", 2);
-					const tsbuildinfo = resolve(basePath, tsc.json.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo");
+					const tsbuildinfo = resolve(basePath, tsc.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo");
 					try { await unlink(tsbuildinfo); } catch {}
 				}
 				await this.execTsBuild(tsc, [
@@ -82,7 +82,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTypesPlugin | undefined}
  */
-const types = (app) => app.build.plugins.types /* && app.build.type === "types" */ ? new WpBuildTypesPlugin({ app }) : undefined;
+const types = (app) => app.build.options.types /* && app.build.type === "types" */ ? new WpBuildTypesPlugin({ app }) : undefined;
 
 
 module.exports = types;

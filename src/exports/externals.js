@@ -29,7 +29,7 @@ const nodeExternals = require("webpack-node-externals");
  */
 const externals = (app) =>
 {
-	if (app.build.exports.externals || app.vscode)
+	if (app.build.options.externals || app.vscode)
 	{
 		if (app.isWeb) {
 			app.wpc.externalsPresets = { web: true };
@@ -58,7 +58,7 @@ const externals = (app) =>
 			];
 		}
 	}
-	else if (app.build.exports.externals && app.build.name !== "tests" && app.build.name !== "types")
+	else if (app.build.options.externals && app.build.name !== "tests" && app.build.name !== "types")
 	{
 		app.wpc.externals = /** @type {NodeExternalsExternalItem} */(nodeExternals());
 	}
@@ -85,7 +85,6 @@ const logAsset = (data, app) =>
 			app.logger.value("   compiler / wpconfig exports.name", data.contextInfo.compiler, 1);
 		}
 	}
-	return undefined;
 };
 
 

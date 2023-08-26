@@ -277,7 +277,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
     sourceObj(file, content, sourceInfo)
     {
         const { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.app.build.plugins.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.app.build.options.sourcemaps) ?
                new this.compiler.webpack.sources.SourceMapSource(content, file, map, source) :
                new this.compiler.webpack.sources.RawSource(content);
     }
@@ -312,7 +312,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildRuntimeVarsPlugin | undefined}
  */
-const runtimevars = (app) => app.build.plugins.runtimevars && app.isMain ? new WpBuildRuntimeVarsPlugin({ app }) : undefined;
+const runtimevars = (app) => app.build.options.runtimevars && app.isMain ? new WpBuildRuntimeVarsPlugin({ app }) : undefined;
 
 
 module.exports = runtimevars;

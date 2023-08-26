@@ -26,7 +26,7 @@ const circular = (app) =>
         plugin = new CircularDependencyPlugin(
         {
             cwd: app.getBasePath(),
-            exclude: new RegExp(getExcludes(app, app.tsConfig).join("|"), "gi"),
+            exclude: new RegExp(getExcludes(app, app.source.options).join("|"), "gi"),
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {

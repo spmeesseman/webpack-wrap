@@ -39,13 +39,14 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
     apply(compiler)
     {
 		const distPath = this.app.getDistPath({ build: "types" });
-		const entry = this.app.wpc.entry[this.app.build.name];
+		const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
 		const entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
 		if (entryFile && existsSync(entryFile) && this.app.args.build === this.app.build.name)
 		{
 			this.onApply(compiler,
 			{
 				bundleDtsFiles: {
+					async: true,
 					hook: "compilation",
 					stage: "DERIVED",
 					statsProperty: "tsbundle",
@@ -59,6 +60,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 			this.onApply(compiler,
 			{
 				bundleDtsFiles: {
+					async: true,
 					hook: "afterEmit",
 					statsProperty: "tsbundle",
 					statsPropertyColor: this.app.build.log.color,
@@ -70,11 +72,12 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 
 	/**
 	 * @param {typedefs.WebpackCompilation} compilation
+	 * @returns {Promise<void>}
 	 */
 	bundleDtsAfterEmit = (compilation) =>
 	{
 		this.compilation = compilation;
-		this.bundleDts(compilation.assets);
+		return this.bundleDts(compilation.assets);
 	};
 
 }
@@ -84,7 +87,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsBundlePlugin | undefined}
  */
-const tsbundle = (app) => app.build.plugins.tsbundle ? new WpBuildTsBundlePlugin({ app }) : undefined;
+const tsbundle = (app) => app.build.options.tsbundle ? new WpBuildTsBundlePlugin({ app }) : undefined;
 
 
 module.exports = tsbundle;

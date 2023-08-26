@@ -150,8 +150,11 @@ const builds =
 			// apply(app.wpc.entry, {
 			// 	[ app.build.name ]: `${typesPath}/${app.build.name}.ts`
 			// });
+			// apply(app.wpc.entry, {
+			// 	[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
+			// });
 			apply(app.wpc.entry, {
-				[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
+				index: `${typesPath}/index.ts`
 			});
 		}
 	},

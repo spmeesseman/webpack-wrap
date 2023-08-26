@@ -267,8 +267,7 @@ class WpBuildRc
                 dst.target = this.getTarget(dst);
                 dst.type = this.getType(dst);
                 applyIf(dst.paths, src.paths);
-                applyIf(dst.exports, src.exports);
-                applyIf(dst.plugins, src.plugins);
+                mergeIf(dst.options, src.options);
                 mergeIf(dst.log, src.log);
                 mergeIf(dst.log.pad, src.log.pad);
                 mergeIf(dst.alias, src.alias);
@@ -583,8 +582,7 @@ class WpBuildRc
      */
     initializeBaseRc = (rc) =>
     {
-        if (!rc.plugins) { rc.plugins = {}; }
-        if (!rc.exports) { rc.exports = {}; }
+        if (!rc.options) { rc.options = {}; }
         if (!rc.alias) { rc.alias = {}; }
         if (!rc.vscode) { rc.vscode = { type: "none" }; }
         else if (!rc.vscode.type) { rc.vscode.type = "none"; }

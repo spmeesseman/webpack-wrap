@@ -11,7 +11,7 @@
 const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
 const CopyPlugin = require("copy-webpack-plugin");
-const { join, posix, isAbsolute, normalize, relative } = require("path");
+const { join, posix, isAbsolute, normalize } = require("path");
 const { isString, apply, WpBuildError } = require("../utils/utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
@@ -163,7 +163,7 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 			  psxBasePath = app.getContextPath({ rel: true, psx: true, dot: false, ctx: true }),
 			  psxBaseCtxPath = posix.join(psxBasePath, "res");
 
-		if (app.build.plugins.copy)
+		if (app.build.options.copy)
 		{
 			if (app.build.type === "webapp")
 			{
@@ -266,7 +266,7 @@ class WpBuildCopyPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {(CopyPlugin | WpBuildCopyPlugin)[]}
  */
-const copy = (apps, app) => app.build.plugins.copy ? new WpBuildCopyPlugin({ app, apps }).getPlugins() : [];
+const copy = (apps, app) => app.build.options.copy ? new WpBuildCopyPlugin({ app, apps }).getPlugins() : [];
 
 
 module.exports = copy;

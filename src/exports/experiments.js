@@ -16,7 +16,7 @@
  */
 const experiments = (app) =>
 {
-	if (app.build.exports.experiments)
+	if (app.build.options.experiments)
 	{
 		app.wpc.experiments = { layers: app.isMain };
 	}

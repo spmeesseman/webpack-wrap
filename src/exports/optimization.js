@@ -20,7 +20,7 @@ const { apply } = require("../utils");
  */
 const optimization = (app) =>
 {
-	if (app.build.exports.optimization)
+	if (app.build.options.optimization)
 	{
 		apply(app.wpc, { parallelism: 1 + app.rc.builds.length });
 		if (app.isMain)

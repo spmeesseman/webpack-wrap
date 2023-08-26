@@ -231,7 +231,7 @@ class WpBuildUploadPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => app.build.plugins.upload ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (app) => app.build.options.upload ? new WpBuildUploadPlugin({ app }) : undefined;
 
 
 module.exports = upload;

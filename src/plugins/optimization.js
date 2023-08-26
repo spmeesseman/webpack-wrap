@@ -22,7 +22,7 @@ const webpack = require("webpack");
 const optimization = (app) =>
 {
 	const plugins = [];
-	if (app.build.plugins.optimization)
+	if (app.build.options.optimization)
 	{
 		if (app.build.target === "web")
 		{

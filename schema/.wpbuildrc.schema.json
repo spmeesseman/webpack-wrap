@@ -36,6 +36,9 @@
             "maxLength": 30,
             "readOnly": true
         },
+        "alias": {
+            "$ref": "#/definitions/WpBuildWebpackAliasConfig"
+        },
         "builds": {
             "$ref": "#/definitions/WpBuildRcBuilds"
         },
@@ -45,17 +48,11 @@
         "log": {
             "$ref": "#/definitions/WpBuildRcLog"
         },
-        "alias": {
-            "$ref": "#/definitions/WpBuildWebpackAliasConfig"
+        "options": {
+            "$ref": "#/definitions/WpwRcBuildOptions"
         },
         "paths": {
             "$ref": "#/definitions/WpBuildRcPaths"
-        },
-        "exports": {
-            "$ref": "#/definitions/WpBuildRcExportsUser"
-        },
-        "plugins": {
-            "$ref": "#/definitions/WpBuildRcPlugins"
         },
         "production": {
             "$ref": "#/definitions/WpBuildRcBuildModeConfig"
@@ -164,14 +161,14 @@
             "pattern": "^\\.[\\\\\\/][\\w\\.\\-\\\\\\/]+\\.([cm]?jsx?|tsx?)$"
         },
         "FilePathRelativeLeadingDot": {
-            "$id": "#/references/FilePathRelativeLeadingDot",
+            "$id": "#/FilePathRelativeLeadingDot",
             "type": "string",
             "minLength": 6,
             "maxLength": 150,
             "pattern": "^\\.{1,2}[\\\\\\/][\\w\\.\\-\\\\\\/]+?\\.\\w+$"
         },
         "WpBuildRcBuilds": {
-            "$id": "#/references/WpBuildRcBuilds",
+            "$id": "#/WpBuildRcBuilds",
             "type": "array",
             "uniqueItems": true,
             "minItems": 0,
@@ -180,7 +177,7 @@
             }
         },
         "WpBuildRcBuild": {
-            "$id": "#/references/WpBuildRcBuild",
+            "$id": "#/WpBuildRcBuild",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -207,20 +204,17 @@
                 "entry": {
                     "$ref": "#/definitions/WpBuildWebpackEntry"
                 },
-                "exports": {
-                    "$ref": "#/definitions/WpBuildRcExportsUser"
-                },
                 "log": {
                     "$ref": "#/definitions/WpBuildRcLog"
                 },
                 "mode": {
                     "$ref": "#/definitions/WpBuildWebpackMode"
                 },
+                "options": {
+                    "$ref": "#/definitions/WpwRcBuildOptions"
+                },
                 "paths": {
                     "$ref": "#/definitions/WpBuildRcPaths"
-                },
-                "plugins": {
-                    "$ref": "#/definitions/WpBuildRcPlugins"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwRcSourceCode"
@@ -282,9 +276,9 @@
                         }]
                     }
                 },
-                "plugins": {
+                "options": {
                     "properties": {
-                        "dts": {
+                        "types": {
                             "allOf": [
                             {
                                 "if": {
@@ -305,30 +299,7 @@
                                 }
                             }]
                         },
-                        "hash": {
-                            "allOf": [
-                            {
-                                "if": {
-                                    "properties": {
-                                        "hash": { 
-                                            "const": true
-                                        }
-                                    }
-                                },
-                                "then": { 
-                                    "properties": {
-                                        "type": {
-                                            "not": {
-                                                "enum": [
-                                                    "tests", "types"
-                                                ]
-                                            }
-                                        }
-                                    }
-                                }
-                            }]
-                        },
-                        "bundleDts": {
+                        "tsbundle": {
                             "allOf": [
                             {
                                 "if": {
@@ -362,9 +333,7 @@
                         "if": {
                             "properties": {
                                 "type": { 
-                                    "enum": [
-                                        "webapp", "webmodule"
-                                    ]
+                                    "const": "webapp"
                                 }
                             }
                         },
@@ -373,6 +342,26 @@
                                 "target": { 
                                     "enum": [
                                         "web", "webworker"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "target": { 
+                                    "enum": [
+                                        "web", "webworker"
+                                    ]
+                                }
+                            }
+                        },
+                        "then": { 
+                            "properties": {
+                                "type": { 
+                                    "enum": [
+                                        "webapp", "module"
                                     ]
                                 }
                             }
@@ -390,6 +379,36 @@
                             "properties": {
                                 "target": { 
                                     "const": "node"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": { 
+                                    "const": "types"
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "options": {
+                                    "required": [
+                                        "typesEntryMode", "typesPackage"
+                                    ]
+                                }
+                            },
+                            "$comment": "test"
+                        },
+                        "else": {
+                            "properties": {
+                                "options": {   
+                                    "not": {
+                                        "propertyNames": {
+                                            "pattern": "^types(?:EntryMode|Package)$"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -422,7 +441,7 @@
             }
         },
         "WpBuildRcBuildModeConfig": {
-            "$id": "#/references/WpBuildRcBuildModeConfig",
+            "$id": "#/WpBuildRcBuildModeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -438,11 +457,8 @@
                 "paths": {
                     "$ref": "#/definitions/WpBuildRcPaths"
                 },
-                "exports": {
-                    "$ref": "#/definitions/WpBuildRcExportsUser"
-                },
-                "plugins": {
-                    "$ref": "#/definitions/WpBuildRcPlugins"
+                "options": {
+                    "$ref": "#/definitions/WpwRcBuildOptions"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwRcSourceCode"
@@ -452,98 +468,152 @@
                 }
             }
         },
-        "WpBuildRcBuildType": {
-            "$id": "#/references/WpBuildRcBuildType",
-            "type": "string",
-            "oneOf": [
-                {
-                    "const": "module",
-                    "description": "Main module build / application entry point"
-                },
-                {
-                    "const": "tests",
-                    "description": "Test suite - e.g. Mocha tests, in which test files use the .test.* or .spec.* file extensions"
-                },
-                {
-                    "const": "types",
-                    "description": "Typescript types build, outputting .d.ts type definitions"
-                },
-                {
-                    "const": "webapp",
-                    "description": "Webworker application extension(S) used internally by a main module"
-                }
-            ]
-        },
-        "WpBuildRcExportsUser": {
-            "$id": "#/references/WpBuildRcExportsUser",
+        "WpwRcBuildOptions": {
+            "$id": "#/WpwRcBuildOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "cache": {
-                    "type": "boolean"
+                "analyze": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigAnalyze"
                 },
-                "devtool": {
-                    "type": "boolean"
+                "banner": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigBanner"
                 },
-                "experiments": {
-                    "type": "boolean"
+                "ignore": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
-                "externals": {
-                    "type": "boolean"
+                "istanbul": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
-                "ignorewarnings": {
-                    "type": "boolean"
+                "licensefiles": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
-                "minification": {
-                    "type": "boolean"
+                "loghooks": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "optimization": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
-                "stats": {
-                    "type": "boolean"
+                "progress": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "scm": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "sourcemaps": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "upload": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigUpload"
+                },
+                "vendormod": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigVendorMod"
+                },
+                "clean": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "copy": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "runtimevars": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "testsuite": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tsbundle": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tscheck": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "types": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "cache": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "devtool": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "experiments": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "externals": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "ignorewarnings": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "minification": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "watch": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "typesPackage": {
+                    "type": "string",
+                    "default": "entry",
+                    "enum": [
+                        "entry", "plugin"
+                    ]
+                },
+                "typesEntryMode": {
+                    "type": "string",
+                    "default": "main",
+                    "enum": [
+                        "main", "index"
+                    ]
+                }
+            },
+            "dependencies": {
+                "tsbundle": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "tsbundle": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "anyOf": [
+                            {
+                                "properties": {
+                                    "dts": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "tscheck": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "types": {
+                                        "const": true
+                                    }
+                                }
+                            }]
+                        }
+                    }]
                 }
             }
         },
-        "WpBuildRcExportsInternal": {
-            "$id": "#/references/WpBuildRcExportsInternal",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "entry": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "output": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "plugins": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "resolve": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "rules": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                }
-            }
-        },
-        "WpBuildRcExports": {
-            "$id": "#/references/WpBuildRcExports",
-            "type": "object",
-            "allOf": [
-                {
-                    "$ref": "#/definitions/WpBuildRcExportsUser"
-                },
-                {
-                    "$ref": "#/definitions/WpBuildRcExportsInternal"
-                }
+        "WpBuildRcBuildType": {
+            "$id": "#/WpBuildRcBuildType",
+            "type": "string",
+            "enum": [
+                "module", "tests", "types", "webapp"
             ]
         },
         "WpBuildRcLog": {
-            "$id": "#/references/WpBuildRcLog",
+            "$id": "#/WpBuildRcLog",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -670,7 +740,7 @@
             }
         },
         "WpBuildRcPackageJson": {
-            "$id": "#/references/WpBuildRcPackageJson",
+            "$id": "#/WpBuildRcPackageJson",
             "type": "object",
             "description": "Required package.json properties",
             "additionalProperties": false,
@@ -738,8 +808,9 @@
             }
         },
         "WpBuildRcPaths": {
-            "$id": "#/references/WpBuildRcPaths",
+            "$id": "#/WpBuildRcPaths",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "base": {
                     "$ref": "#/definitions/DirectoryPath",
@@ -767,142 +838,10 @@
                     "default": "node_modules/.cache/wpbuild/temp",
                     "description": "Path to a temporary directory, full path or relative to the project directory containing package.json"
                 }
-            },
-            "additionalProperties": false
-        },
-        "WpBuildRcPluginsUser": {
-            "$id": "#/references/WpBuildRcPluginsUser",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "analyze": {
-                    "$ref": "#/definitions/WpBuildRcPluginConfigAnalyze"
-                },
-                "banner": {
-                    "$ref": "#/definitions/WpBuildRcPluginConfigBanner"
-                },
-                "ignore": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "istanbul": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "licensefiles": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "loghooks": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "optimization": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "progress": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "scm": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "sourcemaps": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "upload": {
-                    "$ref": "#/definitions/WpBuildRcPluginConfigUpload"
-                },
-                "vendormod": {
-                    "$ref": "#/definitions/WpBuildRcPluginConfigVendorMod"
-                }
-            }
-        },
-        "WpBuildRcPlugins": {
-            "$id": "#/references/WpBuildRcPlugins",
-            "type": "object",
-            "anyOf": [{
-                "$ref": "#/definitions/WpBuildRcPluginsUser"
-            },
-            {
-                "$ref": "#/definitions/WpBuildRcPluginsInternal"
-            }]
-        },
-        "WpBuildRcPluginsInternal": {
-            "$id": "#/references/WpBuildRcPluginsInternal",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "clean": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "copy": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "dispose": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "environment": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "html": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "runtimevars": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "testsuite": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tsbundle": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tscheck": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "types": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "wait": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                }
-            },
-            "dependencies": {
-                "tsbundle": {
-                    "allOf": [
-                    {
-                        "if": {
-                            "properties": {
-                                "tsbundle": { 
-                                    "const": true
-                                }
-                            }
-                        },
-                        "then": { 
-                            "anyOf": [
-                            {
-                                "properties": {
-                                    "dts": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "types": {
-                                        "const": true
-                                    }
-                                }
-                            }]
-                        }
-                    }]
-                }
             }
         },
         "WpBuildRcPluginConfigAnalyze": {
-            "$id": "#/references/WpBuildRcPluginConfigAnalyze",
+            "$id": "#/WpBuildRcPluginConfigAnalyze",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -923,7 +862,7 @@
             }]
         },
         "WpBuildRcPluginConfigBanner": {
-            "$id": "#/references/WpBuildRcPluginConfigBanner",
+            "$id": "#/WpBuildRcPluginConfigBanner",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -935,7 +874,7 @@
             }]
         },
         "WpBuildRcPluginConfigUpload": {
-            "$id": "#/references/WpBuildRcPluginConfigUpload",
+            "$id": "#/WpBuildRcPluginConfigUpload",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -1003,7 +942,7 @@
             }]
         },
         "WpBuildRcPluginConfigVendorMod": {
-            "$id": "#/references/WpBuildRcPluginConfigVendorMod",
+            "$id": "#/WpBuildRcPluginConfigVendorMod",
             "oneOf": [{
                 "type": "boolean"
             },
@@ -1024,7 +963,7 @@
             }]
         },
         "WpBuildLogTrueColor": {
-            "$id": "#/references/WpBuildLogTrueColor",
+            "$id": "#/WpBuildLogTrueColor",
             "type": "string",
             "enum": [
                 "black",
@@ -1039,7 +978,7 @@
             ]
         },
         "WpBuildLogColor": {
-            "$id": "#/references/WpBuildLogColor",
+            "$id": "#/WpBuildLogColor",
             "type": "string",
             "enum": [
                 "black",
@@ -1059,7 +998,7 @@
             ]
         },
         "WpwRcSourceCode": {
-            "$id": "#/references/WpwRcSourceCode",
+            "$id": "#/WpwRcSourceCode",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1075,7 +1014,7 @@
             ]
         },
         "WpwRcSourceCodeConfig": {
-            "$id": "#/references/WpwRcSourceCodeConfig",
+            "$id": "#/WpwRcSourceCodeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1119,7 +1058,7 @@
             }
         },
         "WpwRcSourceCodeConfigOptions": {
-            "$id": "#/references/WpwRcSourceCodeConfigOptions",
+            "$id": "#/WpwRcSourceCodeConfigOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1159,7 +1098,7 @@
             }
         },
         "WpwRcSourceCodeConfigCompilerOptions": {
-            "$id": "#/references/WpwRcSourceCodeConfigCompilerOptions",
+            "$id": "#/WpwRcSourceCodeConfigCompilerOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {                      
@@ -1343,7 +1282,7 @@
             }
         },
         "WpwRcSourceCodeType": {
-            "$id": "#/references/WpwRcSourceCodeType",
+            "$id": "#/WpwRcSourceCodeType",
             "type": "string",
             "default": "typescript",
             "enum": [
@@ -1352,14 +1291,14 @@
             ]
         },
         "WpwRcSourceCodeNodeJsModuleResolution": {
-            "$id": "#/references/WpwRcSourceCodeNodeJsModuleResolution",
+            "$id": "#/WpwRcSourceCodeNodeJsModuleResolution",
             "type": "string",
             "enum": [
                 "node", "node10", "node16", "nodenext", "bundler"
             ]
         },
         "WpwRcSourceCodeNodeJsModule": {
-            "$id": "#/references/WpwRcSourceCodeNodeJsModule",
+            "$id": "#/WpwRcSourceCodeNodeJsModule",
             "type": "string",
             "default": "commonjs",
             "enum": [
@@ -1367,7 +1306,7 @@
             ]
         },
         "WpwRcSourceCodeNodeJsTarget": {
-            "$id": "#/references/WpwRcSourceCodeNodeJsTarget",
+            "$id": "#/WpwRcSourceCodeNodeJsTarget",
             "type": "string",
             "default": "es2020",
             "enum": [
@@ -1376,7 +1315,7 @@
             ]
         },
         "WpBuildRcVsCodeConfig": {
-            "$id": "#/references/WpBuildRcVsCodeConfig",
+            "$id": "#/WpBuildRcVsCodeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1405,7 +1344,7 @@
             }]
         },
         "WpBuildWebpackEntryObject": {
-            "$id": "#/references/WpBuildWebpackEntryObject",
+            "$id": "#/WpBuildWebpackEntryObject",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1481,7 +1420,7 @@
             ]
         },
         "WpBuildWebpackEntryValue": {
-            "$id": "#/references/WpBuildWebpackEntryValue",
+            "$id": "#/WpBuildWebpackEntryValue",
             "anyOf": [
             {
                 "$ref": "#/definitions/FilePathRelativeLeadingDot"
@@ -1491,7 +1430,7 @@
             }]
         },
         "WpBuildWebpackEntry": {
-            "$id": "#/references/WpBuildWebpackEntry",
+            "$id": "#/WpBuildWebpackEntry",
             "type": "object",
             "description": "mapping of module names to respective entry point file, relative to context directory",
             "minProperties": 1,
@@ -1541,7 +1480,7 @@
             }]
         },
         "WpBuildWebpackMode":  {
-            "$id": "#/references/WpBuildWebpackMode",
+            "$id": "#/WpBuildWebpackMode",
             "type": "string",
             "default": "production",
             "enum": [
@@ -1552,7 +1491,7 @@
             ]
         },
         "WpBuildWebpackAliasValue": {
-            "$id": "#/references/WpBuildWebpackAliasValue",
+            "$id": "#/WpBuildWebpackAliasValue",
             "anyOf": [{
                 "$ref": "#/definitions/DirectoryPathGlob"
             },
@@ -1569,7 +1508,7 @@
             }]
         },
         "WpBuildWebpackAliasConfig": {
-            "$id": "#/references/WpBuildWebpackAliasConfig",
+            "$id": "#/WpBuildWebpackAliasConfig",
             "type": "object",
             "minProperties": 0,
             "patternProperties": {

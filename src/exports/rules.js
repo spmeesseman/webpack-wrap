@@ -126,7 +126,7 @@ const builds =
 			// tsConfig.include.push(typesDir);
 			if (loader.loader === "ts-loader")
 			{
-				const tsCheckerEnabled = !!app.build.plugins.tscheck;
+				const tsCheckerEnabled = !!app.build.options.tscheck;
 				apply(loader.options,
 				{
 					transpileOnly: tsCheckerEnabled,

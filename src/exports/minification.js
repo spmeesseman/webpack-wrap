@@ -23,7 +23,7 @@ const minification = (app) =>
 	// NOTE:  Webpack 5 performs minification built-in now for production builds.
 	// Most likely, set app.exports.minification=false
 	//
-	if (app.build.exports.minification && app.wpc.mode === "production")
+	if (app.build.options.minification && app.wpc.mode === "production")
 	{
 		app.wpc.optimization = merge(app.wpc.optimization || {},
 		{

@@ -29,22 +29,22 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
     {
 		this.onApply(compiler);
 		const logLevel = this.app.logger.level;
-		if (logLevel > 1)
-		{
-			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
-			tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
-			if (logLevel >= 2)
-			{
-				tsForkCheckerHooks.start.tap(this.name, this.tsForkCheckerStart.bind(this));
-				if (logLevel >= 3)
-				{
-					tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
-					if (logLevel >= 4) {
-						tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
-					}
-				}
-			}
-		}
+		// if (logLevel > 1)
+		// {
+		// 	const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+		// 	tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
+		// 	if (logLevel >= 2)
+		// 	{
+		// 		tsForkCheckerHooks.start.tap(this.name, this.tsForkCheckerStart.bind(this));
+		// 		if (logLevel >= 3)
+		// 		{
+		// 			tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
+		// 			if (logLevel >= 4) {
+		// 				tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
+		// 			}
+		// 		}
+		// 	}
+		// }
 	}
 
 
@@ -74,8 +74,8 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 		}
 
 		app.logger.write("get vendor plugin");
-		app.logger.write("   create plugin fork-ts-checker-webpack-plugin");
-		app.logger.write(`   add config file '${tsParams[0]}' to tsforkcheck [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
+		app.logger.write(`   add config file '${tsParams[0]}' to tschecker [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
+		app.logger.write("   create 'fork-ts-checker-webpack-plugin' instance");
 
 		return new ForkTsCheckerWebpackPlugin(
 		{
@@ -86,9 +86,10 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 				mode: tsParams[1],
 				configFile: tsParams[0]
 			},
-			logger: app.logger.level < 5 ? undefined : {
+			// logger: "webpack-infrastructure"
+			logger: {
 				error: app.logger.error,
-				log: (/** @type {string} msg */msg) => app.logger.write("bold(tsforkchecker): " + msg)
+				log: app.logger.write
 			}
 		});
 	};
@@ -98,7 +99,7 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 	 * @function
 	 * @private
 	 */
-	tsForkCheckerError = () => { this.logger.error("tsforkchecker error"); }
+	tsForkCheckerError = () => { this.logger.error("tschecker error"); }
 
 
 	/**
@@ -155,7 +156,7 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsForkerPlugin | undefined}
  */
-const tscheck = (app) => WpBuildPlugin.wrap(WpBuildTsForkerPlugin, app, app.build.plugins.tscheck);
+const tscheck = (app) => WpBuildPlugin.wrap(WpBuildTsForkerPlugin, app, app.build.options.tscheck);
 
 
 module.exports = tscheck;

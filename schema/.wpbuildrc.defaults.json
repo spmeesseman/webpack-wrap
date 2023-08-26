@@ -1,15 +1,20 @@
 {
     "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
-    "name": "wpw-app",
+    "name": "webpack-wrapped-module",
     "displayName": "Webpack Wrap Application",
-    "detailedDisplayName": "Task Explorer VSCode Extension",
-    "publicInfoProject": true,
+    "detailedDisplayName": "Webpack Wrap Application",
+    "publicInfoProject": false,
     "builds": [],
     "development": {
         "builds": []
     },
     "production": {
-        "builds": []
+        "builds": [],
+        "options": {
+            "analyze": {
+                "circular": true
+            }
+        }
     },
     "test": {
         "builds": []
@@ -39,34 +44,35 @@
         "dist": "dist",
         "src": "src"
     },
-    "exports": {
-        "cache": true,
-        "devtool": true,
-        "experiments": true,
-        "externals": true,
-        "ignorewarnings": true,
-        "minification": false,
-        "optimization": true,
-        "stats": true,
-        "watch": true
-    },
-    "plugins": {
+    "options": {
         "analyze": {
-            "circular": true,
+            "circular": false,
             "analyzer": false,
             "visualizer": false
         },
         "banner": false,
+        "cache": false,
+        "copy": false,
+        "devtool": true,
+        "experiments": true,
+        "externals": true,
         "ignore": true,
+        "ignorewarnings": false,
         "istanbul": false,
         "licensefiles": false,
         "loghooks": true,
+        "minification": false,
         "optimization": true,
         "progress": false,
+        "runtimevars": false,
         "scm": false,
         "sourcemaps": true,
+        "tscheck": false,
+        "tsbundle": false,
+        "types": false,
         "upload": false,
-        "vendormod": true
+        "vendormod": false,
+        "watch": false
     },
     "vscode": {
         "type": "none"

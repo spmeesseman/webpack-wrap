@@ -77,7 +77,7 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
         const regex = /\n[ \t]*module\.exports \= require\(/gm,
               sourceCode = sourceInfo.source().toString().replace(regex, (v) => "/* istanbul ignore next */" + v),
               { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.app.build.plugins.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.app.build.options.sourcemaps) ?
                new this.compiler.webpack.sources.SourceMapSource(sourceCode, file, map, source) :
                new this.compiler.webpack.sources.RawSource(sourceCode);
     }
@@ -199,7 +199,7 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
  * @returns {WpBuildIstanbulPlugin | undefined}
  */
 const istanbul = (app) =>
-    (app.build.plugins.istanbul && app.isMainTest ? new WpBuildIstanbulPlugin({ app }) : undefined);
+    (app.build.options.istanbul && app.isMainTest ? new WpBuildIstanbulPlugin({ app }) : undefined);
 
 
 module.exports = istanbul;

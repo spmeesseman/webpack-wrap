@@ -5,7 +5,7 @@
     "type": "object",
     "properties": {
         "build": {
-            "$ref": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/references/WpBuildRcBuild"
+            "$ref": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/WpBuildRcBuild"
         }
     }
 }

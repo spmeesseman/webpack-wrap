@@ -157,7 +157,7 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {(webpack.SourceMapDevToolPlugin | WpBuildSourceMapPlugin)[]}
  */
-const sourcemaps = (app) => app.build.plugins.sourcemaps &&  app.isMain ?  new WpBuildSourceMapPlugin({ app }).getPlugins() : [];
+const sourcemaps = (app) => app.build.options.sourcemaps &&  app.isMain ?  new WpBuildSourceMapPlugin({ app }).getPlugins() : [];
 
 
 module.exports = sourcemaps;

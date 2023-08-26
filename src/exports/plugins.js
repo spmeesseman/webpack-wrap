@@ -30,7 +30,7 @@ const plugins = (app) =>
 		environment(app),        // compiler.hooks.environment
 		vendormod(app),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
 		progress(app),           // n/a - reports progress from webpack engine
-		wait(app),               // compiler.run
+		// wait(app),               // compiler.run
 		...clean(app),           // compiler.hooks.emit, compiler.hooks.done
 		types(app),              // compiler.hooks.beforeCompile - build tests / test suite
 		testsuite(app),          // compiler.hooks.beforeCompile - build tests / test suite

@@ -53,6 +53,7 @@ const output = (app) =>
 			/**
 			 * @param {WebpackPathData} pathData
 			 * @param {WebpackAssetInfo | undefined} _assetInfo
+			 * @returns {string}
 			 */
 			filename: (pathData, _assetInfo) =>
 			{

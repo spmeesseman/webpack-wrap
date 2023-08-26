@@ -17,7 +17,7 @@ const { WpBuildApp } = require("../utils");
  */
 const cache = (app) =>
 {
-	if (app.build.exports.cache)
+	if (app.build.options.cache)
 	{
         const basePath = app.getRcPath("base");
 		app.wpc.cache = {

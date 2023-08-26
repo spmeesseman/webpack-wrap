@@ -171,7 +171,7 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildLogHooksPlugin | undefined}
  */
-const loghooks = (app) => app.build.plugins.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined;
+const loghooks = (app) => app.build.options.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined;
 
 
 module.exports = loghooks;

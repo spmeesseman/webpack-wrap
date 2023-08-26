@@ -44,8 +44,7 @@ const requiredProperties = [
     [ "config", "WpwRcSourceCode" ],
     [ "log", "WpBuildRcBuild" ],
     [ "paths", "WpBuildRcBuild" ],
-    [ "exports", "WpBuildRcBuild" ],
-    [ "plugins", "WpBuildRcBuild" ],
+    [ "options", "WpBuildRcBuild" ],
     [ "target", "WpBuildRcBuild" ],
     [ "type", "WpBuildRcBuild" ],
     [ "base", "WpBuildRcPaths" ],
@@ -102,7 +101,7 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
 const isBaseType = (type) => [
         "WpBuildRcExports", "WpBuildRcLog", "WpBuildRcLogPad", "WpBuildRcPaths", "WpBuildRcVsCode",
         "WpBuildRcPlugins", "WpBuildRcBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
-        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions"
+        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions", "WpwRcBuildOptions"
     ].includes(type);
 
 
@@ -208,6 +207,7 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
           .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
+          .replace("= | WpBuildRcExportsUser | WpBuildRcPlugins | ", "= WpBuildRcExportsUser & WpBuildRcPlugins & ")
           // .replace(/export declare type WpBuildLogTrueColor =(?:.*?);\n/g, (v) => v + "\nexport declare type WpBuildLogTrueBaseColor = Omit<WpBuildLogTrueColor, \"system\">;\n")
           .replace(/"\}/g, "\"\n}")
           .replace(/\n/g, EOL);
