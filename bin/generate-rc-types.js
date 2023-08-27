@@ -30,23 +30,21 @@ const excludeTypedefs = [
  * Types that will be auto populated/required at runtime, but are optional in json schema
  */
 const requiredProperties = [
-    [ "build", "WpBuildRcBuild" ],
     [ "colors", "WpBuildRcLog" ],
-    [ "mode", "WpBuildRcBuild" ],
-    [ "log", "WpBuildRc" ],
+    [ "mode", "WpwBuild" ],
     [ "pad", "WpBuildRcLog" ],
     [ "default", "WpBuildRcLogColors" ],
     [ "system", "WpBuildRcLogColors" ],
     [ "level", "WpBuildRcLog" ],
-    [ "entry", "WpBuildRcBuild" ],
-    [ "alias", "WpBuildRcBuild" ],
-    [ "source", "WpBuildRcBuild" ],
+    [ "entry", "WpwBuild" ],
+    [ "alias", "WpwBuild" ],
+    [ "source", "WpwBuild" ],
     [ "config", "WpwRcSourceCode" ],
-    [ "log", "WpBuildRcBuild" ],
-    [ "paths", "WpBuildRcBuild" ],
-    [ "options", "WpBuildRcBuild" ],
-    [ "target", "WpBuildRcBuild" ],
-    [ "type", "WpBuildRcBuild" ],
+    [ "log", "WpwBuild" ],
+    [ "paths", "WpwBuild" ],
+    [ "options", "WpwBuild" ],
+    [ "target", "WpwBuild" ],
+    [ "type", "WpwBuild" ],
     [ "base", "WpBuildRcPaths" ],
     [ "ctx", "WpBuildRcPaths" ],
     [ "dist", "WpBuildRcPaths" ],
@@ -100,7 +98,7 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
  */
 const isBaseType = (type) => [
         "WpBuildRcExports", "WpBuildRcLog", "WpBuildRcLogPad", "WpBuildRcPaths", "WpBuildRcVsCode",
-        "WpBuildRcPlugins", "WpBuildRcBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
+        "WpBuildRcPlugins", "WpwBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
         "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions", "WpwRcBuildOptions"
     ].includes(type);
 
@@ -124,9 +122,9 @@ const parseTypesDts = async (hdr, data) =>
           .replace("export type WpBuildLogLevel1 = number;\n", "")
           .replace("export type WpBuildLogLevel = WpBuildLogLevel1 & WpBuildLogLevel2;\n", "")
           .replace("export type WpBuildLogLevel2 = 0 | 1 | 2 | 3 | 4 | 5;", "export type WpBuildLogLevel = 0 | 1 | 2 | 3 | 4 | 5;")
-          .replace("export type WpBuildRcBuild = ", "export interface WpBuildRcBuild ")
-          .replace(/\n\} +\& WpBuildRcBuild[0-9] *; *\n/g, "\n}\n")
-          .replace(/export type WpBuildRcBuild[0-9](?:[^]*?)\};\n/, "")
+          .replace("export type WpwBuild = ", "export interface WpwBuild ")
+          .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
+          .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")
           .replace(/\/\* eslint\-disable \*\/$/gm, "")
           .replace(/\n\}\nexport /g, "\n}\n\nexport ")
           .replace(/author\?\:[^]*?(?:\}|\));/, "author?: string | { name: string; email?: string };")
@@ -199,7 +197,7 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\n\};?\n/g, "\n}\n")
           .replace(/    (.*?)\?\: BooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
           .replace("export declare type BooleanReadOnly = boolean;\n\n", "")
-          .replace("WpBuildRcPluginsUser | WpBuildRcPluginsInternal", "WpBuildRcPluginsUser & WpBuildRcPluginsInternal")
+          // .replace("WpBuildRcPluginsUser | WpBuildRcPluginsInternal", "WpBuildRcPluginsUser & WpBuildRcPluginsInternal")
           .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
           .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
@@ -207,8 +205,8 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
           .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
-          .replace("= | WpBuildRcExportsUser | WpBuildRcPlugins | ", "= WpBuildRcExportsUser & WpBuildRcPlugins & ")
-          // .replace(/export declare type WpBuildLogTrueColor =(?:.*?);\n/g, (v) => v + "\nexport declare type WpBuildLogTrueBaseColor = Omit<WpBuildLogTrueColor, \"system\">;\n")
+          // .replace("= | WpBuildRcExportsUser | WpBuildRcPlugins | ", "= WpBuildRcExportsUser & WpBuildRcPlugins & ")
+          .replace(/export declare type WpBuildLogTrueColor =(?:.*?);\n/g, (v) => v + "\nexport declare type WpBuildLogTrueBaseColor = Omit<WpBuildLogTrueColor, \"system\">;\n")
           .replace(/"\}/g, "\"\n}")
           .replace(/\n/g, EOL);
 

@@ -283,6 +283,7 @@ const buildOptions =
 		return {
 			loader: "babel-loader",
 			options: {
+				cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
 				presets: [
 					[ "@babel/preset-env", { targets: "defaults" }],
 					[ "@babel/preset-typescript" ]

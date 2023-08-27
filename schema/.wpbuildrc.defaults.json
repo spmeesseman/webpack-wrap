@@ -11,8 +11,9 @@
     "production": {
         "builds": [],
         "options": {
-            "analyze": {
-                "circular": true
+            "analyze":true,
+            "wait": {
+                "abc": true
             }
         }
     },
@@ -64,14 +65,7 @@
         "minification": false,
         "optimization": true,
         "progress": false,
-        "runtimevars": false,
-        "scm": false,
-        "sourcemaps": true,
-        "tscheck": false,
-        "tsbundle": false,
-        "types": false,
-        "upload": false,
-        "vendormod": false,
+        "sourcemaps": false,
         "watch": false
     },
     "vscode": {

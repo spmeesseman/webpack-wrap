@@ -137,7 +137,7 @@ const builds =
 	/**
 	 * @function
 	 * @private
-	 * @param {typedefs.WpBuildRcBuild} build
+	 * @param {typedefs.WpwBuild} build
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
 	typesWrap: (build, app) =>

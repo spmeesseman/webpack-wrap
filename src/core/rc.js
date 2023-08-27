@@ -17,7 +17,7 @@ const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const {
-    isWpBuildRcBuildType, isWpBuildWebpackMode, isWebpackTarget, WpBuildRcPackageJsonProps
+    isWpwBuildType, isWpBuildWebpackMode, isWebpackTarget, WpBuildRcPackageJsonProps
 } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, applyIf, resolvePath, asArray, uniq,
@@ -44,7 +44,7 @@ class WpBuildRc
      */
     args;
     /**
-     * @type {typedefs.WpBuildRcBuilds}
+     * @type {typedefs.WpwBuilds}
      */
     builds;
     /**
@@ -56,7 +56,7 @@ class WpBuildRc
      */
     detailedDisplayName;
     /**
-     * @type {typedefs.WpBuildRcBuildModeConfig}
+     * @type {typedefs.WpwBuildModeConfig}
      */
     development;
     /**
@@ -98,11 +98,11 @@ class WpBuildRc
      */
     pkgJsonPath;
     /**
-     * @type {typedefs.WpwRcBuildOptions}
+     * @type {typedefs.WpwBuildOptions}
      */
     options;
     /**
-     * @type {typedefs.WpBuildRcBuildModeConfig}
+     * @type {typedefs.WpwBuildModeConfig}
      */
     production;
     /**
@@ -126,11 +126,11 @@ class WpBuildRc
      */
     schemaVersion;
     /**
-     * @type {typedefs.WpBuildRcBuildModeConfig}
+     * @type {typedefs.WpwBuildModeConfig}
      */
     test;
     /**
-     * @type {typedefs.WpBuildRcBuildModeConfig}
+     * @type {typedefs.WpwBuildModeConfig}
      */
     testproduction;
     /**
@@ -312,7 +312,7 @@ class WpBuildRc
 	 */
     configureBuilds = () =>
     {
-        const _applyBase = (/** @type {typedefs.WpBuildRcBuild} */dst, /** @type {typedefs.WpBuildRcBuildModeConfigBase} */src) =>
+        const _applyBase = (/** @type {typedefs.WpwBuild} */dst, /** @type {typedefs.WpwBuildModeConfigBase} */src) =>
         {
             dst.mode = dst.mode || this.mode;
             if (this.initializeBaseRc(dst) && this.initializeBaseRc(src))
@@ -339,7 +339,7 @@ class WpBuildRc
         };
 
         this.builds.forEach((build) => _applyBase(build, this));
-        const modeRc = /** @type {Partial<typedefs.WpBuildRcBuildModeConfig>} */(this[this.mode]);
+        const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this[this.mode]);
         asArray(modeRc?.builds).forEach((modeBuild) =>
         {
             const baseBuild = this.builds.find(base => base.name === modeBuild.name);
@@ -364,7 +364,7 @@ class WpBuildRc
 	/**
 	 * @function
 	 * @private
-	 * @param {typedefs.WpBuildRcBuild} build
+	 * @param {typedefs.WpwBuild} build
 	 */
     configureSourceCode = (build) =>
     {
@@ -377,7 +377,7 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuild} build
+     * @param {typedefs.WpwBuild} build
      * @returns {string | undefined}
      */
     findJsTsConfig = (build) =>
@@ -456,7 +456,7 @@ class WpBuildRc
     /**
      * @function
      * @param {string} name
-     * @returns {typedefs.WpBuildRcBuild | undefined}
+     * @returns {typedefs.WpwBuild | undefined}
      */
     getBuild = (name) => this.builds.find(b => b.type === name || b.name === name);
 
@@ -464,7 +464,7 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuild} build
+     * @param {typedefs.WpwBuild} build
      * @returns {typedefs.WpwRcSourceCodeConfig | undefined}
      */
     getJsTsConfig = (build) =>
@@ -567,7 +567,7 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuild} build
+     * @param {typedefs.WpwBuild} build
      */
     getTarget = (build) =>
     {
@@ -587,7 +587,7 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuild} build
+     * @param {typedefs.WpwBuild} build
      */
     getType = (build) =>
     {
@@ -595,7 +595,7 @@ class WpBuildRc
         if (!type)
         {
             type = "module";
-            if (isWpBuildRcBuildType(build.name)) { type = build.name; }
+            if (isWpwBuildType(build.name)) { type = build.name; }
             else if ((/web(?:worker|app|view)/).test(build.name)) { type = "webapp"; }
             else if ((/tests?/).test(build.name)) { type = "tests"; }
             else if ((/typ(?:es|ings)/).test(build.name)) { type = "types"; }
@@ -608,8 +608,8 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuildModeConfigBase} rc
-     * @returns {rc is Required<typedefs.WpBuildRcBuildModeConfigBase>}
+     * @param {typedefs.WpwBuildModeConfigBase} rc
+     * @returns {rc is Required<typedefs.WpwBuildModeConfigBase>}
      */
     initializeBaseRc = (rc) =>
     {
@@ -665,7 +665,7 @@ class WpBuildRc
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildRcBuild} build
+     * @param {typedefs.WpwBuild} build
      */
     resolveAliasPaths = (build) =>
     {
@@ -712,7 +712,7 @@ class WpBuildRc
 	/**
 	 * @function
 	 * @private
-	 * @param {typedefs.WpBuildRcBuild} build
+	 * @param {typedefs.WpwBuild} build
 	 */
 	resolvePaths = (build) =>
 	{

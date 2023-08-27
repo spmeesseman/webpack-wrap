@@ -529,9 +529,10 @@ class WpBuildPlugin
                 }
             }
         }
-        if (this.options.wrapPlugin)
-        {
-            console.log("***************************" + this.name);
+        //
+        // if there's a wrapped vendor plugin, then forward the compiler instance to the plugin's apply() method
+        //
+        if (this.options.wrapPlugin) {
             this.plugins[0].apply.call(this.plugins[0], compiler);
         }
     }

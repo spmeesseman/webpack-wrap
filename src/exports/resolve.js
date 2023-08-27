@@ -7,16 +7,12 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const { apply, resolvePath } = require("../utils");
+const { join } = require("path");
+const { apply } = require("../utils");
+const resolvePath = require("path").resolve;
+
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-
-
-const moduleResolution = (app) => [
-	resolvePath(__dirname, "../../node_modules"),
-	resolvePath(app.build.paths.base, "node_modules"),
-	"node_modules"
-];
 
 
 /**
@@ -25,16 +21,20 @@ const moduleResolution = (app) => [
  */
 const resolve = (app) =>
 {
-	const modules = moduleResolution(app);
+	const wpw_node_modules = resolvePath(__dirname, "../../node_modules");
 	apply(app.wpc,
 	{
 		resolve: {
-			// modules,
-			restrictions: [ /webpack\-wrap[\\\/]node_modules[\\\/]webpack[\\\/]lib[\\\/]javascript[\\\/]JavascriptModulesPlugin.js/ ],
 			alias: app.build.alias,
+			modules: [ wpw_node_modules, "node_modules" ],
 			extensions: [ ".ts", ".tsx", ".js", ".jsx", ".json" ]
 		},
-		resolveLoader: { modules }
+		resolveLoader: {
+			modules: [ wpw_node_modules, "node_modules" ],
+			alias: {
+				"@babel": join(wpw_node_modules, "@babel")
+			}
+		 }
 	});
 
 
@@ -42,6 +42,7 @@ const resolve = (app) =>
 	{
 		apply(app.wpc.resolve,
 		{
+			modules: [ wpw_node_modules, "node_modules" ],
 			mainFields: app.isWeb ? [ "web", "module", "main" ] : [ "module", "main" ],
 			fallback: app.isWeb ? { path: require.resolve("path-browserify"), os: require.resolve("os-browserify/browser") } : undefined
 		});

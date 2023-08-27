@@ -26,8 +26,8 @@ import {
     WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode
 } from "./webpack";
 import {
-    WpBuildRcPaths, WpBuildWebpackEntry, WpBuildWebpackMode, WpBuildLogLevel, WpBuildRcBuild, WebpackTarget,
-    WpBuildRcBuildModeConfig, IWpBuildRcSchema
+    WpBuildRcPaths, WpBuildWebpackEntry, WpBuildWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget,
+    WpwBuildModeConfig, IWpBuildRcSchema
 } from "./rc";
 
 
@@ -39,12 +39,11 @@ declare type WpBuildGlobalEnvironment = { buildCount: number; cache: Record<stri
 
 declare type WpBuildRuntimeEnvArgs =  { analyze?: boolean; build?: string; mode?: WpBuildWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
 
-declare type WpBuildRcBuildModeConfigBase = Omit<WpBuildRcBuildModeConfig, "builds">;
+declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
 
 // declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
 declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpBuildWebpackMode | Exclude<WebpackMode, undefined> };
-
 
 declare interface IWpBuildAppSchema extends IWpBuildRcSchema
 {
@@ -53,7 +52,7 @@ declare interface IWpBuildAppSchema extends IWpBuildRcSchema
 
 declare interface IWpBuildApp extends IDisposable
 {
-    build: WpBuildRcBuild;
+    build: WpwBuild;
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
     logger: IWpBuildLogger;
     rc: IWpBuildAppSchema;          // target js app info
@@ -65,7 +64,7 @@ declare interface IWpBuildApp extends IDisposable
 declare class ClsWpBuildApp
 {
     analyze: boolean;                 // parform analysis after build
-    build: WpBuildRcBuild;
+    build: WpwBuild;
     clean: boolean;
     disposables: Array<IDisposable>;
     esbuild: boolean;                 // Use esbuild and esloader
@@ -111,7 +110,7 @@ export {
     IWpBuildApp,
     IWpBuildAppSchema,
     WpBuildCombinedRuntimeArgs,
-    WpBuildRcBuildModeConfigBase,
+    WpwBuildModeConfigBase,
     WpBuildAppGetPathOptions,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,

@@ -69,8 +69,11 @@ const output = (app) =>
 	{
 		apply(app.wpc.output,
 		{
-			libraryTarget: "umd",
-			umdNamedDefine: true
+			// libraryTarget: "umd",
+			// umdNamedDefine: true,
+			environment: {
+				arrowFunction: false
+			}
 		});
 	}
 	else if (app.build.type === "types")

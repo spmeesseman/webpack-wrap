@@ -73,8 +73,30 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 	 */
 	copyEntryModulesNoHash(assets)
 	{
-		this.logger.write("create copies of entry modules named without hash", 1);
-		for (const [ file ] of Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)))
+		const currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file));
+		this.logger.write("create copies of entry modules without filename hash", 1);
+		this.logger.value("   # of current entry assets processed", currentAssets.length, 2);
+		this.logger.value("   # of build dependencies", this.compilation.buildDependencies.size, 2);
+		if (this.compilation.buildDependencies.size > 0 && this.logger.level >= 3) {
+			this.logger.write("   build dependencies:", 3);
+			this.compilation.buildDependencies.forEach(d => this.logger.write("      " + d, 3));
+		}
+		this.logger.value("   # of context dependencies", this.compilation.contextDependencies.size, 2);
+		if (this.compilation.contextDependencies.size > 0 && this.logger.level >= 3) {
+			this.logger.write("   context dependencies:", 3);
+			this.compilation.contextDependencies.forEach(d => this.logger.write("      " + d, 3));
+		}
+		this.logger.value("   # of file dependencies", this.compilation.fileDependencies.size, 2);
+		if (this.compilation.fileDependencies.size > 0 && this.logger.level >= 3) {
+			this.logger.write("   file dependencies:", 3);
+			this.compilation.fileDependencies.forEach(d => this.logger.write("      " + d, 3));
+		}
+		this.logger.value("   # of missing dependencies", this.compilation.missingDependencies.size, 2);
+		if (this.compilation.missingDependencies.size > 0 && this.logger.level >= 3) {
+			this.logger.write("   missing dependencies:", 3);
+			this.compilation.missingDependencies.forEach(d => this.logger.write("      " + d, 3));
+		}
+		for (const [ file ] of currentAssets)
 		{
 			const ccFile = this.fileNameStrip(file),
 				  dstAsset = this.compilation.getAsset(ccFile);

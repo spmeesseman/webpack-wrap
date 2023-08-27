@@ -29,7 +29,7 @@ class WpBuildApp
      */
     args;
     /**
-     * @type {typedefs.WpBuildRcBuild}
+     * @type {typedefs.WpwBuild}
      */
     build;
     /**
@@ -109,7 +109,7 @@ class WpBuildApp
 	/**
 	 * @class WpBuildApp
 	 * @param {typedefs.WpBuildRc} rc wpbuild rc configuration
-	 * @param {typedefs.WpBuildRcBuild} build
+	 * @param {typedefs.WpwBuild} build
 	 */
 	constructor(rc, build)
 	{
@@ -298,7 +298,7 @@ class WpBuildApp
     /**
      * @function
      * @param {string} name
-     * @returns {typedefs.WpBuildRcBuild | undefined}
+     * @returns {typedefs.WpwBuild | undefined}
      */
     getAppBuild = (name) => this.rc.getBuild(name);
 

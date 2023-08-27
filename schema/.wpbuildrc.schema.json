@@ -40,22 +40,22 @@
             "$ref": "#/definitions/WpBuildWebpackAliasConfig"
         },
         "builds": {
-            "$ref": "#/definitions/WpBuildRcBuilds"
+            "$ref": "#/definitions/WpwBuilds"
         },
         "development": {
-            "$ref": "#/definitions/WpBuildRcBuildModeConfig"
+            "$ref": "#/definitions/WpwBuildModeConfig"
         },
         "log": {
             "$ref": "#/definitions/WpBuildRcLog"
         },
         "options": {
-            "$ref": "#/definitions/WpwRcBuildOptions"
+            "$ref": "#/definitions/WpwBuildOptions"
         },
         "paths": {
             "$ref": "#/definitions/WpBuildRcPaths"
         },
         "production": {
-            "$ref": "#/definitions/WpBuildRcBuildModeConfig"
+            "$ref": "#/definitions/WpwBuildModeConfig"
         },
         "schemaVersion": {
             "$ref": "#/definitions/VersionString"
@@ -64,7 +64,7 @@
             "$ref": "#/definitions/WpwRcSourceCode"
         },
         "test": {
-            "$ref": "#/definitions/WpBuildRcBuildModeConfig"
+            "$ref": "#/definitions/WpwBuildModeConfig"
         },
         "vscode": {
             "$ref": "#/definitions/WpBuildRcVsCodeConfig"
@@ -182,17 +182,17 @@
             "readOnly": true,
             "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?$"
         },
-        "WpBuildRcBuilds": {
-            "$id": "#/WpBuildRcBuilds",
+        "WpwBuilds": {
+            "$id": "#/WpwBuilds",
             "type": "array",
             "uniqueItems": true,
             "minItems": 0,
             "items": {
-                "$ref": "#/definitions/WpBuildRcBuild"
+                "$ref": "#/definitions/WpwBuild"
             }
         },
-        "WpBuildRcBuild": {
-            "$id": "#/WpBuildRcBuild",
+        "WpwBuild": {
+            "$id": "#/WpwBuild",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -226,7 +226,7 @@
                     "$ref": "#/definitions/WpBuildWebpackMode"
                 },
                 "options": {
-                    "$ref": "#/definitions/WpwRcBuildOptions"
+                    "$ref": "#/definitions/WpwBuildOptions"
                 },
                 "paths": {
                     "$ref": "#/definitions/WpBuildRcPaths"
@@ -238,7 +238,7 @@
                     "$ref": "#/definitions/WebpackTarget"
                 },
                 "type": {
-                    "$ref": "#/definitions/WpBuildRcBuildType"
+                    "$ref": "#/definitions/WpwBuildType"
                 },
                 "vscode": {
                     "$ref": "#/definitions/WpBuildRcVsCodeConfig"
@@ -455,8 +455,8 @@
                 }
             }
         },
-        "WpBuildRcBuildModeConfig": {
-            "$id": "#/WpBuildRcBuildModeConfig",
+        "WpwBuildModeConfig": {
+            "$id": "#/WpwBuildModeConfig",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -464,7 +464,7 @@
                     "$ref": "#/definitions/WpBuildWebpackAliasConfig"
                 },
                 "builds": {
-                    "$ref": "#/definitions/WpBuildRcBuilds"
+                    "$ref": "#/definitions/WpwBuilds"
                 },
                 "log": {
                     "$ref": "#/definitions/WpBuildRcLog"
@@ -473,7 +473,7 @@
                     "$ref": "#/definitions/WpBuildRcPaths"
                 },
                 "options": {
-                    "$ref": "#/definitions/WpwRcBuildOptions"
+                    "$ref": "#/definitions/WpwBuildOptions"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwRcSourceCode"
@@ -483,8 +483,8 @@
                 }
             }
         },
-        "WpwRcBuildOptions": {
-            "$id": "#/WpwRcBuildOptions",
+        "WpwBuildOptions": {
+            "$id": "#/WpwBuildOptions2",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -563,6 +563,9 @@
                 "minification": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
+                "wait": {
+                    "$ref": "#/definitions/WpwPluginConfigWait"
+                },
                 "watch": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
@@ -620,12 +623,253 @@
                 }
             }
         },
-        "WpBuildRcBuildType": {
-            "$id": "#/WpBuildRcBuildType",
+        "WpwBuildOptionsTesting1": {
+            "$id": "#/WpwBuildOptions",
+            "anyOf": [
+                {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
+                {"$ref": "#/definitions/WpwBuildOptionsExports"},
+                {"$ref": "#/definitions/WpwBuildOptionsCustom"},
+                {"$ref": "#/definitions/WpwBuildOptionsPluginKeys"},
+                {"$ref": "#/definitions/WpwBuildOptionsExportKeys"},
+                {"$ref": "#/definitions/WpwBuildOptionsCustomKeys"}
+            ]
+        },
+        "WpwBuildOptionsTesting2": {
+            "$id": "#/WpwBuildOptions",
+            "properties": {
+                "plugins": {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
+                "exports": {"$ref": "#/definitions/WpwBuildOptionsExports"},
+                "custom": {"$ref": "#/definitions/WpwBuildOptionsCustom"}
+            }
+        },
+        "WpwBuildOptionsCustomKeys": {
+            "$id": "#/WpwBuildOptionsCustomKeys",
+            "propertyNames": {
+                "$comment": "Need to anyOf these or else the enum and pattern conflict",
+                "anyOf": [{
+                    "enum": [
+                        "typesPackage", "typesEntryMode"
+                    ]
+                },
+                {
+                    "pattern": "types[a-z0-9]{7,}"
+                }]
+            }
+        },
+        "WpwBuildOptionsExportKeys": {
+            "$id": "#/WpwBuildOptionsExportKeys",
+            "propertyNames": {
+                "enum": [
+                    "optimization", "cache", "devtool", "experiments", "externals", "ignorewarnings", "minification", "watch"
+                ]
+            }
+        },
+        "WpwBuildOptionsPluginKeys": {
+            "$id": "#/WpwBuildOptionsPluginKeys",
+            "propertyNames": {
+                "enum": [
+                    "analyze",
+                    "banner",
+                    "ignore",
+                    "istanbul",
+                    "licensefiles",
+                    "loghooks",
+                    "optimization",
+                    "progress",
+                    "scm",
+                    "sourcemaps",
+                    "upload",
+                    "vendormod",
+                    "clean",
+                    "copy",
+                    "runtimevars",
+                    "testsuite",
+                    "tsbundle",
+                    "tscheck",
+                    "types",
+                    "wait"
+                ]
+            }
+        },
+        "WpwBuildOptionsCustom": {
+            "$id": "#/WpwBuildOptionsCustom",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "typesPackage": {
+                    "type": "string",
+                    "default": "entry",
+                    "enum": [
+                        "entry", "plugin"
+                    ]
+                },
+                "typesEntryMode": {
+                    "type": "string",
+                    "default": "main",
+                    "enum": [
+                        "main", "index"
+                    ]
+                }
+            }
+        },
+        "WpwBuildOptionsPlugins": {
+            "$id": "#/WpwBuildOptionsPlugins",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "analyze": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigAnalyze"
+                },
+                "banner": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigBanner"
+                },
+                "ignore": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "istanbul": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "licensefiles": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "loghooks": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "optimization": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "progress": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "scm": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "sourcemaps": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "upload": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigUpload"
+                },
+                "vendormod": {
+                    "$ref": "#/definitions/WpBuildRcPluginConfigVendorMod"
+                },
+                "clean": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "copy": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "runtimevars": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "testsuite": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tsbundle": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tscheck": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "types": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "wait": {
+                    "$ref": "#/definitions/WpwPluginConfigWait"
+                }
+            },
+            "dependencies": {
+                "tsbundle": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "tsbundle": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "anyOf": [
+                            {
+                                "properties": {
+                                    "dts": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "tscheck": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "types": {
+                                        "const": true
+                                    }
+                                }
+                            }]
+                        }
+                    }]
+                }
+            }
+        },
+        "WpwBuildOptionsExports": {
+            "$id": "#/WpwBuildOptionsExports",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "optimization": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "cache": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "devtool": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "experiments": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "externals": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "ignorewarnings": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "minification": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "watch": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                }
+            }
+        },
+        "WpwBuildType": {
+            "$id": "#/WpwBuildType",
             "type": "string",
             "enum": [
-                "module", "tests", "types", "webapp"
-            ]
+                "ecma", "module", "tests", "types", "webapp"
+            ],
+            "examples": [{
+                "builds": [{
+                    "name": "webpack-wrap",
+                    "type": "module"
+                },
+                {
+                    "name": "wpw-types",
+                    "type": "types"
+                }],
+                "test": {
+                    "builds": [{
+                        "name": "wpw-tests",
+                        "type": "tests"
+                    }]
+                }
+            }]
         },
         "WpBuildRcLog": {
             "$id": "#/WpBuildRcLog",
@@ -686,7 +930,6 @@
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "level": {
-                    "type": "number",
                     "title": "WpBuildLogLevel",
                     "oneOf": [{
                         "const": 0,
@@ -980,40 +1223,105 @@
                 ]
             }]
         },
+        "WpwPluginConfigWait": {
+            "$id": "#/WpwPluginConfigWait",
+            "type": "object",
+            "$ref": "#/definitions/WpwBuildOptionsPluginKeys",
+            "patternProperties": {
+                "[a-z]+": {
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "maxWait": {
+                                    "type": "number"
+                                },
+                                "lstestStage": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
         "WpBuildLogTrueColor": {
             "$id": "#/WpBuildLogTrueColor",
-            "type": "string",
-            "enum": [
-                "black",
-                "blue",
-                "cyan",
-                "green",
-                "grey",
-                "magenta",
-                "red",
-                "white",
-                "yellow"
-            ]
+            "oneOf": [{
+                "const": "black"
+            },
+            {
+                "const": "blue"
+            },
+            {
+                "const": "cyan"
+            },
+            {
+                "const": "green"
+            },
+            {
+                "const": "grey"
+            },
+            {
+                "const": "magenta"
+            },
+            {
+                "const": "red"
+            },
+            {
+                "const": "white"
+            },
+            {
+                "const": "yellow"
+            }]
         },
         "WpBuildLogColor": {
             "$id": "#/WpBuildLogColor",
-            "type": "string",
-            "enum": [
-                "black",
-                "blue",
-                "cyan",
-                "green",
-                "grey",
-                "magenta",
-                "red",
-                "system",
-                "white",
-                "yellow",
-                "bold",
-                "inverse",
-                "italic",
-                "underline"
-            ]
+            "oneOf": [{
+                "const": "black"
+            },
+            {
+                "const": "blue"
+            },
+            {
+                "const": "cyan"
+            },
+            {
+                "const": "green"
+            },
+            {
+                "const": "grey"
+            },
+            {
+                "const": "magenta"
+            },
+            {
+                "const": "red"
+            },
+            {
+                "const": "system"
+            },
+            {
+                "const": "white"
+            },
+            {
+                "const": "yellow"
+            },
+            {
+                "const": "bold"
+            },
+            {
+                "const": "inverse"
+            },
+            {
+                "const": "italic"
+            },
+            {
+                "const": "underline"
+            }]
         },
         "WpwRcSourceCode": {
             "$id": "#/WpwRcSourceCode",
@@ -1311,6 +1619,7 @@
         "WpwRcSourceCodeNodeJsModuleResolution": {
             "$id": "#/WpwRcSourceCodeNodeJsModuleResolution",
             "type": "string",
+            "default": "node",
             "enum": [
                 "node", "node10", "node16", "nodenext", "bundler"
             ]
@@ -1378,22 +1687,19 @@
                         "type": "boolean"
                     },
                     {
-                        "type": "string",
-                        "oneOf": [{
-                            "const": "jsonp"
-                        },
-                        {
-                            "const": "import"
-                        },
-                        {
-                            "const": "importScripts"
-                        },
-                        {
-                            "const": "require"
-                        },
-                        {
-                            "const": "async-node"
-                        }]
+                        "const": "jsonp"
+                    },
+                    {
+                        "const": "import"
+                    },
+                    {
+                        "const": "importScripts"
+                    },
+                    {
+                        "const": "require"
+                    },
+                    {
+                        "const": "async-node"
                     }]
                 },
                 "dependOn": {
@@ -1416,7 +1722,6 @@
                     "$ref": "#/definitions/FilePathRelativeLeadingDot"
                 },
                 "layer": {
-                    "type": "string",
                     "oneOf": [{
                         "const": "debug"
                     },
@@ -1584,46 +1889,97 @@
         },
         "WebpackTarget":  {
             "$id": "WebpackTarget",
-            "type": "string",
-            "default": "web",
-            "enum": [
-                "node",
-                "web",
-                "webworker",
-                "async-node",
-                "node-webkit",
-                "electron-main",
-                "electron-renderer",
-                "electron-preload",
-                "nwjs",
-                "esX",
-                "browserlist"
-            ]
+            "oneOf": [{
+                "const": "node"
+            },
+            {
+                "const": "web"
+            },
+            {
+                "const": "webworker"
+            },
+            {
+                "const": "async-node"
+            },
+            {
+                "const": "node-webkit"
+            },
+            {
+                "const": "electron-main"
+            },
+            {
+                "const": "electron-renderer"
+            },
+            {
+                "const": "electron-preload"
+            },
+            {
+                "const": "nwjs"
+            },
+            {
+                "const": "esX"
+            },
+            {
+                "const": "browserlist"
+            }]
         },
         "WebpackLibraryType": {
             "$id": "WebpackLibraryType",
-            "type": "string",
             "default": "commonjs2",
-            "enum": [
-                "var",
-                "module",
-                "assign",
-                "assign-properties",
-                "this",
-                "window",
-                "self",
-                "global",
-                "commonjs",
-                "commonjs2",
-                "commonjs-module",
-                "commonjs-static'",
-                "amd",
-                "amd-require",
-                "umd'",
-                "umd2",
-                "jsonp",
-                "system"
-            ]
+            "oneOf": [{
+                "const": "var"
+            },
+            {
+                "const": "module"
+            },
+            {
+                "const": "assign"
+            },
+            {
+                "const": "assign-properties"
+            },
+            {
+                "const": "this"
+            },
+            {
+                "const": "window"
+            },
+            {
+                "const": "self"
+            },
+            {
+                "const": "global"
+            },
+            {
+                "const": "commonjs"
+            },
+            {
+                "const": "commonjs2"
+            },
+            {
+                "const": "commonjs-module"
+            },
+            {
+                "const": "commonjs-static'"
+            },
+            {
+                "const": "amd"
+            },
+            {
+                "const": "amd-require"
+            },
+            {
+                "const": "umd'"
+            },
+            {
+                "const": "umd2"
+            },
+            {
+                "const": "jsonp"
+            },
+            {
+                "const": "system"
+            }]
         }
     }
 }

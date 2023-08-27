@@ -45,7 +45,7 @@
         "wpwrap": "./bin/wpwrap.js"
     },
     "engines": {
-        "node": ">=12.16.0"
+        "node": ">=14.16.0"
     },
     "peerDependencies": {
         "typescript": ">3.6.0"
