@@ -99,7 +99,8 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
 const isBaseType = (type) => [
         "WpBuildRcExports", "WpBuildRcLog", "WpBuildRcLogPad", "WpBuildRcPaths", "WpBuildRcVsCode",
         "WpBuildRcPlugins", "WpwBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
-        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions", "WpwRcBuildOptions"
+        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions", "WpwRcBuildOptions", "WpwBuildOptionsPlugins",
+        "WpwBuildOptionsCustom", "WpwBuildOptionsExports"
     ].includes(type);
 
 
@@ -119,9 +120,6 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/export type (?:.*?)1 = string;$/gm, "")
           // .replace(/\[[a-z]\: string\]\: string;$/gm, "")
           .replace("[k: string]: string;", "[k: string]: string | undefined;")
-          .replace("export type WpBuildLogLevel1 = number;\n", "")
-          .replace("export type WpBuildLogLevel = WpBuildLogLevel1 & WpBuildLogLevel2;\n", "")
-          .replace("export type WpBuildLogLevel2 = 0 | 1 | 2 | 3 | 4 | 5;", "export type WpBuildLogLevel = 0 | 1 | 2 | 3 | 4 | 5;")
           .replace("export type WpwBuild = ", "export interface WpwBuild ")
           .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
           .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")
@@ -309,7 +307,7 @@ const writeConstantsJs = async (hdr, data) =>
     logger.log("   create implementation constants from new types");
 
     let match;
-    const rgx = /export declare type (\w*?) = (".*?");\r?\n/g,
+    const rgx = /export declare type (\w*?) = ((?:"|WpBuildLogTrueColor).*?(?:"|));\r?\n/g,
           rgx2 = new RegExp(`export declare type (WpBuildRcPackageJson|WpBuildRcPaths) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
 
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
@@ -318,6 +316,9 @@ const writeConstantsJs = async (hdr, data) =>
     {
         pushTypedef("rc", match[1]);
         properties.push(match[1]);
+        if (match[2].includes("WpBuildLogTrueColor")) {
+            match[2] = match[2].replace("WpBuildLogTrueColor", "...WpBuildLogTrueColors");
+        }
         pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
     }
 

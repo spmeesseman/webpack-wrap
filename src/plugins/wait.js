@@ -22,7 +22,7 @@ class WpBuildWaitPlugin extends WpBuildPlugin
     /**
      * @private
      */
-    file;
+    waitFor;
     /**
      * @private
      */
@@ -40,9 +40,10 @@ class WpBuildWaitPlugin extends WpBuildPlugin
 	constructor(options)
     {
         super(options);
-        this.file = options.path;
+        this.waitFor = options.waitFor;
         this.interval = options.interval || 150;
         this.timeout =options.timeout ||  1500;
+        WpBuildPlugin.onPluginEvent.on("done", this.onWaitDone);
     }
 
 
@@ -63,6 +64,14 @@ class WpBuildWaitPlugin extends WpBuildPlugin
             }
         });
     }
+
+
+    onWaitDone(pluginName)
+    {
+        if (pluginName === this.waitFor)
+        {
+        }
+    };
 
 
     /**
@@ -97,10 +106,10 @@ class WpBuildWaitPlugin extends WpBuildPlugin
 /**
  * @function
  * @param {WpBuildApp} app
- * @param {string} path
+ * @param {string} waitFor
  * @returns {WpBuildWaitPlugin | undefined}
  */
-const wait = (app, path) => app.build.options.wait ? new WpBuildWaitPlugin({ app, path }) : undefined;
+const wait = (app, waitFor) => app.build.options.wait ? new WpBuildWaitPlugin({ app, waitFor }) : undefined;
 
 
 module.exports = wait;

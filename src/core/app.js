@@ -212,25 +212,14 @@ class WpBuildApp
     {
         if (this.build.source.type === "typescript")
         {
-            if (this.build.type === "types")
-            {
-                apply(this.build.options, {
-                    tsbundle: this.build.options.tsbundle !== false,
-                    tscheck: this.build.options.tscheck === true
-                });
-            }
-            else if (this.build.type === "tests")
-            {
-                apply(this.build.options, {
-                    tscheck: this.build.options.tscheck === true
-                });
-            }
-            else {
-                apply(this.build.options, {
-                    tscheck: true
-                });
-            }
+            apply(this.build.options, {
+                tsbundle: this.build.type === "types" && this.build.options.tsbundle !== false,
+                tscheck: this.build.options.tscheck !== false
+            });
         }
+        //
+        // TODO: implement TS API createProgram() and check syntax in JS using akllowJS:true compiulr option
+        //
         return this.buildWebpackConfig();
     };
 

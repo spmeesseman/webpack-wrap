@@ -16,6 +16,7 @@ const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative } = require("path");
 const Module = require("module");
+const EventEmitter = require("events");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -514,6 +515,65 @@ const pickNot = (obj, ...keys) =>
     keys.forEach(key => { delete ret[key]; });
     return ret;
 };
+
+
+// /**
+//  *
+//  * @param {any} value
+//  * @param {(value?: any) => void} resolve
+//  * @returns
+//  */
+// const passthrough = (value, resolve) => resolve(value);
+
+// /**
+//  * Return a promise that resolves with the next emitted event, or with some future
+//  * event as decided by an adapter.
+//  *
+//  * If specified, the adapter is a function that will be called with
+//  * `(event, resolve, reject)`. It will be called once per event until it resolves or
+//  * rejects.
+//  *
+//  * The default adapter is the passthrough function `(value, resolve) => resolve(value)`.
+//  *
+//  * @param {EventEmitter} e
+//  * @param {any} adapter controls resolution of the returned promise
+//  * @returns {{ promise: Promise<any>; cancel: EventEmitter}} a promise that resolves or rejects as specified by the adapter
+//  */
+// const promiseFromEvent = (e, adapter = passthrough) =>
+// {
+//     /** @type {EventEmitter} */
+//     let subscription;
+//     const cancel = new EventEmitter();
+//     const _onEvent = (resolve, reject, value) =>
+//     {
+//         try {
+//             Promise.resolve(adapter(value, resolve, reject)).catch(reject);
+//         }
+//         catch (error) { reject(error); }
+//     };
+//     const _reject = (reject, reason) => reject(reason);
+//     return {
+//         promise: new Promise((resolve, reject) =>
+//         {
+//             cancel.once("cancel", _ => reject("cancelled"));
+//             subscription = e.once("done", (arg) => _onEvent(resolve, reject, arg));
+//         })
+//         .then((result) =>
+//         {
+//             subscription.off("done", _onEvent);
+//             cancel.off("cancel", _reject);
+//             return result;
+//         },
+//         error =>
+//         {
+//             subscription.off("done", _onEvent);
+//             cancel.off("cancel", _reject);
+//             throw error;
+//         }),
+//         cancel
+//     };
+// };
+
 
 
 /**

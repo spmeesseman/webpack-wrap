@@ -31,115 +31,63 @@ const {
  */
 class WpBuildRc
 {
-    /**
-     * @type {typedefs.WpBuildWebpackAliasConfig}
-     */
+    /** @type {typedefs.WpBuildWebpackAliasConfig} */
     alias;
-    /**
-     * @type {WpBuildApp[]}
-     */
+    /** @type {WpBuildApp[]} */
     apps;
-    /**
-     * @type {typedefs.WpBuildCombinedRuntimeArgs}
-     */
+    /** @type {typedefs.WpBuildCombinedRuntimeArgs} */
     args;
-    /**
-     * @type {typedefs.WpwBuilds}
-     */
+    /** @type {typedefs.WpwBuilds}  */
     builds;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     defaultTempDir;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     detailedDisplayName;
-    /**
-     * @type {typedefs.WpwBuildModeConfig}
-     */
+    /** @type {typedefs.WpwBuildModeConfig} */
     development;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     displayName;
-    /**
-     * @type {typedefs.WpBuildGlobalEnvironment}
-     */
+    /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
-    /**
-     * @type {typedefs.WpBuildRcLog}
-     */
+    /** @type {typedefs.WpBuildRcLog} */
     log;
-    /**
-     * @type {WpBuildConsoleLogger}
-     */
+    /** @type {WpBuildConsoleLogger} */
     logger;
     /**
-     * Top level mode passed on command line or calcualted using build definitions
-     * Note that the mode for each defined build may not be of this top level mode
+     * Top level mode passed on command line or calcualted using build definitions Note that the mode for
+     * each defined build may not be of this top level mode
      * @type {typedefs.WpBuildWebpackMode}
      */
     mode;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     name;
-    /**
-     * @type {typedefs.WpBuildRcPaths}
-     */
+    /** @type {typedefs.WpBuildRcPaths} */
     paths;
-    /**
-     * @type {typedefs.WpBuildRcPackageJson}
-     */
+    /** @type {typedefs.WpBuildRcPackageJson} */
     pkgJson;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     pkgJsonPath;
-    /**
-     * @type {typedefs.WpwBuildOptions}
-     */
+    /** @type {typedefs.WpwBuildOptions} */
     options;
-    /**
-     * @type {typedefs.WpwBuildModeConfig}
-     */
+    /** @type {typedefs.WpwBuildModeConfig} */
     production;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     publicInfoProject;
-    /**
-     * @type {{ [key: string ]: typedefs.IWpBuildRcSchema }}
-     */
+    /** @type {{ [key: string ]: typedefs.IWpBuildRcSchema }} */
     schema;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     $schema;
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     schemaDir;
-    /**
-     * @type {typedefs.VersionString}
-     */
+    /** @type {typedefs.VersionString} */
     schemaVersion;
-    /**
-     * @type {typedefs.WpwBuildModeConfig}
-     */
+    /** @type {typedefs.WpwBuildModeConfig} */
     test;
-    /**
-     * @type {typedefs.WpwBuildModeConfig}
-     */
+    /** @type {typedefs.WpwBuildModeConfig} */
     testproduction;
-    /**
-     * @type {typedefs.VersionString}
-     */
+    /** @type {typedefs.VersionString}/ */
     version;
-    /**
-     * @type {typedefs.VersionString}
-     */
+    /** @type {typedefs.VersionString} */
     wpwVersion;
 
 
@@ -245,15 +193,12 @@ class WpBuildRc
     applyVersions = () =>
     {
         let schemaVersion = "0.0.1";
-        const wpwVersion = require("../../package.json").version;
-        const match = this.$schema.match(/\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//);
+        const wpwVersion = require("../../package.json").version,
+              match = this.$schema.match(/\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//);
         if (match) {
-            schemaVersion = match[1];       }
-        apply(this, {
-            schemaVersion,
-            version: this.pkgJson.version, // user app version
-            wpwVersion
-        });
+            schemaVersion = match[1];
+        }
+        apply(this, { schemaVersion, version: this.pkgJson.version, wpwVersion });
     };
 
 
@@ -534,13 +479,7 @@ class WpBuildRc
                 ));
             }
 
-            return {
-                dir, file, path,
-                options: json,
-                raw: buildJson.raw,
-                includeAbs: uniq(include),
-                excludeAbs: uniq(exclude)
-            };
+            return { dir, file, path, options: json, raw: buildJson.raw, includeAbs: uniq(include), excludeAbs: uniq(exclude) };
         }
     };
 

@@ -428,30 +428,6 @@
                             }
                         }
                     }]
-                },
-                "vscode": {
-                    "if": {
-                        "properties": {
-                            "vscode": {
-                                "properties": {
-                                    "type": {
-                                        "enum": [ "languageclient", "languageserver" ]
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "vscode": {
-                                "properties": {
-                                    "type": {
-                                        "enum": [ "languageclient", "languageserver" ]
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         },
@@ -484,7 +460,7 @@
             }
         },
         "WpwBuildOptions": {
-            "$id": "#/WpwBuildOptions2",
+            "$id": "#/WpwBuildOptions",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -624,7 +600,7 @@
             }
         },
         "WpwBuildOptionsTesting1": {
-            "$id": "#/WpwBuildOptions",
+            "$id": "#/WpwBuildOptionsTesting1",
             "anyOf": [
                 {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
                 {"$ref": "#/definitions/WpwBuildOptionsExports"},
@@ -635,7 +611,7 @@
             ]
         },
         "WpwBuildOptionsTesting2": {
-            "$id": "#/WpwBuildOptions",
+            "$id": "#/WpwBuildOptionsTesting2",
             "properties": {
                 "plugins": {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
                 "exports": {"$ref": "#/definitions/WpwBuildOptionsExports"},
@@ -1162,13 +1138,11 @@
                         "required": [
                             "user", "key"
                         ],
-                        "examples": [
-                        {
-                            "plink":
-                                {
-                                    "kwy": "${REPLACED_ENVVAR_PLINK_KEY}",
-                                    "user": "${REPLACED_ENVVAR_PLINK_USER}"
-                                }
+                        "examples": [{
+                            "plink": {
+                                "key": "${REPLACED_ENVVAR_PLINK_KEY}",
+                                "user": "${REPLACED_ENVVAR_PLINK_USER}"
+                            }
                         }]
                     },
                     "scp": {
@@ -1188,10 +1162,9 @@
                         "required": [
                             "user", "key"
                         ],
-                        "examples": [
-                        {
-                            "plink": {
-                                "kwy": "${REPLACED_ENVVAR_SCP_KEY}",
+                        "examples": [{
+                            "scp": {
+                                "key": "${REPLACED_ENVVAR_SCP_KEY}",
                                 "user": "${REPLACED_ENVVAR_SCP_USER}"
                             }
                         }]
@@ -1229,22 +1202,20 @@
             "$ref": "#/definitions/WpwBuildOptionsPluginKeys",
             "patternProperties": {
                 "[a-z]+": {
-                    "oneOf": [
-                        {
-                            "type": "boolean"
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "maxWait": {
-                                    "type": "number"
-                                },
-                                "lstestStage": {
-                                    "type": "string"
-                                }
+                    "oneOf": [{
+                        "type": "boolean"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "maxWait": {
+                                "type": "number"
+                            },
+                            "lstestStage": {
+                                "type": "string"
                             }
                         }
-                    ]
+                    }]
                 }
             }
         },
@@ -1281,34 +1252,7 @@
         "WpBuildLogColor": {
             "$id": "#/WpBuildLogColor",
             "oneOf": [{
-                "const": "black"
-            },
-            {
-                "const": "blue"
-            },
-            {
-                "const": "cyan"
-            },
-            {
-                "const": "green"
-            },
-            {
-                "const": "grey"
-            },
-            {
-                "const": "magenta"
-            },
-            {
-                "const": "red"
-            },
-            {
-                "const": "system"
-            },
-            {
-                "const": "white"
-            },
-            {
-                "const": "yellow"
+                "$ref": "#/definitions/WpBuildLogTrueColor"
             },
             {
                 "const": "bold"
@@ -1318,6 +1262,9 @@
             },
             {
                 "const": "italic"
+            },
+            {
+                "const": "system"
             },
             {
                 "const": "underline"
@@ -1647,18 +1594,28 @@
             "additionalProperties": false,
             "properties": {
                 "type": {
-                    "type": [
-                        "string",
-                        "boolean"
-                    ],
-                    "enum": [
-                        false,
-                        "extension",
-                        "languageclient",
-                        "languageserver",
-                        "none",
-                        "tests"
-                    ]
+                    "default": false,
+                    "oneOf": [{
+                        "const": false
+                    },
+                    {
+                        "const": "extension"
+                    },
+                    {
+                        "const": "languageclient"
+                    },
+                    {
+                        "const": "languageserver"
+                    },
+                    {
+                        "const": "none"
+                    },
+                    {
+                        "const": "tests"
+                    },
+                    {
+                        "const": "webview"
+                    }]
                 }
             },
             "required": [

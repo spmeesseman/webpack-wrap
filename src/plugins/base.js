@@ -38,6 +38,7 @@ const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const { WebpackError } = require("webpack");
 const { isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar } = require("../utils");
+const { EventEmitter } = require("stream");
 
 //
 // TODO: remove this typedef when all plugins have been converted to using typedefs definition file
@@ -99,10 +100,6 @@ class WpBuildPlugin
      */
     name;
     /**
-     * @type {events.EventEmitter}
-     */
-    onPluginEvent;
-    /**
      * @protected
      */
     options;
@@ -145,7 +142,6 @@ class WpBuildPlugin
         this.logger = this.app.logger;
         this.wpConfig = options.app.wpc;
         this.name = this.constructor.name;
-        this.onPluginEvent = new events.EventEmitter();
         this.options = /** @type {typedefs.WpBuildPluginOptionsRequired} */(mergeIf(options, { plugins: [] }));
         this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
@@ -329,6 +325,19 @@ class WpBuildPlugin
 	};
 
 
+    /**
+     * @static
+     */
+    static eventInfo = {
+        /** @type {events.EventEmitter} */
+        onPluginEvent: new EventEmitter(),
+        /** @type {typedefs.WpwBuildOptionsPluginsKey[]} */
+        done: [],
+        /** @type {typedefs.WpwBuildOptionsPluginsKey[]} */
+        waiting: []
+    };
+
+
 	/**
 	 * @function Executes a command via a promisified node exec()
 	 * @param {string} command
@@ -348,14 +357,14 @@ class WpBuildPlugin
 	 * @param {boolean} [rmvExt] Remove file extension
 	 * @returns {string}
 	 */
-    fileNameStrip = (file, rmvExt) =>
+    fileNameStrip(file, rmvExt)
     {
         let newFile = file.replace(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`), "");
         if (rmvExt) {
             newFile = newFile.replace(/\.js(?:\.map)?/, "");
         }
         return newFile;
-    };
+    }
 
 
 	/**
@@ -393,14 +402,14 @@ class WpBuildPlugin
      * @param {boolean} [hash]
      * @returns {RegExp}
      */
-    static getEntriesRegex = (wpConfig, dbg, ext, hash) =>
+    static getEntriesRegex(wpConfig, dbg, ext, hash)
     {
         return new RegExp(
             `(?:${Object.keys(wpConfig.entry).reduce((e, c) => `${e ? e + "|" : ""}${c}`, "")})` +
             `(?:\\.debug)${!dbg ? "?" : ""}(?:\\.[a-z0-9]{${wpConfig.output.hashDigestLength || 20}})` +
             `${!hash ? "?" : ""}(?:\\.js|\\.js\\.map)${!ext ? "?" : ""}`
         );
-    };
+    }
 
 
     /**
@@ -551,6 +560,17 @@ class WpBuildPlugin
         this.wpCacheCompilation = compilation.getCache(this.name);
         return !compilation.getStats().hasErrors();
     }
+
+
+    /**
+     * Extending plugins need to call this function when it's specific tassks are done/complete.
+     * Used in the {@link WpBuildPlugin.eventInfo wait} functionality
+     *
+     * @function
+     * @protected
+     * @param {...any} args any plugin specific arguments
+     */
+    onDone(...args) { WpBuildPlugin.eventInfo.onPluginEvent.emit(`${this.name}_done`, ...args); };
 
 
     /**
@@ -717,7 +737,7 @@ class WpBuildPlugin
      * @param {boolean} [checkFlag] convenience param - flag to check if plugin is enabled in the current build
      * @returns {T | undefined}
      */
-    static wrap = (clsType, app, checkFlag) =>
+    static wrap(clsType, app, checkFlag)
     {
         if (checkFlag !== false)
         {
@@ -737,13 +757,38 @@ class WpBuildPlugin
      */
     wrapCallback(message, options)
     {
+        let cb;
         const logger = this.logger,
               callback = options.callback,
-              logMsg = this.breakProp(message);
+              logMsg = this.breakProp(message),
+              eInfo = WpBuildPlugin.eventInfo,
+              wait = this.app.build.options.wait;
+
         if (!options.async) {
-            return (arg) => { logger.start(logMsg, 1); callback(arg); this.onPluginEvent.emit("hook", this.name, options.hook); };
+            cb = (arg) => {
+                logger.start(logMsg, 1);
+                callback(arg);
+                eInfo.onPluginEvent.emit(`${this.name}_start`, options.hook);
+            };
         }
-        return async (arg) => { logger.start(logMsg, 1); await callback(arg); this.onPluginEvent.emit("hook", this.name, options.hook); };
+        else {
+            cb = async (arg) => {
+                logger.start(logMsg, 1);
+                await callback(arg);
+                eInfo.onPluginEvent.emit(`${this.name}_start`, options.hook);
+            };
+        }
+        if (wait)
+        {
+            Object.keys(wait).forEach(waitPlugin =>
+            {
+                const delayedCb = cb;
+                cb = () => {
+                    eInfo.onPluginEvent.once(`${waitPlugin}_done`, () => delayedCb.call(this, message, options));
+                };
+            }, this);
+        }
+        return cb;
     }
 
     // /**
