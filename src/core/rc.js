@@ -224,10 +224,13 @@ class WpBuildRc
         if (rc.hasTypes)// Some build require types to be built, auto-add the types build if defined, and
         {               // a dependency of the single build
             const typesBuild = rc.getBuild("types");
-            if (typesBuild && arge.build !== typesBuild.name && (!rc.isSingleBuild || !existsSync(typesBuild.paths.dist)))
+            const thisBuild = arge.build ? rc.getBuild(arge.build) : null;
+            if (typesBuild && arge.build !== typesBuild.name && (!thisBuild || !existsSync(typesBuild.paths.dist)))
             {
-                rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
-                apply(typesBuild, { auto: true });
+                if (!thisBuild || asArray(thisBuild?.options.wait).find(t => t.target === "types")) {
+                    rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
+                    apply(typesBuild, { auto: true });
+                }
             }
         }
 
@@ -261,22 +264,31 @@ class WpBuildRc
 	 */
     configureBuilds = () =>
     {
+        const _apply = (property, dst, src) =>
+        {
+            if (!dst[property]) {
+                dst[property] = merge({}, src[property]);
+            }
+            else {
+                mergeIf(dst[property], src[property]);
+            }
+        };
         const _applyBase = (/** @type {typedefs.WpwBuild} */dst, /** @type {typedefs.WpwBuildModeConfigBase} */src) =>
         {
             dst.mode = dst.mode || this.mode;
-            if (this.initializeBaseRc(dst) && this.initializeBaseRc(src))
+            if (this.initializeBaseRc(src))
             {
-                const ccColors = merge({}, dst.log.colors);
+                const ccColors = merge({}, dst.log?.colors);
                 dst.target = this.getTarget(dst);
                 dst.type = this.getType(dst);
-                applyIf(dst.paths, src.paths);
-                mergeIf(dst.options, src.options);
-                mergeIf(dst.log, src.log);
-                mergeIf(dst.log.pad, src.log.pad);
-                mergeIf(dst.alias, src.alias);
-                mergeIf(dst.source, src.source);
-                mergeIf(dst.vscode, src.vscode);
-                mergeIf(dst.log.colors, src.log.colors);
+                _apply("paths", dst, src);
+                _apply("options", dst, src);
+                _apply("log", dst, src);
+                _apply("pad", dst.log, src.log);
+                _apply("alias", dst, src);
+                _apply("source", dst, src);
+                _apply("vscode", dst, src);
+                _apply("colors", dst.log, src.log);
                 if (dst.log.color) {
                     dst.log.colors.valueStar = ccColors.valueStar || dst.log.color;
                     dst.log.colors.buildBracket = ccColors.buildBracket || dst.log.color;
@@ -302,6 +314,7 @@ class WpBuildRc
 
         this.builds.forEach((build) =>
         {
+            this.initializeBaseRc(build);
             this.resolvePaths(build);
             this.configureSourceCode(build);
             this.resolveAliasPaths(build);

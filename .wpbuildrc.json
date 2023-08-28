@@ -39,8 +39,10 @@
     "production": {
         "builds": [{
             "name": "docs",
-            "target": "node",
             "type": "jsdoc",
+            "entry": {
+                "docs": "./src/core/rc.js"
+            },
             "options": {
                 "jsdoc": {
                     "outDir": "dist/docs",
@@ -94,6 +96,9 @@
     "paths": {
         "dist": "dist",
         "src": "src"
+    },
+    "source": {
+        "type": "javascript"
     },
     "options": {
         "analyze": {

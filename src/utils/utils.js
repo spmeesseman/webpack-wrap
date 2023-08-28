@@ -16,6 +16,7 @@ const typedefs = require("../types/typedefs");
 const { existsSync, lstatSync } = require("fs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative } = require("path");
+const { access } = require("fs/promises");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -170,8 +171,7 @@ const clone = (item) =>
 
 
 /**
- * Executes node.eXec() wrapped in a promise via util.promisify().
- *
+ * Executes node.eXec() wrapped in a promise via util.promisify()
  * @function
  * @async
  * @param {typedefs.ExecAsyncOptions} options
@@ -256,6 +256,22 @@ const execAsync = async (options) =>
 
 
 /**
+ * @param {string} path
+ * @returns {Promise<boolean>}
+ */
+const existsAsync = async(path) =>
+{
+    try {
+        await access(path);
+        return true;
+    }
+    catch {
+        return false;
+    }
+};
+
+
+/**
  * @function
  * @param {string} pattern
  * @param {import("glob").GlobOptions} options
@@ -305,6 +321,13 @@ const getExcludes = (app, srcConfig, allowTest, allowTypes, allowDts) =>
  * @returns {v is T[]}
  */
 const isArray = (v, allowEmp) => !!v && Array.isArray(v) && (allowEmp !== false || v.length > 0);
+
+
+/**
+ * @param {any} v Variable to check to see if it's a primitive boolean type
+ * @returns {v is boolean}
+ */
+const isBoolean = (v) => (v === false || v === true) && typeof v === "boolean";
 
 
 /**
@@ -487,7 +510,7 @@ const mergeIf = (...destination) =>
 const pick = (obj, ...keys) =>
 {
     const ret = {};
-    keys.forEach(key => { ret[key] = obj[key]; });
+    keys.forEach(key => { if (obj[key]) ret[key] = obj[key]; });
     return /** @type {T} */(ret);
 };
 
@@ -502,7 +525,7 @@ const pick = (obj, ...keys) =>
 const pickBy = (obj, pickFn) =>
 {
     const ret = {};
-    Object.keys(obj).filter(k => pickFn(k)).forEach(key => ret[key] = obj[key]);
+    Object.keys(obj).filter(k => pickFn(k)).forEach(key => { if (obj[key])  ret[key] = obj[key]; });
     return ret;
 };
 
@@ -697,7 +720,8 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray, requireResolve,
-    isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString, pushIfNotExists,
-    lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath, isDirectory
+    apply, applyIf, asArray, capitalize, clone, execAsync, existsAsync, findFiles, findFilesSync, getExcludes,
+    isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject,
+    isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick,
+    pickBy, pickNot, pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath
 };

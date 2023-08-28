@@ -119,7 +119,7 @@ module.exports = {
             }
         ],
         "jsdoc/check-access": 1, // Recommended
-        "jsdoc/check-alignment": 1, // Recommended
+        "jsdoc/check-alignment": 0, // Recommended | and i recommend this doesn't work half the time and is annoying as s***
         "jsdoc/check-examples": 0,
         "jsdoc/check-indentation": 0,
         "jsdoc/check-line-alignment": 1,

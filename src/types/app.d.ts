@@ -76,11 +76,11 @@ declare interface IWpBuildApp extends IDisposable
     dispose: () => Promise<void>;
     getApp: (name: string) => WpBuildApp | undefined;
     getAppBuild: (name: string) => WpwBuild | undefined;
-    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
-    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
-    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
-    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
-    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
+    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
+    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
 }
 
 declare class ClsWpBuildApp implements IWpBuildApp

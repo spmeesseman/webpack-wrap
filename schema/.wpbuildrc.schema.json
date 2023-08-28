@@ -137,7 +137,7 @@
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
-            "pattern": "^(?:(?:\\.[\\\\\\/])?[~@!\\w\\.\\-\\\\\\/\\:]+)?\\.[a-z0-9\\.]+$"
+            "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\w\\.\\-\\\\/]+)?\\.[a-z0-9\\.]+$"
         },
         "FilePathRelative": {
             "$id": "#/WpwFilePathRelative",
@@ -1200,25 +1200,30 @@
         },
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "title": {
-                    "type": "string"
-                },
-                "outDir": {
-                    "$ref": "#/definitions/DirectoryPath"
-                },
-                "rootDir": {
-                    "$ref": "#/definitions/DirectoryPath"
-                },
-                "verbose": {
-                    "type": "boolean"
-                }
+            "oneOf": [{
+                "type": "boolean"
             },
-            "required": [
-                "title"
-            ]
+            {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "outDir": {
+                        "$ref": "#/definitions/DirectoryPath"
+                    },
+                    "rootDir": {
+                        "$ref": "#/definitions/DirectoryPath"
+                    },
+                    "verbose": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "title"
+                ]
+            }]
         },
         "WpwPluginConfigUpload": {
             "$id": "#/WpwPluginConfigUpload",

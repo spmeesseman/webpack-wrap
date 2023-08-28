@@ -84,7 +84,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @async
      */
     dispose = async () =>
@@ -110,7 +109,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @param {WpBuildError | string} e
      * @param {string} [pad]
      */
@@ -125,7 +123,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @param {WpBuildError | string} w
      * @param {string} [pad]
      */
@@ -164,7 +161,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @returns {typedefs.WpwWebpackConfig}
      */
     buildApp = () =>
@@ -187,7 +183,6 @@ class WpBuildApp
      * Called by top level rc wrapper after instantiating this app wrapper instance.
      * Calls each ./exports/* default export to construct a {@link typedefs.WpwWebpackConfig webpack build configuration}.
      *
-     * @function
      * @private
      * @returns {typedefs.WpwWebpackConfig}
      */
@@ -237,7 +232,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @param {string} name
      * @returns {typedefs.WpBuildApp | undefined}
      */
@@ -245,7 +239,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @param {string} name
      * @returns {typedefs.WpwBuild | undefined}
      */
@@ -253,9 +246,8 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
-     * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
+     * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
@@ -263,9 +255,8 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
-     * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
+     * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
@@ -273,9 +264,8 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
-     * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
+     * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
@@ -283,9 +273,8 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
-     * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
+     * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {typedefs.WpwRcPathsKey} pathKey
      * @param {P} [options]
      * @returns {R}
@@ -349,9 +338,8 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
-     * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
+     * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
@@ -359,7 +347,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @private
      */
     initLogger = () =>
@@ -455,7 +442,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @private
      * @param {WpBuildError} e
      * @param {Function} fn
@@ -468,7 +454,6 @@ class WpBuildApp
 
 
     /**
-     * @function
      * @private
      * @member logEnvironment
      */
