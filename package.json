@@ -20,10 +20,15 @@
     },
     "scripts": {
         "build_types-upload_schema": "npm run build_types && npm run upload_schema",
-        "build_types": "node bin/generate-rc-types.js",
+        "build_types:internal": "node bin/generate-rc-types.js",
         "build_types:test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./types/.wpbuildrc.schema.json -o types/rc.base.tmp.d.ts",
-        "upload_schema": "node bin/upload-rc-schema.js",
-        "types-check": "tsc --target es2020 --noEmit --skipLibCheck ./src/types/index.d.ts && tsc --target es2020 --moduleResolution node --noEmit --skipLibCheck --allowJs ./src/core/rc.js"
+        "build_all": "webpack --mode production --env mode=production --config ./webpack.config.js",
+		"build_all_dev": "webpack --mode development --env mode=development --config ./webpack.config.js",
+		"build_doc": "webpack --env build=jsdoc --mode production --env mode=production --config ./webpack.config.js",
+		"build_types": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
+		"clean_all": "rimraf dist && rimraf %TEMP%\\webpack-wrap && rimraf node_modules/.cache/wpbuild && rimraf node_modules/.cache/wpwrap",
+        "types-js-check": "tsc --target es2020 --noEmit --skipLibCheck ./src/types/index.d.ts && tsc --target es2020 --moduleResolution node --noEmit --skipLibCheck --allowJs ./src/core/rc.js",
+		"upload_schema": "node bin/upload-rc-schema.js"
     },
     "files": [
         "bin/wpwrap.js",
@@ -37,12 +42,15 @@
     },
     "keywords": [
         "webpack",
-        "wrapper",
         "javascript",
-        "typescript"
+        "typescript",
+        "wrapper",
+        "helper"
     ],
     "bin": {
-        "wpwrap": "./bin/wpwrap.js"
+        "wpwrap": "./bin/wpwrap.js",
+        "wp-wrap": "./bin/wpwrap.js",
+        "webpack-wrap": "./bin/wpwrap.js"
     },
     "engines": {
         "node": ">=14.16.0"

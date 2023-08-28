@@ -1,0 +1,128 @@
+{
+    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
+    "builds": [{
+        "name": "webpack-wrap",
+        "target": "node",
+        "type": "module",
+        "log": {
+            "color": "cyan"
+        },
+        "options": {
+            "licensefiles": true
+        }
+    },
+    {
+        "name": "types",
+        "target": "node",
+        "type": "types",
+        "log": {
+            "color": "white",
+            "colors": {
+                "buildBracket": "cyan",
+                "tagBracket": "cyan"
+            }
+        },
+        "options": {
+            "tscheck": true,
+            "tsbundle": true,
+            "typesPackage": "entry",
+            "typesEntryMode": "index"
+        },
+        "paths": {
+            "dist": "dist/types",
+            "src": "src/types"
+        }
+    }],
+    "development": {
+        "builds": []
+    },
+    "production": {
+        "builds": [{
+            "name": "docs",
+            "target": "node",
+            "type": "jsdoc",
+            "options": {
+                "jsdoc": {
+                    "outDir": "dist/docs",
+                    "rootDir": "src",
+                    "title": "Webpack-Wrap Documentation"
+                }
+            }
+        }],
+        "options": {
+            "analyze": {
+                "circular": true
+            }
+        }
+    },
+    "test": {
+        "builds": [
+            {
+                "name": "tests",
+                "log": {
+                    "color": "yellow"
+                },
+                "options": {
+                    "wait": {
+                        "type": "event",
+                        "name": "done",
+                        "target": "types",
+                        "timeout": 5000
+                    }
+                },
+                "paths": {
+                    "ctx": "src/test",
+                    "dist": "dist/test",
+                    "src": "src/test"
+                }
+            }
+        ]
+    },
+    "log": {
+        "level": 3,
+        "valueMaxLineLength": 100,
+        "pad": {
+            "base": 0,
+            "envTag": 19,
+            "value": 40,
+            "uploadFileName": 50
+        },
+        "colors": {
+            "default": "grey"
+        }
+    },
+    "paths": {
+        "dist": "dist",
+        "src": "src"
+    },
+    "options": {
+        "analyze": {
+            "circular": false,
+            "analyzer": false,
+            "visualizer": false
+        },
+        "banner": false,
+        "cache": true,
+        "copy": false,
+        "devtool": false,
+        "experiments": true,
+        "externals": true,
+        "ignore": true,
+        "ignorewarnings": true,
+        "istanbul": false,
+        "licensefiles": false,
+        "loghooks": true,
+        "minification": false,
+        "optimization": true,
+        "progress": false,
+        "runtimevars": false,
+        "scm": false,
+        "sourcemaps": false,
+        "tscheck": false,
+        "tsbundle": false,
+        "types": false,
+        "upload": false,
+        "vendormod": false,
+        "watch": false
+    }
+}
