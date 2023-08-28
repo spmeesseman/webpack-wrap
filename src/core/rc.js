@@ -106,15 +106,14 @@ class WpBuildRc
             arge[k] = arge[k].toLowerCase() === "true";
         });
         apply(this, { apps: [], errors: [], warnings: [], args: apply({}, arge, argv), global: globalEnv, pkgJson: {} });
-        /* const rcDefaults = */
         this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir);
         const rcProject = this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.applyPackageJson();
         this.logger = new WpBuildConsoleLogger({ envTag1: "rc", envTag2: "init", ...this.log });
 		this.applyModeArgument(argv, arge);
         this.printBanner(arge, argv);
         // this.validateSchema(rcDefaults.data);
         this.validateSchema(rcProject.data);
-        this.applyPackageJson();
         this.applyVersions();
         this.configureBuilds();
     };

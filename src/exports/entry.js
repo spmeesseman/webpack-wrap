@@ -16,7 +16,7 @@
 const { glob } = require("glob");
 const { existsSync } = require("fs");
 const typedefs = require("../types/typedefs");
-const { apply, WpBuildError, merge, isObjectEmpty, isString, WpBuildApp } = require("../utils");
+const { apply, WpBuildError, merge, isObjectEmpty, isString, WpBuildApp, isDirectory } = require("../utils");
 
 
 const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
@@ -25,8 +25,27 @@ const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
 const builds =
 {
 	/**
-	 * @function
-	 * @private
+	 * @param {typedefs.WpwBuild} build
+	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 */
+	jsdoc: (build, app) =>
+	{
+		const mainBuild = app.getAppBuild("module"),
+			  jsdocSrcPath = app.getSrcPath({ build: build.name, rel: true, ctx: true, dot: true, psx: true });
+		if (mainBuild && jsdocSrcPath)
+		{
+			const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
+			// apply(app.wpc.entry, {
+			// 	[ app.build.name ]: `${typesPath}/${app.build.name}.ts`
+			// });
+			apply(app.wpc.entry, {
+				[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.js`
+			});
+		}
+	},
+
+
+	/**
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
 	module: (app) =>
@@ -55,8 +74,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 * @throws {WpBuildError}
 	 */
@@ -92,8 +109,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
@@ -115,8 +130,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
@@ -136,8 +149,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {typedefs.WpwBuild} build
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
@@ -162,22 +173,31 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
-	types: (app) => { builds.typesWrap(app.build, app); }
+	types: (app) => { builds.typesWrap(app.build, app); },
 
 
-	// /**
-	//  * @function
-	//  * @private
-	//  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-	//  */
-	// webapp: (app) =>
-	// {
-	// 	app.wpc.entry = apply({}, app.vscode.webview.apps);
-	// }
+	/**
+	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 */
+	webapp: (app) =>
+	{
+		const appPath = app.getSrcPath({ build: app.build.name, ctx: true });
+		if (isDirectory(appPath))
+		{
+			app.wpc.entry = glob.sync(
+				globTestSuiteFiles, {
+					absolute: false, cwd: appPath, dotRelative: false, posix: true
+				}
+			)
+			.reduce((obj, e)=>
+			{
+				obj[e.replace(".ts", "")] = `./${e}`;
+				return obj;
+			}, {});
+		}
+	}
 
 };
 

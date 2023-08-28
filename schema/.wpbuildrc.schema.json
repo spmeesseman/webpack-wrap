@@ -319,6 +319,26 @@
                         }
                     }
                 },
+                "target": {
+                    "if": {
+                        "properties": {
+                            "target": { 
+                                "enum": [
+                                    "web", "webworker"
+                                ]
+                            }
+                        }
+                    },
+                    "then": { 
+                        "properties": {
+                            "type": { 
+                                "enum": [
+                                    "webapp", "module"
+                                ]
+                            }
+                        }
+                    }
+                },
                 "type": {
                     "allOf": [
                     {
@@ -334,26 +354,6 @@
                                 "target": { 
                                     "enum": [
                                         "web", "webworker"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    {
-                        "if": {
-                            "properties": {
-                                "target": { 
-                                    "enum": [
-                                        "web", "webworker"
-                                    ]
-                                }
-                            }
-                        },
-                        "then": { 
-                            "properties": {
-                                "type": { 
-                                    "enum": [
-                                        "webapp", "module"
                                     ]
                                 }
                             }
@@ -384,14 +384,14 @@
                             }
                         },
                         "then": {
+                            "$comment": "test comment tag",
                             "properties": {
                                 "options": {
                                     "required": [
                                         "typesEntryMode", "typesPackage"
                                     ]
                                 }
-                            },
-                            "$comment": "test"
+                            }
                         },
                         "else": {
                             "properties": {

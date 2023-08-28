@@ -27,8 +27,47 @@ const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigP
 const builds =
 {
 	/**
-	 * @function
-	 * @private
+	 * @param {WpBuildApp} app
+	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
+	 * @throws {WpBuildError}
+	 */
+	jsdoc: (app, rulesConfig) =>
+	{
+		if (app.source.type === "javascript")
+		{
+			const exclude = getExcludes(app, rulesConfig),
+				  include = getIncludes(app, rulesConfig),
+				  jsdocSrcPath= app.getSrcPath({ build: app.build.name }),
+				  jsdocDirDist = app.getDistPath({ build: app.build.name });
+
+			if (jsdocSrcPath && existsSync(jsdocSrcPath))
+			{
+				app.wpc.module.rules.push(
+				{
+					include, // : jsdocSrcPath,
+					exclude,
+					test: /\.(?:c|m)?js$/,
+					use:
+					{
+						loader: resolve(__dirname, "../loaders/jsdoc.js"),
+						options: {
+							outDir: jsdocDirDist,
+							rootDir: jsdocSrcPath
+						}
+					}
+				});
+			}
+			else {
+				throw WpBuildError.getErrorProperty("jsdoc", "exports/rules.js", app.wpc, "jsdoc sourcte path does not exist");
+			}
+		}
+		else {
+			throw WpBuildError.getErrorProperty("jsdoc", "exports/rules.js", app.wpc, "jsdoc build not supported, not a vanilla javascript build");
+		}
+	},
+
+
+	/**
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 * @param {RulesConfig} rulesConfig
 	 * @throws {WpBuildError}
@@ -79,8 +118,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 */
@@ -108,8 +145,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {WpBuildApp} app
 	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 * @throws {WpBuildError}
@@ -171,8 +206,6 @@ const builds =
 
 
 	/**
-	 * @function
-	 * @private
 	 * @param {WpBuildApp} app
 	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 * @throws {WpBuildError}
@@ -333,8 +366,6 @@ const buildOptions =
 
 
 /**
- * @function
- * @private
  * @returns {Record<string, any>}
  */
 const stripLoggingOptions = () => ({
@@ -387,7 +418,6 @@ const stripLoggingOptions = () => ({
 /**
  * @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
  *
- * @function
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  * @throws {WpBuildError}
  */

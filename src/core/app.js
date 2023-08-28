@@ -49,7 +49,7 @@ class WpBuildApp
     mode;
     /** @type {typedefs.WpBuildRc} @private */
     rc;
-    /** @type {typedefs.WpwSourceCodeConfig} */
+    /** @type {typedefs.WpwSourceCode} */
     source;
     /** @type {typedefs.WebpackTarget} */
     target;
@@ -157,7 +157,7 @@ class WpBuildApp
             mode: b.mode || this.rc.mode,
             paths: b.paths,
             target: b.target,
-            source: b.source || "typescript",
+            source: b.source,
             vscode: b.vscode
 		});
 	};

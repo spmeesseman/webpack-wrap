@@ -28,7 +28,7 @@ import {
 } from "./webpack";
 import {
     WpwRcPaths, WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCodeConfig, WpwVsCodeConfig, WpBuildRcPackageJson
+    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCodeConfig, WpBuildRcPackageJson
 } from "./rc";
 
 
@@ -65,7 +65,7 @@ declare interface IWpBuildApp extends IDisposable
     isWeb: boolean;
     logger: IWpBuildLogger;
     pkgJson: WpBuildRcPackageJson;
-    source: WpwSourceCodeConfig;
+    source: WpwSourceCode;
     target: WebpackTarget;
     vscode: WpwVsCodeConfig;
     warnings: Error[];

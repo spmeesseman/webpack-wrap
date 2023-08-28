@@ -9,15 +9,13 @@
  * @author Scott Meesseman @spmeesseman
  */
 
-const JSON5 = require("json5");
 const { glob } = require("glob");
 const { promisify } = require("util");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
+const { existsSync, lstatSync } = require("fs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative } = require("path");
-const Module = require("module");
-const EventEmitter = require("events");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -314,6 +312,13 @@ const isArray = (v, allowEmp) => !!v && Array.isArray(v) && (allowEmp !== false 
  * @returns {v is Date}
  */
 const isDate = (v) => !!v && Object.prototype.toString.call(v) === "[object Date]";
+
+
+/**
+ * @param {string} path
+ * @returns {boolean}
+ */
+const isDirectory = (path) => existsSync(path) && lstatSync(path).isDirectory();
 
 
 /**
@@ -694,5 +699,5 @@ class WpBuildError extends WebpackError
 module.exports = {
     apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray, requireResolve,
     isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString, pushIfNotExists,
-    lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath
+    lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath, isDirectory
 };
