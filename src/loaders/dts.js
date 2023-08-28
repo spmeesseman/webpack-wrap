@@ -15,25 +15,25 @@ const schema = {
 };
 
 const logger = new WpBuildConsoleLogger({
-  envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
+    envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
 });
 
 
 function dtsLoader(source, map, meta)
-{
-  const options = this.getOptions();
+  {
+    const options = this.getOptions();
 
-  validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
+    validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
 
-  logger.value("request path", urlToRequest(this.resourcePath), 2);
+    logger.value("request path", urlToRequest(this.resourcePath), 2);
 
-  //
-  // TODO: do dts generation / transformations to the source...
-  //
+    //
+    // TODO: do dts generation / transformations to the source...
+    //
 
-  // return source;
-  this.callback(null, source, map, meta);
-  return;
+    // return source;
+    this.callback(null, source, map, meta);
+    return;
 }
 
 module.exports = dtsLoader;

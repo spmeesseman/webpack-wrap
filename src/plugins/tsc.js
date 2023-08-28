@@ -217,7 +217,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		for (const filePath of files)
 		{
 			// let data, source, hash, newHash, cacheEntry, persistedCache;
-			const filePathRel = relative(this.compiler.outputPath, filePath);
+			// const filePathRel = relative(this.compiler.outputPath, filePath);
 
 		// 	logger.value("   process test suite output file", filePathRel, 3);
 		// 	logger.write("      check compilation cache for snapshot", 4);
@@ -309,7 +309,8 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			javascriptModule: false,
 			types: true
 		});
-		this.compilation.buildDependencies.add(filePathRel);
+		// this.compilation.buildDependencies.add(filePathRel);
+		this.compilation.buildDependencies.add(filePath);
 		// this.compilation.compilationDependencies.add();this.compilation.
 		// this.compilation.contextDependencies.add();
 

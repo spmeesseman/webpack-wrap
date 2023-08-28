@@ -454,7 +454,7 @@
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "jsdoc": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                    "$ref": "#/definitions/WpwPluginConfigJsDoc"
                 },
                 "licensefiles": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
@@ -687,8 +687,13 @@
                 "const": "types"
             }]
         },
+        "WpwBuildOptionsPluginKeyReadOnly": {
+            "$id": "#/WpwBuildOptionsPluginKeyReadOnly",
+            "$ref": "#/definitions/WpwBuildOptionsPluginKey",
+            "readOnly": true
+        },
         "WpwBuildOptionsExportKey": {
-            "$id": "#/WpwBuildOptionsPluginKey",
+            "$id": "#/WpwBuildOptionsExportKey",
             "oneOf": [{
                 "const": "optimization"
             },
@@ -762,7 +767,7 @@
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "jsdoc": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                    "$ref": "#/definitions/WpwPluginConfigJsDoc"
                 },
                 "licensefiles": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
@@ -878,7 +883,7 @@
             "$id": "#/WpwBuildType",
             "type": "string",
             "enum": [
-                "ecma", "module", "tests", "types", "webapp"
+                "ecma", "jsdoc", "module", "tests", "types", "webapp"
             ],
             "examples": [{
                 "builds": [{
@@ -889,6 +894,16 @@
                     "name": "wpw-types",
                     "type": "types"
                 }],
+                "production": {
+                    "builds": [{
+                        "name": "documentation",
+                        "type": "jsdoc",
+                        "options": {
+                            "outDir": "dist/docs",
+                            "title": "Project Documentation"
+                        }
+                    }]
+                },
                 "test": {
                     "builds": [{
                         "name": "wpw-tests",
@@ -907,7 +922,7 @@
                 },
                 "colors": {
                     "type": "object",
-                    "title": "WpwLogColors",
+                    "$id": "#/WpwLogColoring",
                     "properties": {
                         "default": {
                             "$ref": "#/definitions/WpwLogTrueColor"
@@ -1185,30 +1200,25 @@
         },
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
-            "oneOf": [{
-                "type": "boolean"
-            },
-            {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                    "title": {
-                        "type": "string"
-                    },
-                    "outDir": {
-                        "$ref": "#/definitions/DirectoryPath"
-                    },
-                    "rootDir": {
-                        "$ref": "#/definitions/DirectoryPath"
-                    },
-                    "verbose": {
-                        "type": "boolean"
-                    }
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": {
+                    "type": "string"
                 },
-                "required": [
-                    "title"
-                ]
-            }]
+                "outDir": {
+                    "$ref": "#/definitions/DirectoryPath"
+                },
+                "rootDir": {
+                    "$ref": "#/definitions/DirectoryPath"
+                },
+                "verbose": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "title"
+            ]
         },
         "WpwPluginConfigUpload": {
             "$id": "#/WpwPluginConfigUpload",
@@ -1323,8 +1333,7 @@
         "WpwPluginConfigWaitSingle": {
             "$id": "#/WpwPluginConfigWaitSingle",
             "type": "object",
-            "maxProperties": 3,
-            "minProperties": 1,
+            "additionalItems": false,
             "required": [
                 "type", "target", "name"
             ],
@@ -1333,7 +1342,7 @@
                     "enum": [ "file", "event" ]
                 },
                 "source": {
-                    "$ref": "#/definitions/WpwBuildOptionsPluginKey"
+                    "$ref": "#/definitions/WpwBuildOptionsPluginKeyReadOnly"
                 },
                 "target": {
                     "$ref": "#/definitions/WpwBuildOptionsPluginKey"
@@ -1354,24 +1363,44 @@
                     "type": "number"
                 }
             },
-            "if": {
-                "properties": {
-                    "type": {
-                        "const": "event"
+            "dependencies": {
+                "event": {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "event"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "name": {
+                                "$ref": "#/definitions/WpwPluginConfigWaitEvent"
+                            }
+                        }
+                    },
+                    "else": {
+                        "properties": {
+                            "name": {
+                                "$ref": "#/definitions/FilePath"
+                            }
+                        }
                     }
-                }
-            },
-            "then": {
-                "properties": {
-                    "name": {
-                        "$ref": "#/definitions/WpwPluginConfigWaitEvent"
-                    }
-                }
-            },
-            "else": {
-                "properties": {
-                    "name": {
-                        "$ref": "#/definitions/FilePath"
+                },
+                "source": {
+                    "if": {
+                        "properties": {
+                            "source": {
+                                "minLength": 1
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "source": {
+                                "maxLength": 0
+                            }
+                        }
                     }
                 }
             },

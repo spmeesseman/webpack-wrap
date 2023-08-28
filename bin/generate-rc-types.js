@@ -33,8 +33,8 @@ const requiredProperties = [
     [ "colors", "WpwLog" ],
     [ "mode", "WpwBuild" ],
     [ "pad", "WpwLog" ],
-    [ "default", "WpwLogColors" ],
-    [ "system", "WpwLogColors" ],
+    [ "default", "WpwLogColoring" ],
+    [ "system", "WpwLogColoring" ],
     [ "level", "WpwLog" ],
     [ "entry", "WpwBuild" ],
     [ "alias", "WpwBuild" ],
@@ -117,12 +117,13 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\r\n/g, "\n").replace(new RegExp(EOL,"g"), "\n")
           .replace(/\/\*\*(?:[^]*?)\*\//g, "")
           .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
-          .replace(/export type (?:.*?)1 = string;$/gm, "")
+          .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
           .replace("[k: string]: string;", "[k: string]: string | undefined;")
           .replace("export type WpwBuild = ", "export interface WpwBuild ")
           .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
           .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")
           .replace(/export type WpwDirectoryPath[0-9] *= string; *\n/g, "")
+          .replace(/export type WpwBuildOptionsPluginKey[0-9](?:[^]*?)\};\n/g, "")
           .replace(/WpwDirectoryPath[0-9]/g, "WpwDirectoryPath")
           .replace(/\/\* eslint\-disable \*\/$/gm, "")
           .replace(/\n\}\nexport /g, "\n}\n\nexport ")

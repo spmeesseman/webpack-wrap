@@ -58,7 +58,6 @@ class WpBuildCleanPlugin extends WpBuildPlugin
 
     /**
      * @param {WebpackStats} stats the compiler instance
-     * @returns {void}
      */
 	staleAssets(stats)
 	{

@@ -31,7 +31,7 @@ const resolve = (app) =>
 			extensions: [ ".ts", ".tsx", ".js", ".jsx", ".json" ]
 		},
 		resolveLoader: {
-			modules: [ wpw_node_modules, "node_modules" ],
+			modules: [ resolvePath(__dirname, "../loaders"), wpw_node_modules, "node_modules" ],
 			alias: {
 				"@babel": join(wpw_node_modules, "@babel")
 			}
