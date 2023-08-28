@@ -5,6 +5,7 @@
  * @file plugin/testsuite.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -16,21 +17,24 @@ const { join, dirname, isAbsolute, resolve, relative } = require("path");;
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackSnapshot} WebpackSnapshot */
-/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
-/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
-/** @typedef {import("../types").WebpackCompilationParams} WebpackCompilationParams */
 
 
+/**
+ * @extends WpBuildBaseTsPlugin
+ */
 class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     */
+	constructor(options) { super(options); }
+
+
+    /**
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -43,7 +47,6 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
                 // hook: "compilation",
 				// stage: "ADDITIONAL",
 				statsProperty: "tests",
-				statsPropertyColor: "magenta",
                 callback: this.testsuite.bind(this)
             }
         });
@@ -51,7 +54,6 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {WebpackCompilation} compilation
 	 */

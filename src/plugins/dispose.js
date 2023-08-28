@@ -5,6 +5,7 @@
  * @file plugin/dispose.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
@@ -41,16 +42,14 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @class WpBuildDisposePlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildDisposePlugin extends WpBuildPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -73,7 +72,6 @@ class WpBuildDisposePlugin extends WpBuildPlugin
 
 
 /**
- * @function
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildDisposePlugin}
  */

@@ -5,6 +5,7 @@
  * @file plugin/types.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -16,14 +17,19 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @class WpBuildTypesPlugin
+ * @extends WpBuildBaseTsPlugin
  */
 class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     */
+	constructor(options) { super(options); }
+
+
+    /**
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -35,14 +41,13 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
                 hook: "compilation",
 				stage: "ADDITIONAL",
 				statsProperty: "types",
-				statsPropertyColor: this.app.build.log.color,
                 callback: this.types.bind(this)
             }
         });
     }
 
+
 	/**
-	 * @function
 	 * @private
 	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */

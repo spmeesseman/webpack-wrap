@@ -30,30 +30,31 @@ const excludeTypedefs = [
  * Types that will be auto populated/required at runtime, but are optional in json schema
  */
 const requiredProperties = [
-    [ "colors", "WpBuildRcLog" ],
+    [ "colors", "WpwLog" ],
     [ "mode", "WpwBuild" ],
-    [ "pad", "WpBuildRcLog" ],
-    [ "default", "WpBuildRcLogColors" ],
-    [ "system", "WpBuildRcLogColors" ],
-    [ "level", "WpBuildRcLog" ],
+    [ "pad", "WpwLog" ],
+    [ "default", "WpwLogColors" ],
+    [ "system", "WpwLogColors" ],
+    [ "level", "WpwLog" ],
     [ "entry", "WpwBuild" ],
     [ "alias", "WpwBuild" ],
     [ "source", "WpwBuild" ],
-    [ "config", "WpwRcSourceCode" ],
+    [ "config", "WpwSourceCode" ],
     [ "log", "WpwBuild" ],
     [ "paths", "WpwBuild" ],
     [ "options", "WpwBuild" ],
     [ "target", "WpwBuild" ],
     [ "type", "WpwBuild" ],
-    [ "base", "WpBuildRcPaths" ],
-    [ "ctx", "WpBuildRcPaths" ],
-    [ "dist", "WpBuildRcPaths" ],
-    [ "src", "WpBuildRcPaths" ],
-    [ "temp", "WpBuildRcPaths" ],
-    [ "includeAbs", "WpwRcSourceCodeConfig" ],
-    [ "excludeAbs", "WpwRcSourceCodeConfig" ],
-    [ "options", "WpwRcSourceCodeConfig" ],
-    [ "compilerOptions", "WpwRcSourceCodeConfigOptions" ]
+    [ "base", "WpwRcPaths" ],
+    [ "ctx", "WpwRcPaths" ],
+    [ "dist", "WpwRcPaths" ],
+    [ "src", "WpwRcPaths" ],
+    [ "temp", "WpwRcPaths" ],
+    [ "includeAbs", "WpwSourceCodeConfig" ],
+    [ "excludeAbs", "WpwSourceCodeConfig" ],
+    [ "options", "WpwSourceCodeConfig" ],
+    [ "compilerOptions", "WpwSourceCodeConfigOptions" ],
+    [ "scopedName", "WpwPackageJson" ]
 ];
 
 const outputDtsFile = "rc.d.ts";
@@ -97,10 +98,9 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
  * @returns {boolean}
  */
 const isBaseType = (type) => [
-        "WpBuildRcExports", "WpBuildRcLog", "WpBuildRcLogPad", "WpBuildRcPaths", "WpBuildRcVsCode",
-        "WpBuildRcPlugins", "WpwBuild", "WpBuildLogTrueColor", "WpBuildRcLogColors", "WpwRcSourceCode",
-        "WpwRcSourceCodeConfig", "WpwRcSourceCodeConfigOptions", "WpwRcBuildOptions", "WpwBuildOptionsPlugins",
-        "WpwBuildOptionsCustom", "WpwBuildOptionsExports"
+        "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
+        "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
+        "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson"
     ].includes(type);
 
 
@@ -118,16 +118,16 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\/\*\*(?:[^]*?)\*\//g, "")
           .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
           .replace(/export type (?:.*?)1 = string;$/gm, "")
-          // .replace(/\[[a-z]\: string\]\: string;$/gm, "")
           .replace("[k: string]: string;", "[k: string]: string | undefined;")
           .replace("export type WpwBuild = ", "export interface WpwBuild ")
           .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
           .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")
+          .replace(/export type WpwDirectoryPath[0-9] *= string; *\n/g, "")
+          .replace(/WpwDirectoryPath[0-9]/g, "WpwDirectoryPath")
           .replace(/\/\* eslint\-disable \*\/$/gm, "")
           .replace(/\n\}\nexport /g, "\n}\n\nexport ")
           .replace(/author\?\:[^]*?(?:\}|\));/, "author?: string | { name: string; email?: string };")
           .replace(/export type WebpackEntry =\s+\|(?:[^]*?)\};/g, (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " "))
-          // .replace(/ *\$schema\?\: string;\n/, "")
           .replace(/(export type (?:.*?)\n)(export type)/g, (_, m1, m2) => `\n${m1}\n${m2}`)
           .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
           .replace(/\nexport interface (.*?) /g, (v, m1) =>
@@ -136,7 +136,7 @@ const parseTypesDts = async (hdr, data) =>
                   {
                       return `\nexport declare type Type${m1} = `;
                   }
-                  else if (m1 !== "WpBuildRcSchema") {
+                  else if (m1 !== "WpwRcSchema") {
                       pushTypedef("rc", m1);
                       return `\nexport declare type ${m1} = `;
                   }
@@ -178,6 +178,9 @@ const parseTypesDts = async (hdr, data) =>
                       }
                   }
                   else {
+                      requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
+                          src = src.replace(new RegExp(`${p}\\?\\: `, "g"), `${p}: `);
+                      });
                       pushTypedef("rc", m1);
                   }
                   return src;
@@ -195,7 +198,6 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\n\};?\n/g, "\n}\n")
           .replace(/    (.*?)\?\: BooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
           .replace("export declare type BooleanReadOnly = boolean;\n\n", "")
-          // .replace("WpBuildRcPluginsUser | WpBuildRcPluginsInternal", "WpBuildRcPluginsUser & WpBuildRcPluginsInternal")
           .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
           .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
@@ -203,8 +205,6 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
           .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
-          // .replace("= | WpBuildRcExportsUser | WpBuildRcPlugins | ", "= WpBuildRcExportsUser & WpBuildRcPlugins & ")
-          .replace(/export declare type WpBuildLogTrueColor =(?:.*?);\n/g, (v) => v + "\nexport declare type WpBuildLogTrueBaseColor = Omit<WpBuildLogTrueColor, \"system\">;\n")
           .replace(/"\}/g, "\"\n}")
           .replace(/\n/g, EOL);
 
@@ -307,8 +307,8 @@ const writeConstantsJs = async (hdr, data) =>
     logger.log("   create implementation constants from new types");
 
     let match;
-    const rgx = /export declare type (\w*?) = ((?:"|WpBuildLogTrueColor).*?(?:"|));\r?\n/g,
-          rgx2 = new RegExp(`export declare type (WpBuildRcPackageJson|WpBuildRcPaths) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
+    const rgx = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
+          rgx2 = new RegExp(`export declare type (WpwPackageJson|WpwRcPaths) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
 
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
 
@@ -316,8 +316,8 @@ const writeConstantsJs = async (hdr, data) =>
     {
         pushTypedef("rc", match[1]);
         properties.push(match[1]);
-        if (match[2].includes("WpBuildLogTrueColor")) {
-            match[2] = match[2].replace("WpBuildLogTrueColor", "...WpBuildLogTrueColors");
+        if (match[2].includes("WpwLogTrueColor")) {
+            match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
         }
         pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
     }

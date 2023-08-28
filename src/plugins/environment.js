@@ -5,6 +5,7 @@
  * @file plugin/environment.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -17,16 +18,14 @@ const WpBuildPlugin = require("./base");
 
 
 /**
- * @class WpBuildDisposePlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildEnvironmentPlugin extends WpBuildPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -41,9 +40,7 @@ class WpBuildEnvironmentPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
-	 * @member environment
 	 */
 	environment = () =>
 	{
@@ -52,15 +49,13 @@ class WpBuildEnvironmentPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
-	 * @member setVersion
 	 */
 	setVersion = () =>
 	{
 		if (this.app.isMain && this.app.mode === "production")
 		{
-			// let version = app.rc.version;
+			// let version = app.pkgJson.version;
 		}
 	};
 

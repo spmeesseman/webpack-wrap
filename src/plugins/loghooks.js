@@ -5,6 +5,7 @@
  * @file plugin/loghooks.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -13,22 +14,20 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @class WpBuildLogHookStagesPlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildLogHooksPlugin extends WpBuildPlugin
 {
     /**
-     * @class WpBuildLogHookStagesPlugin
      * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
+
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -36,8 +35,8 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 		this.hookSteps();
     }
 
+
 	/**
-	 * @function
 	 * @private
 	 * @param {typedefs.WebpackCompilerHookName} hook
 	 * @param {(arg: any) => any} [cb]
@@ -53,7 +52,6 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {typedefs.WebpackCompilerAsyncHookName} hook
 	 */
@@ -64,7 +62,6 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 */
 	hookSteps()
@@ -144,7 +141,6 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {string} hook
 	 */
@@ -166,8 +162,6 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
  * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.loghooks`
  * property to a boolean value of  `true` or `false`
  *
- * @function
- * @module
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildLogHooksPlugin | undefined}
  */

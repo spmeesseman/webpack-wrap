@@ -4,6 +4,7 @@
  * @file exports/ignorewarnings.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
@@ -23,7 +24,7 @@
  */
 const ignorewarnings = (app) =>
 {
-   if (app.build.options.ignorewarnings && (!app.args.verbosity || app.args.verbosity !== "none"))
+   if (app.build.options.ignorewarnings && (!app.cmdLine.verbosity || app.cmdLine.verbosity !== "none"))
    {
 		app.wpc.ignoreWarnings = [
 			/Critical dependency\: the request of a dependency is an expression/,

@@ -7,6 +7,7 @@
  * @file utils/environment.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -24,90 +25,44 @@ const { apply, WpBuildError, isPromise, resolvePath, pickNot, isString } = requi
  */
 class WpBuildApp
 {
-    /**
-     * @type {typedefs.WpBuildCombinedRuntimeArgs}
-     */
-    args;
-    /**
-     * @type {typedefs.WpwBuild}
-     */
+    /** @type {typedefs.WpwBuild} */
     build;
-    /**
-     * @type {Array<typedefs.IDisposable>}
-     */
+    /** @type {Array<typedefs.IDisposable>} */
     disposables;
-    /**
-     * @type {WpBuildError[]}
-     */
+    /** @type {WpBuildError[]} */
     errors;
-    /**
-     * @type {typedefs.WpBuildGlobalEnvironment}
-     */
+    /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     isMain;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     isMainProd;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     isMainTest;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     isTest;
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     isWeb;
-    /**
-     * @type {typedefs.WpBuildAppJsTsConfig | undefined}
-     */
-    jstsConfig;
-    /**
-     * @type {WpBuildConsoleLogger}
-     */
+    /** @type {WpBuildConsoleLogger} */
     logger;
-    /**
-     * @type {typedefs.WpBuildWebpackMode}
-     */
+    /** @type {typedefs.WpwWebpackMode} */
     mode;
-    /**
-     * @type {typedefs.WpBuildRcPackageJson}
-     */
-    pkgJson;
-    /**
-     * @type {typedefs.WpBuildRc}
-     */
+    /** @type {typedefs.WpBuildRc} @private */
     rc;
-    /**
-     * @type {typedefs.WpwRcSourceCodeConfig}
-     */
+    /** @type {typedefs.WpwSourceCodeConfig} */
     source;
-    /**
-     * @type {typedefs.WebpackTarget}
-     */
+    /** @type {typedefs.WebpackTarget} */
     target;
-    /**
-     * @type {typedefs.WpBuildRcVsCodeConfig}
-     */
+    /** @type {typedefs.WpwVsCodeConfig} */
     vscode;
-    /**
-     * @type {WpBuildError[]}
-     */
+    /** @type {WpBuildError[]} */
     warnings;
-    /**
-     * @type {typedefs.WpBuildWebpackConfig}
-     */
+    /** @type {typedefs.WpwWebpackConfig} */
     wpc;
 
 
 	/**
-	 * @class WpBuildApp
+	 * @constructs WpBuildApp
 	 * @param {typedefs.WpBuildRc} rc wpbuild rc configuration
 	 * @param {typedefs.WpwBuild} build
 	 */
@@ -121,6 +76,12 @@ class WpBuildApp
 		this.applyAppRc();
         this.initLogger();
 	}
+
+
+    get buildCount() { return this.rc.buildCount; }
+    get cmdLine() { return this.rc.args; }
+    get pkgJson() { return this.rc.pkgJson; }
+
 
     /**
      * @function
@@ -187,7 +148,6 @@ class WpBuildApp
         const b = this.build;
 		apply(this,
 		{
-            args: this.rc.args,
 			global: this.rc.global,
             isTest: b.mode === "test" || b.type === "tests" || b.name.startsWith("test"),
 			isWeb: b.type === "webapp" || b.target.startsWith("web"),
@@ -196,7 +156,6 @@ class WpBuildApp
 			isMainTest: b.type === "module" && b.mode === "test",
             mode: b.mode || this.rc.mode,
             paths: b.paths,
-            pkgJson: this.rc.pkgJson,
             target: b.target,
             source: b.source || "typescript",
             vscode: b.vscode
@@ -206,7 +165,7 @@ class WpBuildApp
 
     /**
      * @function
-     * @returns {typedefs.WpBuildWebpackConfig}
+     * @returns {typedefs.WpwWebpackConfig}
      */
     buildApp = () =>
     {
@@ -226,10 +185,11 @@ class WpBuildApp
 
     /**
      * Called by top level rc wrapper after instantiating this app wrapper instance.
-     * Calls each ./exports/* default export to construct a {@link typedefs.WpBuildWebpackConfig webpack build configuration}.
+     * Calls each ./exports/* default export to construct a {@link typedefs.WpwWebpackConfig webpack build configuration}.
      *
      * @function
-     * @returns {typedefs.WpBuildWebpackConfig}
+     * @private
+     * @returns {typedefs.WpwWebpackConfig}
      */
     buildWebpackConfig = () =>
     {
@@ -239,7 +199,7 @@ class WpBuildApp
             entry: {},
             mode: build.mode === "test" ? "none" : build.mode,
             module: { rules: [] },
-            name: `${this.rc.name}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
+            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
             output: {},
             plugins: [],
             resolve: {},
@@ -326,7 +286,7 @@ class WpBuildApp
      * @function
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
      * @template {string | undefined} [R = P extends { stat: true } ? string | undefined : string]
-     * @param {typedefs.WpBuildRcPathsKey} pathKey
+     * @param {typedefs.WpwRcPathsKey} pathKey
      * @param {P} [options]
      * @returns {R}
      */
@@ -430,10 +390,13 @@ class WpBuildApp
         );
         l.sep();
         l.write("Base Configuration:", 1, "", 0, l.colors.white);
-        l.value("   name", this.rc.name, 1);
+        l.value("   name", this.pkgJson.scopedName.name, 1);
+        if (this.pkgJson.scopedName.scope) {
+            l.value("   npm scope", this.pkgJson.scopedName.scope, 1);
+        }
         l.value("   mode", this.rc.mode, 1);
         l.value("   logging level", this.rc.log.level, 1);
-        l.value("   app version", this.rc.pkgJson.version, 1);
+        l.value("   app version", this.pkgJson.version, 1);
         l.value("   wpw version", this.rc.wpwVersion, 2);
         l.value("   wpw schema version", this.rc.schemaVersion, 2);
         l.value("   # of active builds", this.rc.apps.length, 2);

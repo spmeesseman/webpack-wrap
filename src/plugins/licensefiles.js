@@ -5,6 +5,7 @@
  * @file plugin/licensefiles.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -20,14 +21,13 @@ const { rename, unlink, readdir } = require("fs/promises");
 
 
 /**
- * @class WpBuildLicenseFilePlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildLicenseFilePlugin extends WpBuildPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      * @returns {void}
      */
@@ -44,7 +44,6 @@ class WpBuildLicenseFilePlugin extends WpBuildPlugin
     }
 
     /**
-     * @function licenseFiles
      * @returns {Promise<void>}
      */
     async licenseFiles()
@@ -67,7 +66,6 @@ class WpBuildLicenseFilePlugin extends WpBuildPlugin
 
 
 /**
- * @function
  * @param {WpBuildApp} app
  * @returns {WpBuildLicenseFilePlugin | undefined}
  */

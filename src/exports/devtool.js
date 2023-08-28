@@ -4,6 +4,7 @@
  * @file exports/devtool.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -26,7 +27,6 @@
  *     inline-cheap-module-source-map
  *     source-map:                  : Recommended for prod builds w/ high quality SourceMaps
  *
- * @function
  * @private
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  */

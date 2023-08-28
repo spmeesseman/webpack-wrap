@@ -5,111 +5,109 @@
  * @file plugin/wait.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
 const { existsSync } = require("fs");
-const WpBuildPlugin = require("./base");
-const { apply, WpBuildError } = require("../utils");
-
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
+const { EventEmitter } = require("events");
+const typedefs = require("../types/typedefs");
+const { WpBuildError, merge, isPromise, pushIfNotExists } = require("../utils");
 
 
-class WpBuildWaitPlugin extends WpBuildPlugin
+class WpwPluginWaitManager
 {
-    /**
-     * @private
-     */
-    waitFor;
-    /**
-     * @private
-     */
-    interval;
-    /**
-     * @private
-     */
-    timeout;
+    /** @type {typedefs.WpwBuildOptionsPluginsKey[]} @private */
+    done;
+    /** @type {typedefs.WpwBuildOptionsPluginsKey[]} @private */
+    waiting;
+    /** @type {EventEmitter} @private */
+    onPluginEvent;
+    /** @type {typedefs.WpBuildPluginWaitOptions[]} @private */
+    registered;
 
 
     /**
-     * @class WpBuildWaitPlugin
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @class WpwPluginWaitManager
      */
-	constructor(options)
+	constructor()
     {
-        super(options);
-        this.waitFor = options.waitFor;
-        this.interval = options.interval || 150;
-        this.timeout =options.timeout ||  1500;
-        WpBuildPlugin.onPluginEvent.on("done", this.onWaitDone);
+        this.done = [];
+        this.waiting = [];
+        this.registered = [];
+        this.onPluginEvent = new EventEmitter();
     }
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @function
-     * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {string} event
+     * @param {...any} args
      */
-    apply(compiler)
+    emit(event, ...args) { this.onPluginEvent.emit(event, ...args); }
+
+
+    /**
+     * @function
+     * @param {*} name
+     * @param {...any} args
+     * @returns {Promise<any> | any}
+     */
+    onPluginDone(name, ...args)
     {
-		this.onApply(compiler,
+        pushIfNotExists(this.done, name);
+        // this.waiting.splice(this.waiting.indexOf(), 1);
+        this.onPluginEvent.emit(`${name}_done`, ...args);
+        for (const r of this.registered.filter(r => name === r.target))
         {
-            waitForFileExists: {
-                async: true,
-                hook: "run",
-                callback: this.poll.bind(this)
+            const res = r.callback(...args);
+            if (isPromise(res)) {
+                return res.then(r => r);
             }
-        });
-    }
-
-
-    onWaitDone(pluginName)
-    {
-        if (pluginName === this.waitFor)
-        {
+            else { return res;}
         }
-    };
+    }
 
 
     /**
      * @function
      * @private
-     * @param {WebpackCompiler} _compiler
+     * @param {Required<typedefs.WpBuildPluginWaitOptions>} options
      * @returns {Promise<void>}
      */
-    poll(_compiler)
+    pollFile(options)
     {
         const start = Date.now();
         /** @param {(value: void | PromiseLike<void>) => void} resolve @param {any} reject */
         const _poll = (resolve, reject) =>
         {
-            if (existsSync(this.file))
+            if (existsSync(options.target))
             {
                 resolve();
             }
-            else if (Date.now() - start > this.timeout)
+            else if (Date.now() - start > options.timeout)
             {
-                reject(new WpBuildError(`Wait operation times out at ${this.timeout} ms`, "plugin/wait.js"));
+                reject(new WpBuildError(`Wait operation times out at ${options.timeout} ms`, "plugin/wait.js"));
             }
             else {
-                setTimeout(_poll, this.interval, resolve, reject);
+                setTimeout(_poll, options.interval, resolve, reject);
             }
         };
         return new Promise((resolve, reject) => _poll(resolve, reject));
     }
+
+
+    /**
+     * @function
+     * @param {typedefs.WpBuildPluginWaitOptions} options
+     */
+    register(options)
+    {
+        pushIfNotExists(this.waiting, options.source);
+        this.registered.push(merge({}, options));
+    }
+
 }
 
 
-/**
- * @function
- * @param {WpBuildApp} app
- * @param {string} waitFor
- * @returns {WpBuildWaitPlugin | undefined}
- */
-const wait = (app, waitFor) => app.build.options.wait ? new WpBuildWaitPlugin({ app, waitFor }) : undefined;
-
-
-module.exports = wait;
+module.exports = WpwPluginWaitManager;

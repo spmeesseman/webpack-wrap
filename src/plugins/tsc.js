@@ -5,6 +5,7 @@
  * @file plugin/types.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -19,13 +20,18 @@ const { findFiles, isString, WpBuildError } = require("../utils");
 
 
 /**
- * @class WpBuildBaseTsPlugin
  * @abstract
+ * @extends WpBuildPlugin
  */
 class WpBuildBaseTsPlugin extends WpBuildPlugin
 {
+    /**
+     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     */
+	constructor(options) { super(options); }
+
+
 	/**
-	 * @function
 	 * @protected
 	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
@@ -59,7 +65,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 				await unlink(outputPath);
 			}
 			// let entryFile = Object.valuthis.app.wpc.entryes().map(
-			// 	/** @type {typedefs.WpBuildWebpackEntryValue} */(v) => resolve(typesDirDist, !isString(v) ? v.import : v)
+			// 	/** @type {typedefs.WpwWebpackEntryValue} */(v) => resolve(typesDirDist, !isString(v) ? v.import : v)
 			// )[0]?.replace(".ts", ".d.ts");
 			l.write("   locating entry file", 2);
 			const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
@@ -148,10 +154,11 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		}
 	};
 
+
 	/**
-	 * @function Executes a typescript build using the specified tsconfig
+	 * Executes a typescript build using the specified tsconfig
 	 * @protected
-	 * @param {typedefs.WpwRcSourceCodeConfig} tsc
+	 * @param {typedefs.WpwSourceCodeConfig} tsc
 	 * @param {string[]} args
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build

@@ -5,6 +5,7 @@
  * @file plugin/types.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -16,23 +17,18 @@ const { isString } = require("../utils");
 
 
 /**
- * @class WpBuildTsBundlePlugin
+ * @extends WpBuildBaseTsPlugin
  */
 class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @class WpBuildTsBundlePlugin
      * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
      */
-	constructor(options)
-    {
-		super(options);
-    }
+	constructor(options) { super(options); }
+
 
     /**
      * Called by webpack runtime to initialize this plugin
-     *
-     * @function
      * @override
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
@@ -41,7 +37,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 		const distPath = this.app.getDistPath({ build: "types" });
 		const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
 		const entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
-		if (entryFile && existsSync(entryFile) && this.app.args.build === this.app.build.name)
+		if (entryFile && existsSync(entryFile) && this.app.cmdLine.build === this.app.build.name)
 		{
 			this.onApply(compiler,
 			{
@@ -50,7 +46,6 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					hook: "compilation",
 					stage: "DERIVED",
 					statsProperty: "tsbundle",
-					statsPropertyColor: this.app.build.log.color,
 					callback: this.bundleDts.bind(this)
 				}
 			});
@@ -63,7 +58,6 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					async: true,
 					hook: "afterEmit",
 					statsProperty: "tsbundle",
-					statsPropertyColor: this.app.build.log.color,
 					callback: this.bundleDtsAfterEmit.bind(this)
 				}
 			});

@@ -5,6 +5,7 @@
  * @file plugin/optimization.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -18,7 +19,6 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 
 /**
- * @function optimization
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  * @returns {WebpackPluginInstance[]}
  */

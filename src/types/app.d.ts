@@ -3,6 +3,7 @@
  * @file types/app.d.ts
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author @spmeesseman Scott Meesseman
  *
  * Handy file links:
@@ -26,8 +27,8 @@ import {
     WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode
 } from "./webpack";
 import {
-    WpBuildRcPaths, WpBuildWebpackEntry, WpBuildWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget,
-    WpwBuildModeConfig, IWpBuildRcSchema
+    WpwRcPaths, WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
+    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCodeConfig, WpwVsCodeConfig, WpBuildRcPackageJson
 } from "./rc";
 
 
@@ -37,15 +38,15 @@ declare type WpBuildAppGetPathOptions = { build?: string; rel?: boolean; ctx?: b
 
 declare type WpBuildGlobalEnvironment = { buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any };
 
-declare type WpBuildRuntimeEnvArgs =  { analyze?: boolean; build?: string; mode?: WpBuildWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
+declare type WpBuildRuntimeEnvArgs =  { analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
 
 declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
 
 // declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
-declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpBuildWebpackMode | Exclude<WebpackMode, undefined> };
+declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
 
-declare interface IWpBuildAppSchema extends IWpBuildRcSchema
+declare interface IWpBuildAppSchema extends IWpwRcSchema
 {
     args: WpBuildCombinedRuntimeArgs
 }
@@ -53,45 +54,52 @@ declare interface IWpBuildAppSchema extends IWpBuildRcSchema
 declare interface IWpBuildApp extends IDisposable
 {
     build: WpwBuild;
+    disposables: IDisposable[];
+    cmdLine: WpBuildCombinedRuntimeArgs;
+    errors: Error[];
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
-    logger: IWpBuildLogger;
-    rc: IWpBuildAppSchema;          // target js app info
-    target: WebpackTarget;
-    jstsConfig: WpBuildAppJsTsConfig | undefined;
-    wpc: WpBuildWebpackConfig;
-}
-
-declare class ClsWpBuildApp
-{
-    analyze: boolean;                 // parform analysis after build
-    build: WpwBuild;
-    clean: boolean;
-    disposables: Array<IDisposable>;
-    esbuild: boolean;                 // Use esbuild and esloader
-    imageOpt: boolean;                // Perform image optimization
     isMain: boolean;
     isMainProd: boolean;
-    isMainTests: boolean;
-    isTests: boolean;
+    isMainTest: boolean;
+    isTest: boolean;
     isWeb: boolean;
-    global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
     logger: IWpBuildLogger;
-    paths: WpBuildRcPaths;
-    rc: IWpBuildRcSchema;           // target js app info
+    pkgJson: WpBuildRcPackageJson;
+    source: WpwSourceCodeConfig;
     target: WebpackTarget;
-    wpc: WpBuildWebpackConfig;
-    mode: WpBuildWebpackMode;
-    dispose: () => void;
-    private wpApp;
-    private getPaths;
-    private resolveRcPaths;
+    vscode: WpwVsCodeConfig;
+    warnings: Error[];
+    wpc: WpwWebpackConfig;
+    addError: (e: WpBuildError | string, pad: string) => void;
+    addWarning: (w: WpBuildError | string, pad: string) => void;
+    buildApp: () => WpwWebpackConfig;
+    dispose: () => Promise<void>;
+    getApp: (name: string) => WpBuildApp | undefined;
+    getAppBuild: (name: string) => WpwBuild | undefined;
+    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
+    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
+    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
+    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
+    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends string | undefined = P extends { stat: true } ? string | undefined : string>(arg: P) => R;
 }
 
-declare interface IWpBuildWebpackConfig extends WebpackConfig
+declare class ClsWpBuildApp implements IWpBuildApp
+{
+    private applyAppRc;
+    private buildWebpackConfig;
+    private initLogger;
+    private printBuildProperties;
+    private printNonFatalIssue;
+    private printWpcProperties;
+    private rc: IWpBuildAppSchema;
+    constructor(rc: WpBuildRc, build: WpwBuild);
+}
+
+declare interface IWpwWebpackConfig extends WebpackConfig
 {
     context: string;
     mode: Exclude<WebpackConfig["mode"], undefined>;
-    entry: WpBuildWebpackEntry & WebpackEntry;
+    entry: WpwWebpackEntry & WebpackEntry;
     output: Exclude<WebpackConfig["output"], undefined>;
     plugins: (
 		| undefined
@@ -102,7 +110,7 @@ declare interface IWpBuildWebpackConfig extends WebpackConfig
     target: WebpackTarget;
     module: WebpackModuleOptions;
 }
-declare type WpBuildWebpackConfig = IWpBuildWebpackConfig;
+declare type WpwWebpackConfig = IWpwWebpackConfig;
 
 
 export {
@@ -117,6 +125,6 @@ export {
     WpBuildAppJsTsConfig,
     WpBuildAppJsTsConfigJson,
     WpBuildAppJsTsConfigCompilerOptions,
-    WpBuildWebpackConfig,
+    WpwWebpackConfig,
     __WPBUILD__
 };

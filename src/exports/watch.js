@@ -4,6 +4,7 @@
  * @file exports/watch.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -16,8 +17,8 @@
  */
 const watch = (app) =>
 {
-	app.wpc.watch = !!app.args.watch || !!app.args.WEBPACK_WATCH;
-	if (app.args.watch && app.build.options.watch)
+	app.wpc.watch = !!app.cmdLine.watch || !!app.cmdLine.WEBPACK_WATCH;
+	if (app.cmdLine.watch && app.build.options.watch)
 	{
 		app.wpc.watchOptions =
 		{

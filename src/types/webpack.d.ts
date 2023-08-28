@@ -4,6 +4,7 @@
  * @file types/webpack.d.ts
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author @spmeesseman Scott Meesseman
  *
  * Handy file links:
@@ -39,7 +40,6 @@
  * browserslist             Infer a platform and the ES-features from a browserslist-config (default if browserslist config
  *                          is available)
  */
-
 
 import { ConvertType, PickByType } from "./generic";
 import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable";

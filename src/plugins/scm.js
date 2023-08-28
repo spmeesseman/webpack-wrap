@@ -5,6 +5,7 @@
  * @file plugin/scm.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -15,19 +16,20 @@ const WpBuildPlugin = require("./base");
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
 
 
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildScmPlugin extends WpBuildPlugin
 {
     /**
-     * @class WpBuildScmPlugin
      * @param {WpBuildPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -44,10 +46,8 @@ class WpBuildScmPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @async
-     * @member commit
      */
     async commit()
     {
@@ -66,7 +66,7 @@ class WpBuildScmPlugin extends WpBuildPlugin
                 // sshAuth,  // auth key
                 // "-q",  // quiet, don't show statistics
                 "-r",     // copy directories recursively
-                `${user}@${host}:${this.app.rc.name}/v${this.app.pkgJson.version}"`
+                `${user}@${host}:${this.app.pkgJson.name}/v${this.app.pkgJson.version}"`
             ];
             logger.write(`${logger.icons.color.star } ${logger.withColor(`check in resource files to ${host}`, logger.colors.grey)}`);
             try {
@@ -88,7 +88,6 @@ class WpBuildScmPlugin extends WpBuildPlugin
 
 
 /**
- * @function
  * @param {WpBuildApp} app
  * @returns {WpBuildScmPlugin | undefined}
  */

@@ -8,6 +8,7 @@ const TerserPlugin = require("terser-webpack-plugin");
  * @file exports/minification.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -30,7 +31,7 @@ const minification = (app) =>
 			minimize: true,
 			minimizer: [
 				new TerserPlugin(
-				app.args.esbuild ?
+				app.cmdLine.esbuild ?
 				{
 					minify: TerserPlugin.esbuildMinify,
 					terserOptions: {

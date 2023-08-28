@@ -6,6 +6,7 @@
  * @file plugin/analyze.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -22,7 +23,7 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 const analyzer = (app) =>
 {
     let plugin;
-	if (app.rc.args.analyze)
+	if (app.cmdLine.analyze)
 	{
 		plugin = new BundleAnalyzerPlugin({
 			analyzerPort: "auto",

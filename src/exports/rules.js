@@ -5,6 +5,7 @@
  * @file exports/rules.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
@@ -20,7 +21,7 @@ const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
 
-/** @typedef {typedefs.WpwRcSourceCodeConfig} RulesConfig */
+/** @typedef {typedefs.WpwSourceCodeConfig} RulesConfig */
 
 
 const builds =
@@ -215,7 +216,7 @@ const builds =
 			}]
 		}]);
 
-		if (typesDir && !!app.args.build && app.rc.builds.find(b => b.type === "types" || b.name === "types")) //  && !existsSync(typesDir))
+		if (typesDir && !!app.cmdLine.build && app.getAppBuild("types")) //  && !existsSync(typesDir))
 		{
 			// app.wpc.module.rules.unshift(
 			// {
@@ -261,10 +262,10 @@ const getIncludes = (app, rulesConfig) => uniq([ app.getSrcPath(), ...rulesConfi
  */
 const getLoader = (app, rulesConfig, loader) =>
 {
-	if (app.args.esbuild || loader === "esbuild") {
+	if (app.cmdLine.esbuild || loader === "esbuild") {
 		return buildOptions.esbuild(app, rulesConfig);
 	}
-	if (app.build.source.type === "javascript" || app.args.babel || loader === "babel") {
+	if (app.build.source.type === "javascript" || app.cmdLine.babel || loader === "babel") {
 		return buildOptions.babel(app, rulesConfig);
 	}
 	return buildOptions.ts(app, rulesConfig);

@@ -5,6 +5,7 @@
  * @file utils/utils.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -575,6 +576,14 @@ const pickNot = (obj, ...keys) =>
 // };
 
 
+/**
+ * @template T
+ * @param {T[]} arr
+ * @param {T} item
+ * @returns {T[]}
+ */
+const pushIfNotExists = (arr, item) => { if (!arr.includes(item)) arr.push(item); return arr; };
+
 
 /**
  * @param {string} b base directory
@@ -634,7 +643,7 @@ class WpBuildError extends WebpackError
     /**
      * @param {string} message
      * @param {string} file
-     * @param {Partial<typedefs.WpBuildWebpackConfig> | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
@@ -661,7 +670,7 @@ class WpBuildError extends WebpackError
     /**
      * @param {string} property
      * @param {string} file
-     * @param {Partial<typedefs.WpBuildWebpackConfig>  | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig>  | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
@@ -672,7 +681,7 @@ class WpBuildError extends WebpackError
     /**
      * @param {string} property
      * @param {string} file
-     * @param {Partial<typedefs.WpBuildWebpackConfig>  | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig>  | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
@@ -684,6 +693,6 @@ class WpBuildError extends WebpackError
 
 module.exports = {
     apply, applyIf, asArray, capitalize, clone, execAsync, findFiles, findFilesSync, getExcludes, isArray, requireResolve,
-    isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString,
+    isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, isObjectEmpty, isPrimitive, isPromise, isString, pushIfNotExists,
     lowerCaseFirstChar, merge, mergeIf, pick, pickBy, pickNot, uniq, WpBuildError, relativePath, resolvePath
 };

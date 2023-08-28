@@ -4,6 +4,7 @@
  * @file utils/app.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -17,7 +18,7 @@ const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const {
-    isWpwBuildType, isWpBuildWebpackMode, isWebpackTarget, WpBuildRcPackageJsonProps
+    isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps
 } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, applyIf, resolvePath, asArray, uniq,
@@ -27,11 +28,11 @@ const {
 
 /**
  * @class
- * @implements {typedefs.IWpBuildRcSchema}
+ * @implements {typedefs.IWpwRcSchema}
  */
 class WpBuildRc
 {
-    /** @type {typedefs.WpBuildWebpackAliasConfig} */
+    /** @type {typedefs.WpwWebpackAliasConfig} */
     alias;
     /** @type {WpBuildApp[]} */
     apps;
@@ -41,31 +42,25 @@ class WpBuildRc
     builds;
     /** @type {string} */
     defaultTempDir;
-    /** @type {string} */
-    detailedDisplayName;
     /** @type {typedefs.WpwBuildModeConfig} */
     development;
-    /** @type {string} */
-    displayName;
     /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
-    /** @type {typedefs.WpBuildRcLog} */
+    /** @type {typedefs.WpwLog} */
     log;
     /** @type {WpBuildConsoleLogger} */
     logger;
     /**
      * Top level mode passed on command line or calcualted using build definitions Note that the mode for
      * each defined build may not be of this top level mode
-     * @type {typedefs.WpBuildWebpackMode}
+     * @type {typedefs.WpwWebpackMode}
      */
     mode;
-    /** @type {string} */
-    name;
-    /** @type {typedefs.WpBuildRcPaths} */
+    /** @type {typedefs.WpwRcPaths} */
     paths;
-    /** @type {typedefs.WpBuildRcPackageJson} */
+    /** @type {typedefs.WpwPackageJson} */
     pkgJson;
-    /** @type {string} */
+    /** @type {string} @private */
     pkgJsonPath;
     /** @type {typedefs.WpwBuildOptions} */
     options;
@@ -73,21 +68,21 @@ class WpBuildRc
     production;
     /** @type {boolean} */
     publicInfoProject;
-    /** @type {{ [key: string ]: typedefs.IWpBuildRcSchema }} */
+    /** @type {{ [key: string ]: typedefs.IWpwRcSchema }} */
     schema;
     /** @type {string} */
     $schema;
     /** @type {string} */
     schemaDir;
-    /** @type {typedefs.VersionString} */
+    /** @type {typedefs.WpwVersionString} */
     schemaVersion;
     /** @type {typedefs.WpwBuildModeConfig} */
     test;
     /** @type {typedefs.WpwBuildModeConfig} */
     testproduction;
-    /** @type {typedefs.VersionString}/ */
+    /** @type {typedefs.WpwVersionString}/ */
     version;
-    /** @type {typedefs.VersionString} */
+    /** @type {typedefs.WpwVersionString} */
     wpwVersion;
 
 
@@ -96,11 +91,8 @@ class WpBuildRc
      * all build level 'WpBuildRcApp' instances.  Builds are initialized by merging
      * each layer's configuration from top level down, (i.e. the top level, `this`, and
      * the current mode/environement e.g. `production`) into each defined build config.
-     *
      * @see {@link WpBuildRc.create WpBuildRc.create()} for wbbuild initiantiation process
      * @see {@link WpBuildApp} for build lvel wrapper defintion.  Stupidly named `app` (???).
-     *
-     * @class WpBuildRc
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
@@ -114,15 +106,16 @@ class WpBuildRc
             arge[k] = arge[k].toLowerCase() === "true";
         });
         apply(this, { apps: [], errors: [], warnings: [], args: apply({}, arge, argv), global: globalEnv, pkgJson: {} });
-        const rcDefaults = this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir);
+        /* const rcDefaults = */
+        this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", this.schemaDir);
         const rcProject = this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.logger = new WpBuildConsoleLogger({ envTag1: "rc", envTag2: "init", ...this.log });
 		this.applyModeArgument(argv, arge);
         this.printBanner(arge, argv);
-        this.validateSchema(rcDefaults.data);
+        // this.validateSchema(rcDefaults.data);
         this.validateSchema(rcProject.data);
+        this.applyPackageJson();
         this.applyVersions();
-        this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpBuildRcPackageJsonProps).path;
         this.configureBuilds();
     };
 
@@ -130,10 +123,10 @@ class WpBuildRc
     get hasTests() { return !!this.builds.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
     get hasTypes() { return !!this.getBuild("types"); }
     get isSingleBuild() { return !!this.args.build && this.apps.length <= 1; }
+    get buildCount() { return this.apps.length; }
 
 
     /**
-     * @function
      * @private
      * @template {Record<string, any>} T
      * @param {T} thisArg
@@ -165,7 +158,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
@@ -173,7 +165,7 @@ class WpBuildRc
     applyModeArgument = (argv, arge) =>
     {
         apply(this, { mode: this.getMode(arge, argv, true) });
-        if (!isWpBuildWebpackMode(this.mode)) {
+        if (!isWpwWebpackMode(this.mode)) {
             throw WpBuildError.getErrorMissing("mode", "utils/rc.js");
         }
         // if (argv.mode && !isWebpackMode(this.mode))
@@ -187,7 +179,23 @@ class WpBuildRc
 
 
     /**
-     * @function
+     * @private
+     */
+    applyPackageJson = () =>
+    {
+        const pkgJson = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonProps);
+        this.pkgJsonPath = pkgJson.path;
+        const nameData = pkgJson.data.name.split("/");
+        apply(this.pkgJson, {
+            scopedName: {
+                name: nameData.length > 1 ? nameData[1] : nameData[0],
+                scope: nameData.length > 1 ? nameData[0] : undefined
+            }
+        });
+    };
+
+
+    /**
      * @private
      */
     applyVersions = () =>
@@ -206,10 +214,9 @@ class WpBuildRc
      * Base entry function to initialize build configurations and provide the webpack
      * configuration export(s) to webpack.config.js.
      * @see ample {@link file:///./../examples/webpack.config.js swebpack.config.js}
-     *
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
-     * @returns {typedefs.WpBuildWebpackConfig[]} arge
+     * @returns {typedefs.WpwWebpackConfig[]} arge
      */
     static create = (argv, arge) =>
     {
@@ -251,8 +258,6 @@ class WpBuildRc
 	/**
 	 * Merges the base rc level and the environment level configurations into each
 	 * build configuration and update`this.builds` with fully configured build defs.
-	 *
-	 * @function
 	 * @private
 	 */
     configureBuilds = () =>
@@ -307,7 +312,6 @@ class WpBuildRc
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {typedefs.WpwBuild} build
 	 */
@@ -320,7 +324,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuild} build
      * @returns {string | undefined}
@@ -391,7 +394,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @param {string} name
      * @returns {typedefs.WpBuildApp | undefined}
      */
@@ -399,7 +401,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @param {string} name
      * @returns {typedefs.WpwBuild | undefined}
      */
@@ -407,10 +408,9 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuild} build
-     * @returns {typedefs.WpwRcSourceCodeConfig | undefined}
+     * @returns {typedefs.WpwSourceCodeConfig | undefined}
      */
     getJsTsConfig = (build) =>
     {
@@ -421,7 +421,7 @@ class WpBuildRc
                   start = data.indexOf("{"),
                   end = data.lastIndexOf("}") + 1,
                   raw = data.substring(start, end);
-            return { raw, json: /** @type {typedefs.WpwRcSourceCodeConfigOptions} */(JSON5.parse(raw)) };
+            return { raw, json: /** @type {typedefs.WpwSourceCodeConfigOptions} */(JSON5.parse(raw)) };
         };
 
         const path = this.findJsTsConfig(build);
@@ -430,7 +430,7 @@ class WpBuildRc
             const exclude = [], include = [],
                   dir = dirname(path),
                   file = basename(path),
-                  json = /** @type {typedefs.WpwRcSourceCodeConfigOptions} */({});
+                  json = /** @type {typedefs.WpwSourceCodeConfigOptions} */({});
 
             asArray(json.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
             {
@@ -485,13 +485,12 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @template {boolean | undefined} T
-     * @template {typedefs.WebpackMode | typedefs.WpBuildWebpackMode} R = T extends false | undefined ? typedefs.WebpackMode : typedefs.WpBuildWebpackMode
+     * @template {typedefs.WebpackMode | typedefs.WpwWebpackMode} R = T extends false | undefined ? typedefs.WebpackMode : typedefs.WpwWebpackMode
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge Webpack build environment
      * @param {typedefs.WebpackRuntimeArgs} argv Webpack command line args
-     * @param {T} [wpBuild] Convert to WpBuildWebpackMode @see {@link typedefs.WpBuildWebpackMode WpBuildWebpackMode}
+     * @param {T} [wpBuild] Convert to WpwWebpackMode @see {@link typedefs.WpwWebpackMode WpwWebpackMode}
      * @returns {R}
      */
     getMode = (arge, argv, wpBuild) =>
@@ -504,7 +503,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuild} build
      */
@@ -524,7 +522,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuild} build
      */
@@ -545,7 +542,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuildModeConfigBase} rc
      * @returns {rc is Required<typedefs.WpwBuildModeConfigBase>}
@@ -581,16 +577,16 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
      * @param {typedefs.WebpackRuntimeArgs} argv
      */
     printBanner = (arge, argv) =>
     {
+        const name = this.pkgJson.displayName || this.pkgJson.scopedName.name;
         WpBuildConsoleLogger.printBanner(
-            this.displayName, this.pkgJson.version || "1.0.0",
-            ` Start ${this.detailedDisplayName || this.displayName} Webpack Build`,
+            name, this.pkgJson.version || "1.0.0",
+            ` Start Webpack Build for ${this.pkgJson.name}`,
             (l) => {
                 l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
                 l.write("   Argv  : " + l.withColor(JSON.stringify(argv), l.colors.grey), 1, "", 0, l.colors.white);
@@ -602,7 +598,6 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwBuild} build
      */
@@ -649,7 +644,6 @@ class WpBuildRc
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {typedefs.WpwBuild} build
 	 */
@@ -657,7 +651,7 @@ class WpBuildRc
 	{
         const base = dirname(this.pkgJsonPath),
               ostemp = process.env.TEMP || process.env.TMP,
-			  temp = resolve(ostemp ? `${ostemp}${sep}${this.name}` : this.defaultTempDir, build.mode);
+			  temp = resolve(ostemp ? `${ostemp}${sep}${this.pkgJson.scopedName.name}` : this.defaultTempDir, build.mode);
 		if (!existsSync(temp)) {
 			mkdirSync(temp, { recursive: true });
 		}
@@ -670,22 +664,26 @@ class WpBuildRc
 
 
     /**
-     * @function
      * @private
      * @param {*} options
      * @param {string} [subschema]
      */
     validateSchema = (options, subschema) =>
     {
-        const schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
+        const l = this.logger,
+              schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
+        l.write("Validate schema @ " + l.withColor(this.mode, l.colors.italic), 1);
         try {
             const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
                   schema = this.schema[schemaKey] || JSON5.parse(readFileSync(join(this.schemaDir, schemaFile), "utf8"));
             validate(schema, options, { name: schemaKey, baseDataPath: subschema });
             this.schema[schemaKey] = schema;
+            l.success("   schema validation successful", 1);
         }
         catch (e) {
-            throw WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`, "core/rc/js");
+            const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`, "core/rc.js");
+            l.error(err);
+            throw err;
         }
     };
 

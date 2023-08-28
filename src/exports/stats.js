@@ -6,6 +6,7 @@ const { isString } = require("../utils");
  * @file exports/stats.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -48,7 +49,7 @@ const level = (loglevel) =>
  */
 const stats = (app) =>
 {
-	const logLevel = app.logger.level || app.args.loglevel || app.build.log.level || 0;
+	const logLevel = app.logger.level || app.cmdLine.loglevel || app.build.log.level || 0;
 	if (logLevel !== 0 && logLevel !== "none") // && app.build.exports.stats)
 	{
 		app.wpc.stats = {

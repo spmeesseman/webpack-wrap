@@ -6,6 +6,7 @@
  * @file plugin/analyze.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -20,7 +21,7 @@ const CircularDependencyPlugin = require("circular-dependency-plugin");
 const circular = (app) =>
 {
     let plugin;
-    if (app.rc.args.analyze)
+    if (app.cmdLine.analyze)
     {
         plugin = new CircularDependencyPlugin(
         {

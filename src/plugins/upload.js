@@ -10,6 +10,7 @@
  * !!!       plink -ssh -batch -pw <PWD> smeesseman@app1.spmeesseman.com "echo hello"
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -17,7 +18,7 @@ const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
-const { RegexTestsChunk, apply } = require("../utils");
+const { RegexTestsChunk } = require("../utils");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
@@ -26,10 +27,12 @@ const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
 
 
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildUploadPlugin extends WpBuildPlugin
 {
     /**
-     * @class WpBuildUploadPlugin
      * @param {WpBuildPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
@@ -41,11 +44,9 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -66,7 +67,6 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {WebpackCompilation} _compilation
      * @throws {WebpackError}
@@ -91,7 +91,6 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {WebpackCompilation} compilation
      * @throws {WebpackError}
@@ -167,11 +166,12 @@ class WpBuildUploadPlugin extends WpBuildPlugin
             return;
         }
 
+        const name = app.pkgJson.scopedName.name;
         const plinkCmds = [
-            `mkdir ${rBasePath}/${app.rc.name}`,
-            `mkdir ${rBasePath}/${app.rc.name}/v${app.pkgJson.version}`,
-            `mkdir ${rBasePath}/${app.rc.name}/v${app.pkgJson.version}/${app.mode}`,
-            `rm -f ${rBasePath}/${app.rc.name}/v${app.pkgJson.version}/${app.mode}/*.*`
+            `mkdir ${rBasePath}/${name}`,
+            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}`,
+            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}/${app.mode}`,
+            `rm -f ${rBasePath}/${name}/v${app.pkgJson.version}/${app.mode}/*.*`
         ];
         if (app.mode === "production") { plinkCmds.pop(); }
 
@@ -190,7 +190,7 @@ class WpBuildUploadPlugin extends WpBuildPlugin
             "-q",         // quiet, don't show statistics
             "-r",         // copy directories recursively
             toUploadPath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
-            `${user}@${host}:"${rBasePath}/${app.rc.name}/v${app.pkgJson.version}"` // uploaded, and created if not exists
+            `${user}@${host}:"${rBasePath}/${name}/v${app.pkgJson.version}"` // uploaded, and created if not exists
         ];
 
         await copyFile(join(this.app.getRcPath("base"), "node_modules", "source-map", "lib", "mappings.wasm"), join(toUploadPath, "mappings.wasm"));
@@ -226,8 +226,6 @@ class WpBuildUploadPlugin extends WpBuildPlugin
  * Returns a `WpBuildUploadPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.upload`
  * property to a boolean value of `true` or `false`
- * @module wpbuild.plugin.upload
- * @function upload
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */

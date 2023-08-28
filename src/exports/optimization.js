@@ -6,23 +6,23 @@ const { apply } = require("../utils");
  * @file exports/optimization.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackOptimization} WebpackOptimization */
-/** @typedef {import("../types").WpBuildWebpackConfig} WpBuildWebpackConfig */
+/** @typedef {import("../types").WpwWebpackConfig} WpwWebpackConfig */
 
 
 /**
- * @function optimization
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  */
 const optimization = (app) =>
 {
 	if (app.build.options.optimization)
 	{
-		apply(app.wpc, { parallelism: 1 + app.rc.builds.length });
+		apply(app.wpc, { parallelism: 1 + app.buildCount });
 		if (app.isMain)
 		{
 			app.wpc.optimization =

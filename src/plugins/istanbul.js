@@ -5,6 +5,7 @@
  * @file plugin/istanbul.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -22,14 +23,19 @@ const WpBuildPlugin = require("./base");
 
 
 /**
- * @class WpBuildCompilePlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildIstanbulPlugin extends WpBuildPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     */
+	constructor(options) { super(options); }
+
+
+    /**
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -40,7 +46,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
                 hook: "compilation",
                 stage: "ADDITIONS",
                 statsProperty: "istanbul",
-                statsPropertyColor: "yellow",
                 callback: this.istanbulTags.bind(this)
             }
         });
@@ -48,7 +53,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {WebpackCompilationAssets} assets
      */
@@ -66,7 +70,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {string} file
      * @param {WebpackSource} sourceInfo
@@ -84,7 +87,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
 
 
     // /**
-    //  * @function
     //  * @param {WebpackSource} sourceInfo
     //  * @param {WebpackCompiler} compiler
     //  */
@@ -115,7 +117,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
     //
     //
     // /**
-    //  * @function istanbul
     //  * @param {WpBuildApp} app
     //  * @returns {WebpackPluginInstance | undefined}
     //  */
@@ -194,7 +195,6 @@ class WpBuildIstanbulPlugin extends WpBuildPlugin
 }
 
 /**
- * @function compile
  * @param {WpBuildApp} app
  * @returns {WpBuildIstanbulPlugin | undefined}
  */

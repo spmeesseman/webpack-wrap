@@ -6,6 +6,7 @@
  * @file plugin/analyze.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -22,7 +23,7 @@ const VisualizerPlugin = require("webpack-visualizer-plugin2");
 const visualizer = (app) =>
 {
 	let plugin;
-	if (app.rc.args.analyze && app.build.options.analyze) {
+	if (app.cmdLine.analyze && app.build.options.analyze) {
 		plugin = new VisualizerPlugin({ filename: "../.coverage/visualizer.html" });
 	}
 	// @ts-ignore

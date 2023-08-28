@@ -15,6 +15,15 @@ module.exports = {
         "**/test-fixture/**/*.js", "types/**", "*.json", "node_modules", "node_modules/**",
         "**/node_modules/**", "**/.eslint*", "dist/**", ".vscode-test/**", "**/webpack/**"
     ],
+    settings: {
+      jsdoc: {
+        mode: "typescript",
+        tagNamePreference: {
+            virtual: "virtual",
+            augments: "extends"
+        }
+      }
+    },
     overrides: [
     {
         files: [

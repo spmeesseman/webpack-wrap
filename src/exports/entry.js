@@ -4,6 +4,7 @@
  * @file plugin/entry.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
@@ -39,7 +40,7 @@ const builds =
 		});
 		if (app.build.debug)
 		{
-			/** @type {typedefs.WpBuildWebpackEntryObject} */
+			/** @type {typedefs.WpwWebpackEntryObject} */
 			(app.wpc.entry[app.build.name]).layer = "release";
 			apply(app.wpc.entry,
 			{
@@ -94,7 +95,7 @@ const builds =
 	 * @function
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.WpBuildWebpackEntry}
+	 * @returns {typedefs.WpwWebpackEntry}
 	 */
 	testRunner: (testsPathAbs) =>
 	{
@@ -117,7 +118,7 @@ const builds =
 	 * @function
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.WpBuildWebpackEntry}
+	 * @returns {typedefs.WpwWebpackEntry}
 	 */
 	testSuite: (testsPathAbs) =>
 	{
@@ -186,7 +187,7 @@ const builds =
 //  * @private
 //  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 //  * @param {string} file
-//  * @param {Partial<typedefs.EntryObject|typedefs.WpBuildWebpackEntry>} xOpts
+//  * @param {Partial<typedefs.EntryObject|typedefs.WpwWebpackEntry>} xOpts
 //  * @throws {WpBuildError}
 //  */
 // const addEntry = (app, file, xOpts) =>
@@ -208,7 +209,7 @@ const builds =
 //
 // 	if (app.build.debug)
 // 	{
-// 		/** @type {typedefs.WpBuildWebpackEntryObject} */
+// 		/** @type {typedefs.WpwWebpackEntryObject} */
 // 		(app.wpc.entry[chunkName]).layer = "release";
 // 		apply(app.wpc.entry,
 // 		{

@@ -5,15 +5,14 @@
  * @file plugin/clean.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
 const path = require("path");
+const { apply } = require("../utils");
 const WpBuildPlugin = require("./base");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { readdirSync, unlinkSync, existsSync } = require("fs");
-const { join } = require("path");
-const { apply } = require("../utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackStats} WebpackStats */
@@ -23,6 +22,9 @@ const { apply } = require("../utils");
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildCleanPlugin extends WpBuildPlugin
 {
     /**
@@ -36,7 +38,7 @@ class WpBuildCleanPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
      * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
@@ -55,7 +57,6 @@ class WpBuildCleanPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @param {WebpackStats} stats the compiler instance
      * @returns {void}
      */
@@ -77,7 +78,6 @@ class WpBuildCleanPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {WpBuildApp} app
 	 * @returns {WpBuildPluginVendorOptions[]}
@@ -112,7 +112,7 @@ class WpBuildCleanPlugin extends WpBuildPlugin
  * @param {WpBuildApp} app
  * @returns {(WpBuildCleanPlugin | CleanWebpackPlugin)[]}
  */
-const clean = (app) => app.args.clean && app.build.type !== "tests" ? new WpBuildCleanPlugin({ app }).getPlugins() : [];
+const clean = (app) => app.cmdLine.clean && app.build.type !== "tests" ? new WpBuildCleanPlugin({ app }).getPlugins() : [];
 
 
 module.exports = clean;

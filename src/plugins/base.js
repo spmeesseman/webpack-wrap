@@ -5,11 +5,12 @@
  * @file plugin/base.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
  *
- * When adding a new plugin, perform the following tasks:
+ * When adding a new extending plugin, perform the following tasks:
  *
  *     1. Add the plugin filename (w/o extnsion) to the `WpBuildPluginName` type near the
  *        top of the WpBuild types file
@@ -20,25 +21,30 @@
  *        file:///:\Projects\vscode-taskexplorer\webpack\utils\environment.js
  *
  *     3. Adjust the rc configuration files by adding the plugin filename (w/o/ extension)
- *        as a key of the `plugins` object in both this project's rc file and the schema json.
- *        file:///c:\Projects\vscode-taskexplorer\webpack\.wpbuildrc.json
- *        file:///c:\Projects\vscode-taskexplorer\webpack\types\.wpbuildrc.schema.json
+ *        as a key of the `plugins` object in both the schema json file and the defaults file
+ *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.schema.json
+ *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.defaults.json
  *
- *     4. Add a module reference to plugin directory index file and add to it's module.exports
+ *     4. Run the `generate-wpbuild-types` script / npm task to rebyuild rc.d.ts definition file
+ *        file:///c:\Projects\vscode-taskexplorer\webpack\.wpbuildrc.json
+ *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.schema.json
+ *
+ *     5. Add a module reference to plugin directory index file and add to it's module.exports
  *        file://c:\Projects\vscode-taskexplorer\webpack\plugin\index.js
  *
- *     5.  Add the module into the modulke in the webpack exports byt importing and placing it
+ *     6.  Add the module into the module in the webpack exports byt importing and placing it
  *         in an appropriate position in the configuraation plugin array.
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
-const events = require("events");
 const { readFile } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const { WebpackError } = require("webpack");
-const { isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar } = require("../utils");
-const { EventEmitter } = require("stream");
+const WpwPluginWaitManager = require("./wait");
+const {
+    isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar
+} = require("../utils");
 
 //
 // TODO: remove this typedef when all plugins have been converted to using typedefs definition file
@@ -47,14 +53,13 @@ const { EventEmitter } = require("stream");
 
 
 /**
- * @class WpBuildHashPlugin
  * @abstract
+ * @implements {typedefs.IWpBuildPlugin}
  */
 class WpBuildPlugin
 {
     /**
      * @type {typedefs.WpBuildApp}
-     * @protected
      */
     app;
     /**
@@ -63,16 +68,14 @@ class WpBuildPlugin
     cache;
     /**
      * @type {typedefs.WebpackCompilation}
-     * @protected
      */
     compilation;
     /**
      * @type {typedefs.WebpackCompiler} compiler
-     * @protected
      */
     compiler;
     /**
-     * @abstract
+     * @virtual
      * @type {(...args: any[]) => typedefs.WebpackPluginInstance}
      */
     getVendorPlugin;
@@ -91,7 +94,6 @@ class WpBuildPlugin
      */
     hashDigestLength;
     /**
-     * @protected
      * @type {typedefs.WpBuildConsoleLogger}
      */
     logger;
@@ -103,6 +105,11 @@ class WpBuildPlugin
      * @protected
      */
     options;
+    /**
+     * @private
+     * @type {typedefs.WpwBuildOptionsPluginKey | string}
+     */
+    pluginKey;
     /**
      * @private
      * @type {typedefs.WebpackPluginInstance[]}
@@ -130,9 +137,13 @@ class WpBuildPlugin
      */
     wpLogger;
 
+    /**
+     * @private
+     */
+    static eventManager = new WpwPluginWaitManager();
+
 
     /**
-     * @class WpBuildPlugin
      * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
@@ -142,10 +153,11 @@ class WpBuildPlugin
         this.logger = this.app.logger;
         this.wpConfig = options.app.wpc;
         this.name = this.constructor.name;
+        this.pluginKey = options.pluginKey || this.baseName.toLowerCase();
         this.options = /** @type {typedefs.WpBuildPluginOptionsRequired} */(mergeIf(options, { plugins: [] }));
         this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
-        this.cache = new WpBuildCache(this.app, `plugincache_${this.app.mode}_${this.name.replace(/WpBuild|Plugin/g, "")}.json`);
+        this.cache = new WpBuildCache(this.app, `plugincache_${this.app.mode}_${this.baseName}.json`);
         if (!this.options.wrapPlugin)
         {
             if (options.registerVendorPluginsOnly) {
@@ -164,12 +176,13 @@ class WpBuildPlugin
     }
 
 
+    get baseName() { return this.name.replace(/^Wpw|^WpBuild|Plugin$|/g, ""); }
+
+
     /**
      * Called by webpack runtime to initialize this plugin.  To be overridden by inheriting class.
-     * @function
-     * @public
      * @abstract
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler
      */
     apply(compiler) { this.compiler = compiler; }
 
@@ -186,7 +199,6 @@ class WpBuildPlugin
                           .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
 
     /**
-     * @function
      * @protected
      * @async
      * @param {string} filePath
@@ -266,7 +278,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @protected
      * @async
      * @param {string} filePath
@@ -325,19 +336,6 @@ class WpBuildPlugin
 	};
 
 
-    /**
-     * @static
-     */
-    static eventInfo = {
-        /** @type {events.EventEmitter} */
-        onPluginEvent: new EventEmitter(),
-        /** @type {typedefs.WpwBuildOptionsPluginsKey[]} */
-        done: [],
-        /** @type {typedefs.WpwBuildOptionsPluginsKey[]} */
-        waiting: []
-    };
-
-
 	/**
 	 * @function Executes a command via a promisified node exec()
 	 * @param {string} command
@@ -393,10 +391,9 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @public
      * @static
-     * @param {typedefs.WpBuildWebpackConfig} wpConfig Webpack config object
+     * @param {typedefs.WpwWebpackConfig} wpConfig Webpack config object
      * @param {boolean} [dbg]
      * @param {boolean} [ext]
      * @param {boolean} [hash]
@@ -413,7 +410,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @public
      * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpBuildPlugin>)[]}
      */
@@ -421,41 +417,51 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
-	 * @param {Error | WebpackError | string} e
+	 * @param {WpBuildError | WebpackError | Error | string} e
 	 * @param {string | undefined | null | false | 0} [msgOrFile]
-	 * @param {string | undefined} [fileOrDetails]
-	 * @param {string | undefined} [details]
+	 * @param {string} [fileOrDetails]
+	 * @param {string} [details]
+	 * @throws {WpBuildError}
 	 */
 	handleError(e, msgOrFile, fileOrDetails, details)
 	{
+        /** @type {WpBuildError | WebpackError | Error} */
+        let err;
         if (isString(e))
         {
-            e = msgOrFile ? new WpBuildError(e, msgOrFile, fileOrDetails) : new WebpackError(e);
+            err = msgOrFile ? new WpBuildError(e, msgOrFile, fileOrDetails) : new WebpackError(e);
         }
         else if (!(e instanceof WebpackError) && !(e instanceof WpBuildError))
         {
             this.app.logger.error(msgOrFile ?? "an error has occurred");
             if (!fileOrDetails) {
-                e = new WebpackError(e.message);
+                err = new WebpackError(e.message);
             }
             else {
-                e = new WpBuildError(e.message, fileOrDetails, details);
+                err = new WpBuildError(e.message, fileOrDetails, details);
             }
         }
-        this.app.logger.error(e);
-        this.compilation.errors.push(/** @type {WebpackError} */(e));
+        else {
+            err = e;
+        }
+        this.app.logger.error(err);
+        if (this.compilation)
+        {
+            this.compilation.errors.push(/** @type {WebpackError} */(e));
+        }
+        else {
+            throw err;
+        }
 	}
 
 
     /**
-     * @function
      * @private
      */
     initGlobalCache()
     {
-        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.name.replace("WpBuild", "").replace("Plugin", ""));
+        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.baseName);
         if (!this.app.global[baseProp]) {
             this.app.global[baseProp] = {};
         }
@@ -467,7 +473,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {any} hook
      * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
@@ -476,7 +481,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @protected
      * @param {string} file
      * @returns {boolean}
@@ -485,7 +489,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {any} hook
      * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
@@ -495,10 +498,9 @@ class WpBuildPlugin
 
     /**
      * Called by extending class from apply()
-     * @function
      * @protected
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @param {typedefs.WpBuildPluginTapOptionsHash} [options]
+     * @param {typedefs.WebpackCompiler} compiler
+     * @param {typedefs.WpBuildPluginTapOptions} [options]
      * @throws {WebpackError}
      */
     onApply(compiler, options)
@@ -516,7 +518,10 @@ class WpBuildPlugin
                                        optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
             if (hasCompilationHook)
             {
-                this.tapCompilationHooks(optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation"));
+                const compilationHooks = /** @type {[string, typedefs.WpBuildPluginCompilationOptionsEntry][]} */(
+                    optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation")
+                );
+                this.tapCompilationHooks(compilationHooks);
             }
 
             for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
@@ -548,7 +553,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @protected
      * @param {typedefs.WebpackCompilation} compilation
      * @returns {boolean}
@@ -566,17 +570,15 @@ class WpBuildPlugin
      * Extending plugins need to call this function when it's specific tassks are done/complete.
      * Used in the {@link WpBuildPlugin.eventInfo wait} functionality
      *
-     * @function
      * @protected
      * @param {...any} args any plugin specific arguments
      */
-    onDone(...args) { WpBuildPlugin.eventInfo.onPluginEvent.emit(`${this.name}_done`, ...args); };
+    onDone(...args) { WpBuildPlugin.eventManager.onPluginDone(this.name, ...args); }
 
 
     /**
-     * @function
      * @private
-     * @param {[string, typedefs.WpBuildPluginTapOptions][]} optionsArray
+     * @param {[string, typedefs.WpBuildPluginCompilationOptionsEntry][]} optionsArray
      */
     tapCompilationHooks(optionsArray)
     {
@@ -602,17 +604,16 @@ class WpBuildPlugin
                     this.handleError(new WebpackError("Invalid hook parameters: stage not specified for processAssets"));
                     return;
                 }
-                this.tapCompilationStage(name, /** @type {typedefs.WpBuildPluginCompilationOptions} */(tapOpts));
+                this.tapCompilationStage(name, /** @type {typedefs.WpBuildPluginCompilationOptionsEntry} */(tapOpts));
             });
         });
     }
 
 
     /**
-     * @function
      * @protected
      * @param {string} optionName
-     * @param {typedefs.WpBuildPluginCompilationOptions} options
+     * @param {typedefs.WpBuildPluginCompilationOptionsEntry} options
      * @returns {void}
      * @throws {WebpackError}
      */
@@ -654,10 +655,9 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @protected
      * @param {string} name
-     * @param {typedefs.WpBuildPluginCompilationOptions} options
+     * @param {typedefs.WpBuildPluginTapOptionsEntry} options
      */
     tapStatsPrinter(name, options)
     {
@@ -666,8 +666,10 @@ class WpBuildPlugin
         {
             this.compilation.hooks.statsPrinter.tap(name, (stats) =>
             {
-                const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) =>
-                      prop ? context[options.statsPropertyColor || "green"]?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
+                const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) => {
+                      const statsColor = context[this.app.build.log.color || "green"];
+                      return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
+                };
                 stats.hooks.print.for(`asset.info.${property}`).tap(name, printFn);
             });
         }
@@ -675,30 +677,25 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @private
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @param {typedefs.WpBuildPluginTapOptionsHash} options Plugin options to be applied
+     * @param {typedefs.WebpackCompiler} compiler
+     * @param {typedefs.WpBuildPluginTapOptions} options
      * @throws {WpBuildError}
      */
 	validateApplyOptions(compiler, options)
     {
         if (options)
         {
-            Object.values(options).forEach((o) =>
+            for (const o of Object.values(options))
             {
-                if (o.async && !this.isAsyncHook(compiler.hooks[o.hook]))
-                {
-                    throw new WebpackError(`Invalid hook parameters specified: ${o.hook} is not asynchronou`);
+                if (!o.hook) {
+                    this.handleError("Invalid hook parameters specified:hook name is undefined");
+                    return;
                 }
-            });
-            for (const o of Object.values(options).filter((tapOpts) => tapOpts.hook))
-            {
-                const hook = compiler.hooks[o.hook],
-                      isAsync = this.isAsyncHook(hook);
-                if (o.async && !isAsync)
+                const hookIsAsync = !this.isAsyncHook(compiler.hooks[o.hook]);
+                if (o.async && !hookIsAsync)
                 {
-                    this.handleError(new WebpackError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`));
+                    this.handleError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
                     return;
                 }
             }
@@ -707,7 +704,6 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
      * @throws {WpBuildError}
@@ -749,10 +745,9 @@ class WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {string} message If camel-cased, will be formatted with {@link WpBuildPlugin.breakProp breakProp()}
-     * @param {typedefs.WpBuildPluginTapOptions} options
+     * @param {typedefs.WpBuildPluginTapOptionsEntry} options
      * @returns {typedefs.WpBuildCallback}
      */
     wrapCallback(message, options)
@@ -761,21 +756,21 @@ class WpBuildPlugin
         const logger = this.logger,
               callback = options.callback,
               logMsg = this.breakProp(message),
-              eInfo = WpBuildPlugin.eventInfo,
+              eMgr= WpBuildPlugin.eventManager,
               wait = this.app.build.options.wait;
 
         if (!options.async) {
-            cb = (arg) => {
+            cb = (/** @type {any} */arg) => {
                 logger.start(logMsg, 1);
                 callback(arg);
-                eInfo.onPluginEvent.emit(`${this.name}_start`, options.hook);
+                eMgr.emit(`${this.name}_start`, options.hook);
             };
         }
         else {
-            cb = async (arg) => {
+            cb = async (/** @type {any} */arg) => {
                 logger.start(logMsg, 1);
                 await callback(arg);
-                eInfo.onPluginEvent.emit(`${this.name}_start`, options.hook);
+                eMgr.emit(`${this.name}_start`, options.hook);
             };
         }
         if (wait)
@@ -784,7 +779,13 @@ class WpBuildPlugin
             {
                 const delayedCb = cb;
                 cb = () => {
-                    eInfo.onPluginEvent.once(`${waitPlugin}_done`, () => delayedCb.call(this, message, options));
+                    eMgr.register({
+                        type: "event",
+                        source: this.name,
+                        target: waitPlugin,
+                        name: `${waitPlugin}_done`,
+                        callback: () => delayedCb.call(this, message, options)
+                    });
                 };
             }, this);
         }

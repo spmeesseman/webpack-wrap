@@ -9,6 +9,7 @@
  * TODO - Make it not project specific somehow
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -22,17 +23,17 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildSourceMapPlugin extends WpBuildPlugin
 {
 	/**
-	 * @class WpBuildCopyPlugin
 	 * @param {WpBuildPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
@@ -42,9 +43,8 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -65,7 +65,6 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {WebpackCompilationAssets} assets
      */
@@ -113,7 +112,6 @@ class WpBuildSourceMapPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {WpBuildApp} app
 	 * @returns {WpBuildPluginVendorOptions[]}

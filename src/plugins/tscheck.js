@@ -2,13 +2,13 @@
 // @ts-check
 
 /**
- * @file plugin/tsforker.js
+ * @file plugin/tscheck.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
-const { apply } = require("../utils");
 const WpBuildPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
@@ -16,14 +16,16 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
 
+
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildTsForkerPlugin extends WpBuildPlugin
 {
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -49,7 +51,6 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @override
 	 * @returns {typedefs.WebpackPluginInstance}
 	 */
@@ -96,14 +97,12 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 */
 	tsForkCheckerError = () => { this.logger.error("tschecker error"); }
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {TsCheckIssue[]} issues
 	 * @returns {TsCheckIssue[]}
@@ -116,7 +115,6 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {TsCheckFilesChange} filesChange
 	 * @param {typedefs.WebpackCompilation} compilation
@@ -142,7 +140,6 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 */
 	tsForkCheckerWaiting = () => { this.logger.start("tsforkchecker waiting for issues"); }
@@ -151,8 +148,6 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 
 
 /**
- * @function
- * @module
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsForkerPlugin | undefined}
  */

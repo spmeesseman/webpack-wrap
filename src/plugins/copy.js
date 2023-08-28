@@ -5,6 +5,7 @@
  * @file plugin/copy.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  */
 
@@ -18,15 +19,16 @@ const { isString, apply, WpBuildError } = require("../utils/utils");
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
-/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
+/**
+ * @extends WpBuildPlugin
+ */
 class WpBuildCopyPlugin extends WpBuildPlugin
 {
 	/**
-	 * @class WpBuildCopyPlugin
 	 * @param {WpBuildPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
@@ -36,10 +38,9 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
+     * Called by webpack runtime to initialize this plugin
      * @override
      * @param {WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
     apply(compiler)
     {
@@ -66,7 +67,6 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @async
 	 * @param {WebpackCompilationAssets} assets
@@ -133,7 +133,6 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
      * @param {WebpackCompilationAssets} assets
      */
@@ -170,7 +169,6 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @private
 	 * @param {string[]} apps
 	 * @param {WpBuildApp} app
@@ -212,67 +210,52 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 					plugins.push(({ ctor: CopyPlugin, options: { patterns }}));
 				}
 			}
-			else if (app.isMain && app.wpc.mode === "production" && app.rc.publicInfoProject)
+			else if (app.isMain && app.wpc.mode === "production")
 			{   //
 				// Copy resources to public info` sub-project during compilation
 				//
-				let psxDirInfoProj;
-				if (isString(app.rc.publicInfoProject))
+				const infoProjectPath = join(psxBuildPath, "..", `${app.pkgJson.scopedName.name}-info`);
+				if (existsSync(infoProjectPath))
 				{
-					const infoPath = /** @type {string} */(app.rc.publicInfoProject);
-					if (isAbsolute(infoPath)) {
-						psxDirInfoProj = infoPath;
-					}
-					else {
-						psxDirInfoProj = posix.resolve(posix.join(psxBuildPath, infoPath));
-					}
+					const psxDirInfoProj = posix.normalize(infoProjectPath);
+					plugins.push({
+						ctor: CopyPlugin,
+						options:
+						{
+							patterns: [
+							{
+								from: posix.join(psxBasePath, "res", "img", "**"),
+								to: posix.join(psxDirInfoProj, "res"),
+								context: psxBaseCtxPath
+							},
+							{
+								from: posix.join(psxBasePath, "res", "readme", "*.png"),
+								to: posix.join(psxDirInfoProj, "res"),
+								context: psxBaseCtxPath
+							},
+							{
+								from: posix.join(psxBasePath, "doc", ".todo"),
+								to: posix.join(psxDirInfoProj, "doc"),
+								context: psxBaseCtxPath
+							},
+							{
+								from: posix.join(psxBasePath, "res", "walkthrough", "welcome", "*.md"),
+								to: posix.join(psxDirInfoProj, "doc"),
+								context: psxBaseCtxPath
+							},
+							{
+								from: posix.join(psxBasePath, "*.md"),
+								to: posix.join(psxDirInfoProj),
+								context: psxBaseCtxPath
+							},
+							{
+								from: posix.join(psxBasePath, "LICENSE*"),
+								to: posix.join(psxDirInfoProj),
+								context: psxBaseCtxPath
+							}]
+						}
+					});
 				}
-				else /* app.rc.publicInfoProject === true */ {
-					psxDirInfoProj = posix.resolve(posix.join(psxBuildPath, "..", `${app.rc.name}-info`));
-				}
-				if (!existsSync(normalize(psxBasePath))) {
-					throw WpBuildError.get("info projec directory", "plugin.copy.js", app.wpc);
-				}
-				else if (!existsSync(normalize(psxDirInfoProj))) {
-					throw WpBuildError.get("info projec directory", "plugin.copy.js", app.wpc);
-				}
-				plugins.push({
-					ctor: CopyPlugin,
-					options:
-					{
-						patterns: [
-						{
-							from: posix.join(psxBasePath, "res", "img", "**"),
-							to: posix.join(psxDirInfoProj, "res"),
-							context: psxBaseCtxPath
-						},
-						{
-							from: posix.join(psxBasePath, "res", "readme", "*.png"),
-							to: posix.join(psxDirInfoProj, "res"),
-							context: psxBaseCtxPath
-						},
-						{
-							from: posix.join(psxBasePath, "doc", ".todo"),
-							to: posix.join(psxDirInfoProj, "doc"),
-							context: psxBaseCtxPath
-						},
-						{
-							from: posix.join(psxBasePath, "res", "walkthrough", "welcome", "*.md"),
-							to: posix.join(psxDirInfoProj, "doc"),
-							context: psxBaseCtxPath
-						},
-						{
-							from: posix.join(psxBasePath, "*.md"),
-							to: posix.join(psxDirInfoProj),
-							context: psxBaseCtxPath
-						},
-						{
-							from: posix.join(psxBasePath, "LICENSE*"),
-							to: posix.join(psxDirInfoProj),
-							context: psxBaseCtxPath
-						}]
-					}
-				});
 			}
 		}
 
@@ -283,7 +266,6 @@ class WpBuildCopyPlugin extends WpBuildPlugin
 
 
 /**
- * @function
  * @param {string[]} apps
  * @param {WpBuildApp} app
  * @returns {(CopyPlugin | WpBuildCopyPlugin)[]}

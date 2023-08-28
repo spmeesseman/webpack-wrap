@@ -5,6 +5,7 @@
  * @file plugin/runtimevars.js
  * @version 0.0.1
  * @license MIT
+ * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
  * @description
@@ -49,12 +50,11 @@ const { isString, apply, isObjectEmpty, merge, WpBuildError } = require("../util
 
 
 /**
- * @class WpBuildRuntimeVarsPlugin
+ * @extends WpBuildPlugin
  */
 class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 {
     /**
-     * @class WpBuildRuntimeVarsPlugin
      * @param {WpBuildPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
@@ -64,10 +64,8 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
-     * @public
+     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
      * @param {WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
@@ -94,9 +92,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
-     * @member info
      * @param {WebpackAssetInfo} info
      * @returns {WebpackAssetInfo}
      */
@@ -104,9 +100,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
-     * @member logAssetInfo
      * @param {boolean} [rotated] `true` indicates that values were read and rotated
      * i.e. `next` values were moved to `current`, and `next` is now blank
      */
@@ -150,9 +144,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Collects content hashes from compiled assets
-     * @private
-     * @member preprocess
+     * Collects content hashes from compiled assets
      * @param {WebpackCompilationAssets} assets
      */
     preprocess = (assets) =>
@@ -189,9 +181,8 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Reads stored / cached content hashes from file
+     * Reads stored / cached content hashes from file
      * @private
-     * @member readAssetState
      */
     readAssetState()
     {
@@ -207,9 +198,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
-     * @member runtimeVars
      * @param {WebpackCompilationAssets} assets
      */
     runtimeVars(assets)
@@ -237,7 +226,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Writes / caches asset content hashes to file
+     * Writes / caches asset content hashes to file
      * @private
      * @member saveAssetState
      */
@@ -250,9 +239,8 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Performs all source code modifications
+     * Performs all source code modifications
      * @private
-     * @member source
      * @param {string} file
      * @param {WebpackSource} sourceInfo
      * @returns {WebpackSource}
@@ -266,9 +254,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function
      * @private
-     * @member sourceObj
      * @param {string} file
      * @param {string | Buffer} content
      * @param {WebpackSource} sourceInfo
@@ -284,9 +270,8 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 
     /**
-     * @function Performs source code modifications for \_\_WPBUILD\_\_[contentHash]
+     * Performs source code modifications for \_\_WPBUILD\_\_[contentHash]
      * @private
-     * @member sourceUpdateHashVars
      * @param {string} sourceCode
      * @returns {string}
      */
@@ -307,8 +292,6 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
  * Returns a `WpBuildRuntimeVarsPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.runtimevars`
  * property to a boolean value of  `true` or `false`
- * @function
- * @module
  * @param {WpBuildApp} app
  * @returns {WpBuildRuntimeVarsPlugin | undefined}
  */

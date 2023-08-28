@@ -5,7 +5,7 @@
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { isString, isObject, isPrimitive, merge } = require("./utils");
-const { isWpBuildLogColor, WpBuildLogTrueColors } = require("../types/constants");
+const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
 
 
 /**
@@ -18,12 +18,12 @@ class WpBuildConsoleLogger
      * The build environment that owns the `WpBuildConsoleLogger` instance
      *
      * @private
-     * @type {typedefs.WpBuildRcLog}
+     * @type {typedefs.WpwLog}
      */
     options;
     /**
      * @private
-     * @type {import("../types/typedefs").WpBuildLogColorMapping}
+     * @type {import("../types/typedefs").WpwLogColorMapping}
      */
     defaultColor;
     /**
@@ -40,7 +40,7 @@ class WpBuildConsoleLogger
 
     /**
      * @class WpBuildConsoleLogger
-     * @param {Partial<typedefs.WpBuildRcLog>} options
+     * @param {Partial<typedefs.WpwLog>} options
      */
     constructor(options)
     {
@@ -73,7 +73,7 @@ class WpBuildConsoleLogger
     /**
      * @function
      * @private
-     * @param {Partial<typedefs.WpBuildRcLog>} options
+     * @param {Partial<typedefs.WpwLog>} options
      */
     applyOptions = (options) =>
     {
@@ -113,7 +113,7 @@ class WpBuildConsoleLogger
     /**
      * @member
      * @private
-     * @type {Record<typedefs.WpBuildLogColor, typedefs.WpBuildLogColorValue>}
+     * @type {Record<typedefs.WpwLogColor, typedefs.WpwLogColorValue>}
      */
     colorMap = {
         blue: 34,
@@ -133,7 +133,7 @@ class WpBuildConsoleLogger
     };
 
 
-    /** @type {Record<typedefs.WpBuildLogColor, typedefs.WpBuildLogColorMapping>} */
+    /** @type {Record<typedefs.WpwLogColor, typedefs.WpwLogColorMapping>} */
     colors = {
         black: [ this.colorMap.black, this.colorMap.system ],
         blue: [ this.colorMap.blue, this.colorMap.system ],
@@ -155,7 +155,7 @@ class WpBuildConsoleLogger
     /**
      * @function
      * @static
-     * @returns {typedefs.WpBuildRcLog}
+     * @returns {typedefs.WpwLog}
      */
     static defaultOptions = () => ({ level: 2, valueMaxLineLength: 100, colors: { default: "grey" }, pad: { value: 40, base: 0 }});
 
@@ -226,20 +226,20 @@ class WpBuildConsoleLogger
      * @function
      * @private
      * @param {string | undefined | null | 0 | false} icon
-     * @returns {typedefs.WpBuildLogColorMapping}
+     * @returns {typedefs.WpwLogColorMapping}
      */
     getIconcolorMapping = (icon) =>
     {
         if (icon)
         {
-            const clr = Object.entries(this.icons.color).find(c => isWpBuildLogColor(c[0]) && icon.includes(c[1]));
+            const clr = Object.entries(this.icons.color).find(c => isWpwLogColor(c[0]) && icon.includes(c[1]));
             if (clr) {
                 return this.colors[clr[0]];
             }
             const icons = Object.values(this.icons).filter(i => isString(i));
             for (const i of /** @type {string[]} */(icons))
             {
-                for (const c of WpBuildLogTrueColors)
+                for (const c of WpwLogTrueColors)
                 {
                     if (icon.includes(this.withColor(i, this.colors[c]))) {
                         return this.colors[c];
@@ -353,9 +353,9 @@ class WpBuildConsoleLogger
               v = ("".padStart(vPadStart) + version + "".padEnd(vPadEnd)).slice(0, 11),
               n = "".padEnd(29 - (name.length / 2)) + name;
        return `           ___ ___ _/\\ ___  __ _/^\\_ __  _ __  __________________   ____/^\\.  __//\\.____ __   ____  _____
-          (   ) _ \\|  \\/  |/  _^ || '_ \\| '_ \\(  ______________  ) /  _^ | | / //\\ /  __\\:(  // __\\// ___)
-          \\ (| |_) | |\\/| (  (_| || |_) ) |_) )\\ \\          /\\/ / (  (_| | ^- //_| | ___/\\\\ // ___/| //
-        ___)  ) __/|_|  | ^/\\__\\__| /__/| /__/__) ) Version \\  / /^\\__\\__| |\\ \\--._/\\____ \\\\/\\\\___ |_|
+          (   ) _ \\|  \\/  |/  _^ || '_ \\| '_ \\(  ______________  ) /  _^ | | / //\\ /  __\\:(  /  __\\// ___)
+          \\ (| |_) | |\\/| (  (_| || |_) ) |_) )\\ \\          /\\/ / (  (_| | ^- //_| |  __/\\ \\/|/ __/| //
+        ___)  ) __/|_|  | ^/\\__\\__| /__/| /__/__) ) Version \\  / /^\\__\\__| |\\ \\--._/\\_\\__ \\  /\\_\\__|_|
        (_____/|_|       | /       |_|   |_| (____/${v}\\/ /        |/  \\:(           \\/
                         |/${n}`;
     };
@@ -389,8 +389,8 @@ class WpBuildConsoleLogger
     /**
      * @function
      * @param {string | undefined} tagMsg
-     * @param {typedefs.WpBuildLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
-     * @param {typedefs.WpBuildLogColorMapping | undefined | null} [msgColor] msg color value
+     * @param {typedefs.WpwLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
+     * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
      * @returns {string}
      */
     tag = (tagMsg, bracketColor, msgColor) =>
@@ -412,7 +412,7 @@ class WpBuildConsoleLogger
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad] Message pre-padding
      * @param {string | undefined | null | 0 | false} [icon]
-     * @param {typedefs.WpBuildLogColorMapping | null} [color]
+     * @param {typedefs.WpwLogColorMapping | null} [color]
      */
     value = (msg, val, level, pad, icon, color) =>
     {
@@ -509,8 +509,8 @@ class WpBuildConsoleLogger
      * @param {string} dsc
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad] Message pre-padding
-     * @param {typedefs.WpBuildLogColorMapping | null} [iconColor]
-     * @param {typedefs.WpBuildLogColorMapping | null} [msgColor]
+     * @param {typedefs.WpwLogColorMapping | null} [iconColor]
+     * @param {typedefs.WpwLogColorMapping | null} [msgColor]
      */
     valuestar = (msg, dsc, level, pad, iconColor, msgColor) =>
     {
@@ -541,7 +541,7 @@ class WpBuildConsoleLogger
     /**
      * @function
      * @param {string | undefined} msg
-     * @param {typedefs.WpBuildLogColorMapping} color color value
+     * @param {typedefs.WpwLogColorMapping} color color value
      * @param {boolean} [sticky]
      * @returns {string}
      */
@@ -551,7 +551,7 @@ class WpBuildConsoleLogger
     /**
      * @function
      * @private
-     * @param {typedefs.WpBuildLogColorMapping} color color value
+     * @param {typedefs.WpwLogColorMapping} color color value
      * @param {string} [msg] message to include in length calculation
      * @returns {number}
      */
@@ -564,7 +564,7 @@ class WpBuildConsoleLogger
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
-     * @param {typedefs.WpBuildLogColorMapping | null} [color]
+     * @param {typedefs.WpwLogColorMapping | null} [color]
      */
     write = (msg, level, pad = "", icon, color) =>
     {
@@ -591,8 +591,8 @@ class WpBuildConsoleLogger
      * @param {string | undefined} tagMsg
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad]
-     * @param {typedefs.WpBuildLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
-     * @param {typedefs.WpBuildLogColorMapping | undefined | null} [msgColor] msg color value
+     * @param {typedefs.WpwLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
+     * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
      * @param {string | undefined | null | 0 | false} [icon]
      */
     writeMsgTag = (msg, tagMsg, level, pad, bracketColor, msgColor, icon) =>
