@@ -223,8 +223,8 @@ class WpBuildRc
 
         if (rc.hasTypes)// Some build require types to be built, auto-add the types build if defined, and
         {               // a dependency of the single build
-            const typesBuild = rc.getBuild("types");
-            const thisBuild = arge.build ? rc.getBuild(arge.build) : null;
+            const typesBuild = rc.getBuild("types"),
+                  thisBuild = arge.build ? rc.getBuild(arge.build) : null;
             if (typesBuild && arge.build !== typesBuild.name && (!thisBuild || !existsSync(typesBuild.paths.dist)))
             {
                 if (!thisBuild || asArray(thisBuild?.options.wait).find(t => t.target === "types")) {

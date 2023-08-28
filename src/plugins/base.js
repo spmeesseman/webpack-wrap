@@ -717,8 +717,7 @@ class WpBuildPlugin
                     this.handleError("Invalid hook parameters specified:hook name is undefined");
                     return;
                 }
-                const hookIsAsync = !this.isAsyncHook(compiler.hooks[o.hook]);
-                if (o.async && !hookIsAsync)
+                if (o.async && !this.isAsyncHook(compiler.hooks[o.hook]))
                 {
                     this.handleError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
                     return;
