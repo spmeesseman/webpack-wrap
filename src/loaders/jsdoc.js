@@ -2,6 +2,7 @@
 
 const { posix } = require("path");
 const jsdoc = require("jsdoc-api");
+const capcon = require("capture-console");
 const { readFile } = require("fs/promises");
 const loaderUtils = require("loader-utils");
 const { validate } = require("schema-utils");
@@ -49,6 +50,11 @@ async function jsdocLoader(source, map, meta)
 
         validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
 
+console.log("********************* options **************************************************");
+console.log(options);
+console.log("********************* source **************************************************");
+console.log(source);
+
         const traceMethod = (obj) =>
         {
             return new Proxy(obj,
@@ -58,7 +64,7 @@ async function jsdocLoader(source, map, meta)
                     const originMethod = target[methodName];
                     return (...args) =>
                     {
-                        data += args.join("");
+                        data += args[0];
                         return originMethod.apply(this, args);
                     };
                 }
@@ -69,12 +75,15 @@ async function jsdocLoader(source, map, meta)
               resourcePathRel = posix.normalize(relativePath(options.outDir, resourcePath));
 
         logger.value("process input file @ ", resourcePathRel, 3);
+        logger.write("   full path @ " + resourcePath, 3);
 
         const jsdocOptions = {
             source,
             destination: "console",
             ...pick(options, "debug", "private", "readme", "package", "configure", "verbose")
         };
+console.log("********************* jsdocOptions **************************************************");
+console.log(jsdocOptions);
 
         if (jsdocOptions.readme) {
             jsdocOptions.readme = posix.normalize(relativePath(options.outDir, jsdocOptions.readme));
@@ -89,55 +98,76 @@ async function jsdocLoader(source, map, meta)
         }
 
         data = "";
-        const origConsole = console;
+        logger.value("   jsdoc execution options", jsdocOptions, 5);
+
+        // const stderr = capcon.captureStderr(function scope() {
+        //
+        // });
+
+        // data = capcon.captureStdout(function scope() { jsdoc.renderSync(data); });
+
+        data = "";
+        // the first parameter here is the stream to capture, and the
+        // second argument is the function receiving the output
+
+
+        // const stdio = capcon.captureStdio(function scope() {
+        // });
+
+        // const origConsole = console;
         try {
-            console = traceMethod(console);
+            // logger.write("   tracing console for jsdoc output", 5);
+            // console = traceMethod(console);
+            logger.write("   execute jsdoc", 4);
+            capcon.startCapture(process.stdout, (stdout) => { data += stdout; });
             jsdoc.renderSync(jsdocOptions);
         }
         catch (e) {
             throw new WpBuildError("jsdoc loader failed: " + e.message, "loaders/jsdoc.js");
         }
         finally {
-            console = origConsole;
-        }
+            // console = origConsole;
+            capcon.stopCapture(process.stdout);
 
-        logger.value("   process jsdoc output", resourcePathRel, 3);
-        logger.write("   check compilation cache for snapshot", 4);
-        try {
-            persistedCache = this.cache.get();
-            cacheEntry = await this.wpCacheCompilation.getPromise(`${resourcePath}|${identifier}`, null);
         }
-        catch (e) {
-            throw new WpBuildError("jsdoc loader failed: " + e.message, "loaders/jsdoc.js");
-        }
+console.log("********************* data **************************************************");
+console.log(data);
+        // logger.write("   check compilation cache for snapshot", 4);
+        // try {
+        //     persistedCache = this.cache.get();
+        //     cacheEntry = await this.wpCacheCompilation.getPromise(`${resourcePath}|${identifier}`, null);
+        // }
+        // catch (e) {
+        //     throw new WpBuildError("jsdoc loader failed: " + e.message, "loaders/jsdoc.js");
+        // }
 
-        if (cacheEntry)
-        {
-            let isValidSnapshot;
-            logger.write("      check snapshot valid", 4);
-            try {
-                isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
-            }
-            catch (e) {
-                throw new WpBuildError("jsdoc loader failed" + e.message, "loaders/jsdoc.js", "checking snapshot");
-            }
-            if (isValidSnapshot)
-            {
-                logger.write("      snapshot is valid", 4);
-                ({ hash, source } = cacheEntry);
-                newHash = newHash || this.getContentHash(source);
-                if (newHash === hash)
-                {
-                    logger.write("      asset is unchanged since last snapshot", 4);
-                }
-                else {
-                    logger.write("      asset has changed since last snapshot", 4);
-                }
-            }
-            else {
-                logger.write("      snapshot is invalid", 4);
-            }
-        }
+        // if (cacheEntry)
+        // {
+        //     let isValidSnapshot;
+        //     logger.write("      check snapshot valid", 4);
+        //     try {
+        //         isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
+        //     }
+        //     catch (e) {
+        //         throw new WpBuildError("jsdoc loader failed" + e.message, "loaders/jsdoc.js", "checking snapshot");
+        //     }
+        //     if (isValidSnapshot)
+        //     {
+        //         logger.write("      snapshot is valid", 4);
+        //         ({ hash, source } = cacheEntry);
+        //         newHash = newHash || this.getContentHash(source);
+        //         if (newHash === hash)
+        //         {
+        //             logger.write("      asset is unchanged since last snapshot", 4);
+        //         }
+        //         else {
+        //             logger.write("      asset has changed since last snapshot", 4);
+        //         }
+        //     }
+        //     else {
+        //         logger.write("      snapshot is invalid", 4);
+        //     }
+        // }
 
         if (!source)
         {
@@ -167,16 +197,16 @@ async function jsdocLoader(source, map, meta)
         //     }
         }
 
-        newHash = newHash || this.getContentHash(data);
-        if (newHash === persistedCache[resourcePathRel])
-        {
-            logger.write("   asset is unchanged", 4);
-        }
-        else {
-            logger.write("   asset has changed, update hash in persistent cache", 4);
-            persistedCache[resourcePathRel] = newHash;
-            this.cache.set(persistedCache);
-        }
+        // newHash = newHash || this.getContentHash(data);
+        // if (newHash === persistedCache[resourcePathRel])
+        // {
+        //     logger.write("   asset is unchanged", 4);
+        // }
+        // else {
+        //     logger.write("   asset has changed, update hash in persistent cache", 4);
+        //     persistedCache[resourcePathRel] = newHash;
+        //     this.cache.set(persistedCache);
+        // }
 
         // const info = {
         //     // contenthash: newHash,
@@ -195,13 +225,13 @@ async function jsdocLoader(source, map, meta)
 
         // this.compilation.additionalChunkAssets.push(filePathRel);
 
-        const existingAsset = this.compilation.getAsset(resourcePathRel);
-        if (existingAsset)
-        {
-            logger.write("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            logger.write("!!!!!!!!!!!*********TEST********** upfate jsdoc asset !!!!!!!!!!!!!!!!!!!!!!!!!");
-            logger.write("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        }
+        // const existingAsset = this.compilation.getAsset(resourcePathRel);
+        // if (existingAsset)
+        // {
+        //     logger.write("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        //     logger.write("!!!!!!!!!!!*********TEST********** upfate jsdoc asset !!!!!!!!!!!!!!!!!!!!!!!!!");
+        //     logger.write("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // }
         // if (!existingAsset)
         // {
             logger.write("   emit jsdoc asset", 3);
@@ -224,7 +254,7 @@ async function jsdocLoader(source, map, meta)
         // }
 
         // return `export default ${JSON.stringify(results)}`;
-        return new RawSource(data);
+        return data; //  new RawSource(data);
 		// return [ new this.compiler.webpack.sources.RawSource(data), map, meta ];
 	})()
     .then((res) => callback(null, res), (err) => callback(err));
