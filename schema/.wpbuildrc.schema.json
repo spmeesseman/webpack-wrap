@@ -1417,33 +1417,63 @@
                 "scripts"
             ],
             "properties": {
+                "async": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "stage": {
+                    "$ref": "#/definitions/WebhookCompilationHookStage"
+                },
                 "mode": {
-                    "default": "synchronous",
+                    "default": "succession",
                     "oneOf": [{
                         "const": "parallel"
                     },
                     {
-                        "const": "synchronous"
+                        "const": "succession"
                     }]
                 },
                 "scripts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/WpwPluginConfigRunScriptsScriptConfig"
+                        "$ref": "#/definitions/WpwPluginConfigRunScriptsScriptDef"
+                    }
+                }
+            },
+            "dependencies": {
+                "mode": {
+                    "if": {
+                        "properties": {
+                            "mode": {
+                                "const": "parallel"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "async": {
+                                "const": true
+                            }
+                        }
                     }
                 }
             }
         },
-        "WpwPluginConfigRunScriptsScriptConfig": {
-            "$id": "#/WpwPluginConfigRunScriptsScriptConfig",
+        "WpwPluginConfigRunScriptsScriptDef": {
+            "$id": "#/WpwPluginConfigRunScriptsScriptDef",
             "type": "object",
             "additionalProperties": false,
             "required": [
                 "path"
             ],
             "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "type": {
-                    "default": "synchronous",
+                    "default": "node",
                     "oneOf": [{
                         "const": "bash"
                     },
@@ -1457,6 +1487,9 @@
                         "const": "node"
                     },
                     {
+                        "const": "node_module"
+                    },
+                    {
                         "const": "sh"
                     },
                     {
@@ -1465,14 +1498,6 @@
                 },
                 "path": {
                     "$ref": "#/definitions/FilePath"
-                },
-                "args": {
-                    "type": "array",
-                    "minItems": 1,
-                    "maxItems": 15,
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2293,7 +2318,7 @@
             }]
         },
         "WebpackConfigOverride": {
-            "$id": "WebpackConfigOverride",
+            "$id": "#/WebpackConfigOverride",
             "type": "object",
             "minProperties": 0,
             "additionalProperties": true,
@@ -2321,7 +2346,7 @@
             }]
         },
         "WebpackTarget":  {
-            "$id": "WebpackTarget",
+            "$id": "#/WebpackTarget",
             "oneOf": [{
                 "const": "node"
             },
@@ -2357,7 +2382,7 @@
             }]
         },
         "WebpackLibraryType": {
-            "$id": "WebpackLibraryType",
+            "$id": "#/WebpackLibraryType",
             "default": "commonjs2",
             "oneOf": [{
                 "const": "var"
@@ -2412,6 +2437,114 @@
             },
             {
                 "const": "system"
+            }]
+        },
+        "WebpackCompilationHook": {
+            "$id": "#/WebpackCompilationHook",
+            "oneOf": [{
+                "const": "buildModule"
+            },
+            {
+                "const": "rebuildModule"
+            },
+            {
+                "const": "afterSeal"
+            },
+            {
+                "const": "processAssets"
+            },
+            {
+                "const": "afterProcessAssets"
+            }]
+        },
+        "WebpackCompilerHook": {
+            "$id": "#/WebpackCompilerHook",
+            "oneOf": [{
+                "const": "initialize"
+            },
+            {
+                "const": "environment"
+            },
+            {
+                "const": "afterEnvironment"
+            },
+            {
+                "const": "run"
+            },
+            {
+                "const": "make"
+            },
+            {
+                "const": "afterPlugins"
+            },
+            {
+                "const": "beforeCompile"
+            },
+            {
+                "const": "compile"
+            },
+            {
+                "const": "afterCompile"
+            },
+            {
+                "const": "thisCompilation"
+            },
+            {
+                "const": "compilation"
+            },
+            {
+                "const": "emit"
+            },
+            {
+                "const": "done"
+            }]
+        },
+        "WebhookCompilationHookStage": {
+            "$id": "#/WebhookCompilationHookStage",
+            "oneOf": [{
+                "const": "additional"
+            },
+            {
+                "const": "pre_process"
+            },
+            {
+                "const": "derived"
+            },
+            {
+                "const": "additions"
+            },
+            {
+                "const": "optimize"
+            },
+            {
+                "const": "optimize_count"
+            },
+            {
+                "const": "optimize_compatibility"
+            },
+            {
+                "const": "optimize_size"
+            },
+            {
+                "const": "dev_tooling"
+            },
+            {
+                "const": "optimize_inline"
+            },
+            {
+                "const": "summarize"
+            },
+            {
+                "const": "optimize_hash"
+            },
+            {
+                "const": "optimize_transfer"
+            },
+            {
+                "const": "analyse"
+            },
+            {
+                "const": "report"
             }]
         }
     }

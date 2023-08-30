@@ -422,8 +422,8 @@ class WpBuildPlugin
 
 
     /**
-     * @private
-     * @param {any} hook
+     * @protected
+     * @param {string|any} hook
      * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
      */
     isAsyncHook = (hook) => isFunction(hook.tapPromise);

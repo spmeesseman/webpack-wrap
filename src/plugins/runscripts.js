@@ -11,7 +11,7 @@
 
 const WpBuildPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const { isFunction, execAsync, merge } = require("../utils");
+const { isFunction, execAsync, merge, pickNot, WpwPluginConfigRunScriptsProps, apply, capitalize } = require("../utils");
 const { execSync } = require("child_process");
 
 
@@ -33,36 +33,54 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
      */
     apply(compiler)
     {
-        const applyCfg = merge(/** @type {typedefs.WpBuildPluginTapOptions} */({}), {});
-        this.onApply(compiler,
+        const customTaps = /** @type {typedefs.WpBuildPluginTapOptions} */({});
+        const pluginOptions = pickNot(
+            /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts),
+            ...WpwPluginConfigRunScriptsProps
+        );
+
+        Object.entries(pluginOptions).forEach(([ stage, tapConfig ]) =>
         {
+            const tapKey = `runScripts${capitalize(stage)}`;
+            const customTap = customTaps[tapKey] = /** @type {typedefs.WpBuildPluginTapOptionsEntry} */({
+                async: tapConfig.async,
+                hook: stage,
+                callback: () => this.runScripts(stage)
+            });
+            if (customTap.stage && customTap.hook === "compilation") {
+                customTap.stage = /** @type {typedefs.WebpackCompilationHookStage} */(customTap.stage.toUpperCase());
+            }
+        });
+
+        this.onApply(compiler, Object.assign(customTaps,
+        /** @type {typedefs.WpBuildPluginTapOptions} */({
             runScriptsInitialize: {
                 hook: "initialize",
-                callback: () => this.runScriptsSync("initialize")
+                callback: () => this.runScripts("initialize")
             },
             runScriptsBeforeCompile: {
                 async: true,
                 hook: "compilation",
                 stage: "PRE_PROCESS",
-                callback: () => this.runScriptsAsync("beforeCompile")
+                callback: () => this.runScripts("beforeCompile")
             },
             runScriptsAfterCompile: {
                 async: true,
                 hook: "compilation",
                 stage: "REPORT",
-                callback: () => this.runScriptsAsync("afterCompile")
+                callback: () => this.runScripts("afterCompile")
             },
             runScriptsAfterDone: {
                 async: true,
                 hook: "done",
-                callback: () => this.runScriptsAsync("done")
+                callback: () => this.runScripts("done")
             }
-        });
+        })));
     }
 
 
     /**
-     * @param {typedefs.WpwPluginConfigRunScriptsScriptConfig} script
+     * @param {typedefs.WpwPluginConfigRunScriptsScriptDef} script
      * @returns {string}
      */
     buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
@@ -72,34 +90,30 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
      * @param {string} stage
 	 * @returns {Promise<void>}
      */
-    runScriptsAsync = async (stage) =>
+    runScripts = async (stage) =>
     {
         const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
         if (options[stage])
         {
-            if (options[stage].mode === "parallel")
+            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsHookConfig} */(options[stage]);
+            if (stageOptions.async)
             {
-                await Promise.all(
-                    options[stage].scripts.map(script => execAsync({ command: this.buildCommand(script) })));
-            }
-            else {
-                for (const script of options[stage].scripts) {
-                    await execAsync({ command: this.buildCommand(script) });
+                if (stageOptions.mode === "parallel")
+                {
+                    await Promise.all(
+                        stageOptions.scripts.map(script => execAsync({ command: this.buildCommand(script) }))
+                    );
+                }
+                else {
+                    for (const script of stageOptions.scripts) {
+                        await execAsync({ command: this.buildCommand(script) });
+                    }
                 }
             }
-        }
-    };
-
-
-    /**
-     * @param {string} stage
-     */
-    runScriptsSync = (stage) =>
-    {
-        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
-        if (options[stage])
-        {
-            for (const script of options[stage].scripts) { execSync(this.buildCommand(script)); }
+            else {
+                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsHookConfig} */(options[stage]);
+                for (const script of stageOptions.scripts) { execSync(this.buildCommand(script)); }
+            }
         }
     };
 

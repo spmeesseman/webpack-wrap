@@ -10,6 +10,7 @@
  */
 
 const { EOL } = require("os");
+const webpack = require("webpack");
 const { existsSync } = require("fs");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
@@ -23,7 +24,24 @@ const description = "Provides types macthing the .wpbuildrc.json configuration f
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const excludeTypedefs = [
-    "BooleanReadOnly"
+    "WpwBooleanReadOnly", "WpwBooleanDefaultFalse", "WpwBooleanDefaultTrue", "WpwBuildOptionsPluginKeyReadOnly"
+];
+
+const exclueConstants = [
+    "WpwBuildOptionsPluginKeyReadOnly"
+];
+
+/**
+ * Types that will have constant defs placed into constants.js, and object keys enumerated into separate type
+ */
+const fullTypes = [
+    "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
+    "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
+    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson"
+];
+
+const constantObjectKeyProperties = [
+    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts"
 ];
 
 /**
@@ -86,28 +104,21 @@ let logger;
 //
 // Command line runtime wrapper
 //
-const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
-                (/** @type {string[]} */ argv) => {
+const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */exe) =>
+                (/** @type {string[]} */argv) => {
                     exe(argv).catch(e => { try { (logger || console).error(e); } catch {} process.exit(1); });
                 };
 
 /**
- * @param {string} type
  * @returns {boolean}
  */
-const isBaseType = (type) => [
-        "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
-        "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
-        "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson"
-    ].includes(type);
+const isFullType = (/** @type {string} */type) => fullTypes.includes(type);
 
 
 /**
- * @param {string} hdr
- * @param {string} data
  * @returns {Promise<string>}
  */
-const parseTypesDts = async (hdr, data) =>
+const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
     logger.log("   parsing json2ts output");
 
@@ -131,7 +142,7 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
           .replace(/\nexport interface (.*?) /g, (v, m1) =>
           {
-                  if (isBaseType(m1))
+                  if (isFullType(m1))
                   {
                       return `\nexport declare type Type${m1} = `;
                   }
@@ -151,7 +162,7 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, (v, m1, m2) =>
           {
                   let src = v;
-                  if (isBaseType(m1))
+                  if (isFullType(m1))
                   {
                       src = `export declare type ${m1} ${m2}\n};\n` +
                             `export declare type ${m1}Key = keyof ${m1};\n` +
@@ -195,8 +206,12 @@ const parseTypesDts = async (hdr, data) =>
           .replace(/[\w] ;/g, (v) => v.replace(" ;", ";"))
           .replace(/;\n\s+;\n/g, ";\n\n")
           .replace(/\n\};?\n/g, "\n}\n")
-          .replace(/    (.*?)\?\: BooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
-          .replace("export declare type BooleanReadOnly = boolean;\n\n", "")
+          .replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
+          .replace(/    (.*?)\?\: WpwBuildOptionsPluginKeyReadOnly;/g, (v, m) => `    readonly ${m}?: WpwBuildOptionsPluginKey;`)
+          .replace(/    (.*?)\?\: WpwBooleanDefaultTrue;/g, (v, m) => `    ${m}?: boolean;`)
+          .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`)
+          .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
+          .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "")
           .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
           .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
@@ -215,11 +230,9 @@ const parseTypesDts = async (hdr, data) =>
 
 
 /**
- * @param {string} file
- * @param {string} previousContent
  * @returns {Promise<0|1>}
  */
-const promptForRestore = async (file, previousContent) =>
+const promptForRestore = async (/** @type {string} */file, /** @type {string} */previousContent) =>
 {
     const promptSchema = {
         properties: {
@@ -247,13 +260,9 @@ const promptForRestore = async (file, previousContent) =>
 
 
 /**
- * @param {string} property
- * @param {string} suffix
- * @param {string} values
- * @param {string} [valueType]
  * @returns {[ string, string ]}
  */
-const pushExport = (property, suffix, values, valueType) =>
+const pushExport = (/** @type {string} */property, /** @type {string} */suffix, /** @type {string} */values, /** @type {string} */valueType) =>
 {
     const suffix2 = suffix.substring(0, suffix.length - 1),
           pName1 = `${property}${suffix}`,
@@ -281,11 +290,7 @@ const pushExport = (property, suffix, values, valueType) =>
 };
 
 
-/**
- * @param {string} source
- * @param {string[]} properties
- */
-const pushTypedef = (source, ...properties) =>
+const pushTypedef = (/** @type {string} */source, /** @type {string[]} */...properties) =>
 {
     const incProps = properties.filter(
         (p) => !excludeTypedefs.includes(p) && typedefs.every(t => t[0] !== source || t[1] !== p)
@@ -297,45 +302,63 @@ const pushTypedef = (source, ...properties) =>
 };
 
 
-/**
- * @param {string} hdr
- * @param {string} data
- */
-const writeConstantsJs = async (hdr, data) =>
+const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
     logger.log("   create implementation constants from new types");
 
     let match;
     const rgx = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
-          rgx2 = new RegExp(`export declare type (WpwPackageJson|WpwRcPaths) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
+          rgx2 = new RegExp(`export declare type (${constantObjectKeyProperties.join("|")}) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
 
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
 
     while ((match = rgx.exec(data)) !== null)
     {
-        pushTypedef("rc", match[1]);
-        properties.push(match[1]);
-        if (match[2].includes("WpwLogTrueColor")) {
-            match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
+        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
+        {
+            pushTypedef("rc", match[1]);
+            properties.push(match[1]);
+            if (match[2].includes("WpwLogTrueColor")) {
+                match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
+            }
+            pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
         }
-        pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
     }
 
     while ((match = rgx2.exec(data)) !== null)
     {
-        pushTypedef("rc", match[1]);
-        const propFmt = match[1].replace("Type", ""),
-              valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
-                                      .replace(/(?:, ""|"", )/g, "");
-        pushTypedef("constants", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
+        {
+            pushTypedef("rc", match[1]);
+            const propFmt = match[1].replace("Type", ""),
+                  valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
+                                        .replace(/(?:, ""|"", )/g, "");
+            pushTypedef("constants", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+        }
     }
 
     const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
     while ((match = rgx3.exec(data)) !== null)
     {
-        pushTypedef("rc", match[1]);
+        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
+            pushTypedef("rc", match[1]);
+        }
     }
+/*
+    let hooks = Object.keys(webpack.Compiler["hooks"]).filter(h => !("tapPromise" in hooks[h]));
+    pushExport("WebpackCompilerSyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilerSyncHook)");
+    exported.push(...hooks);
 
+    hooks = Object.keys(webpack.Compiler["hooks"]).filter(h => "tapPromise" in hooks[h]);
+    pushExport("WebpackCompilerAsyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilerAsyncHook)");
+
+    hooks = Object.keys(webpack.Compilation["hooks"]).filter(h => !("tapPromise" in hooks[h]));
+    pushExport("WebpackCompilationSyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilationSyncHook)");
+    exported.push(...hooks);
+
+    hooks = Object.keys(webpack.Compilation["hooks"]).filter(h => "tapPromise" in hooks[h]);
+    pushExport("WebpackCompilationAsyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilationAsyncHook)");
+*/
     if (lines.length > 0)
     {
         const constantsFile = "constants.js",
