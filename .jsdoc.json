@@ -1,14 +1,23 @@
 {
     "plugins": [],
+    "mode": "typescript",
     "recurseDepth": 10,
+    "destination": "res/doc/api",
     "source": {
-        "includePattern": ".+\\.js(doc|x)?$",
-        "excludePattern": "(^|\\/|\\\\)_"
+        "includePattern": "src[\\\\\\/].+\\.(m|c)?js(doc|x)?$",
+        "excludePattern": "(^|\\/|\\\\|node_modules)_"
     },
     "sourceType": "module",
     "tags": {
         "allowUnknownTags": true,
-        "dictionaries": ["jsdoc","closure"]
+        "dictionaries": [
+            "jsdoc",
+            "closure"
+        ]
+    },
+    "tagNamePreference": {
+        "virtual": "virtual",
+        "augments": "extends"
     },
     "templates": {
         "cleverLinks": false,

@@ -2,9 +2,8 @@ node_modules
 dist
 types/lib
 .dccache
-res/docs
+res/doc
 src/types/build
 src/types/rc.d.ts
 src/types/constants.js
 src/types/types.d.ts
-example

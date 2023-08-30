@@ -47,7 +47,7 @@
             "options": {
                 "jsdoc": {
                     "type": "plugin",
-                    "destination": "dist/docs",
+                    "destination": "res/docs/api",
                     "title": "Webpack-Wrap Documentation"
                 }
             }
