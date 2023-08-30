@@ -36,8 +36,6 @@ const requiredProperties = [
     [ "default", "WpwLogColoring" ],
     [ "system", "WpwLogColoring" ],
     [ "level", "WpwLog" ],
-    [ "entry", "WpwBuild" ],
-    [ "alias", "WpwBuild" ],
     [ "source", "WpwBuild" ],
     [ "config", "WpwSourceCode" ],
     [ "log", "WpwBuild" ],

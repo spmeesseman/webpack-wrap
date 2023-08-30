@@ -64,7 +64,7 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 
 		const testsDir = join(this.app.getDistPath(), "test");
 
-		if (!this.app.source.options || !this.app.source.path)
+		if (!this.app.source.config.options || !this.app.source.config.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
 			this.handleError(new WebpackError(eMsg));
@@ -74,14 +74,14 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 			return;
 		}
 
-		this.app.logger.value("   using tsconfig file", this.app.source.path, 2);
+		this.app.logger.value("   using tsconfig file", this.app.source.config.path, 2);
 
-		if (!existsSync(testsDir) && this.app.source.dir)
+		if (!existsSync(testsDir) && this.app.source.config.dir)
 		{
 			this.app.logger.write("   checking for tsbuildinfo file path", 3);
-			let buildInfoFile = this.app.source.options.compilerOptions.tsBuildInfoFile || join(dirname(this.app.source.dir), "tsconfig.tsbuildinfo");
+			let buildInfoFile = this.app.source.config.options.compilerOptions.tsBuildInfoFile || join(dirname(this.app.source.config.dir), "tsconfig.tsbuildinfo");
 			if (!isAbsolute(buildInfoFile)) {
-				buildInfoFile = resolve(this.app.source.dir, buildInfoFile);
+				buildInfoFile = resolve(this.app.source.config.dir, buildInfoFile);
 			}
 			this.app.logger.value("   delete tsbuildinfo file", buildInfoFile, 3);
 			try {
@@ -89,8 +89,8 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 			} catch {}
 		}
 
-		const relTsConfigPath = relative(this.app.getBasePath(), this.app.source.path);
-		await this.execTsBuild(this.app.source, [ "-p", relTsConfigPath ], 2, testsDir);
+		const relTsConfigPath = relative(this.app.getBasePath(), this.app.source.config.path);
+		await this.execTsBuild(this.app.source.config, [ "-p", relTsConfigPath ], 2, testsDir);
 	}
 
 }

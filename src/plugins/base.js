@@ -55,91 +55,45 @@ const {
 /**
  * @abstract
  * @implements {typedefs.IWpBuildPlugin}
+ * @implements {typedefs.IDisposable}
  */
 class WpBuildPlugin
 {
-    /**
-     * @type {typedefs.WpBuildApp}
-     */
+    /** @type {typedefs.WpBuildApp} */
     app;
-    /**
-     * @protected
-     */
+    /** @protected */
     cache;
-    /**
-     * @type {typedefs.WebpackCompilation}
-     */
+    /** @type {typedefs.WebpackCompilation} */
     compilation;
-    /**
-     * @type {typedefs.WebpackCompiler} compiler
-     */
+    /** @type {typedefs.WebpackCompiler} compiler */
     compiler;
-    /**
-     * @virtual
-     * @type {(...args: any[]) => typedefs.WebpackPluginInstance}
-     */
+    /** @type {(...args: any[]) => typedefs.WebpackPluginInstance} @virtua */
     getVendorPlugin;
-    /**
-     * @type {Record<string, any>}
-     * @protected
-     */
+    /** @type {Record<string, any>} @protected  */
     global;
-    /**
-     * @type {string}
-     * @protected
-     */
+    /** @type {string}  @protected */
     globalBaseProperty;
-    /**
-     * @protected
-     */
+    /** @protected */
     hashDigestLength;
-    /**
-     * @type {typedefs.WpBuildConsoleLogger}
-     */
+    /** @type {typedefs.WpBuildConsoleLogger} */
     logger;
-    /**
-     * @protected
-     */
+    /**  @protected */
     name;
-    /**
-     * @protected
-     */
+    /** @protected */
     options;
-    /**
-     * @private
-     * @type {typedefs.WpwBuildOptionsPluginKey | string}
-     */
+    /** @type {typedefs.WpwBuildOptionsPluginKey | string} @private */
     pluginKey;
-    /**
-     * @private
-     * @type {typedefs.WebpackPluginInstance[]}
-     */
+    /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
-    /**
-     * Runtime compiler cache
-     * @protected
-     * @type {typedefs.WebpackCacheFacade}
-     */
+    /** @type {typedefs.WebpackCacheFacade} @protected */
     wpCache;
-    /**
-     * Runtime compilation cache
-     * @type {typedefs.WebpackCacheFacade}
-     * @protected
-     */
+    /** @type {typedefs.WebpackCacheFacade}  @protected */
     wpCacheCompilation;
-    /**
-     * @protected
-     */
+    /** @protected */
     wpConfig;
-    /**
-     * @type {typedefs.WebpackLogger}
-     * @protected
-     */
+    /** @type {typedefs.WebpackLogger} @protected */
     wpLogger;
-
-    /**
-     * @private
-     */
+    /**  @private  */
     static eventManager = new WpwPluginWaitManager();
 
 
@@ -173,6 +127,7 @@ class WpBuildPlugin
         else {
             this.plugins = [];
         }
+        this.app.disposables.push(this);
     }
 
 
@@ -188,19 +143,24 @@ class WpBuildPlugin
 
 
     /**
+     * To be overridden by inheriting class if disposing of resources is needed after build completes
+     * @abstract
+     */
+    dispose() {}
+
+
+    /**
      * Break property name into separate spaced words at each camel cased character
      * @function
      * @private
      * @param {string} prop
      * @returns {string}
      */
-    breakProp = (prop) => prop.replace(/_/g, "")
-                          .replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
-                          .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
+    breakProp = (prop) => prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
+                              .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
 
     /**
      * @protected
-     * @async
      * @param {string} filePath
      * @param {string} identifier
      * @param {string} outputDir Output directory of build
@@ -279,7 +239,6 @@ class WpBuildPlugin
 
     /**
      * @protected
-     * @async
      * @param {string} filePath
      * @param {string} identifier
      * @param {string} outputDir Output directory of build
@@ -302,9 +261,7 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
-	 * @async
 	 * @param {typedefs.WebpackSnapshot} snapshot
 	 * @returns {Promise<boolean | undefined>}
 	 */
@@ -318,9 +275,7 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
-	 * @async
 	 * @param {number} startTime
 	 * @param {string} dependency
 	 * @returns {Promise<typedefs.WebpackSnapshot | undefined | null>}
@@ -337,7 +292,7 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function Executes a command via a promisified node exec()
+	 * Executes a command via a promisified node exec()
 	 * @param {string} command
 	 * @param {string} program
 	 * @param {string | string[]} [ignoreOut]
@@ -349,7 +304,6 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
 	 * @param {string} file
 	 * @param {boolean} [rmvExt] Remove file extension
@@ -366,7 +320,6 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
 	 * @returns {RegExp}
 	 */
@@ -374,7 +327,6 @@ class WpBuildPlugin
 
 
 	/**
-	 * @function
 	 * @protected
 	 * @param {Buffer} source
 	 * @returns {string}
@@ -391,8 +343,6 @@ class WpBuildPlugin
 
 
     /**
-     * @public
-     * @static
      * @param {typedefs.WpwWebpackConfig} wpConfig Webpack config object
      * @param {boolean} [dbg]
      * @param {boolean} [ext]
@@ -410,7 +360,6 @@ class WpBuildPlugin
 
 
     /**
-     * @public
      * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpBuildPlugin>)[]}
      */
     getPlugins() { return this.plugins; }
@@ -489,7 +438,6 @@ class WpBuildPlugin
 
 
     /**
-     * @private
      * @param {any} hook
      * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
      */
@@ -497,7 +445,7 @@ class WpBuildPlugin
 
 
     /**
-     * Called by extending class from apply()
+     * Called by extending class on call to apply() from webpack runtime
      * @protected
      * @param {typedefs.WebpackCompiler} compiler
      * @param {typedefs.WpBuildPluginTapOptions} [options]
@@ -576,27 +524,31 @@ class WpBuildPlugin
     onDone(...args) { WpBuildPlugin.eventManager.onPluginDone(this.name, ...args); }
 
 
+    /**
+     * @protected
+     */
     printCompilationDependencies()
     {
-		this.logger.value("   # of build dependencies", this.compilation.buildDependencies.size, 2);
-		if (this.compilation.buildDependencies.size > 0 && this.logger.level >= 3) {
-			this.logger.write("   build dependencies:", 3);
-			this.compilation.buildDependencies.forEach(d => this.logger.write("      " + d, 3));
+        const l = this.logger;
+		l.value("   # of build dependencies", this.compilation.buildDependencies.size, 2);
+		if (this.compilation.buildDependencies.size > 0 && l.level >= 3) {
+			l.write("   build dependencies:", 3);
+			this.compilation.buildDependencies.forEach(d => l.write("      " + d, 3));
 		}
-		this.logger.value("   # of context dependencies", this.compilation.contextDependencies.size, 2);
-		if (this.compilation.contextDependencies.size > 0 && this.logger.level >= 3) {
-			this.logger.write("   context dependencies:", 3);
-			this.compilation.contextDependencies.forEach(d => this.logger.write("      " + d, 3));
+		l.value("   # of context dependencies", this.compilation.contextDependencies.size, 2);
+		if (this.compilation.contextDependencies.size > 0 && l.level >= 3) {
+			l.write("   context dependencies:", 3);
+			this.compilation.contextDependencies.forEach(d => l.write("      " + d, 3));
 		}
-		this.logger.value("   # of file dependencies", this.compilation.fileDependencies.size, 2);
-		if (this.compilation.fileDependencies.size > 0 && this.logger.level >= 3) {
-			this.logger.write("   file dependencies:", 3);
-			this.compilation.fileDependencies.forEach(d => this.logger.write("      " + d, 3));
+		l.value("   # of file dependencies", this.compilation.fileDependencies.size, 2);
+		if (this.compilation.fileDependencies.size > 0 && l.level >= 3) {
+			l.write("   file dependencies:", 3);
+			this.compilation.fileDependencies.forEach(d => l.write("      " + d, 3));
 		}
-		this.logger.value("   # of missing dependencies", this.compilation.missingDependencies.size, 2);
-		if (this.compilation.missingDependencies.size > 0 && this.logger.level >= 3) {
-			this.logger.write("   missing dependencies:", 3);
-			this.compilation.missingDependencies.forEach(d => this.logger.write("      " + d, 3));
+		l.value("   # of missing dependencies", this.compilation.missingDependencies.size, 2);
+		if (this.compilation.missingDependencies.size > 0 && l.level >= 3) {
+			l.write("   missing dependencies:", 3);
+			this.compilation.missingDependencies.forEach(d => l.write("      " + d, 3));
 		}
     }
 
@@ -748,9 +700,8 @@ class WpBuildPlugin
 
 
     /**
-     * Wraps a vendor plugin. vendor plugin instantiation is done via the constructor's call to
-     * the {@link WpBuildPlugin.getOptions getOptions()} override
-     *
+     * Wraps a vendor plugin to give it access to the WpBuildApp instance. vendor plugin instantiation
+     * is done via the constructor's call to  the {@link WpBuildPlugin.getOptions getOptions()} override
      * @template {WpBuildPlugin} T
      * @param {new(arg1: typedefs.WpBuildPluginOptions) => T} clsType the extended WpBuildPlugin class type
      * @param {typedefs.WpBuildApp} app current build wrapper
@@ -815,34 +766,6 @@ class WpBuildPlugin
         }
         return cb;
     }
-
-    // /**
-    //  * @template T
-    //  * @function
-    //  * @protected
-    //  * @member wrapTry
-    //  * @param {Function} fn
-    //  * @param {string} msg
-    //  * @param {...any} args
-    //  * @returns {PromiseLike<T> | T | Error}
-    //  */
-    // wrapTry = (fn, msg, ...args) =>
-    // {
-    //     this.app.logger.write(msg, 3);
-    //     try {
-    //         const r = fn.call(this, ...args);
-    //         if (isPromise(r)) {
-    //             return r.then((v) => v);
-    //         }
-    //         else {
-    //             return r;
-    //         }
-    //     }
-    //     catch (e) {
-    //         this.handleError(e, `Failed: ${msg}`);
-    //         return /** @type {Error} */(e);
-    //     }
-    // };
 }
 
 

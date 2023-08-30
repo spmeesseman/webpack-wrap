@@ -9,6 +9,8 @@
  * @author Scott Meesseman @spmeesseman
  */
 
+// const wpwPlugins = require("../plugins");
+const { createEntryObjFromDir /* , asArray, isFunction, isObject  */} = require("../utils");
 const {
 	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, optimization,
 	progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, wait, cssextract, htmlcsp,
@@ -21,17 +23,30 @@ const {
 
 
 /**
- * @function
- * @param {WpBuildApp} app Webpack build specific environment
+ * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  */
 const plugins = (app) =>
 {
+	// Object.keys(wpwPlugins).forEach((p) =>
+	// {
+	// 	if (isFunction(wpwPlugins[p])) {
+	// 		app.wpc.plugins.push(...asArray(wpwPlugins[p](app)));
+	// 	}
+	// 	else if (isObject(wpwPlugins[p]))
+	// 	{
+	// 		Object.keys(wpwPlugins[p]).forEach((p) =>
+	// 		{
+	// 			if (isFunction(wpwPlugins[p])) {
+	// 				app.wpc.plugins.push(...asArray(wpwPlugins[p](app)));
+	// 			}
+	// 		});
+	// 	}
+	// });
 	app.wpc.plugins.push(
 		loghooks(app),           // n/a - logs all compiler.hooks.* when they run
 		environment(app),        // compiler.hooks.environment
 		vendormod(app),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
 		progress(app),           // n/a - reports progress from webpack engine
-		// wait(app),               // compiler.run
 		...clean(app),           // compiler.hooks.emit, compiler.hooks.done
 		types(app),              // compiler.hooks.beforeCompile - build tests / test suite
 		testsuite(app),          // compiler.hooks.beforeCompile - build tests / test suite
@@ -40,10 +55,9 @@ const plugins = (app) =>
 		runtimevars(app),        // compiler.hooks.compilation
 		ignore(app),             // compiler.hooks.normalModuleFactory
 		tscheck(app),            // compiler.hooks.afterEnvironment, hooks.afterCompile
-		tsbundle(app),           // compiler.hooks.afterEnvironment, hooks.afterCompile
-		...webviewPlugins(app),  // webapp specific plugins
+		...webPlugins(app),      // webapp specific plugins
+		...nodePlugins(app),     // webapp specific plugins
 		...sourcemaps(app),      // compiler.hooks.compilation -> compilation.hooks.processAssets
-		...copy([], app),        // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 		...optimization(app),    // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
 		analyze.analyzer(app),   // compiler.hooks.done
 		analyze.visualizer(app), // compiler.hooks.emit
@@ -58,17 +72,35 @@ const plugins = (app) =>
 
 
 /**
- * @function
  * @param {WpBuildApp} app Webpack build specific environment
  * @returns {(WebpackPluginInstance | undefined)[]}
  */
-const webviewPlugins = (app) =>
+const nodePlugins = (app) =>
+{
+	/** @type {(WebpackPluginInstance | undefined)[]} */
+	const plugins = [];
+	if (app.build.type !== "webapp")
+	{
+		plugins.push(
+			tsbundle(app),       // compiler.hooks.afterEnvironment, hooks.afterCompile
+			...copy([], app)     // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
+		);
+	}
+	return plugins;
+};
+
+
+/**
+ * @param {WpBuildApp} app Webpack build specific environment
+ * @returns {(WebpackPluginInstance | undefined)[]}
+ */
+const webPlugins = (app) =>
 {
 	/** @type {(WebpackPluginInstance | undefined)[]} */
 	const plugins = [];
 	if (app.build.type === "webapp")
 	{
-		const apps = Object.keys(app.build.entry);
+		const apps = Object.keys(app.build.entry || createEntryObjFromDir(app.getSrcPath(), ".ts"));
 		plugins.push(
 			cssextract(app),           //
 			...webviewapps(apps, app), //

@@ -116,10 +116,16 @@ const htmlcsp = (app) =>
             "style-src": app.wpc.mode === "production"
         }
     });
+
     //
+    // For vscode extensions -
     // Override the nonce creation so it can be dynamically generated at runtime
-    // @ts-ignore
-    plugin.createNonce = () => "#{cspNonce}";
+    //
+    if (app.build.vscode && app.build.vscode.type !== "none") {
+        // @ts-ignore
+        plugin.createNonce = () => "#{cspNonce}";
+    }
+
     return plugin;
 };
 

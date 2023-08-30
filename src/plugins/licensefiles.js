@@ -43,6 +43,7 @@ class WpBuildLicenseFilePlugin extends WpBuildPlugin
         });
     }
 
+
     /**
      * @returns {Promise<void>}
      */
@@ -62,6 +63,7 @@ class WpBuildLicenseFilePlugin extends WpBuildPlugin
             } catch {}
         }
     };
+
 }
 
 

@@ -22,6 +22,7 @@ const { RegexTestsChunk } = require("../utils");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("../types").WebpackStats} WebpackStats */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
@@ -68,10 +69,10 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
     /**
      * @private
-     * @param {WebpackCompilation} _compilation
+     * @param {WebpackStats} _stats
      * @throws {WebpackError}
      */
-    async cleanup(_compilation)
+    async cleanup(_stats)
     {
         const tmpUploadPath = join(this.app.build.paths.temp, this.app.mode);
         try

@@ -8,6 +8,7 @@
             "color": "cyan"
         },
         "options": {
+            "banner": true,
             "licensefiles": true
         }
     },
@@ -45,8 +46,8 @@
             },
             "options": {
                 "jsdoc": {
-                    "outDir": "dist/docs",
-                    "rootDir": "src",
+                    "type": "plugin",
+                    "destination": "dist/docs",
                     "title": "Webpack-Wrap Documentation"
                 }
             }
@@ -101,33 +102,8 @@
         "type": "javascript"
     },
     "options": {
-        "analyze": {
-            "circular": false,
-            "analyzer": false,
-            "visualizer": false
-        },
-        "banner": false,
         "cache": true,
-        "copy": false,
-        "devtool": false,
-        "experiments": true,
-        "externals": true,
-        "ignore": true,
         "ignorewarnings": true,
-        "istanbul": false,
-        "licensefiles": false,
-        "loghooks": true,
-        "minification": false,
-        "optimization": true,
-        "progress": false,
-        "runtimevars": false,
-        "scm": false,
-        "sourcemaps": false,
-        "tscheck": false,
-        "tsbundle": false,
-        "types": false,
-        "upload": false,
-        "vendormod": false,
-        "watch": false
+        "sourcemaps": true
     }
 }

@@ -14,9 +14,11 @@
  */
 
 const { glob } = require("glob");
-const { existsSync } = require("fs");
+const { basename } = require("path");
 const typedefs = require("../types/typedefs");
-const { apply, WpBuildError, merge, isObjectEmpty, isString, WpBuildApp, isDirectory } = require("../utils");
+const {
+	apply, WpBuildError, isObjectEmpty, isString, WpBuildApp, isDirectory, relativePath, createEntryObjFromDir
+} = require("../utils");
 
 
 const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
@@ -25,22 +27,25 @@ const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
 const builds =
 {
 	/**
-	 * @param {typedefs.WpwBuild} build
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+     * @throws {WpBuildError}
 	 */
-	jsdoc: (build, app) =>
+	jsdoc: (app) =>
 	{
-		const mainBuild = app.getAppBuild("module"),
-			  jsdocSrcPath = app.getSrcPath({ build: build.name, rel: true, ctx: true, dot: true, psx: true });
-		if (mainBuild && jsdocSrcPath)
+		if (app.build.options.jsdoc && (app.build.options.jsdoc === true || app.build.options.jsdoc.type === "entry"))
 		{
-			const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-			// apply(app.wpc.entry, {
-			// 	[ app.build.name ]: `${typesPath}/${app.build.name}.ts`
-			// });
-			apply(app.wpc.entry, {
-				[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.js`
-			});
+			const mainBuild = app.getAppBuild("module"),
+				jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+			if (mainBuild && jsdocSrcPath)
+			{
+				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
+				apply(app.wpc.entry, {
+					[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.js`
+				});
+			}
+		}
+		else {
+			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
 	},
 
@@ -82,28 +87,10 @@ const builds =
 		const testsPath = app.getSrcPath({ build: app.build.name, stat: true });
 		if (testsPath)
 		{
-			app.wpc.entry = {};
 			apply(app.wpc.entry, {
 				...builds.testRunner(testsPath),
 				...builds.testSuite(testsPath)
 			});
-			// if (app.hasTypes())
-			// {
-			// 	if (!app.isSingleBuild || !existsSync(app.getDistPath({ build: "types" })))
-			// 	{
-			// 		const typesBuild= app.getAppBuild("types");
-			// 		if (!typesBuild)  {
-			// 			throw WpBuildError.getErrorProperty("types entry", "exports/entry.js", app.wpc);
-			// 		}
-			// 		Object.values(app.wpc.entry).forEach((e) =>
-			// 		{
-			// 			if (!isString(e)) {
-			// 				e.dependOn = typesBuild.name;
-			// 			}
-			// 		});
-			// 		builds.typesWrap(typesBuild, app);
-			// 	}
-			// }
 		}
 	},
 
@@ -149,25 +136,31 @@ const builds =
 
 
 	/**
-	 * @param {typedefs.WpwBuild} build
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
-	typesWrap: (build, app) =>
+	types: (app) =>
 	{
-		const mainBuild = app.getAppBuild("module"),
-			  typesPath = app.getSrcPath({ build: build.name, rel: true, ctx: true, dot: true, psx: true });
-		if (mainBuild && typesPath)
+		const build = app.build;
+		if (build.options.typesPackage === "entry")
 		{
-			const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-			// apply(app.wpc.entry, {
-			// 	[ app.build.name ]: `${typesPath}/${app.build.name}.ts`
-			// });
-			// apply(app.wpc.entry, {
-			// 	[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
-			// });
-			apply(app.wpc.entry, {
-				index: `${typesPath}/index.ts`
-			});
+			if (build.options.typesEntryMode === "main")
+			{
+				const mainBuild = app.getAppBuild("module");
+				if (mainBuild)
+				{
+				    const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
+					apply(app.wpc.entry, {
+						[ build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
+					});
+				}
+			}
+			else
+			{
+				const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+				apply(app.wpc.entry, {
+					index: `${typesPath}/index.ts`
+				});
+			}
 		}
 	},
 
@@ -175,27 +168,18 @@ const builds =
 	/**
 	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
 	 */
-	types: (app) => { builds.typesWrap(app.build, app); },
-
-
-	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-	 */
 	webapp: (app) =>
 	{
-		const appPath = app.getSrcPath({ build: app.build.name, ctx: true });
+		const appPath = app.getSrcPath();
 		if (isDirectory(appPath))
 		{
-			app.wpc.entry = glob.sync(
-				globTestSuiteFiles, {
-					absolute: false, cwd: appPath, dotRelative: false, posix: true
-				}
-			)
-			.reduce((obj, e)=>
-			{
-				obj[e.replace(".ts", "")] = `./${e}`;
-				return obj;
-			}, {});
+			apply(app.wpc.entry, createEntryObjFromDir(appPath, ".ts"));
+		}
+		else
+		{
+			const relPath = relativePath(app.getContextPath(), appPath),
+			      chunk = basename(relPath).replace(".ts", "");
+			apply(app.wpc.entry, { [ chunk ]: `./${relPath}` });
 		}
 	}
 
@@ -255,20 +239,30 @@ const entry = (app) =>
 {
 	app.logger.start("create entry points", 2);
 
+	//
+	// If the build rc defined `entry` itself, apply and we're done...
+	//
 	if (!isObjectEmpty(app.build.entry))
 	{
-		app.logger.write(`   create entry points by configuration rc for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		merge(app.wpc.entry, app.build.entry);
+		app.logger.write(`   add defined entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+		apply(app.wpc.entry, app.build.entry);
 	}
-	else if (builds[app.build.type || app.build.name])
+	//
+	// Auto-create entry points based on build type
+	//
+	else if (builds[app.build.type])
 	{
 		app.logger.write(`   create entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		builds[app.build.type || app.build.name](app);
+		builds[app.build.type ](app);
 	}
-	else {
-		 throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc);
-	}
+	//
+	// Error state
+	//
+	else { throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc); }
 
+	//
+	// Validate entry pont paths
+	//
 	const result = Object.values(app.wpc.entry).every((e) =>
 	{
 		if (!e || (!isString(e) && !e.import))

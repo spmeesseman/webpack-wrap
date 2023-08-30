@@ -56,6 +56,8 @@ declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
 
 declare type WebpackCacheFacade = ReturnType<WebpackCompilation["getCache"]>;
 
+declare type WebpackSource = WebpackSources.Source;
+
 declare type WebpackCompilationAssets = { [index: string]: WebpackSource; }
 
 declare type WebpackCompilationHook = WebpackCompilation["hooks"];
@@ -121,8 +123,6 @@ declare type WebpackRuntimeArgs =
 declare type WebpackRuntimeEnvArgs = { WEBPACK_WATCH?: boolean; watch?: boolean }
 
 declare type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;
-
-declare type WebpackSource = WebpackSources.Source;
 
 declare type WebpackStatsPrinterType<T> = T extends WebpackSyncHook<infer X> ? X : never;
 

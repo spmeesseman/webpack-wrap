@@ -460,7 +460,7 @@
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "loghooks": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
+                    "$ref": "#/definitions/WpwPluginConfigLogHooks"
                 },
                 "optimization": {
                     "$ref": "#/definitions/BooleanDefaultTrue"
@@ -485,6 +485,9 @@
                 },
                 "copy": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "runscripts": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
                 },
                 "runtimevars": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
@@ -633,6 +636,12 @@
                 "const": "banner"
             },
             {
+                "const": "clean"
+            },
+            {
+                "const": "copy"
+            },
+            {
                 "const": "ignore"
             },
             {
@@ -654,25 +663,16 @@
                 "const": "progress"
             },
             {
+                "const": "runscripts"
+            },
+            {
+                "const": "runtimevars"
+            },
+            {
                 "const": "scm"
             },
             {
                 "const": "sourcemaps"
-            },
-            {
-                "const": "upload"
-            },
-            {
-                "const": "vendormod"
-            },
-            {
-                "const": "clean"
-            },
-            {
-                "const": "copy"
-            },
-            {
-                "const": "runtimevars"
             },
             {
                 "const": "testsuite"
@@ -685,6 +685,12 @@
             },
             {
                 "const": "types"
+            },
+            {
+                "const": "upload"
+            },
+            {
+                "const": "vendormod"
             }]
         },
         "WpwBuildOptionsPluginKeyReadOnly": {
@@ -780,6 +786,9 @@
                 },
                 "progress": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "runscripts": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
                 },
                 "runtimevars": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
@@ -1204,26 +1213,268 @@
                 "type": "boolean"
             },
             {
+                "$ref": "#/definitions/WpwPluginConfigJsDocEx"
+            }]
+        },
+        "WpwPluginConfigJsDocEx": {
+            "$id": "#/WpwPluginConfigJsDocEx",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3
+                },
+                "type": {
+                    "default": "plugin",
+                    "oneOf": [{
+                        "const": "entry"
+                    },
+                    {
+                        "const": "plugin"
+                    }]
+                },
+                "destination": {
+                    "$ref": "#/definitions/DirectoryPath"
+                },
+                "debug": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "private": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "recurse": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "verbose": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "configure": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "package": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "readme": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "template": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "tutorials": {
+                    "$ref": "#/definitions/DirectoryPath"
+                },
+                "encoding": {
+                    "default": "utf8",
+                    "oneOf": [{
+                        "const": "ascii"
+                    },
+                    {
+                        "const": "base64"
+                    },
+                    {
+                        "const": "base64url"
+                    },
+                    {
+                        "const": "binary"
+                    },
+                    {
+                        "const": "hex"
+                    },
+                    {
+                        "const": "latin1"
+                    },
+                    {
+                        "const": "ucs2"
+                    },
+                    {
+                        "const": "utf8"
+                    },
+                    {
+                        "const": "utf16le"
+                    }]
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "examples": [{
+                "type": "plugin",
+                "title": "API DOcumentation",
+                "configure": ".jsdoc.json",
+                "destination": "dist/docs/api",
+                "readme": "README.md",
+                "debug": false,
+                "verbose": false,
+                "private": false,
+                "recurse": true,
+                "encosing": "utf8",
+                "tutorials": "doc/tutorials"
+            }]
+        },
+        "WpwPluginConfigLogHooks": {
+            "$id": "#/WpwPluginConfigLogHooks",
+            "oneOf": [{
+                "type": "boolean"
+            },
+            {
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
-                    "title": {
-                        "type": "string"
-                    },
-                    "outDir": {
-                        "$ref": "#/definitions/DirectoryPath"
-                    },
-                    "rootDir": {
-                        "$ref": "#/definitions/DirectoryPath"
-                    },
-                    "verbose": {
+                    "compiler": {
                         "type": "boolean"
+                    },
+                    "compilation": {
+                        "$ref": "#/definitions/WpwPluginConfigLogHooksCompilation"
                     }
                 },
                 "required": [
-                    "title"
+                    "compiler"
                 ]
             }]
+        },
+        "WpwPluginConfigLogHooksCompilation": {
+            "$id": "#/WpwPluginConfigLogHooksCompilation",
+            "oneOf": [{
+                "type": "boolean"
+            },
+            {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "all": {
+                        "type": "boolean"
+                    },
+                    "deprecated": {
+                        "type": "boolean"
+                    },
+                    "hashing": {
+                        "type": "boolean"
+                    },
+                    "optimization": {
+                        "type": "boolean"
+                    },
+                    "processAssets": {
+                        "type": "boolean"
+                    }
+                },
+                "if": {
+                    "anyOf": [
+                    {
+                        "properties": {
+                            "optimization": true
+                        }
+                    },
+                    {
+                        "properties": {
+                            "deprecated": true
+                        }
+                    },
+                    {
+                        "properties": {
+                            "processAssets": true
+                        }
+                    }]
+                },
+                "then": {
+                    "not": {
+                        "properties": {
+                            "all": true
+                        }
+                    }
+                }
+            }]
+        },
+        "WpwPluginConfigRunScripts": {
+            "$id": "#/WpwPluginConfigRunScripts",
+            "type": "object",
+            "patternProperties": {
+                "^[a-z][a-z]+(?:[A-Z][aiz]+)?$": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"    
+                }
+            },
+            "properties": {
+                "start": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                },
+                "beforeCompile": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                },
+                "afterCompile": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                },
+                "done": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                }
+            }
+        },
+        "WpwPluginConfigRunScriptsHookConfig": {
+            "$id": "#/WpwPluginConfigRunScriptsHookConfig",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "scripts"
+            ],
+            "properties": {
+                "mode": {
+                    "default": "synchronous",
+                    "oneOf": [{
+                        "const": "parallel"
+                    },
+                    {
+                        "const": "synchronous"
+                    }]
+                },
+                "scripts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/WpwPluginConfigRunScriptsScriptConfig"
+                    }
+                }
+            }
+        },
+        "WpwPluginConfigRunScriptsScriptConfig": {
+            "$id": "#/WpwPluginConfigRunScriptsScriptConfig",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "path"
+            ],
+            "properties": {
+                "type": {
+                    "default": "synchronous",
+                    "oneOf": [{
+                        "const": "bash"
+                    },
+                    {
+                        "const": "batch"
+                    },
+                    {
+                        "const": "cmd"
+                    },
+                    {
+                        "const": "node"
+                    },
+                    {
+                        "const": "sh"
+                    },
+                    {
+                        "const": "powershell"
+                    }]
+                },
+                "path": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "args": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 15,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
         },
         "WpwPluginConfigUpload": {
             "$id": "#/WpwPluginConfigUpload",
@@ -1417,6 +1668,11 @@
                     "options": {
                         "copy": true,
                         "runtimevars": true,
+                        "runscripts": {
+                            "afterCompile": [
+                                "./script/build-docs.js"
+                            ]
+                        },
                         "wait": {
                             "type": "event",
                             "name": "done",

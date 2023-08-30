@@ -84,6 +84,7 @@
 /** @typedef {import("./rc").WpwBuildOptionsExports} WpwBuildOptionsExports */
 /** @typedef {import("./rc").WpwBuildOptionsPlugins} WpwBuildOptionsPlugins */
 /** @typedef {import("./rc").WpwPluginConfigAnalyze} WpwPluginConfigAnalyze */
+/** @typedef {import("./rc").WpwPluginConfigJsDocEx} WpwPluginConfigJsDocEx */
 /** @typedef {import("./rc").WpwSourceCodeConfigKey} WpwSourceCodeConfigKey */
 /** @typedef {import("./constants").isWpwSourceCodeType} isWpwSourceCodeType */
 /** @typedef {import("./constants").WebpackLibraryTypes} WebpackLibraryTypes */
@@ -91,6 +92,7 @@
 /** @typedef {import("./rc").TypeWpwSourceCodeConfig} TypeWpwSourceCodeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsTesting1} WpwBuildOptionsTesting1 */
 /** @typedef {import("./rc").WpwBuildOptionsTesting2} WpwBuildOptionsTesting2 */
+/** @typedef {import("./rc").WpwPluginConfigLogHooks} WpwPluginConfigLogHooks */
 /** @typedef {import("./constants").isWebpackLibraryType} isWebpackLibraryType */
 /** @typedef {import("./constants").isWpwPackageJsonProp} isWpwPackageJsonProp */
 /** @typedef {import("./rc").WpwBuildOptionsCustomKey} WpwBuildOptionsCustomKey */
@@ -105,6 +107,7 @@
 /** @typedef {import("./rc").WpwBuildOptionsExportsKey} WpwBuildOptionsExportsKey */
 /** @typedef {import("./rc").WpwBuildOptionsPluginKey1} WpwBuildOptionsPluginKey1 */
 /** @typedef {import("./rc").WpwBuildOptionsPluginsKey} WpwBuildOptionsPluginsKey */
+/** @typedef {import("./rc").WpwPluginConfigRunScripts} WpwPluginConfigRunScripts */
 /** @typedef {import("./rc").WpwPluginConfigWaitSingle} WpwPluginConfigWaitSingle */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModule} WpwSourceCodeNodeJsModule */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsTarget} WpwSourceCodeNodeJsTarget */
@@ -129,13 +132,23 @@
 /** @typedef {import("./rc").WpwBuildOptionsExportProperties} WpwBuildOptionsExportProperties */
 /** @typedef {import("./rc").WpwBuildOptionsPluginProperties} WpwBuildOptionsPluginProperties */
 /** @typedef {import("./rc").WpwBuildOptionsPluginKeyReadOnly} WpwBuildOptionsPluginKeyReadOnly */
+/** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
+/** @typedef {import("./rc").WpwPluginConfigRunScriptsHookConfig} WpwPluginConfigRunScriptsHookConfig */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModuleResolution} WpwSourceCodeNodeJsModuleResolution */
 /** @typedef {import("./constants").WpwBuildOptionsPluginKeyReadOnlys} WpwBuildOptionsPluginKeyReadOnlys */
+/** @typedef {import("./rc").WpwPluginConfigRunScriptsScriptConfig} WpwPluginConfigRunScriptsScriptConfig */
 /** @typedef {import("./constants").isWpwBuildOptionsPluginKeyReadOnly} isWpwBuildOptionsPluginKeyReadOnly */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */
 /* END_RC_DEFS */
+
+
+/***********************************************************************************************************************
+ * BASE INDEX.D.TS
+ ***********************************************************************************************************************/
+
+// @typedef {import(".").hasSymbolSham} hasSymbolSham */
 
 
 /***********************************************************************************************************************
@@ -221,9 +234,10 @@
  * WEBPACK
  ***********************************************************************************************************************/
 
+/** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackType} WebpackType */
 /** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
-/** @typedef {import("./webpack").WebpackMode} WebpackMode */
+/** @typedef {import("./webpack").WebpackStats} WebpackStats */
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */
 /** @typedef {import("./webpack").WebpackSource} WebpackSource */
 /** @typedef {import("./webpack").WebpackCompiler} WebpackCompiler */
@@ -242,6 +256,7 @@
 /** @typedef {import("./webpack").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("./webpack").WebpackCompilationParams} WebpackCompilationParams */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHook} WebpackCompilerAsyncHook */
+/** @typedef {import("./webpack").WebpackCompilationHookName} WebpackCompilationHookName */
 /** @typedef {import("./webpack").WebpackStatsPrinterContext} WebpackStatsPrinterContext */
 /** @typedef {import("./webpack").WebpackCompilationHookStage} WebpackCompilationHookStage */
 /** @typedef {import("./webpack").WebpackCompilerSyncHookName} WebpackCompilerSyncHookName */

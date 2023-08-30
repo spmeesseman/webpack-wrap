@@ -11,6 +11,7 @@
 
 const WpBuildPlugin = require("./base");
 const typedefs = require("../types/typedefs");
+const { isFunction } = require("../utils");
 
 
 /**
@@ -38,6 +39,41 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 
 	/**
 	 * @private
+	 * @param {typedefs.WebpackCompilationHookName} hook
+	 * @param {Lowercase<typedefs.WebpackCompilationHookStage>} [processAssetStage]
+	 */
+	addCompilationHook(hook, processAssetStage)
+	{
+		const compilationHook = this.compilation.hooks[hook];
+		if (this.isTapable(compilationHook))
+		{
+			if (hook === "processAssets" && processAssetStage)
+			{
+				const stage = this.compiler.webpack.Compilation[`PROCESS_ASSETS_STAGE_${processAssetStage.toUpperCase()}`];
+				compilationHook.tap(
+					{ stage, name: `${this.name}_${hook}_${processAssetStage}` },
+					(/** @type {any} */_arg) =>
+					{
+						this.writeBuildTag(`${hook}::${processAssetStage}`);
+					}
+				);
+			}
+			else
+			{
+				if (isFunction(compilationHook.tap))
+				{
+					compilationHook.tap(`${this.name}_${hook}`, (/** @type {any} */_arg) =>
+					{
+						this.writeBuildTag(hook);
+					});
+				}
+			}
+		}
+	};
+
+
+	/**
+	 * @private
 	 * @param {typedefs.WebpackCompilerHookName} hook
 	 * @param {(arg: any) => any} [cb]
 	 */
@@ -51,14 +87,14 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 	};
 
 
-	/**
-	 * @private
-	 * @param {typedefs.WebpackCompilerAsyncHookName} hook
-	 */
-	addCompilerHookPromise(hook)
-	{
-		this.compiler.hooks[hook].tapPromise(`${hook}LogHookPromisePlugin`, async () => this.writeBuildTag(hook));
-	};
+	// /**
+	//  * @private
+	//  * @param {typedefs.WebpackCompilerAsyncHookName} hook
+	//  */
+	// addCompilerHookPromise(hook)
+	// {
+	// 	this.compiler.hooks[hook].tapPromise(`${hook}LogHookPromisePlugin`, async () => this.writeBuildTag(hook));
+	// };
 
 
 	/**
@@ -79,31 +115,74 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 		this.addCompilerHook("beforeCompile");
 		this.addCompilerHook("compile");
 		this.addCompilerHook("thisCompilation");
-		this.addCompilerHook("compilation", (_compilation) =>
+		this.addCompilerHook("compilation", (/** @type {typedefs.WebpackCompilation} */compilation) =>
 		{
-			// const compilation = /** @type {WebpackCompilation} */(arg);
-			// compilation.hooks.beforeModuleHash.tap(
-			// 	"LogCompilationHookBeforeModuleHashPlugin",
-			// 	() => writeBuildTag("compilation.beforeModuleHash", env, wpConfig)
-			// );
-			// compilation.hooks.afterModuleHash.tap(
-			// 	"LogCompilationHookAftereModuleHashPlugin",
-			// 	() => writeBuildTag("compilation.afterModuleHash", env, wpConfig)
-			// );
-			// compilation.hooks.processAssets.tap(
-			// 	{
-			// 		name: "LogCompilationHookPluginAdditions",
-			// 		stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS
-			// 	},
-			// 	() => writeBuildTag("compilation.additions", env, wpConfig)
-			// );
-			// compilation.hooks.processAssets.tap(
-			// 	{
-			// 		name: "LogCompilationHookPluginAdditional",
-			// 		stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL
-			// 	},
-			// 	() => writeBuildTag("compilation.additional", env, wpConfig)
-			// );
+			this.compilation = compilation;
+			if (this.logger.level >= 2)
+			{
+				this.addCompilationHook("additionalAssets");
+				this.addCompilationHook("processAssets", "additional");
+				this.addCompilationHook("processAssets", "pre_process");
+				this.addCompilationHook("processAssets", "derived");
+				this.addCompilationHook("processAssets", "additions");
+				this.addCompilationHook("processAssets", "optimize");
+				this.addCompilationHook("processAssets", "optimize_count");
+				this.addCompilationHook("processAssets", "optimize_compatibility");
+				this.addCompilationHook("processAssets", "optimize_size");
+				this.addCompilationHook("processAssets", "dev_tooling");
+				this.addCompilationHook("processAssets", "optimize_inline");
+				this.addCompilationHook("processAssets", "summarize");
+				this.addCompilationHook("processAssets", "optimize_hash");
+				this.addCompilationHook("processAssets", "optimize_transfer");
+				this.addCompilationHook("processAssets", "analyse");
+				this.addCompilationHook("processAssets", "report");
+			}
+			if (this.logger.level >= 3)
+			{
+				this.addCompilationHook("beforeCodeGeneration");
+				this.addCompilationHook("beforeRuntimeRequirements");
+				this.addCompilationHook("contentHash");
+				this.addCompilationHook("recordHash");
+				this.addCompilationHook("record");
+				this.addCompilationHook("processAdditionalAssets");
+				this.addCompilationHook("needAdditionalSeal");
+				this.addCompilationHook("afterSeal");
+				this.addCompilationHook("renderManifest");
+				this.addCompilationHook("fullHash");
+				this.addCompilationHook("chunkHash");
+				this.addCompilationHook("moduleAsset");
+				this.addCompilationHook("chunkAsset");
+				this.addCompilationHook("assetPath");
+				this.addCompilationHook("needAdditionalPass");
+				this.addCompilationHook("childCompiler");
+				this.addCompilationHook("log");
+				this.addCompilationHook("processWarnings");
+				this.addCompilationHook("processErrors");
+				this.addCompilationHook("statsPreset");
+				this.addCompilationHook("statsNormalize");
+				this.addCompilationHook("statsFactory");
+				this.addCompilationHook("statsPrinter");
+				this.addCompilationHook("normalModuleLoader");
+			}
+			if (this.logger.level >= 4)
+			{
+				this.addCompilationHook("beforeModuleHash");
+				this.addCompilationHook("afterModuleHash");
+				this.addCompilationHook("afterCodeGeneration");
+				this.addCompilationHook("afterRuntimeRequirements");
+				this.addCompilationHook("beforeHash");
+				this.addCompilationHook("afterHash");
+				this.addCompilationHook("beforeModuleAssets");
+				this.addCompilationHook("shouldGenerateChunkAssets");
+				this.addCompilationHook("beforeChunkAssets");
+				this.addCompilationHook("additionalChunkAssets");
+				this.addCompilationHook("optimizeAssets");
+				this.addCompilationHook("optimizeChunkAssets");
+				this.addCompilationHook("afterOptimizeChunkAssets");
+				this.addCompilationHook("afterOptimizeAssets");
+				this.addCompilationHook("afterProcessAssets");
+				this.addCompilationHook("afterSeal");
+			}
 		});
 		this.addCompilerHook("make");
 		this.addCompilerHook("afterCompile", /** @param {typedefs.WebpackCompilation} compilation */(compilation) =>
@@ -126,7 +205,7 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 		});
 		this.addCompilerHook("shouldEmit");
 		this.addCompilerHook("emit");
-		this.addCompilerHookPromise("assetEmitted");
+		this.addCompilerHook("assetEmitted");
 		this.addCompilerHook("emit");
 		this.addCompilerHook("afterEmit");
 		this.addCompilerHook("done");

@@ -50,11 +50,6 @@ async function jsdocLoader(source, map, meta)
 
         validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
 
-console.log("********************* options **************************************************");
-console.log(options);
-console.log("********************* source **************************************************");
-console.log(source);
-
         const traceMethod = (obj) =>
         {
             return new Proxy(obj,
@@ -82,8 +77,6 @@ console.log(source);
             destination: "console",
             ...pick(options, "debug", "private", "readme", "package", "configure", "verbose")
         };
-console.log("********************* jsdocOptions **************************************************");
-console.log(jsdocOptions);
 
         if (jsdocOptions.readme) {
             jsdocOptions.readme = posix.normalize(relativePath(options.outDir, jsdocOptions.readme));
@@ -97,8 +90,7 @@ console.log(jsdocOptions);
             jsdocOptions.configure = posix.normalize(relativePath(options.outDir, jsdocOptions.configure));
         }
 
-        data = "";
-        logger.value("   jsdoc execution options", jsdocOptions, 5);
+        logger.value("   jsdoc execution options", JSON.stringify(jsdocOptions), 5);
 
         // const stderr = capcon.captureStderr(function scope() {
         //
@@ -106,7 +98,6 @@ console.log(jsdocOptions);
 
         // data = capcon.captureStdout(function scope() { jsdoc.renderSync(data); });
 
-        data = "";
         // the first parameter here is the stream to capture, and the
         // second argument is the function receiving the output
 
@@ -119,6 +110,7 @@ console.log(jsdocOptions);
             // logger.write("   tracing console for jsdoc output", 5);
             // console = traceMethod(console);
             logger.write("   execute jsdoc", 4);
+            data = "";
             capcon.startCapture(process.stdout, (stdout) => { data += stdout; });
             jsdoc.renderSync(jsdocOptions);
         }
@@ -130,8 +122,6 @@ console.log(jsdocOptions);
             capcon.stopCapture(process.stdout);
 
         }
-console.log("********************* data **************************************************");
-console.log(data);
         // logger.write("   check compilation cache for snapshot", 4);
         // try {
         //     persistedCache = this.cache.get();
@@ -234,11 +224,11 @@ console.log(data);
         // }
         // if (!existingAsset)
         // {
-            logger.write("   emit jsdoc asset", 3);
+            // logger.write("   emit jsdoc asset", 3);
             // this.compilation.emitAsset(resourcePathRel, source, info);
 
-            const fileName = loaderUtils.interpolateName(this, "[name]-[contenthash].[ext]", {content: source});
-            this.emitFile(fileName, resourcePath);
+            // const fileName = loaderUtils.interpolateName(this, "[name]-[contenthash].[ext]", {content: source});
+            // this.emitFile(fileName, resourcePath);
             // this.addDependency(resourcePath);
         // }
         // else if (this.options.force)

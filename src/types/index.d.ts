@@ -19,6 +19,12 @@
  */
 
 /**
+ * Typescript symbol sham
+ * @returns {boolean}
+ */
+export declare function hasSymbolSham(): boolean;
+
+/**
  * App typings
  */
 export * from "./app";

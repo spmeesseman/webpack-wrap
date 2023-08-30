@@ -8,6 +8,7 @@
  * @author Scott Meesseman @spmeesseman
  */
 
+const os = require("os");
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
 const { validate } = require("schema-utils");
@@ -17,12 +18,10 @@ const { spawnSync } = require("child_process");
 const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
+const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
-    isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps
-} = require("../types/constants");
-const {
-    WpBuildError, apply, pick, isString, merge, isArray, mergeIf, applyIf, resolvePath, asArray, uniq,
-    findFilesSync, relativePath, isJsTsConfigPath
+    WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, uniq, findFilesSync,
+    relativePath, isJsTsConfigPath
 } = require("../utils/utils");
 
 
@@ -264,62 +263,75 @@ class WpBuildRc
 	 */
     configureBuilds = () =>
     {
-        const _apply = (property, dst, src) =>
-        {
-            if (!dst[property]) {
-                dst[property] = merge({}, src[property]);
-            }
-            else {
-                mergeIf(dst[property], src[property]);
-            }
+        const _log = (/** @type {typedefs.WpwBuild}  */build, /** @type {string}  */msg) => {
+            this.logger.write(`   ${msg} build ${this.logger.withColor(build.name, this.logger.colors.italic)}`, 2);
         };
-        const _applyBase = (/** @type {typedefs.WpwBuild} */dst, /** @type {typedefs.WpwBuildModeConfigBase} */src) =>
+
+        /**  @template D, S */
+        const _applyProperty = (/** @type {string}  */property, /** @type {D}  */dst, /** @type {S}  */src) =>
         {
-            dst.mode = dst.mode || this.mode;
-            if (this.initializeBaseRc(src))
+            if (src[property])
             {
-                const ccColors = merge({}, dst.log?.colors);
-                dst.target = this.getTarget(dst);
-                dst.type = this.getType(dst);
-                _apply("paths", dst, src);
-                _apply("options", dst, src);
-                _apply("log", dst, src);
-                _apply("pad", dst.log, src.log);
-                _apply("alias", dst, src);
-                _apply("source", dst, src);
-                _apply("vscode", dst, src);
-                _apply("colors", dst.log, src.log);
-                if (dst.log.color) {
-                    dst.log.colors.valueStar = ccColors.valueStar || dst.log.color;
-                    dst.log.colors.buildBracket = ccColors.buildBracket || dst.log.color;
-                    dst.log.colors.tagBracket = ccColors.tagBracket || dst.log.color;
-                    dst.log.colors.infoIcon = ccColors.infoIcon || dst.log.color;
+                if (!dst[property]) {
+                    dst[property] = merge({}, src[property]);
+                }
+                else {
+                    mergeIf(dst[property], src[property]);
                 }
             }
+        };
+
+        const _applyRc = (/** @type {typedefs.WpwBuild}  */dst, /** @type {typedefs.WpwBuildModeConfigBase}  */src) =>
+        {
+            _applyProperty("paths", dst, src);
+            _applyProperty("options", dst, src);
+            _applyProperty("alias", dst, src);
+            _applyProperty("source", dst, src);
+            _applyProperty("vscode", dst, src);
+            _applyProperty("log", dst, src);
+            if (dst.log.color) {
+                const clr = dst.log.color;
+                apply(dst.log.colors, { valueStar: clr, buildBracket: clr, tagBracket: clr, infoIcon: clr });
+            }
+            apply(dst, { mode: dst.mode || this.mode, target: this.getTarget(dst), type: this.getType(dst) });
             return dst;
         };
 
-        this.builds.forEach((build) => _applyBase(build, this));
+        this.logger.write("configure defined builds", 1);
+
+        this.initializeBaseRc(this);
+        this.builds.forEach((build) => {
+            _log(build, "apply base configuration to");
+            _applyRc(build, this);
+        });
+
         const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this[this.mode]);
         asArray(modeRc?.builds).forEach((modeBuild) =>
         {
             const baseBuild = this.builds.find(base => base.name === modeBuild.name);
             if (baseBuild) {
-                _applyBase(baseBuild, modeBuild);
+                this.initializeBaseRc(modeBuild);
+                _log(baseBuild, "apply mode configuration to");
+                _applyRc(baseBuild, modeBuild);
             }
             else {
-                this.builds.push(_applyBase(merge({}, modeBuild), this));
+                _log(modeBuild, "add");
+                _log(modeBuild, "apply base configuration to");
+                this.builds.push(_applyRc(merge({}, modeBuild), this));
             }
         });
 
         this.builds.forEach((build) =>
         {
+            _log(build, "validate and initialize configuration for");
             this.initializeBaseRc(build);
             this.resolvePaths(build);
             this.configureSourceCode(build);
             this.resolveAliasPaths(build);
             this.validateSchema(build, "build");
         });
+
+        this.logger.write("build configuration complete", 2);
     };
 
 
@@ -556,14 +568,10 @@ class WpBuildRc
     /**
      * @private
      * @param {typedefs.WpwBuildModeConfigBase} rc
-     * @returns {rc is Required<typedefs.WpwBuildModeConfigBase>}
      */
     initializeBaseRc = (rc) =>
     {
         if (!rc.options) { rc.options = {}; }
-        if (!rc.alias) { rc.alias = {}; }
-        if (!rc.vscode) { rc.vscode = { type: "none" }; }
-        else if (!rc.vscode.type) { rc.vscode.type = "none"; }
         if (!rc.log) { rc.log = WpBuildConsoleLogger.defaultOptions(); }
         else {
             if (!rc.log.colors) { rc.log.colors = WpBuildConsoleLogger.defaultOptions().colors; }
@@ -584,7 +592,6 @@ class WpBuildRc
             if (!rc.source.config) { rc.source.config = { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }; }
             if (!rc.source.config.options) { rc.source.config.options = { compilerOptions: {} }; }
         }
-        return true;
     };
 
 
@@ -615,6 +622,8 @@ class WpBuildRc
      */
     resolveAliasPaths = (build) =>
     {
+        if (!build.alias) { return; }
+
         const alias = build.alias,
               jstsConfig = build.source.config,
               jstsDir = jstsConfig.dir,
@@ -636,9 +645,7 @@ class WpBuildRc
         {
             Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
             {
-                if (paths) {
-                    asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
-                }
+                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
             });
         }
 
@@ -648,9 +655,7 @@ class WpBuildRc
                   srcPath = relativePath(basePath, build.paths.src),
                   envGlob = `**/${srcPath}/**/{env,environment,target}/${build.target}/`,
                   envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
-            if (envDirs.length >= 0) {
-                envDirs.forEach((path) => _pushAlias(":env", path), this);
-            }
+            envDirs.forEach((path) => _pushAlias(":env", path), this);
         }
     };
 
@@ -662,7 +667,8 @@ class WpBuildRc
 	resolvePaths = (build) =>
 	{
         const base = dirname(this.pkgJsonPath),
-              ostemp = process.env.TEMP || process.env.TMP,
+              // @ts-ignore
+              ostemp = os.tmpdir ? os.tmpdir() : os.tmpDir(),
 			  temp = resolve(ostemp ? `${ostemp}${sep}${this.pkgJson.scopedName.name}` : this.defaultTempDir, build.mode);
 		if (!existsSync(temp)) {
 			mkdirSync(temp, { recursive: true });
@@ -684,7 +690,7 @@ class WpBuildRc
     {
         const l = this.logger,
               schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
-        l.write("Validate schema @ " + l.withColor(this.mode, l.colors.italic), 1);
+        l.write("validate schema @ " + l.withColor(this.mode, l.colors.italic), 1);
         try {
             const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
                   schema = this.schema[schemaKey] || JSON5.parse(readFileSync(join(this.schemaDir, schemaFile), "utf8"));

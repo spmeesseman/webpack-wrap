@@ -11,20 +11,27 @@
 
 const { glob } = require("glob");
 const { promisify } = require("util");
+const { access } = require("fs/promises");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { existsSync, lstatSync } = require("fs");
 const exec = promisify(require("child_process").exec);
-const { resolve, isAbsolute, relative } = require("path");
-const { access } = require("fs/promises");
+const { resolve, isAbsolute, relative, sep, join } = require("path");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
 };
 
 
+const toStr = Object.prototype.toString,
+      strValue = String.prototype.valueOf,
+      hasSymbols = require("has-symbols/shams"),
+      hasToStringTag = () =>  hasSymbols() && !!Symbol.toStringTag,
+      hasIteratorTag = () =>  hasSymbols() && !!Symbol.iterator,
+      tryStringObject = (/** @type {{}} */ value) => { try { strValue.call(value); return true; } catch (e) { return false; }};
+
+
 /**
- * @function
  * @template {{}} T
  * @template {{}} U extends T
  * @param {T | Partial<T> | undefined} object
@@ -73,15 +80,14 @@ const apply = (object, config, defaults) =>
 
 
 /**
- * @function
  * @template T
- * @param {T | Set<T> | Array<T>} v Variable to check to see if it's an array
+ * @param {T | Set<T> | Array<T> | IterableIterator<T>} v Variable to check to see if it's an array
  * @param {boolean} [shallow] If `true`, and  `arr` is an array, return a shallow copy
  * @param {boolean} [allowEmpStr] If `false`, return empty array if isString(v) and isEmpty(v)
  * @returns {Array<NonNullable<T>>}
  */
 const asArray = (v, shallow, allowEmpStr) => /** @type {Array} */(
-    (v instanceof Set ? Array.from(v): (isArray(v) ? (shallow !== true ? v : v.slice()) : (!isEmpty(v, allowEmpStr) ? [ v ] : [])))
+    (v instanceof Set || hasIterator(v) ? Array.from(v): (isArray(v) ? (shallow !== true ? v : v.slice()) : (!isEmpty(v, allowEmpStr) ? [ v ] : [])))
 );
 
 
@@ -137,7 +143,6 @@ const capitalize = (value) =>
 
 
 /**
- * @function
  * @template T
  * @param {any} item
  * @returns {T}
@@ -169,10 +174,31 @@ const clone = (item) =>
     return item;
 };
 
+/**
+ * @param {string} dir
+ * @param {"js" | "cjs" | "mjs" | "ts" | ".js" | ".jsx" | ".cjs" | ".mjs" | ".ts" | ".tsx"} ext
+ * @returns {*}
+ */
+const createEntryObjFromDir = (dir, ext) =>
+{
+    if (!ext.startsWith(".")) {
+        ext = /** @type {".js" | ".jsx" | ".cjs" | ".mjs" | ".ts" | ".tsx"} */("." + ext);
+    }
+    return glob.sync(
+        `*${ext}`, {
+            absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: 1
+        }
+    )
+    .reduce((obj, e)=>
+    {
+        obj[e.replace(ext, "")] = `./${e}`;
+        return obj;
+    }, {});
+};
+
 
 /**
  * Executes node.eXec() wrapped in a promise via util.promisify()
- * @function
  * @async
  * @param {typedefs.ExecAsyncOptions} options
  * @returns {Promise<number | null>}
@@ -272,7 +298,6 @@ const existsAsync = async(path) =>
 
 
 /**
- * @function
  * @param {string} pattern
  * @param {import("glob").GlobOptions} options
  * @returns {Promise<string[]>}
@@ -281,7 +306,6 @@ const findFiles = async (pattern, options) => (await glob(pattern, merge(globOpt
 
 
 /**
- * @function
  * @param {string} pattern
  * @param {import("glob").GlobOptions} [options]
  * @returns {string[]}
@@ -290,6 +314,75 @@ const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions
 
 
 /**
+ * @param {string} dir
+ * @param {string} fileName
+ * @returns {string | undefined}
+ * @throws {WpBuildError}
+ */
+const findFileUp = (dir, fileName) =>
+{
+    dir = resolve(dir);
+    if (!existsSync(dir) || !isDirectory(dir)) {
+        throw new WpBuildError("invalid directory specified", "utils/utils.js", dir);
+    }
+    const dirs = dir.split(sep);
+    for (let i = 0; i < dirs.length; i++)
+    {
+        const baseDir = i < dirs.length - 1 ? dirs.slice(0, dirs.length - i).join(sep) : sep;
+        if (existsSync(join(baseDir, fileName)))
+        {
+            return join(baseDir, fileName);
+        }
+    }
+};
+
+
+/**
+ * @param {string[]} paths
+ * @param {Function} cb optional callback
+ * @returns {Promise<string | false>}
+ */
+const findExPath = (paths, cb) =>
+{
+
+    try {
+        isArray(paths);
+    }
+    catch(e)
+    {   if (cb) { cb(e); }
+        return Promise.reject(e);
+    }
+
+    const promises = [];
+    asArray(paths).filter(p => !!p).forEach(p => promises.push(existsAsync(p)));
+
+    return Promise.all(promises)
+    .then(values =>
+    {
+        const path = paths[values.findIndex(b => b === true)] || false;
+        if (cb) {
+            cb(null, path);
+        }
+        return path;
+    });
+};
+
+/**
+ * @param {string[]} paths
+ * @returns {string | boolean} the founded path or false
+ */
+const findExPathSync = (paths) =>
+{
+    for (const p of asArray(paths).filter(p => !!p))
+    {
+        if (existsSync(p)) { return p; }
+    }
+    return false;
+};
+
+
+
+  /**
  * @param {typedefs.WpBuildApp} app
  * @param {typedefs.WpBuildAppJsTsConfig} [srcConfig]
  * @param {boolean} [allowTest]
@@ -312,6 +405,13 @@ const getExcludes = (app, srcConfig, allowTest, allowTypes, allowDts) =>
     // ex.push(...rulesConfig.excludeAbs);
     return ex;
 };
+
+
+/**
+ * @param {any} v
+ * @returns {v is IterableIterator}
+ */
+const hasIterator = (v) => !!v && hasIteratorTag() && isFunction(typeof v[Symbol.iterator]);
 
 
 /**
@@ -360,7 +460,6 @@ const isFunction = (v) => !!v && typeof v === "function";
 
 
 /**
- * @function
  * @param {string | undefined} path
  * @returns {boolean}
  */
@@ -401,9 +500,12 @@ const isPromise = (v) => !!v && (v instanceof Promise || (isObject(v) && isFunct
 /**
  * @param {any} v Variable to check to see if it's an array
  * @param {boolean} [notEmpty] If `false`, return false if v is a string of 0-length
+ * @param {boolean} [stringifyable] If `true`, return true if v is an object and has .toString() method
  * @returns {v is string}
  */
-const isString = (v, notEmpty) => (!!v || (v === "" && !notEmpty)) && (v instanceof String || typeof v === "string");
+const isString = (v, notEmpty, stringifyable) =>
+    (!!v || (v === "" && !notEmpty)) && (v instanceof String || typeof v === "string") ||
+    (stringifyable ? (hasToStringTag() ? tryStringObject(v) : toStr.call(v) === "[object String]") : false);
 
 
 /**
@@ -429,7 +531,6 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 
 
 /**
- * @function
  * @template {{}} T
  * @template {{}} U extends T
  * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
@@ -469,9 +570,9 @@ const merge = (...destination) =>
 
 
 /**
- * @function
- * @template {{}} [T=Record<string, any>]
- * @param {...(T | Partial<T> | undefined)} destination
+ * @template {{}} T
+ * @template {{}} U extends T
+ * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
  * @returns {T}
  */
 const mergeIf = (...destination) =>
@@ -481,27 +582,33 @@ const mergeIf = (...destination) =>
     for (let i = 1; i < ln; i++)
     {
         const object = destination[i] || {};
-        for (const key in object)
+        Object.keys(object).filter(key => ({}.hasOwnProperty.call(object, key))).forEach((key) =>
         {
-            if (!(key in base))
+            const value = object[key];
+            if (isObject(value))
             {
-                const value = /** @type {Partial<T>} */(object[key]);
-                if (isObject(value))
+                const sourceKey = base[key];
+                if (isObject(sourceKey))
                 {
+                    mergeIf(sourceKey, value);
+                }
+                // else if (isArray(sourceKey) && isArray(value)) {
+                //     base[key] = [ ...sourceKey, ...clone(value) ];
+                // }
+                else {
                     base[key] = clone(value);
                 }
-                else {
-                    base[key] = value;
-                }
             }
-        }
+            else {
+                base[key] = clone(value);
+            }
+        });
     }
     return /** @type {T} */(base);
 };
 
 
 /**
- * @function
  * @template {{}} [T=Record<string, any>]
  * @param {T} obj
  * @param {...string} keys
@@ -516,7 +623,6 @@ const pick = (obj, ...keys) =>
 
 
 /**
- * @function
  * @template {Record<string, T>} T
  * @param {T} obj
  * @param {(arg: string) => boolean} pickFn
@@ -531,7 +637,6 @@ const pickBy = (obj, pickFn) =>
 
 
 /**
- * @function
  * @template {{}} T
  * @template {keyof T} K
  * @param {T} obj
@@ -639,7 +744,6 @@ const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } 
 
 
 /**
- * @function
  * @template T
  * @param {T[]} a
  * @returns {T[]}
@@ -720,8 +824,8 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, existsAsync, findFiles, findFilesSync, getExcludes,
-    isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject,
-    isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick,
-    pickBy, pickNot, pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath
+    apply, applyIf, asArray, capitalize, clone, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
+    getExcludes, isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject,
+    isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick, createEntryObjFromDir,
+    pickBy, pickNot, pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath, findExPath, findExPathSync
 };

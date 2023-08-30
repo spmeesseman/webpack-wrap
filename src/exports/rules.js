@@ -33,14 +33,13 @@ const builds =
 	 */
 	jsdoc: (app, rulesConfig) =>
 	{
-		if (app.source.type === "javascript")
+		if (app.build.options.jsdoc && (app.build.options.jsdoc === true || app.build.options.jsdoc.type === "entry"))
 		{
 			const exclude = getExcludes(app, rulesConfig),
-				  include = getIncludes(app, rulesConfig),
-				  jsdocSrcPath= app.getSrcPath({ build: app.build.name }),
-				  jsdocDirDist = app.getDistPath({ build: app.build.name });
+				include = getIncludes(app, rulesConfig),
+				jsdocSrcPath= app.getSrcPath();
 
-			if (jsdocSrcPath && existsSync(jsdocSrcPath))
+			if (existsSync(jsdocSrcPath))
 			{
 				app.wpc.module.rules.push(
 				{
@@ -51,18 +50,18 @@ const builds =
 					{
 						loader: resolve(__dirname, "../loaders/jsdoc.js"),
 						options: {
-							outDir: jsdocDirDist,
+							outDir: app.getDistPath(),
 							rootDir: jsdocSrcPath
 						}
 					}
 				});
 			}
 			else {
-				throw WpBuildError.getErrorProperty("jsdoc", "exports/rules.js", app.wpc, "jsdoc sourcte path does not exist");
+				throw WpBuildError.get("jsdoc source path does not exist", "exports/rules.js", app.wpc);
 			}
 		}
 		else {
-			throw WpBuildError.getErrorProperty("jsdoc", "exports/rules.js", app.wpc, "jsdoc build not supported, not a vanilla javascript build");
+			throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
 	},
 
@@ -151,11 +150,14 @@ const builds =
 	 */
 	types: (app, rulesConfig) =>
 	{
-		const mainBuild = app.getAppBuild("module"),
-			  typesSrcPath= app.getSrcPath({ build: app.build.name }),
+		if (app.build.options.typesPackage !== "entry") {
+			return;
+		}
+
+		const typesSrcPath= app.getSrcPath({ build: app.build.name }),
 			  typesDirDist = app.getDistPath({ build: app.build.name });
 
-		if (mainBuild && typesSrcPath && existsSync(typesSrcPath))
+		if (typesSrcPath && existsSync(typesSrcPath))
 		{
 			const loader = getLoader(app, rulesConfig);
 			// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
@@ -192,15 +194,15 @@ const builds =
 				// include: uniq([ mainSrcPath, typesSrcPath ]),
 				include: getIncludes(app, rulesConfig),
 				exclude: getExcludes(app, rulesConfig, false, true, true)
-			},
-			{
-				test: /\.ts$/, // TODO - Loader for DTS bundle
-				use:
-				{
-					loader: resolve(__dirname, "../loaders/dts.js"),
-					options: {}
-				}
-			});
+			}); // ,
+			// {
+			// 	test: /\.ts$/, // TODO - Loader for DTS bundle
+			// 	use:
+			// 	{
+			// 		loader: resolve(__dirname, "../loaders/dts.js"),
+			// 		options: {}
+			// 	}
+			// });
 		}
 	},
 
@@ -212,8 +214,7 @@ const builds =
 	 */
 	webapp: (app, rulesConfig) =>
 	{
-		const exclude = getExcludes(app, rulesConfig),
-			  typesDir = app.getSrcPath({ build: app.build.name });
+		const exclude = getExcludes(app, rulesConfig);
 
 		app.wpc.module.rules.push(...[
 		{
@@ -248,32 +249,6 @@ const builds =
 				}
 			}]
 		}]);
-
-		if (typesDir && !!app.cmdLine.build && app.getAppBuild("types")) //  && !existsSync(typesDir))
-		{
-			// app.wpc.module.rules.unshift(
-			// {
-			// exclude,
-			// 	test: /\.ts$/,
-			// 	include: srcPath,
-			// 	exclude: [
-			// 		/node_modules/, /test[\\/]/, /\.d\.ts$/
-			// 	],
-			// 	use: {
-			// 		loader: "ts-loader",
-			// 		options: {
-			// 			configFile: tsConfig.path,
-			// 			experimentalWatchApi: false,
-			// 			transpileOnly: false,
-			// 			logInfoToStdOut: app.build.log.level && app.build.log.level >= 0,
-			// 			logLevel: app.build.log.level && app.build.log.level >= 3 ? "info" : (app.build.log.level && app.build.log.level >= 1 ? "warn" : "error"),
-			// 			compilerOptions: {
-			// 				emitDeclarationsOnly: true
-			// 			}
-			// 		}
-			// 	}
-			// });
-		}
 	}
 
 };
@@ -319,7 +294,11 @@ const buildOptions =
 			options: {
 				cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
 				presets: [
-					[ "@babel/preset-env", { targets: "defaults" }],
+					[ "@babel/preset-env", {
+						targets: {
+							node: "16.20.0"
+						} /* { targets: "defaults" }*/}
+					],
 					[ "@babel/preset-typescript" ]
 				]
 			}

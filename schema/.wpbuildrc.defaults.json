@@ -5,13 +5,7 @@
         "builds": []
     },
     "production": {
-        "builds": [],
-        "options": {
-            "analyze":true,
-            "wait": {
-                "abc": true
-            }
-        }
+        "builds": []
     },
     "test": {
         "builds": []
@@ -62,10 +56,14 @@
         "minification": false,
         "optimization": true,
         "progress": false,
+        "runtimevars": false,
+        "scm": false,
         "sourcemaps": false,
+        "tscheck": false,
+        "tsbundle": false,
+        "types": false,
+        "upload": false,
+        "vendormod": false,
         "watch": false
-    },
-    "vscode": {
-        "type": "none"
     }
 }
