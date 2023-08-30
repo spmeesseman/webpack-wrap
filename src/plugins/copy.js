@@ -10,12 +10,13 @@
  */
 
 const { existsSync } = require("fs");
+const { apply } = require("../utils");
+const { join, posix } = require("path");
 const WpBuildPlugin = require("./base");
 const CopyPlugin = require("copy-webpack-plugin");
-const { join, posix, isAbsolute, normalize } = require("path");
-const { isString, apply, WpBuildError } = require("../utils/utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("../utils").WpBuildError} WpBuildError */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */

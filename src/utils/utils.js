@@ -33,7 +33,7 @@ const toStr = Object.prototype.toString,
 
 /**
  * @template {{}} T
- * @template {{}} U extends T
+ * @template {Partial<T> | {}} U
  * @param {T | Partial<T> | undefined} object
  * @param {U | T | Partial<T> | undefined} config
  * @param {U | T | Partial<T> | undefined} [defaults]
@@ -60,22 +60,27 @@ const apply = (object, config, defaults) =>
 /**
  * Copies all the properties of config to object if they don't already exist.
  *
- * @param {object} object The receiver of the properties
- * @param {object} config The source of the properties
- * @returns {object} returns obj
+ * @template {{}} T
+ * @template {Partial<T> | {}} U
+ * @param {T | Partial<T> | undefined} object
+ * @param {U | T | Partial<T> | undefined} config
+ * @returns {T}
  */
  const applyIf = (object, config) =>
  {
-    let property;
-    if (object && config && typeof config === "object")
+    if (object === undefined) {
+        object = {};
+    }
+    if (object && isObject(config))
     {
+        let property;
         for (property in config) {
             if (object[property] === undefined) {
                 object[property] = config[property];
             }
         }
     }
-    return object;
+    return /** @type {T} */(object);
 };
 
 
@@ -384,7 +389,7 @@ const findExPathSync = (paths) =>
 
   /**
  * @param {typedefs.WpBuildApp} app
- * @param {typedefs.WpBuildAppJsTsConfig} [srcConfig]
+ * @param {typedefs.WpwSourceCodeConfig} [srcConfig]
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]
  * @param {boolean} [allowDts]
@@ -463,7 +468,7 @@ const isFunction = (v) => !!v && typeof v === "function";
  * @param {string | undefined} path
  * @returns {boolean}
  */
-const isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/](?:j|t)sconfig\.(?:[\w\-]+?\.)?json/.test(path);
+const isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/]\.?(?:j|t)sconfig\.(?:[\w\-]+?\.)?json/.test(path);
 
 
 /**
@@ -532,7 +537,7 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 
 /**
  * @template {{}} T
- * @template {{}} U extends T
+ * @template {Partial<T> | {}}  U
  * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
  * @returns {T}
  */
@@ -543,7 +548,7 @@ const merge = (...destination) =>
     for (let i = 1; i < ln; i++)
     {
         const object = destination[i] || {};
-        Object.keys(object).filter(key => ({}.hasOwnProperty.call(object, key))).forEach((key) =>
+        Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
         {
             const value = object[key];
             if (isObject(value))
@@ -571,7 +576,7 @@ const merge = (...destination) =>
 
 /**
  * @template {{}} T
- * @template {{}} U extends T
+ * @template {Partial<T> | {}}  U
  * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
  * @returns {T}
  */
@@ -582,7 +587,7 @@ const mergeIf = (...destination) =>
     for (let i = 1; i < ln; i++)
     {
         const object = destination[i] || {};
-        Object.keys(object).filter(key => ({}.hasOwnProperty.call(object, key))).forEach((key) =>
+        Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
         {
             const value = object[key];
             if (isObject(value))
@@ -754,7 +759,10 @@ const uniq = (a) => a.sort().filter((item, pos, arr) => !pos || item !== arr[pos
 class WpBuildError extends WebpackError
 {
     /**
-     * @class WpBuildError
+     * @type {string | undefined}
+     */
+    details;
+    /**
      * @param {string} message
      * @param {string} file
      * @param {string} [details]
@@ -802,7 +810,7 @@ class WpBuildError extends WebpackError
     /**
      * @param {string} property
      * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig>  | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
@@ -813,7 +821,7 @@ class WpBuildError extends WebpackError
     /**
      * @param {string} property
      * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig>  | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */

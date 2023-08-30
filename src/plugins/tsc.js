@@ -14,9 +14,9 @@ const { existsSync } = require("fs");
 const WpBuildPlugin = require("./base");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
-const { access, unlink } = require("fs/promises");
+const { access, unlink, readFile } = require("fs/promises");
 const { relative, join, resolve } = require("path");
-const { findFiles, isString, WpBuildError } = require("../utils");
+const { findFiles, isString, WpBuildError, relativePath } = require("../utils");
 
 
 /**
@@ -59,7 +59,9 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			});
 
 			const outputFile = this.app.build.name + ".d.ts",
-				  outputPath = join(typesDirDist, outputFile);
+				  outputPath = join(typesDirDist, outputFile),
+				  outputFilePath = join(outputPath, outputFile),
+				  outputFilePathRel = relativePath(this.compiler.context, outputFile);
 			if (existsSync(outputPath)) {
 				l.write("   clean/remove prior bundle output @ " + outputPath, 2);
 				await unlink(outputPath);
@@ -67,6 +69,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			// let entryFile = Object.valuthis.app.wpc.entryes().map(
 			// 	/** @type {typedefs.WpwWebpackEntryValue} */(v) => resolve(typesDirDist, !isString(v) ? v.import : v)
 			// )[0]?.replace(".ts", ".d.ts");
+
 			l.write("   locating entry file", 2);
 			const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
 			let entryFile = resolve(typesDirDist, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
@@ -101,6 +104,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 					}
 				}
 			}
+
 			if (existsSync(entryFile))
 			{
 				l.value("   using main entry file", entryFile, 2);
@@ -120,7 +124,16 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 					dts.bundle(bundleCfg);
 					this.global.typesBundled = true;
 					// this.compilation.fileDependencies.clear();
+					const info = /** @type {typedefs.WebpackAssetInfo} */({
+						// contenthash: newHash,
+						immutable: true, // newHash === persistedCache[filePathRel],
+						javascriptModule: false,
+						dts: true
+					});
+					const data = await readFile(outputFilePath),
+						  source = new this.compiler.webpack.sources.RawSource(data);
 					this.compilation.fileDependencies.add(join(typesDirDist, outputFile));
+					this.compilation.emitAsset(outputFilePathRel, source, info);
 					//
 					// Remove js file produced by webpack bundler, by default there's no way to load source
 					// code without specifying an entry point that will in the end produce a js bundle, which,
@@ -158,16 +171,16 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 	/**
 	 * Executes a typescript build using the specified tsconfig
 	 * @protected
-	 * @param {typedefs.WpwSourceCodeConfig} tsc
+	 * @param {typedefs.WpwSourceCodeConfig} sourceCodeConfig
 	 * @param {string[]} args
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
 	 * @throws {WpBuildError}
 	 */
-	execTsBuild = async (tsc, args, identifier, outputDir, alias) =>
+	execTsBuild = async (sourceCodeConfig, args, identifier, outputDir, alias) =>
 	{
-		if (!tsc.path) {
+		if (!sourceCodeConfig || !sourceCodeConfig.path) {
 			this.handleError(new WpBuildError("Invalid source code configured path", "plugins/tsc.js"));
 			return;
 		}
@@ -176,13 +189,14 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
 		const logger = this.app.logger;
-		let command = `npx tsc ${args.join(" ")}`;
-		logger.write(`   execute typescript build @ italic(${tsc.path})`, 1);
+		const relativeOutputPath = relativePath(this.app.build.paths.base, sourceCodeConfig.path);
+		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
+		logger.write(`   execute typescript build @ italic(${sourceCodeConfig.path})`, 1);
 
 		let code = await this.exec(command, "tsc");
 		if (code !== 0)
 		{
-			this.compilation.errors.push(new WebpackError("typescript build failed for " + tsc.path));
+			this.compilation.errors.push(new WebpackError("typescript build failed for " + sourceCodeConfig.path));
 			return;
 		}
 		//
@@ -192,7 +206,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 			await access(outputDir);
 		}
 		catch (e) {
-			this.handleError(new WebpackError("typescript build failed for " + tsc.path), "output directory doesn't exist");
+			this.handleError(new WebpackError("typescript build failed for " + sourceCodeConfig.path), "output directory doesn't exist");
 			return;
 		}
 		//
@@ -202,18 +216,18 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		{   //
 			// Note that `tsc-alias` requires a filename e.g. tsconfig.json in it's path argument
 			//
-			command = `tsc-alias -p ${tsc.path}`;
+			command = `tsc-alias -p ${sourceCodeConfig.path}`;
 			code = await this.exec(command, "typescript path aliasing");
 			if (code !== 0)
 			{
-				this.compilation.errors.push(new WebpackError("typescript path aliasing failed for " + tsc.path));
+				this.compilation.errors.push(new WebpackError("typescript path aliasing failed for " + sourceCodeConfig.path));
 				return;
 			}
 		}
 		//
 		// Process output files
 		//
-		const files = await findFiles("**/*.js", { cwd: outputDir, absolute: true });
+		const files = await findFiles("**/*.{js,d.ts}", { cwd: outputDir, absolute: true });
 		for (const filePath of files)
 		{
 			// let data, source, hash, newHash, cacheEntry, persistedCache;
@@ -302,15 +316,15 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		// 		this.cache.set(persistedCache);
 		// 	}
 
-		const info = /** @type {typedefs.WebpackAssetInfo} */({
-			// contenthash: newHash,
-			development: true,
-			immutable: true, // newHash === persistedCache[filePathRel],
-			javascriptModule: false,
-			types: true
-		});
+		// const info = /** @type {typedefs.WebpackAssetInfo} */({
+		// 	// contenthash: newHash,
+		// 	development: true,
+		// 	immutable: true, // newHash === persistedCache[filePathRel],
+		// 	javascriptModule: false,
+		// 	types: true
+		// });
 		// this.compilation.buildDependencies.add(filePathRel);
-		this.compilation.buildDependencies.add(filePath);
+		this.compilation.fileDependencies.add(filePath);
 		// this.compilation.compilationDependencies.add();this.compilation.
 		// this.compilation.contextDependencies.add();
 
@@ -339,7 +353,7 @@ class WpBuildBaseTsPlugin extends WpBuildPlugin
 		// 	}
 		}
 
-		logger.write(`   finished execution of typescript build @ italic(${tsc.path})`, 3);
+		logger.write(`   finished execution of typescript build @ italic(${sourceCodeConfig.path})`, 3);
 	};
 
 }

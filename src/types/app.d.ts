@@ -20,15 +20,15 @@
  * All types exported from this definition file are prepended with `WpBuildPlugin`.
  */
 
-import { IDisposable } from "./generic";
 import { IWpBuildLogger } from "./logger";
+import { IDisposable, ClsWpBuildError } from "./generic";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
     WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode
 } from "./webpack";
 import {
-    WpwRcPaths, WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCodeConfig, WpBuildRcPackageJson
+    WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
+    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson
 } from "./rc";
 
 
@@ -54,9 +54,10 @@ declare interface IWpBuildAppSchema extends IWpwRcSchema
 declare interface IWpBuildApp extends IDisposable
 {
     build: WpwBuild;
+    buildCount: number;
     disposables: IDisposable[];
     cmdLine: WpBuildCombinedRuntimeArgs;
-    errors: Error[];
+    errors: ClsWpBuildError[];
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
     isMain: boolean;
     isMainProd: boolean;
@@ -64,23 +65,24 @@ declare interface IWpBuildApp extends IDisposable
     isTest: boolean;
     isWeb: boolean;
     logger: IWpBuildLogger;
-    pkgJson: WpBuildRcPackageJson;
+    mode: WpwWebpackMode;
+    pkgJson: WpwPackageJson;
     source: WpwSourceCode;
     target: WebpackTarget;
-    vscode: WpwVsCodeConfig;
-    warnings: Error[];
+    vscode: WpwVsCode;
+    warnings: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
-    addError: (e: WpBuildError | string, pad: string) => void;
-    addWarning: (w: WpBuildError | string, pad: string) => void;
-    buildApp: () => WpwWebpackConfig;
-    dispose: () => Promise<void>;
-    getApp: (name: string) => WpBuildApp | undefined;
-    getAppBuild: (name: string) => WpwBuild | undefined;
-    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
-    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    addError(e: ClsWpBuildError | string, pad?: string): void;
+    addWarning(w: ClsWpBuildError | string, pad?: string): void;
+    buildApp(): WpwWebpackConfig;
+    dispose():Promise<void>;
+    getApp(name: string): IWpBuildApp | undefined;
+    getAppBuild(name: string): WpwBuild | undefined;
+    getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
+    getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
+    getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
+    getRcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P): R;
+    getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
 }
 
 declare class ClsWpBuildApp implements IWpBuildApp
@@ -92,7 +94,37 @@ declare class ClsWpBuildApp implements IWpBuildApp
     private printNonFatalIssue;
     private printWpcProperties;
     private rc: IWpBuildAppSchema;
-    constructor(rc: WpBuildRc, build: WpwBuild);
+    constructor(rc: IWpwRcSchema, build: WpwBuild);
+    build: WpwBuild;
+    buildCount: number;
+    disposables: IDisposable[];
+    cmdLine: WpBuildCombinedRuntimeArgs;
+    errors: ClsWpBuildError[];
+    global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
+    isMain: boolean;
+    isMainProd: boolean;
+    isMainTest: boolean;
+    isTest: boolean;
+    isWeb: boolean;
+    logger: IWpBuildLogger;
+    mode: WpwWebpackMode;
+    pkgJson: WpwPackageJson;
+    source: WpwSourceCode;
+    target: WebpackTarget;
+    vscode: WpwVsCode;
+    warnings: ClsWpBuildError[];
+    wpc: WpwWebpackConfig;
+    addError: (e: ClsWpBuildError | string, pad?: string) => void;
+    addWarning: (w: ClsWpBuildError | string, pad?: string) => void;
+    buildApp: () => WpwWebpackConfig;
+    dispose: () => Promise<void>;
+    getApp: (name: string) => IWpBuildApp | undefined;
+    getAppBuild: (name: string) => WpwBuild | undefined;
+    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
+    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
+    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
 }
 
 declare interface IWpwWebpackConfig extends WebpackConfig
@@ -122,9 +154,6 @@ export {
     WpBuildAppGetPathOptions,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
-    WpBuildAppJsTsConfig,
-    WpBuildAppJsTsConfigJson,
-    WpBuildAppJsTsConfigCompilerOptions,
     WpwWebpackConfig,
     __WPBUILD__
 };

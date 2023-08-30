@@ -127,7 +127,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/\/\*\*(?:[^]*?)\*\//g, "")
           .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
           .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
-          .replace("[k: string]: string;", "[k: string]: string | undefined;")
+          .replace(/\[k\: string\]: (.*?);/g, (_, m) => `[k: string]: ${m} | undefined;`)
           .replace("export type WpwBuild = ", "export interface WpwBuild ")
           .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
           .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")

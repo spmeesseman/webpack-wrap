@@ -80,7 +80,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
 
 
     /**
-     * @param {typedefs.WpwPluginConfigRunScriptsScriptDef} script
+     * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
      * @returns {string}
      */
     buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
@@ -95,7 +95,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
         const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
         if (options[stage])
         {
-            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsHookConfig} */(options[stage]);
+            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
             if (stageOptions.async)
             {
                 if (stageOptions.mode === "parallel")
@@ -111,7 +111,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
                 }
             }
             else {
-                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsHookConfig} */(options[stage]);
+                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
                 for (const script of stageOptions.scripts) { execSync(this.buildCommand(script)); }
             }
         }

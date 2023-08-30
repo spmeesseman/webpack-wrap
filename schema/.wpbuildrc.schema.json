@@ -44,7 +44,7 @@
             "$ref": "#/definitions/WpwBuildModeConfig"
         },
         "vscode": {
-            "$ref": "#/definitions/WpwVsCodeConfig"
+            "$ref": "#/definitions/WpwVsCode"
         },
         "version": {
             "$ref": "#/definitions/VersionString"
@@ -56,24 +56,25 @@
     "definitions":
     {
         "BooleanDefaultFalse": {
-            "type": "boolean",
             "$id": "#/WpwBooleanDefaultFalse",
+            "type": "boolean",
             "default": false
         },
         "BooleanDefaultTrue": {
-            "type": "boolean",
             "$id": "#/WpwBooleanDefaultTrue",
+            "type": "boolean",
             "default": true
         },
         "BooleanReadOnly": {
-            "type": "boolean",
             "$id": "#/WpwBooleanReadOnly",
+            "type": "boolean",
             "readOnly": true,
             "default": false
         },
         "DirectoryPathRelative": {
-            "type": "string",
             "$id": "#/WpwDirectoryPathRelative",
+            "$comment": "relative path to a directory",
+            "type": "string",
             "maxLength": 100,
             "pattern": "^(?:\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+|\\.\\.?)$",
             "if": {
@@ -88,6 +89,7 @@
         },
         "DirectoryPath": {
             "$id": "#/WpwDirectoryPath",
+            "$comment": "relative or absolute path to a directory",
             "type": "string",
             "default": "src",
             "maxLength": 150,
@@ -104,6 +106,7 @@
         },
         "DirectoryPathGlob": {
             "$id": "#/definitions/DirectoryPathGlob",
+            "$comment": "directory type glob path",
             "type": "string",
             "minLength": 4,
             "pattern": "^(?:\\.{1,2}[\\\\/])\\*{0,2}(?:\\.|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/]+)\\*{0,2}$",
@@ -127,13 +130,25 @@
         },
         "FileName": {
             "$id": "#/WpwFileName",
+            "$comment": "a filename, with no path information",
             "type": "string",
             "minLength": 3,
             "maxLength": 150,
             "pattern": "^[\\w\\.\\-]+\\.([cm]?jsx?|tsx?)$"
         },
+        "FileOrDirectoryPath": {
+            "$id": "#/WpwFileOrDirectoryPath",
+            "$comment": "relative or absolute path to a file or directory",
+            "oneOf": [{
+                "$ref": "#/definitions/DirectoryPath"
+            },
+            {
+                "$ref": "#/definitions/FilePath"
+            }]
+        },
         "FilePath": {
             "$id": "#/WpwFilePath",
+            "$comment": "relative or absolute path to a file",
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
@@ -141,6 +156,7 @@
         },
         "FilePathRelative": {
             "$id": "#/WpwFilePathRelative",
+            "$comment": "relative path to a file",
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
@@ -148,6 +164,7 @@
         },
         "FilePathRelativeLeadingDot": {
             "$id": "#/WpwFilePathRelativeLeadingDot",
+            "$comment": "relative path to a file, with leading ./ or .\\",
             "type": "string",
             "minLength": 6,
             "maxLength": 150,
@@ -158,15 +175,6 @@
             "type": "string",
             "readOnly": true,
             "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?$"
-        },
-        "WpwBuilds": {
-            "$id": "#/WpwBuilds",
-            "type": "array",
-            "uniqueItems": true,
-            "minItems": 0,
-            "items": {
-                "$ref": "#/definitions/WpwBuild"
-            }
         },
         "WpwBuild": {
             "$id": "#/WpwBuild",
@@ -218,7 +226,7 @@
                     "$ref": "#/definitions/WpwBuildType"
                 },
                 "vscode": {
-                    "$ref": "#/definitions/WpwVsCodeConfig"
+                    "$ref": "#/definitions/WpwVsCode"
                 }
             },
             "dependencies": {
@@ -408,6 +416,15 @@
                 }
             }
         },
+        "WpwBuilds": {
+            "$id": "#/WpwBuilds",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 0,
+            "items": {
+                "$ref": "#/definitions/WpwBuild"
+            }
+        },
         "WpwBuildModeConfig": {
             "$id": "#/WpwBuildModeConfig",
             "type": "object",
@@ -432,7 +449,7 @@
                     "$ref": "#/definitions/WpwSourceCode"
                 },
                 "vscode": {
-                    "$ref": "#/definitions/WpwVsCodeConfig"
+                    "$ref": "#/definitions/WpwVsCode"
                 }
             }
         },
@@ -484,7 +501,7 @@
                     "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "copy": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                    "$ref": "#/definitions/WpwPluginConfigCopy"
                 },
                 "runscripts": {
                     "$ref": "#/definitions/WpwPluginConfigRunScripts"
@@ -582,23 +599,28 @@
                 }
             }
         },
-        "WpwBuildOptionsTesting1": {
-            "$id": "#/WpwBuildOptionsTesting1",
-            "anyOf": [
-                {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
-                {"$ref": "#/definitions/WpwBuildOptionsExports"},
-                {"$ref": "#/definitions/WpwBuildOptionsCustom"},
-                {"$ref": "#/definitions/WpwBuildOptionsPluginProperties"},
-                {"$ref": "#/definitions/WpwBuildOptionsExportProperties"},
-                {"$ref": "#/definitions/WpwBuildOptionsCustomProperties"}
-            ]
-        },
-        "WpwBuildOptionsTesting2": {
-            "$id": "#/WpwBuildOptionsTesting2",
+        "WpwBuildOptionsCustom": {
+            "$id": "#/WpwBuildOptionsCustom",
+            "type": "object",
+            "additionalProperties": false,
             "properties": {
-                "plugins": {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
-                "exports": {"$ref": "#/definitions/WpwBuildOptionsExports"},
-                "custom": {"$ref": "#/definitions/WpwBuildOptionsCustom"}
+                "typesPackage": {
+                    "type": "string",
+                    "default": "entry",
+                    "enum": [
+                        "entry", "plugin"
+                    ]
+                },
+                "typesEntryMode": {
+                    "type": "string",
+                    "default": "main",
+                    "enum": [
+                        "main", "index"
+                    ]
+                },
+                "wait": {
+                    "$ref": "#/definitions/WpwPluginConfigWait"
+                }
             }
         },
         "WpwBuildOptionsCustomProperties": {
@@ -615,16 +637,176 @@
                 }]
             }
         },
+        "WpwBuildOptionsExports": {
+            "$id": "#/WpwBuildOptionsExports",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "optimization": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "cache": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "devtool": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "experiments": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "externals": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "ignorewarnings": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "minification": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "watch": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                }
+            }
+        },
+        "WpwBuildOptionsExportKey": {
+            "$id": "#/WpwBuildOptionsExportKey",
+            "oneOf": [{
+                "const": "optimization"
+            },
+            {
+                "const": "cache"
+            },
+            {
+                "const": "devtool"
+            },
+            {
+                "const": "experiments"
+            },
+            {
+                "const": "externals"
+            },
+            {
+                "const": "ignorewarnings"
+            },
+            {
+                "const": "minification"
+            },
+            {
+                "const": "watch"
+            }]
+        },
         "WpwBuildOptionsExportProperties": {
             "$id": "#/WpwBuildOptionsExportProperties",
             "propertyNames": {
                 "$ref": "#/definitions/WpwBuildOptionsExportKey"
             }
         },
-        "WpwBuildOptionsPluginProperties": {
-            "$id": "#/WpwBuildOptionsPluginProperties",
-            "propertyNames": {
-                "$ref": "#/definitions/WpwBuildOptionsPluginKey"
+        "WpwBuildOptionsPlugins": {
+            "$id": "#/WpwBuildOptionsPlugins",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "analyze": {
+                    "$ref": "#/definitions/WpwPluginConfigAnalyze"
+                },
+                "banner": {
+                    "$ref": "#/definitions/WpwPluginConfigBanner"
+                },
+                "clean": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "copy": {
+                    "$ref": "#/definitions/WpwPluginConfigCopy"
+                },
+                "ignore": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "istanbul": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "jsdoc": {
+                    "$ref": "#/definitions/WpwPluginConfigJsDoc"
+                },
+                "licensefiles": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "loghooks": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "optimization": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "progress": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "runscripts": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
+                },
+                "runtimevars": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "scm": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "sourcemaps": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "testsuite": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tsbundle": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "tscheck": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "types": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "upload": {
+                    "$ref": "#/definitions/WpwPluginConfigUpload"
+                },
+                "vendormod": {
+                    "$ref": "#/definitions/WpwPluginConfigVendorMod"
+                }
+            },
+            "dependencies": {
+                "tsbundle": {
+                    "allOf": [
+                    {
+                        "if": {
+                            "properties": {
+                                "tsbundle": { 
+                                    "const": true
+                                }
+                            }
+                        },
+                        "then": { 
+                            "anyOf": [
+                            {
+                                "properties": {
+                                    "dts": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "tscheck": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "types": {
+                                        "const": true
+                                    }
+                                }
+                            }]
+                        }
+                    }]
+                }
             }
         },
         "WpwBuildOptionsPluginKey": {
@@ -698,194 +880,29 @@
             "$ref": "#/definitions/WpwBuildOptionsPluginKey",
             "readOnly": true
         },
-        "WpwBuildOptionsExportKey": {
-            "$id": "#/WpwBuildOptionsExportKey",
-            "oneOf": [{
-                "const": "optimization"
-            },
-            {
-                "const": "cache"
-            },
-            {
-                "const": "devtool"
-            },
-            {
-                "const": "experiments"
-            },
-            {
-                "const": "externals"
-            },
-            {
-                "const": "ignorewarnings"
-            },
-            {
-                "const": "minification"
-            },
-            {
-                "const": "watch"
-            }]
-        },
-        "WpwBuildOptionsCustom": {
-            "$id": "#/WpwBuildOptionsCustom",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "typesPackage": {
-                    "type": "string",
-                    "default": "entry",
-                    "enum": [
-                        "entry", "plugin"
-                    ]
-                },
-                "typesEntryMode": {
-                    "type": "string",
-                    "default": "main",
-                    "enum": [
-                        "main", "index"
-                    ]
-                },
-                "wait": {
-                    "$ref": "#/definitions/WpwPluginConfigWait"
-                }
+        "WpwBuildOptionsPluginProperties": {
+            "$id": "#/WpwBuildOptionsPluginProperties",
+            "propertyNames": {
+                "$ref": "#/definitions/WpwBuildOptionsPluginKey"
             }
         },
-        "WpwBuildOptionsPlugins": {
-            "$id": "#/WpwBuildOptionsPlugins",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "analyze": {
-                    "$ref": "#/definitions/WpwPluginConfigAnalyze"
-                },
-                "banner": {
-                    "$ref": "#/definitions/WpwPluginConfigBanner"
-                },
-                "clean": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "copy": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "ignore": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "istanbul": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "jsdoc": {
-                    "$ref": "#/definitions/WpwPluginConfigJsDoc"
-                },
-                "licensefiles": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "loghooks": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "optimization": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "progress": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "runscripts": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
-                },
-                "runtimevars": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "scm": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "sourcemaps": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "testsuite": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tsbundle": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tscheck": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "types": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "upload": {
-                    "$ref": "#/definitions/WpwPluginConfigUpload"
-                },
-                "vendormod": {
-                    "$ref": "#/definitions/WpwPluginConfigVendorMod"
-                }
-            },
-            "dependencies": {
-                "tsbundle": {
-                    "allOf": [
-                    {
-                        "if": {
-                            "properties": {
-                                "tsbundle": { 
-                                    "const": true
-                                }
-                            }
-                        },
-                        "then": { 
-                            "anyOf": [
-                            {
-                                "properties": {
-                                    "dts": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "types": {
-                                        "const": true
-                                    }
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
+        "WpwBuildOptionsTesting1": {
+            "$id": "#/WpwBuildOptionsTesting1",
+            "anyOf": [
+                {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
+                {"$ref": "#/definitions/WpwBuildOptionsExports"},
+                {"$ref": "#/definitions/WpwBuildOptionsCustom"},
+                {"$ref": "#/definitions/WpwBuildOptionsPluginProperties"},
+                {"$ref": "#/definitions/WpwBuildOptionsExportProperties"},
+                {"$ref": "#/definitions/WpwBuildOptionsCustomProperties"}
+            ]
         },
-        "WpwBuildOptionsExports": {
-            "$id": "#/WpwBuildOptionsExports",
-            "type": "object",
-            "additionalProperties": false,
+        "WpwBuildOptionsTesting2": {
+            "$id": "#/WpwBuildOptionsTesting2",
             "properties": {
-                "optimization": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "cache": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "devtool": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "experiments": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "externals": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "ignorewarnings": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "minification": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "watch": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                }
+                "plugins": {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
+                "exports": {"$ref": "#/definitions/WpwBuildOptionsExports"},
+                "custom": {"$ref": "#/definitions/WpwBuildOptionsCustom"}
             }
         },
         "WpwBuildType": {
@@ -1047,6 +1064,57 @@
                 }
             }
         },
+        "WpwLogColor": {
+            "$id": "#/WpwLogColor",
+            "oneOf": [{
+                "$ref": "#/definitions/WpwLogTrueColor"
+            },
+            {
+                "const": "bold"
+            },
+            {
+                "const": "inverse"
+            },
+            {
+                "const": "italic"
+            },
+            {
+                "const": "system"
+            },
+            {
+                "const": "underline"
+            }]
+        },
+        "WpwLogTrueColor": {
+            "$id": "#/WpwLogTrueColor",
+            "oneOf": [{
+                "const": "black"
+            },
+            {
+                "const": "blue"
+            },
+            {
+                "const": "cyan"
+            },
+            {
+                "const": "green"
+            },
+            {
+                "const": "grey"
+            },
+            {
+                "const": "magenta"
+            },
+            {
+                "const": "red"
+            },
+            {
+                "const": "white"
+            },
+            {
+                "const": "yellow"
+            }]
+        },
         "WpwPackageJson": {
             "$id": "#/WpwPackageJson",
             "type": "object",
@@ -1207,17 +1275,65 @@
                 "pattern": "^[\\w\\-\\.,&%# |\\(\\)@\\[\\]\\r\\n]+$"
             }]
         },
+        "WpwPluginConfigCopy": {
+            "$id": "#/WpwPluginConfigCopy",
+            "oneOf": [{
+                "type": "boolean"
+            },
+            {
+                "$ref": "#/definitions/WpwPluginConfigCopyItem"
+            },
+            {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/WpwPluginConfigCopyItem"
+                }
+            }]
+        },
+        "WpwPluginConfigCopyItem": {
+            "$id": "#/WpwPluginConfigCopyEx",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "to", "from"
+            ],
+            "properties": {
+                "to": {
+                    "$ref": "#/definitions/FileOrDirectoryPath"
+                },
+                "from": {
+                    "$ref": "#/definitions/FileOrDirectoryPath"
+                },
+                "context": {
+                    "$ref": "#/definitions/DirectoryPathRelative"
+                }
+            },
+            "if": {
+                "properties": {
+                    "to": {
+                        "$ref": "#/definitions/FilePath"
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "from": {
+                        "$ref": "#/definitions/FilePath"
+                    }
+                }
+            }
+        },
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
             "oneOf": [{
                 "type": "boolean"
             },
             {
-                "$ref": "#/definitions/WpwPluginConfigJsDocEx"
+                "$ref": "#/definitions/WpwPluginConfigJsDocItem"
             }]
         },
-        "WpwPluginConfigJsDocEx": {
-            "$id": "#/WpwPluginConfigJsDocEx",
+        "WpwPluginConfigJsDocItem": {
+            "$id": "#/WpwPluginConfigJsDocItem",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -1391,26 +1507,26 @@
             "type": "object",
             "patternProperties": {
                 "^[a-z][a-z]+(?:[A-Z][aiz]+)?$": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"    
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"    
                 }
             },
             "properties": {
                 "start": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"
                 },
                 "beforeCompile": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"
                 },
                 "afterCompile": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"
                 },
                 "done": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScriptsHookConfig"
+                    "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"
                 }
             }
         },
-        "WpwPluginConfigRunScriptsHookConfig": {
-            "$id": "#/WpwPluginConfigRunScriptsHookConfig",
+        "WpwPluginConfigRunScriptsItem": {
+            "$id": "#/WpwPluginConfigRunScriptsItem",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -1435,7 +1551,7 @@
                 "scripts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/WpwPluginConfigRunScriptsScriptDef"
+                        "$ref": "#/definitions/WpwPluginConfigRunScriptsItemDef"
                     }
                 }
             },
@@ -1458,8 +1574,8 @@
                 }
             }
         },
-        "WpwPluginConfigRunScriptsScriptDef": {
-            "$id": "#/WpwPluginConfigRunScriptsScriptDef",
+        "WpwPluginConfigRunScriptsItemDef": {
+            "$id": "#/WpwPluginConfigRunScriptsItemDef",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -1718,57 +1834,6 @@
                         "src": "types"
                     }
                 }]
-            }]
-        },
-        "WpwLogTrueColor": {
-            "$id": "#/WpwLogTrueColor",
-            "oneOf": [{
-                "const": "black"
-            },
-            {
-                "const": "blue"
-            },
-            {
-                "const": "cyan"
-            },
-            {
-                "const": "green"
-            },
-            {
-                "const": "grey"
-            },
-            {
-                "const": "magenta"
-            },
-            {
-                "const": "red"
-            },
-            {
-                "const": "white"
-            },
-            {
-                "const": "yellow"
-            }]
-        },
-        "WpwLogColor": {
-            "$id": "#/WpwLogColor",
-            "oneOf": [{
-                "$ref": "#/definitions/WpwLogTrueColor"
-            },
-            {
-                "const": "bold"
-            },
-            {
-                "const": "inverse"
-            },
-            {
-                "const": "italic"
-            },
-            {
-                "const": "system"
-            },
-            {
-                "const": "underline"
             }]
         },
         "WpwSourceCode": {
@@ -2055,13 +2120,12 @@
                 }
             }
         },
-        "WpwSourceCodeType": {
-            "$id": "#/WpwSourceCodeType",
+        "WpwSourceCodeNodeJsModule": {
+            "$id": "#/WpwSourceCodeNodeJsModule",
             "type": "string",
-            "default": "typescript",
+            "default": "commonjs",
             "enum": [
-                "javascript",
-                "typescript"
+                "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "none", "system", "umd"
             ]
         },
         "WpwSourceCodeNodeJsModuleResolution": {
@@ -2070,14 +2134,6 @@
             "default": "node",
             "enum": [
                 "node", "node10", "node16", "nodenext", "bundler"
-            ]
-        },
-        "WpwSourceCodeNodeJsModule": {
-            "$id": "#/WpwSourceCodeNodeJsModule",
-            "type": "string",
-            "default": "commonjs",
-            "enum": [
-                "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "none", "system", "umd"
             ]
         },
         "WpwSourceCodeNodeJsTarget": {
@@ -2089,8 +2145,17 @@
                 "ES5", "ES6", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ESNEXT"
             ]
         },
-        "WpwVsCodeConfig": {
-            "$id": "#/WpwVsCodeConfig",
+        "WpwSourceCodeType": {
+            "$id": "#/WpwSourceCodeType",
+            "type": "string",
+            "default": "typescript",
+            "enum": [
+                "javascript",
+                "typescript"
+            ]
+        },
+        "WpwVsCode": {
+            "$id": "#/WpwVsCode",
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -2125,6 +2190,102 @@
             "examples": [{
                 "vscode": {
                     "type": "extension"
+                }
+            }]
+        },
+        "WpwWebpackAliasValue": {
+            "$id": "#/WpwWebpackAliasValue",
+            "anyOf": [{
+                "$ref": "#/definitions/DirectoryPathGlob"
+            },
+            {
+                "type": "array",
+                "items": {
+                    "$ref": "#/definitions/DirectoryPathGlob"
+                }
+            },
+            {
+                "type": "boolean",
+                "const": false,
+                "readOnly": true
+            }]
+        },
+        "WpwWebpackAliasConfig": {
+            "$id": "#/WpwWebpackAliasConfig",
+            "type": "object",
+            "minProperties": 0,
+            "patternProperties": {
+                "^[a-zA-Z:@][\\w:@]+$": {
+                    "$ref": "#/definitions/WpwWebpackAliasValue"
+                }
+            },
+            "propertyNames": {
+                "maxLength": 20
+            },
+            "description": "Key value pairs for aliased import/require paths",
+            "examples": [{
+                "alias":
+                {
+                    ":env": "src/lib/env/node",
+                    ":types": "types"
+                }
+            },
+            {
+                "alias": {
+                    ":env": [
+                        "src/lib/env/web", "src/webapp/tools/env/web"
+                    ],
+                    ":types": "types"
+                }
+            }]
+        },
+        "WpwWebpackEntry": {
+            "$id": "#/WpwWebpackEntry",
+            "type": "object",
+            "description": "mapping of module names to respective entry point file, relative to context directory",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[a-z][\\w\\-\\.]+$": {
+                    "$ref": "#/definitions/WpwWebpackEntryValue"
+                }
+            },
+            "propertyNames": {
+                "maxLength": 30
+            },
+            "examples": [{
+                "entry": {
+                    "modulename": "./path/to/entry.ts"
+                }
+            },
+            {
+                "entry": {
+                    "modulename1": "./path/to/entry1.ts",
+                    "modulename2": "./path/to/entry2.ts",
+                    "modulename3": "./path/to/entry3.ts"
+                }
+            },
+            {
+                "entry": {
+                    "modulename": {
+                        "import": "./path/to/entrymodule.ts"
+                    },
+                    "modulename2": "./path/to/entry2.ts"
+                }
+            },
+            {
+                "entry": {
+                    "modulename1": {
+                        "import": "./path/to/entrymodule1.ts"
+                    },
+                    "modulename2": {
+                        "import": "./path/to/entrymodule1.ts",
+                        "dependOn": "modulename1"
+                    },
+                    "modulename3": {
+                        "import": "./path/to/entrymodule2.ts",
+                        "dependOn": "modulename2"
+                    }
                 }
             }]
         },
@@ -2210,56 +2371,6 @@
                 "$ref": "#/definitions/WpwWebpackEntryObject"
             }]
         },
-        "WpwWebpackEntry": {
-            "$id": "#/WpwWebpackEntry",
-            "type": "object",
-            "description": "mapping of module names to respective entry point file, relative to context directory",
-            "minProperties": 1,
-            "additionalProperties": false,
-            "patternProperties": {
-                "^[a-z][\\w\\-\\.]+$": {
-                    "$ref": "#/definitions/WpwWebpackEntryValue"
-                }
-            },
-            "propertyNames": {
-                "maxLength": 30
-            },
-            "examples": [{
-                "entry": {
-                    "modulename": "./path/to/entry.ts"
-                }
-            },
-            {
-                "entry": {
-                    "modulename1": "./path/to/entry1.ts",
-                    "modulename2": "./path/to/entry2.ts",
-                    "modulename3": "./path/to/entry3.ts"
-                }
-            },
-            {
-                "entry": {
-                    "modulename": {
-                        "import": "./path/to/entrymodule.ts"
-                    },
-                    "modulename2": "./path/to/entry2.ts"
-                }
-            },
-            {
-                "entry": {
-                    "modulename1": {
-                        "import": "./path/to/entrymodule1.ts"
-                    },
-                    "modulename2": {
-                        "import": "./path/to/entrymodule1.ts",
-                        "dependOn": "modulename1"
-                    },
-                    "modulename3": {
-                        "import": "./path/to/entrymodule2.ts",
-                        "dependOn": "modulename2"
-                    }
-                }
-            }]
-        },
         "WpwWebpackMode":  {
             "$id": "#/WpwWebpackMode",
             "type": "string",
@@ -2271,50 +2382,130 @@
                 "test"
             ]
         },
-        "WpwWebpackAliasValue": {
-            "$id": "#/WpwWebpackAliasValue",
-            "anyOf": [{
-                "$ref": "#/definitions/DirectoryPathGlob"
+        "WebpackCompilationHook": {
+            "$id": "#/WebpackCompilationHook",
+            "oneOf": [{
+                "const": "buildModule"
             },
             {
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/DirectoryPathGlob"
-                }
+                "const": "rebuildModule"
             },
             {
-                "type": "boolean",
-                "const": false,
-                "readOnly": true
+                "const": "seal"
+            },
+            {
+                "const": "unseal"
+            },
+            {
+                "const": "afterSeal"
+            },
+            {
+                "const": "processAssets"
+            },
+            {
+                "const": "afterProcessAssets"
+            },
+            {
+                "const": "beforeHash"
+            },
+            {
+                "const": "afterHash"
+            },
+            {
+                "const": "contentHash"
+            },
+            {
+                "const": "finishModules"
             }]
         },
-        "WpwWebpackAliasConfig": {
-            "$id": "#/WpwWebpackAliasConfig",
-            "type": "object",
-            "minProperties": 0,
-            "patternProperties": {
-                "^[a-zA-Z:@][\\w:@]+$": {
-                    "$ref": "#/definitions/WpwWebpackAliasValue"
-                }
-            },
-            "propertyNames": {
-                "maxLength": 20
-            },
-            "description": "Key value pairs for aliased import/require paths",
-            "examples": [{
-                "alias":
-                {
-                    ":env": "src/lib/env/node",
-                    ":types": "types"
-                }
+        "WebhookCompilationHookStage": {
+            "$id": "#/WebhookCompilationHookStage",
+            "oneOf": [{
+                "const": "additional"
             },
             {
-                "alias": {
-                    ":env": [
-                        "src/lib/env/web", "src/webapp/tools/env/web"
-                    ],
-                    ":types": "types"
-                }
+                "const": "pre_process"
+            },
+            {
+                "const": "derived"
+            },
+            {
+                "const": "additions"
+            },
+            {
+                "const": "optimize"
+            },
+            {
+                "const": "optimize_count"
+            },
+            {
+                "const": "optimize_compatibility"
+            },
+            {
+                "const": "optimize_size"
+            },
+            {
+                "const": "dev_tooling"
+            },
+            {
+                "const": "optimize_inline"
+            },
+            {
+                "const": "summarize"
+            },
+            {
+                "const": "optimize_hash"
+            },
+            {
+                "const": "optimize_transfer"
+            },
+            {
+                "const": "analyse"
+            },
+            {
+                "const": "report"
+            }]
+        },
+        "WebpackCompilerHook": {
+            "$id": "#/WebpackCompilerHook",
+            "oneOf": [{
+                "const": "initialize"
+            },
+            {
+                "const": "environment"
+            },
+            {
+                "const": "afterEnvironment"
+            },
+            {
+                "const": "run"
+            },
+            {
+                "const": "make"
+            },
+            {
+                "const": "afterPlugins"
+            },
+            {
+                "const": "beforeCompile"
+            },
+            {
+                "const": "compile"
+            },
+            {
+                "const": "afterCompile"
+            },
+            {
+                "const": "thisCompilation"
+            },
+            {
+                "const": "compilation"
+            },
+            {
+                "const": "emit"
+            },
+            {
+                "const": "done"
             }]
         },
         "WebpackConfigOverride": {
@@ -2343,42 +2534,6 @@
                         ".ts", ".tsx", ".js", ".jsx", ".json"
                     ]
                 }
-            }]
-        },
-        "WebpackTarget":  {
-            "$id": "#/WebpackTarget",
-            "oneOf": [{
-                "const": "node"
-            },
-            {
-                "const": "web"
-            },
-            {
-                "const": "webworker"
-            },
-            {
-                "const": "async-node"
-            },
-            {
-                "const": "node-webkit"
-            },
-            {
-                "const": "electron-main"
-            },
-            {
-                "const": "electron-renderer"
-            },
-            {
-                "const": "electron-preload"
-            },
-            {
-                "const": "nwjs"
-            },
-            {
-                "const": "esX"
-            },
-            {
-                "const": "browserlist"
             }]
         },
         "WebpackLibraryType": {
@@ -2439,112 +2594,40 @@
                 "const": "system"
             }]
         },
-        "WebpackCompilationHook": {
-            "$id": "#/WebpackCompilationHook",
+        "WebpackTarget":  {
+            "$id": "#/WebpackTarget",
             "oneOf": [{
-                "const": "buildModule"
+                "const": "node"
             },
             {
-                "const": "rebuildModule"
+                "const": "web"
             },
             {
-                "const": "afterSeal"
+                "const": "webworker"
             },
             {
-                "const": "processAssets"
+                "const": "async-node"
             },
             {
-                "const": "afterProcessAssets"
-            }]
-        },
-        "WebpackCompilerHook": {
-            "$id": "#/WebpackCompilerHook",
-            "oneOf": [{
-                "const": "initialize"
+                "const": "node-webkit"
             },
             {
-                "const": "environment"
+                "const": "electron-main"
             },
             {
-                "const": "afterEnvironment"
+                "const": "electron-renderer"
             },
             {
-                "const": "run"
+                "const": "electron-preload"
             },
             {
-                "const": "make"
+                "const": "nwjs"
             },
             {
-                "const": "afterPlugins"
+                "const": "esX"
             },
             {
-                "const": "beforeCompile"
-            },
-            {
-                "const": "compile"
-            },
-            {
-                "const": "afterCompile"
-            },
-            {
-                "const": "thisCompilation"
-            },
-            {
-                "const": "compilation"
-            },
-            {
-                "const": "emit"
-            },
-            {
-                "const": "done"
-            }]
-        },
-        "WebhookCompilationHookStage": {
-            "$id": "#/WebhookCompilationHookStage",
-            "oneOf": [{
-                "const": "additional"
-            },
-            {
-                "const": "pre_process"
-            },
-            {
-                "const": "derived"
-            },
-            {
-                "const": "additions"
-            },
-            {
-                "const": "optimize"
-            },
-            {
-                "const": "optimize_count"
-            },
-            {
-                "const": "optimize_compatibility"
-            },
-            {
-                "const": "optimize_size"
-            },
-            {
-                "const": "dev_tooling"
-            },
-            {
-                "const": "optimize_inline"
-            },
-            {
-                "const": "summarize"
-            },
-            {
-                "const": "optimize_hash"
-            },
-            {
-                "const": "optimize_transfer"
-            },
-            {
-                "const": "analyse"
-            },
-            {
-                "const": "report"
+                "const": "browserlist"
             }]
         }
     }

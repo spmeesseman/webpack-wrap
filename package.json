@@ -25,8 +25,10 @@
         "build_all": "webpack --mode production --env mode=production --config ./webpack.config.js",
         "build_all_dev": "webpack --mode development --env mode=development --config ./webpack.config.js",
         "build_doc": "webpack --env build=docs --mode production --env mode=production --config ./webpack.config.js",
+        "build_doc:jsdoc": "jsdoc --destination doc/api ./src",
         "build_types": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
         "clean_all": "rimraf dist && rimraf %TEMP%\\webpack-wrap && rimraf node_modules/.cache/wpbuild && rimraf node_modules/.cache/wpwrap",
+        "clean_types": "rimraf types/dist && rimraf node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo",
         "create_examples": "node bin/create-examples.js",
         "types-js-check": "tsc --target es2020 --noEmit --skipLibCheck ./src/types/index.d.ts && tsc --target es2020 --moduleResolution node --noEmit --skipLibCheck --allowJs ./src/core/rc.js",
         "upload_schema": "node bin/upload-rc-schema.js"

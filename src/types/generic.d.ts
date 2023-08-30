@@ -17,6 +17,9 @@
  *
  * Generic types and typings
  */
+import { WebpackError } from "webpack";
+import { WpwWebpackConfig } from "./app";
+
 /**
  *
  */
@@ -34,6 +37,15 @@ declare type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P e
 
 declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>>; }
 
+declare class ClsWpBuildError extends WebpackError {
+    static get(message: string, file: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null): ClsWpBuildError;
+    static getErrorMissing: (property: string, file: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpBuildError;
+    static getErrorProperty: (property: string, file: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpBuildError;
+    constructor(message: string, file: string, details?: string, capture?: boolean);
+    details: string | undefined;
+    file: string;
+}
+
 export {
     AsArray,
     ConvertType,
@@ -44,5 +56,6 @@ export {
     IDisposable,
     PartialSome,
     PickByType,
-    RequireKeys
+    RequireKeys,
+    ClsWpBuildError
 };

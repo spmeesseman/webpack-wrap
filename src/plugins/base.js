@@ -81,7 +81,7 @@ class WpBuildPlugin
     name;
     /** @protected */
     options;
-    /** @type {typedefs.WpwBuildOptionsPluginKey | string} @private */
+    /** @type {typedefs.WpwBuildOptionsPluginKey} @private */
     pluginKey;
     /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
@@ -107,7 +107,7 @@ class WpBuildPlugin
         this.logger = this.app.logger;
         this.wpConfig = options.app.wpc;
         this.name = this.constructor.name;
-        this.pluginKey = options.pluginKey || this.baseName.toLowerCase();
+        this.pluginKey = /** @type {typedefs.WpwBuildOptionsPluginKey} */(options.pluginKey || this.baseName.toLowerCase());
         this.options = /** @type {typedefs.WpBuildPluginOptionsRequired} */(mergeIf(options, { plugins: [] }));
         this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
@@ -756,8 +756,8 @@ class WpBuildPlugin
                 cb = () => {
                     eMgr.register({
                         type: "event",
-                        source: this.name,
-                        target: waitPlugin,
+                        source: this.pluginKey,
+                        target: /** @type {typedefs.WpwBuildOptionsPluginKey} */(waitPlugin),
                         name: `${waitPlugin}_done`,
                         callback: () => delayedCb.call(this, message, options)
                     });

@@ -354,46 +354,50 @@ class WpBuildRc
      */
     findJsTsConfig = (build) =>
     {
-        const cfgFile = build.source.type === "typescript" ? "tsconfig" : "jsconfig";
+        const cfgFiles = build.source.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
         /**
          * @param {string | undefined} base
          * @returns {string | undefined}
          */
         const _find = (base) =>
         {
+            let tsCfg;
             if (base)
             {
-                let tsCfg = join(base, `${cfgFile}.${build.name}.json`);
-                if (!existsSync(tsCfg))
+                for (const cfgFile of cfgFiles)
                 {
-                    tsCfg = join(base, `${cfgFile}.${build.target}.json`);
+                    tsCfg = join(base, `${cfgFile}.${build.name}.json`);
                     if (!existsSync(tsCfg))
                     {
-                        tsCfg = join(base, `${cfgFile}.${build.mode}.json`);
+                        tsCfg = join(base, `${cfgFile}.${build.target}.json`);
                         if (!existsSync(tsCfg))
                         {
-                            tsCfg = join(base, `${cfgFile}.${build.type}.json`);
+                            tsCfg = join(base, `${cfgFile}.${build.mode}.json`);
                             if (!existsSync(tsCfg))
                             {
-                                tsCfg = join(base, build.name, `${cfgFile}.json`);
+                                tsCfg = join(base, `${cfgFile}.${build.type}.json`);
                                 if (!existsSync(tsCfg))
                                 {
-                                    tsCfg = join(base, build.type || build.name, `${cfgFile}.json`);
-                                    if (!existsSync(tsCfg)) {
-                                        tsCfg = join(base, `${cfgFile}.json`);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                    tsCfg = join(base, build.name, `${cfgFile}.json`);
+                                    if (!existsSync(tsCfg))
+                                    {
+                                        tsCfg = join(base, build.type || build.name, `${cfgFile}.json`);
+                                        if (!existsSync(tsCfg)) {
+                                            tsCfg = join(base, `${cfgFile}.json`);
+                                        }
+                                    } else { break; }
+                                } else { break; }
+                            } else { break; }
+                        } else { break; }
+                    } else { break; }
                 }
                 return tsCfg;
             }
         };
 
-        if (isJsTsConfigPath(build.source[cfgFile]))
+        if (isJsTsConfigPath(build.source.config.path))
         {
-            const curPath = resolvePath(build.paths.base, build.source[cfgFile]);
+            const curPath = resolvePath(build.paths.base, build.source.config.path);
             if (curPath && existsSync(curPath)) {
                 return curPath;
             }
@@ -410,8 +414,12 @@ class WpBuildRc
                 return configFile;
             }
         }
-        const globFiles = findFilesSync(`**/${cfgFile}.${build.mode}.json`, { cwd: build.paths.base, absolute: true });
+        let globFiles = findFilesSync(`**/${cfgFiles[0]}.${build.mode}.json`, { cwd: build.paths.base, dot: true, absolute: true });
         if (globFiles.length > 0) {
+            return globFiles[0];
+        }
+        globFiles = findFilesSync(`**/${cfgFiles[0]}.json`, { cwd: build.paths.base, dot: true, absolute: true });
+        if (globFiles.length === 1) {
             return globFiles[0];
         }
     };

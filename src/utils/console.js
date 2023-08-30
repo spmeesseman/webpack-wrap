@@ -380,7 +380,7 @@ class WpBuildConsoleLogger
      */
     success = (msg, level, pad, successIcon) => this.writeMsgTag(
         msg, "success", level, pad,
-        this.colors[this.options.colors.default] || this.colors.white,
+        this.options.colors.default ? this.colors[this.options.colors.default] : this.colors.white,
         this.colors.green,
         successIcon ? this.icons.color.success : null
     );

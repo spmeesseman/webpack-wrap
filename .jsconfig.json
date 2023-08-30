@@ -5,11 +5,12 @@
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "checkJs": true,
+      "composite": true,
       "experimentalDecorators": true,
       "lib": [
         "es2020"
       ],
-      "module": "commonjs", // "amd", "commonJS", "es2015", "es6", "esnext", "none", "system", "umd"
+      "module": "commonjs",
       "moduleResolution": "node",
       "noFallthroughCasesInSwitch": false,
       "noImplicitAny": false,
@@ -22,21 +23,35 @@
       "noUnusedLocals": false,
       "noUnusedParameters": false,
       "resolveJsonModule": true,
+      "skipDefaultLibCheck": true,
       "skipLibCheck": true,
-      "strict": true, //,
+      "strict": true,
       "strictBindCallApply": true,
       "strictFunctionTypes": true,
       "strictNullChecks": true,
       "strictPropertyInitialization": false,
       "suppressImplicitAnyIndexErrors": true,
       "suppressExcessPropertyErrors": true,
-      // "baseUrl": ".",
-      // "paths": {
-      //   "ClientApp/*": ["./ClientApp/*"]
-      // }
-      "target": "es2020",      // "es5", "es6", "es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "esnext".
+      "target": "es2020",
+      "tsBuildInfoFile": "./node_modules/.cache/wpwrap/tsconfig.tsbuildinfo",
       "useUnknownInCatchVariables": false
     },
-    "exclude": [ "node_modules" ],
-    "include": [ "src/**/*.js", "bin/**/*.js", "schema/**/*.json" ]
+    "include": [
+      "src",
+      "./package.json"
+    ],
+    "exclude": [
+        ".*",
+        "*.ts",
+        "dist",
+        "doc",
+        "node_modules",
+        "res",
+        "script",
+        "src/test",
+        "src/webview/app",
+        "**/env/web/**",
+        "test-fixture",
+        "types"
+    ]
 }

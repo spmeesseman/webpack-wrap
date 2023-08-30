@@ -49,7 +49,7 @@ import webpack, {
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
-    WebpackOptionsNormalized, RuleSetUse, RuleSetUseItem, ResolveOptions as WebpackResolveOptions
+    WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions
 }from "webpack";
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;

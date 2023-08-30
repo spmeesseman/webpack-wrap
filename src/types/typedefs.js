@@ -14,6 +14,7 @@
 /** @typedef {import("./rc").WpwBuilds} WpwBuilds */
 /** @typedef {import("./rc").WpwLogKey} WpwLogKey */
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
+/** @typedef {import("./rc").WpwVsCode} WpwVsCode */
 /** @typedef {import("./rc").TypeWpwLog} TypeWpwLog */
 /** @typedef {import("./rc").WpwRcPaths} WpwRcPaths */
 /** @typedef {import("./rc").WpwBuildKey} WpwBuildKey */
@@ -36,7 +37,6 @@
 /** @typedef {import("./rc").WpBuildLogLevel} WpBuildLogLevel */
 /** @typedef {import("./rc").WpwBuildOptions} WpwBuildOptions */
 /** @typedef {import("./rc").WpwLogTrueColor} WpwLogTrueColor */
-/** @typedef {import("./rc").WpwVsCodeConfig} WpwVsCodeConfig */
 /** @typedef {import("./rc").WpwWebpackEntry} WpwWebpackEntry */
 /** @typedef {import("./constants").WpwLogColors} WpwLogColors */
 /** @typedef {import("./rc").WpwDirectoryPath} WpwDirectoryPath */
@@ -54,14 +54,13 @@
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
 /** @typedef {import("./rc").WpwBuildModeConfig} WpwBuildModeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsKey} WpwBuildOptionsKey */
-/** @typedef {import("./rc").WpwVsCodeConfigKey} WpwVsCodeConfigKey */
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
 /** @typedef {import("./constants").WpwRcPathsProps} WpwRcPathsProps */
 /** @typedef {import("./constants").WpwWebpackModes} WpwWebpackModes */
 /** @typedef {import("./rc").TypeWpwBuildOptions} TypeWpwBuildOptions */
-/** @typedef {import("./rc").TypeWpwVsCodeConfig} TypeWpwVsCodeConfig */
 /** @typedef {import("./rc").WebpackCompilerHook} WebpackCompilerHook */
 /** @typedef {import("./rc").WpwFilePathRelative} WpwFilePathRelative */
+/** @typedef {import("./rc").WpwPluginConfigCopy} WpwPluginConfigCopy */
 /** @typedef {import("./rc").WpwPluginConfigWait} WpwPluginConfigWait */
 /** @typedef {import("./rc").WpwSourceCodeConfig} WpwSourceCodeConfig */
 /** @typedef {import("./constants").isWpwRcPathsProp} isWpwRcPathsProp */
@@ -74,6 +73,7 @@
 /** @typedef {import("./rc").WebpackConfigOverride} WebpackConfigOverride */
 /** @typedef {import("./rc").WpwBuildOptionsCustom} WpwBuildOptionsCustom */
 /** @typedef {import("./rc").WpwPluginConfigBanner} WpwPluginConfigBanner */
+/** @typedef {import("./rc").WpwPluginConfigCopyEx} WpwPluginConfigCopyEx */
 /** @typedef {import("./rc").WpwPluginConfigUpload} WpwPluginConfigUpload */
 /** @typedef {import("./rc").WpwWebpackAliasConfig} WpwWebpackAliasConfig */
 /** @typedef {import("./rc").WpwWebpackEntryObject} WpwWebpackEntryObject */
@@ -82,8 +82,8 @@
 /** @typedef {import("./rc").WebpackCompilationHook} WebpackCompilationHook */
 /** @typedef {import("./rc").WpwBuildOptionsExports} WpwBuildOptionsExports */
 /** @typedef {import("./rc").WpwBuildOptionsPlugins} WpwBuildOptionsPlugins */
+/** @typedef {import("./rc").WpwFileOrDirectoryPath} WpwFileOrDirectoryPath */
 /** @typedef {import("./rc").WpwPluginConfigAnalyze} WpwPluginConfigAnalyze */
-/** @typedef {import("./rc").WpwPluginConfigJsDocEx} WpwPluginConfigJsDocEx */
 /** @typedef {import("./rc").WpwSourceCodeConfigKey} WpwSourceCodeConfigKey */
 /** @typedef {import("./constants").isWpwSourceCodeType} isWpwSourceCodeType */
 /** @typedef {import("./constants").WebpackLibraryTypes} WebpackLibraryTypes */
@@ -100,6 +100,7 @@
 /** @typedef {import("./rc").WpwBuildOptionsPluginKey} WpwBuildOptionsPluginKey */
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
 /** @typedef {import("./rc").WpwPackageJsonScopedName} WpwPackageJsonScopedName */
+/** @typedef {import("./rc").WpwPluginConfigJsDocItem} WpwPluginConfigJsDocItem */
 /** @typedef {import("./rc").WpwPluginConfigVendorMod} WpwPluginConfigVendorMod */
 /** @typedef {import("./rc").WpwPluginConfigWaitEvent} WpwPluginConfigWaitEvent */
 /** @typedef {import("./rc").WpwPluginConfigWaitMulti} WpwPluginConfigWaitMulti */
@@ -123,6 +124,7 @@
 /** @typedef {import("./constants").WpwBuildOptionsPluginKeys} WpwBuildOptionsPluginKeys */
 /** @typedef {import("./constants").WpwPluginConfigWaitEvents} WpwPluginConfigWaitEvents */
 /** @typedef {import("./rc").WpwFilePathRelativeLeadingDot} WpwFilePathRelativeLeadingDot */
+/** @typedef {import("./rc").WpwPluginConfigRunScriptsItem} WpwPluginConfigRunScriptsItem */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptionsKey} WpwSourceCodeConfigOptionsKey */
 /** @typedef {import("./constants").isWpwBuildOptionsExportKey} isWpwBuildOptionsExportKey */
 /** @typedef {import("./constants").isWpwBuildOptionsPluginKey} isWpwBuildOptionsPluginKey */
@@ -136,13 +138,12 @@
 /** @typedef {import("./rc").WpwBuildOptionsExportProperties} WpwBuildOptionsExportProperties */
 /** @typedef {import("./rc").WpwBuildOptionsPluginProperties} WpwBuildOptionsPluginProperties */
 /** @typedef {import("./constants").WebhookCompilationHookStages} WebhookCompilationHookStages */
+/** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
 /** @typedef {import("./constants").isWebhookCompilationHookStage} isWebhookCompilationHookStage */
 /** @typedef {import("./constants").WpwPluginConfigRunScriptsProps} WpwPluginConfigRunScriptsProps */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
-/** @typedef {import("./rc").WpwPluginConfigRunScriptsScriptDef} WpwPluginConfigRunScriptsScriptDef */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
 /** @typedef {import("./constants").isWpwPluginConfigRunScriptsProp} isWpwPluginConfigRunScriptsProp */
-/** @typedef {import("./rc").WpwPluginConfigRunScriptsHookConfig} WpwPluginConfigRunScriptsHookConfig */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModuleResolution} WpwSourceCodeNodeJsModuleResolution */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */
@@ -161,16 +162,13 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
-/** @typedef {import("./app").IWpBuildAppSchema} IWpBuildAppSchema */
-/** @typedef {import("./app").WpBuildAppJsTsConfig} WpBuildAppJsTsConfig */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
+/** @typedef {import("./app").IWpBuildAppSchema} IWpBuildAppSchema */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
 /** @typedef {import("./app").WpwBuildModeConfigBase} WpwBuildModeConfigBase */
-/** @typedef {import("./app").WpBuildAppJsTsConfigJson} WpBuildAppJsTsConfigJson */
 /** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
 /** @typedef {import("./app").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
 /** @typedef {import("./app").WpBuildCombinedRuntimeArgs} WpBuildCombinedRuntimeArgs */
-/** @typedef {import("./app").WpBuildAppJsTsConfigCompilerOptions} WpBuildAppJsTsConfigCompilerOptions */
 
 
 /***********************************************************************************************************************

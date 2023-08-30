@@ -53,7 +53,7 @@ class WpBuildApp
     source;
     /** @type {typedefs.WebpackTarget} */
     target;
-    /** @type {typedefs.WpwVsCodeConfig} */
+    /** @type {typedefs.WpwVsCode} */
     vscode;
     /** @type {WpBuildError[]} */
     warnings;

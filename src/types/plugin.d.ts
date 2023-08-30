@@ -48,11 +48,10 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
-import { IWpBuildApp } from "./app";
 import { RequireKeys } from "./generic";
-import { WpwLogTrueColor, IWpBuildLogger } from "./logger";
+import { IWpBuildLogger } from "./logger";
+import { WpwBuildOptionsPluginKey, WpwPluginConfigWaitSingle } from "./rc";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
-import { WpwBuildOptionsPluginKey, WpwFilePath, WpwBuildPluginConfigWaitSingle } from "./rc";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
     WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation, WebpackStats
@@ -61,7 +60,7 @@ import {
 
 declare type WpBuildPluginOptions =
 {
-    app: WpBuildApp;
+    // app: ClsWpBuildApp;
     build?: string;
     globalCacheProps?: string[];
     pluginKey?: WpwBuildOptionsPluginKey;
@@ -79,7 +78,7 @@ declare type WpBuildPluginVendorOptions =
     [ key: string ]: any;
 }
 
-declare type WpBuildPluginWaitOptions = WpwBuildPluginConfigWaitSingle & { callback: (...args: any[]) => any; };
+declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitSingle & { callback: (...args: any[]) => any; };
 
 declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
 
@@ -111,7 +110,7 @@ declare type WpBuildPluginCompilationOptionsEntry = RequireKeys<WpBuildPluginTap
 
 declare interface IWpBuildPlugin extends WebpackPluginInstance
 {
-    app: IWpBuildApp;
+    // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;
     compiler?: WebpackCompiler;
     logger: IWpBuildLogger;
