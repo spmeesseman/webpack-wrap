@@ -199,7 +199,7 @@ class WpBuildRc
     applyVersions = () =>
     {
         let schemaVersion = "0.0.1";
-        const wpwVersion = require("../../package.json").version,
+        const wpwVersion = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version,
               match = this.$schema.match(/\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//);
         if (match) {
             schemaVersion = match[1];
