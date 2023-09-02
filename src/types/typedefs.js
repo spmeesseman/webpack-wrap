@@ -17,7 +17,6 @@
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
 /** @typedef {import("./rc").WpwVsCode} WpwVsCode */
 /** @typedef {import("./rc").TypeWpwLog} TypeWpwLog */
-/** @typedef {import("./rc").WpwMessage} WpwMessage */
 /** @typedef {import("./rc").WpwRcPaths} WpwRcPaths */
 /** @typedef {import("./rc").WpwBuildKey} WpwBuildKey */
 /** @typedef {import("./rc").WpwFileName} WpwFileName */
@@ -28,12 +27,11 @@
 /** @typedef {import("./rc").TypeWpwBuild} TypeWpwBuild */
 /** @typedef {import("./rc").WpwBuildType} WpwBuildType */
 /** @typedef {import("./rc").WpwLogPadKey} WpwLogPadKey */
+/** @typedef {import("./message").WpwMessage} WpwMessage */
 /** @typedef {import("./rc").TypeWpwLogPad} TypeWpwLogPad */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
-/** @typedef {import("./rc").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./rc").WpwRcPathsKey} WpwRcPathsKey */
 /** @typedef {import("./rc").WpwSourceCode} WpwSourceCode */
-/** @typedef {import("./rc").TypeWpwMessage} TypeWpwMessage */
 /** @typedef {import("./rc").TypeWpwRcPaths} TypeWpwRcPaths */
 /** @typedef {import("./rc").WpwLogColoring} WpwLogColoring */
 /** @typedef {import("./rc").WpwPackageJson} WpwPackageJson */
@@ -53,12 +51,12 @@
 /** @typedef {import("./rc").WpwSourceCodeType} WpwSourceCodeType */
 /** @typedef {import("./constants").isWpwBuildType} isWpwBuildType */
 /** @typedef {import("./constants").WebpackTargets} WebpackTargets */
-/** @typedef {import("./constants").WpwMessageEnum} WpwMessageEnum */
 /** @typedef {import("./rc").TypeWpwPackageJson} TypeWpwPackageJson */
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
 /** @typedef {import("./rc").WpwBuildModeConfig} WpwBuildModeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsKey} WpwBuildOptionsKey */
 /** @typedef {import("./rc").WpwPluginConfigWeb} WpwPluginConfigWeb */
+/** @typedef {typeof import("./message").WpwMessage} WpwMessageType */
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
 /** @typedef {import("./constants").WpwMessageProps} WpwMessageProps */
 /** @typedef {import("./constants").WpwRcPathsProps} WpwRcPathsProps */
@@ -195,6 +193,18 @@
 
 
 /***********************************************************************************************************************
+ * BASE MESSAGE.D.TS
+ ***********************************************************************************************************************/
+
+/** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
+/** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
+/** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
+/** @typedef {import("./message").WpwMessageCode} WpwMessageCode */
+/** @typedef {import("./message").WpwWarningCode} WpwWarningCode */
+/** @typedef {import("./message").WpwReservedCode} WpwReservedCode */
+
+
+/***********************************************************************************************************************
  * PLUGINS PLUGIN.D.TS
  ***********************************************************************************************************************/
 
@@ -216,11 +226,6 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
-/** @typedef {import("./generic").WpwInfoCode} WpwInfoCode */
-/** @typedef {import("./generic").WpwErrorCode} WpwErrorCode */
-/** @typedef {import("./generic").WpwMessageCode} WpwMessageCode */
-/** @typedef {import("./generic").WpwWarningCode} WpwWarningCode */
-/** @typedef {import("./generic").WpwReservedCode} WpwReservedCode */
 
 /**
  * Executes a command with a promisified child_process.exec()

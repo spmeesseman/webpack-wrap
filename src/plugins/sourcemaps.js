@@ -16,6 +16,7 @@
 const WpwPlugin = require("./base");
 // const { Compilation } = require("webpack");
 const { apply, WpBuildError, requireResolve } = require("../utils");
+const { WpwMessage } = require("../types");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
 // const webpack = require("webpack");
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -101,7 +102,7 @@ class WpBuildSourceMapPlugin extends WpwPlugin
             });
         }
         else {
-            this.app.addWarning("WPW");
+            this.app.addWarning(WpwMessage.WPW650);
         }
     };
 

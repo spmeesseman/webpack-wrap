@@ -2489,23 +2489,6 @@
                 }
             }]
         },
-        "WpwMessage": {
-            "$id": "#/WpwMessage",
-            "type": "object",
-            "additionalProperties": false,
-            "readOnly": true,
-            "properties": {
-                "WPW650": {
-                    "const": "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled"
-                },
-                "WPW899": {
-                    "const": "an unknown error has occurred"
-                },
-                "WPW050": {
-                    "const": "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
-                }
-            }
-        },
         "WpwWebpackAliasValue": {
             "$id": "#/WpwWebpackAliasValue",
             "anyOf": [{

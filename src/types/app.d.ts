@@ -20,6 +20,7 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
+import { WpwMessage } from "./message";
 import { IWpBuildLogger } from "./logger";
 import { IDisposable, ClsWpBuildError } from "./generic";
 import {
@@ -58,7 +59,7 @@ declare interface IWpBuildApp extends IDisposable
     buildCount: number;
     disposables: IDisposable[];
     cmdLine: WpBuildCombinedRuntimeArgs;
-    error: ClsWpBuildError[];
+    errors: ClsWpBuildError[];
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
     info: ClsWpBuildError[];
     isOnlyBuild: boolean;
@@ -73,11 +74,11 @@ declare interface IWpBuildApp extends IDisposable
     source: WpwSourceCode;
     target: WebpackTarget;
     vscode: WpwVsCode;
-    warning: ClsWpBuildError[];
+    warnings: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
-    addError(e: ClsWpBuildError | string, pad?: string): void;
-    addInfo(i: ClsWpBuildError | string, pad?: string): void;
-    addWarning(w: ClsWpBuildError | string, pad?: string): void;
+    addError(e: WpwMessage, pad?: string): void;
+    addInfo(i: WpwMessage, pad?: string): void;
+    addWarning(w: WpwMessage, pad?: string): void;
     buildApp(): WpwWebpackConfig;
     dispose():Promise<void>;
     getApp(name: string): IWpBuildApp | undefined;

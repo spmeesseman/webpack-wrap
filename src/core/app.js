@@ -16,9 +16,7 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { apply, WpBuildError, isPromise, resolvePath, pickNot, isString } = require("../utils/utils");
-const WpwPlugin = require("../plugins/base");
-const { WpwMessageEnum, WpwMessageProps, isWpwMessageProp } = require("../types/constants");
+const { apply, WpBuildError, isPromise, resolvePath, pickNot } = require("../utils/utils");
 const { WpwMessage } = require("../types");
 
 
@@ -33,7 +31,7 @@ class WpBuildApp
     /** @type {Array<typedefs.IDisposable>} */
     disposables;
     /** @type {WpBuildError[]} */
-    error;
+    errors;
     /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
     /** @type {WpBuildError[]} */
@@ -61,7 +59,7 @@ class WpBuildApp
     /** @type {typedefs.WpwVsCode} */
     vscode;
     /** @type {WpBuildError[]} */
-    warning;
+    warnings;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
 
@@ -76,8 +74,8 @@ class WpBuildApp
         this.rc = rc;
         this.build = build;
         this.info = [];
-        this.error = [];
-        this.warning = [];
+        this.errors = [];
+        this.warnings = [];
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
@@ -106,13 +104,13 @@ class WpBuildApp
             this.logger.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
             this.info.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.warning));
         }
-        if (this.warning.length > 0) {
+        if (this.warnings.length > 0) {
             this.logger.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
-            this.warning.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
+            this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
         }
-        if (this.error.length > 0) {
+        if (this.errors.length > 0) {
             this.logger.warning("REPORTED NON-FATAL ERRORS FOR THIS BUILD:");
-            this.error.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
+            this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
         }
         this.logger.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
         this.logger.dispose();
@@ -120,50 +118,64 @@ class WpBuildApp
 
 
     /**
-     * @param {typedefs.WpwMessage} codeOrMsg
+     * @param {typedefs.WpwMessage} msg
      * @param {string} [pad]
      */
-    addError = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "error", pad);
+    addError = (msg, pad) => this.addMessage(msg,  pad);
 
 
     /**
-     * @param {typedefs.WpwMessage} codeOrMsg
+     * @param {typedefs.WpwMessage} msg
      * @param {string} [pad]
      */
-    addInfo = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "info", pad);
+    addInfo = (msg, pad) => this.addMessage(msg, pad);
 
 
     /**
      * @private
-     * @param {typedefs.WpwMessage} codeOrMsg
-     * @param {"error" | "info" | "warning"} type
+     * @param {typedefs.WpwMessage} msg
      * @param {string} [pad]
      */
-    addMessage = (codeOrMsg, type, pad) =>
+    addMessage = (msg, pad) =>
     {
-        let m;
-        const e = new Error();
-        Error.captureStackTrace(e, this.addMessage);
-console.log(e.stack?.split("\n").join(" | "));
-        const file = e.stack?.split("\n")[2];
+        // let m;
+        const se = new Error();
+        Error.captureStackTrace(se, this.addMessage);
+console.log(se.stack?.split("\n").join(" | "));
+        const file = se.stack?.split("\n")[2] || "unknown";
 console.log("file: " + file);
-        if (isWpwMessageProp(codeOrMsg))
+        // if (isWpwMessageProp(msg))
+        // {
+        //     m = WpBuildError.get(msg, "n/a");
+        // }
+        // else {
+        // }
+        if (/WPW[0-2][0-9][0-9]/.test(msg))
         {
-            m = WpBuildError.get(codeOrMsg, "n/a");
+            const i = WpBuildError.get(msg, file, undefined);
+            this.logger.warning(i, pad);
+            this.info.push(i);
         }
-        else {
-            m = WpBuildError.get(codeOrMsg, "n/a");
+        else if (/WPW[3-5][0-9][0-9]/.test(msg))
+        {
+            const w = WpBuildError.get(msg, file, undefined);
+            this.logger.warning(w, pad);
+            this.warnings.push(w);
         }
-        this.logger[type](m, pad);
-        this[type].push(m);
+        else if (/WPW[6-8][0-9][0-9]/.test(msg))
+        {
+            const e = WpBuildError.get(msg, file, undefined);
+            this.logger.error(e, pad);
+            this.errors.push(e);
+        }
     };
 
 
     /**
-     * @param {typedefs.WpwMessage} codeOrMsg
+     * @param {typedefs.WpwMessage} msg
      * @param {string} [pad]
      */
-    addWarning = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "warning", pad);
+    addWarning = (msg, pad) => this.addMessage(msg, pad);
 
 
 	/**
@@ -200,7 +212,7 @@ console.log("file: " + file);
             // apply(this.build.options, {
             //     tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
             // });
-            this.addWarning(WpwMessage.WPW899);
+            this.addWarning(WpwMessage.WPW050);
         }
         //
         // TODO: implement TS API createProgram() and check syntax in JS using akllowJS:true compiulr option
@@ -486,10 +498,16 @@ console.log("file: " + file);
      * @private
      * @param {WpBuildError} e
      * @param {Function} fn
+     * @param {string} [icon]
      */
-    printNonFatalIssue = (e, fn) =>
+    printNonFatalIssue = (e, fn, icon) =>
     {
-        fn.call(this.logger, `Location: ${e.file}`);
+        if (!icon || fn.name !== "write") {
+            fn.call(this.logger, `Location: ${e.file}`);
+        }
+        else {
+            fn.call(this.logger, `Location: ${e.file}`, undefined, "", this.logger.icons.color.star);
+        }
         fn.call(this.logger, "   " + e.message);
     };
 

@@ -10,15 +10,12 @@
  */
 
 const { EOL } = require("os");
-const webpack = require("webpack");
 const { existsSync } = require("fs");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
 const WpBuildConsoleLogger = require("../src/utils/console");
 
-
-const generateEnums = true;
 
 const description = "Provides types macthing the .wpbuildrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
@@ -40,8 +37,16 @@ const fullTypes = [
     "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson", "WpwMessage"
 ];
 
+const generateEnums = [
+    "WpwMessage"
+];
+
 const constantObjectKeyProperties = [
     "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts", "WpwMessage"
+];
+
+const constantAdditionalFiles = [
+    "message.d.ts"
 ];
 
 /**
@@ -90,7 +95,7 @@ const properties = [];
 /** @type {string[]} */
 const lines = [];
 
-/** @type {[ string, string ][]} */
+/** @type {[ string, "type" | "enum", string ][]} */
 const typedefs = [];
 
 /** @type {WpBuildConsoleLogger} */
@@ -144,16 +149,16 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
                       return `\nexport declare type Type${m1} = `;
                   }
                   else if (m1 !== "WpwRcSchema") {
-                      pushTypedef("rc", m1);
+                      pushTypedef("rc", "type", m1);
                       return `\nexport declare type ${m1} = `;
                   }
                   else {
-                      pushTypedef("rc", m1);
+                      pushTypedef("rc", "type", m1);
                   }
                   return v;
           })
           .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, (v, m1, m2) => {
-              pushTypedef("rc", "I" + m1);
+              pushTypedef("rc", "type", "I" + m1);
               return `export declare interface I${m1} ${m2}\n}\nexport declare type ${m1} = I${m1};\n`;
           })
           .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, (v, m1, m2) =>
@@ -167,33 +172,20 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
                       requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
                           src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
                       });
-                      pushTypedef("rc", m1, `${m1}Key`, `Type${m1}`);
-                      if (generateEnums && m2.includes(": \""))
-                      {
-                          const valuesFmt = m2.replace(/ *\= */, "")
-                                              .replace(/\s*(.*?)\??\: /g, (_, m) => `\n    ${m}: `)
-                                              .replace(/\= \n/g, "\n")
-                                              .replace(/";\n/g, "\",\n");
-                          enums.push(
-                              `/**\n * @type {typedefs.${m1}}\n */\n` +
-                              `const ${m1}Enum =\n${(`${valuesFmt}\n};\n`).replace(/"[,;]\};/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
-                          );
-                          logger.log(`      modified type ${m1} with enum`);
-                      }
-                      else {
-                          logger.log(`      modified type ${m1}`);
-                      }
+                      logger.log(`      modified type ${m1}`);
+                      pushTypedef("rc", "type", m1, `${m1}Key`, `Type${m1}`);
+                      pushEnum(m1, "type", m2);
                   }
                   else {
                       requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
                           src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
                       });
-                      pushTypedef("rc", m1);
+                      pushTypedef("rc", "type", m1);
                   }
                   return src;
           })
           .replace(/\nexport type (.*?) =/g, (v, m) => {
-              pushTypedef("rc", m);
+              pushTypedef("rc", "type", m);
               return v.replace("export type", "export declare type");
           })
           .replace(/([^\|]) \{\n    /g, (_, m) => m + " \n{\n    ")
@@ -259,6 +251,33 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
 };
 
 
+const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type"} */kind, /** @type {string} */value) =>
+{
+    if (generateEnums.includes(property))
+    {
+        let valueFmt;
+        if (kind === "enum")
+        {
+            valueFmt = value.replace(/\s*(.*?) = "/g, (_, m) => `\n    ${m}: "`)
+                            .replace(/\= \n/g, "\n")
+                            .replace(/";\n/g, "\",\n");
+        }
+        else {
+            valueFmt = value.replace(/ *\= */, "")
+                            .replace(/\s*(.*?)\??\: /g, (_, m) => `\n    ${m}: `)
+                            .replace(/\= \n/g, "\n")
+                            .replace(/";\n/g, "\",\n");
+        }
+        enums.push(
+            `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */\n` +
+            `const ${property} =\n{${(`${valueFmt}\n};\n`).replace(/"[,;]\},/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
+        );
+        exported.push(`    ${property}`);
+        logger.log(`      added enum ${property}`);
+    }
+};
+
+
 /**
  * @returns {[ string, string ]}
  */
@@ -279,23 +298,31 @@ const pushExport = (/** @type {string} */property, /** @type {string} */suffix, 
         " */",
         `const is${pName2} = (v) => !!v && ${pName1}.includes(v);${EOL}`
     );
-    const enumeration = enums.find(e => e.includes(`${property}Enum`));
+    let enumeration = enums.find(e => e.includes(`${property}Enum`));
     if (enumeration) {
         lines.push(enumeration);
-        pushTypedef("constants", `${property}Enum`);
+        pushTypedef("constants", "type", `${property}Enum`);
         exported.push(`    ${property}Enum`);
+    }
+    else {
+        enumeration = enums.find(e => e.includes(`const ${property} = `));
+        if (enumeration) {
+            lines.push(enumeration);
+            pushTypedef("constants", "type", `${property}`);
+            exported.push(`    ${property}`);
+        }
     }
     logger.log(`      added runtime constants for type ${property}`);
     return [ pName1, `is${pName2}` ];
 };
 
 
-const pushTypedef = (/** @type {string} */source, /** @type {string[]} */...properties) =>
+const pushTypedef = (/** @type {string} */source, /** @type {"enum" | "type"} */kind, /** @type {string[]} */...properties) =>
 {
     const incProps = properties.filter(
-        (p) => !excludeTypedefs.includes(p) && typedefs.every(t => t[0] !== source || t[1] !== p)
+        (p) => !excludeTypedefs.includes(p) && typedefs.every(t => t[0] !== source || !(t[1] === kind && t[2] === p))
     );
-    typedefs.push(.../** @type {[string, string][]} */(incProps.map(p => [ source, p ])));
+    typedefs.push(.../** @type {[string, "enum" | "type", string][]} */(incProps.map(p => [ source, kind, p ])));
     for (const property of incProps) {
         logger.log(`      added typedef for type ${property}`);
     }
@@ -304,46 +331,62 @@ const pushTypedef = (/** @type {string} */source, /** @type {string[]} */...prop
 
 const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
-    logger.log("   create implementation constants from new types");
+    logger.log("   create implementation constants");
 
-    let match;
-    const rgx = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
-          rgx2 = new RegExp(`export declare type (${constantObjectKeyProperties.join("|")}) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g");
+    const _proc = (data, baseSrc) =>
+    {
+        let match;
+        const rgxPropEnum = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
+              rgxType = new RegExp(`export declare type (${constantObjectKeyProperties.join("|")}) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g"),
+              rgxEnum = new RegExp(`export declare enum (${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?),?${EOL}\\}${EOL}`, "g");
 
+        while ((match = rgxPropEnum.exec(data)) !== null)
+        {
+            if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
+            {
+                pushTypedef(baseSrc, "type", match[1]);
+                properties.push(match[1]);
+                if (match[2].includes("WpwLogTrueColor")) {
+                    match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
+                }
+                pushTypedef("constants", "type", ...pushExport(match[1], "s", match[2]));
+            }
+        }
+
+        while ((match = rgxType.exec(data)) !== null)
+        {
+            if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
+            {
+                pushTypedef(baseSrc, "type", match[1]);
+                const propFmt = match[1].replace("Type", ""),
+                      valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
+                                              .replace(/(?:, ""|"", )/g, "");
+                pushTypedef("constants", "type", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+            }
+        }
+
+        while ((match = rgxEnum.exec(data)) !== null)
+        {
+            const valuesFmt = `"${match[2].replace(new RegExp(` *= *(.*?)(?:,${EOL}    |,${EOL}}|$)`, "g"), "\", \"")}"`
+                                          .replace(/(?:, ""|"", )/gm, "");
+            pushTypedef(baseSrc, "type", match[1]);
+            pushTypedef(baseSrc, "enum", match[1] + "Type");
+            pushTypedef("constants", "type", ...pushExport(match[1], "Props", valuesFmt, `(keyof typedefs.${match[1] + "Type"})`));
+            pushEnum(match[1], "enum", match[2]);
+        }
+
+        const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
+        while ((match = rgx3.exec(data)) !== null)
+        {
+            if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
+                pushTypedef(baseSrc, "type", match[1]);
+            }
+        }
+    };
+
+    _proc(data, "rc");
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
 
-    while ((match = rgx.exec(data)) !== null)
-    {
-        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
-        {
-            pushTypedef("rc", match[1]);
-            properties.push(match[1]);
-            if (match[2].includes("WpwLogTrueColor")) {
-                match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
-            }
-            pushTypedef("constants", ...pushExport(match[1], "s", match[2]));
-        }
-    }
-
-    while ((match = rgx2.exec(data)) !== null)
-    {
-        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
-        {
-            pushTypedef("rc", match[1]);
-            const propFmt = match[1].replace("Type", ""),
-                  valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
-                                        .replace(/(?:, ""|"", )/g, "");
-            pushTypedef("constants", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
-        }
-    }
-
-    const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
-    while ((match = rgx3.exec(data)) !== null)
-    {
-        if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
-            pushTypedef("rc", match[1]);
-        }
-    }
 /*
     let hooks = Object.keys(webpack.Compiler["hooks"]).filter(h => !("tapPromise" in hooks[h]));
     pushExport("WebpackCompilerSyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilerSyncHook)");
@@ -359,11 +402,12 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
     hooks = Object.keys(webpack.Compilation["hooks"]).filter(h => "tapPromise" in hooks[h]);
     pushExport("WebpackCompilationAsyncHook", "Props", hooks.join(", "), "(keyof typedefs.WebpackCompilationAsyncHook)");
 */
+    lines.push(...enums);
+
     if (lines.length > 0)
     {
         const constantsFile = "constants.js",
-              constantsDir = resolve(__dirname, "..", "src", "types"),
-              constantsPath = join(constantsDir, constantsFile),
+              constantsPath = join(outputDtsDir, constantsFile),
               constantsData = await readFile(constantsPath, "utf8");
 
         exported.sort((a, b) => a.localeCompare(b));
@@ -384,7 +428,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             logger,
             logPad: "      ",
             program: "tsc",
-            execOptions: { cwd: constantsDir },
+            execOptions: { cwd: outputDtsDir },
             command: `npx tsc --moduleResolution node --target es2020 --noEmit --skipLibCheck --allowJs --checkJs ./${constantsFile}`
         });
 
@@ -419,11 +463,15 @@ const writeTypedefsJs = async () =>
     let data = await readFile(typesPath, "utf8");
     data = data.replace(
         /\/\* START_RC_DEFS \*\/(?:[^]*?)\/\* END_RC_DEFS \*\//g,
-        `/* START_RC_DEFS */\r\n${typedefs // .sort((a, b) => ((a[0].length + a[1].length) - (b[0].length + b[1].length) || a[1].localeCompare(b[1])))
-                                          .map(e => [ e[0], e[1].trim() ])
-                                          .map(e => `/** @typedef {import("./${e[0]}").${e[1]}} ${e[1]} */`)
-                                          .sort((a, b) => (a.length - b.length || a.localeCompare(b)))
-                                          .join("\r\n")}\r\n/* END_RC_DEFS */`
+        `/* START_RC_DEFS */\r\n${
+        typedefs // .sort((a, b) => ((a[0].length + a[1].length) - (b[0].length + b[1].length) || a[1].localeCompare(b[1])))
+        .map(e => [ e[0], e[1], e[2].trim() ])
+        .map((e) =>
+            `/** @typedef {${e[1] === "enum" ? "typeof " : ""}` +
+            `import("./${e[0]}").${e[1] === "enum" ? e[2].replace("Type", "") : e[2]}} ${e[2]} */`
+        )
+        .sort((a, b) => (a.length - b.length || a.localeCompare(b)))
+        .join("\r\n")}\r\n/* END_RC_DEFS */`
     );
     await writeFile(typesPath, data);
     logger.success(`   updated definitions in src/types/${typesFile} (${typesPath})`);

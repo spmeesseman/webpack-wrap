@@ -46,6 +46,10 @@ export * from "./generic";
  */
 export * from "./logger";
 /**
+ * Error / Info / Warning messages
+ */
+export * from "./message";
+/**
  * Wpw application specific types library
  */
 export * from "./plugin";
