@@ -34,7 +34,7 @@ const banner = (app) =>
 		{
 			const author = isString(app.pkgJson.author) ? app.pkgJson.author : app.pkgJson.author?.name;
 			if (author) {
-				banner = "Copyright {DATE_STAMP_YEAR} " + author;
+				banner = "Copyright #{DATE_STAMP_YEAR} " + author;
 			}
 		}
 
@@ -43,7 +43,7 @@ const banner = (app) =>
 			return new webpack.BannerPlugin({
 				entryOnly: true,
 				test: WpwPlugin.getEntriesRegex(app.wpc, true, true),
-				banner: banner.replace(new RegExp("[\\{\\[]DATE_STAMP_YEAR[\\}\\]]"), new Date().getFullYear().toString())
+				banner: banner.replace(new RegExp("#\\{DATE_STAMP_YEAR\\}"), new Date().getFullYear().toString())
 			});
 		}
 	}

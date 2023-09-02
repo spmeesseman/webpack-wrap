@@ -76,7 +76,7 @@
             "$comment": "relative path to a directory",
             "type": "string",
             "maxLength": 100,
-            "pattern": "^(?:\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+|\\.\\.?)$",
+            "pattern": "^(?:#\\{[\\w_\\-\\.]+?\\}[\\w\\.\\-\\\\/]*?|(?:\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+|\\.\\.?))$",
             "if": {
                 "pattern": "^\\.$"
             },
@@ -160,7 +160,7 @@
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
-            "pattern": "^\\.[\\\\\\/][\\w\\.\\-\\\\\\/]+\\.([cm]?jsx?|tsx?)$"
+            "pattern": "^\\.[\\\\/][\\w\\.\\-\\\\/]+\\.([cm]?jsx?|tsx?)$"
         },
         "FilePathRelativeLeadingDot": {
             "$id": "#/WpwFilePathRelativeLeadingDot",
@@ -168,7 +168,7 @@
             "type": "string",
             "minLength": 6,
             "maxLength": 150,
-            "pattern": "^\\.{1,2}[\\\\\\/][\\w\\.\\-\\\\\\/]+?\\.\\w+$"
+            "pattern": "^\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+?\\.\\w+$"
         },
         "VersionString": {
             "$id": "#/WpwVersionString",
@@ -1271,7 +1271,6 @@
         "WpwPluginConfigBanner": {
             "$id": "#/WpwPluginConfigBanner",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1281,35 +1280,29 @@
                     "type": "string",
                     "minLength": 5,
                     "maxLength": 500,
-                    "pattern": "^[\\w\\-\\.,&%# |\\(\\)@\\[\\]\\r\\n]+$"
+                    "pattern": "^[\\w\\-\\.,&%#{} |\\(\\)@\\[\\]\\r\\n]+$"
                 }
             },
             "examples": [{
                 "enabled": false
             },
             {
-                "enabled": true,
-                "text": "Copyright {DATE_STAMP_YEAR} My Name or Co"
-            }],
-            "if": {
-                "properties": {
-                    "enabled": {
-                        "const": true
-                    }
-                }
+                "enabled": true
             },
-            "then": {
-                "required": [
-                    "text"
-                ]
-            }
+            {
+                "enabled": true,
+                "text": "Copyright #{DATE_STAMP_YEAR} [--My Name or Co.--], All RIghts Reserved"
+            }]
         },
         "WpwPluginConfigCopy": {
             "$id": "#/WpwPluginConfigCopy",
             "type": "object",
-            "minProperties": 1,
+            "additionalProperties": false,
             "properties": {
                 "enabled": {
+                    "type": "boolean"
+                },
+                "defaults": {
                     "type": "boolean"
                 },
                 "items": {
@@ -1323,8 +1316,8 @@
                 "enabled": false
             },
             {
-                "enabled": false,
-                "items": []
+                "enabled": true,
+                "defaults": true
             },
             {
                 "enabled": true,
@@ -1341,20 +1334,32 @@
                 }
             },
             "then": {
-                "required": [
-                    "items"
-                ],
-                "properties": {
-                    "items": {
-                        "minItems": 1
+                "oneOf": [{
+                    "required": [
+                        "items"
+                    ],
+                    "properties": {
+                        "items": {
+                            "minItems": 1
+                        }
                     }
-                }
+                },
+                {
+                    "required": [
+                        "defaults"
+                    ],
+                    "properties": {
+                        "defaults": {
+                            "const": true
+                        }
+                    }
+                }]
             }
         },
         "WpwPluginConfigCopyItem": {
             "$id": "#/WpwPluginConfigCopyItem",
             "type": "object",
-            "minProperties": 2,
+            "additionalProperties": false,
             "properties": {
                 "to": {
                     "$ref": "#/definitions/FileOrDirectoryPath"
@@ -1388,6 +1393,7 @@
             "$id": "#/WpwOptionsConfigBase",
             "type": "object",
             "required": [ "enabled" ],
+            "additionalProperties": false,
             "properties": {
                 "enabled": {
                     "type": "boolean",
@@ -1398,7 +1404,6 @@
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1508,7 +1513,6 @@
         "WpwPluginConfigLogHooks": {
             "$id": "#/WpwPluginConfigLogHooks",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1557,7 +1561,6 @@
         "WpwPluginConfigLogHooksCompilation": {
             "$id": "#/WpwPluginConfigLogHooksCompilation",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "all": {
@@ -1605,7 +1608,6 @@
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
             "type": "object",
-            "minProperties": 1,
             "additionalItems": false,
             "properties": {
                 "enabled": {
@@ -1763,7 +1765,6 @@
         "WpwPluginConfigTypes": {
             "$id": "#/WpwPluginConfigTypes",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1808,7 +1809,6 @@
         "WpwPluginConfigUpload": {
             "$id": "#/WpwPluginConfigUpload",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1951,7 +1951,6 @@
         "WpwPluginConfigWait": {
             "$id": "#/WpwPluginConfigWait",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1986,7 +1985,6 @@
         "WpwPluginConfigWaitDef": {
             "$id": "#/WpwPluginConfigWaitDef",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "required": [
                 "type", "target", "name"
@@ -2069,7 +2067,6 @@
         "WpwPluginConfigWeb": {
             "$id": "#/WpwPluginConfigWeb",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2090,7 +2087,7 @@
                 }
             },
             "then": {
-                "oneOf": [{
+                "anyOf": [{
                     "required": [
                         "filename"
                     ]
