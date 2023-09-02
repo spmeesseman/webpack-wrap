@@ -37,60 +37,38 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
+const WpwBase = require("../core/base");
+const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
-const { WebpackError } = require("webpack");
 const WpwPluginWaitManager = require("./wait");
 const {
-    isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, lowerCaseFirstChar
+    isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, asArray
 } = require("../utils");
-
-//
-// TODO: remove this typedef when all plugins have been converted to using typedefs definition file
-//
-/** @typedef {typedefs.WpBuildPluginOptions} WpBuildPluginOptions */
 
 
 /**
  * @abstract
+ * @extends {WpwBase}
  * @implements {typedefs.IWpBuildPlugin}
- * @implements {typedefs.IDisposable}
  */
-class WpBuildPlugin
+class WpwPlugin extends WpwBase
 {
-    /** @type {typedefs.WpBuildApp} */
-    app;
     /** @protected */
     cache;
     /** @type {typedefs.WebpackCompilation} */
     compilation;
     /** @type {typedefs.WebpackCompiler} compiler */
     compiler;
-    /** @type {(...args: any[]) => typedefs.WebpackPluginInstance} @virtua */
-    getVendorPlugin;
-    /** @type {Record<string, any>} @protected  */
-    global;
-    /** @type {string}  @protected */
-    globalBaseProperty;
-    /** @protected */
-    hashDigestLength;
-    /** @type {typedefs.WpBuildConsoleLogger} */
-    logger;
-    /**  @protected */
-    name;
-    /** @protected */
+    /** @type {typedefs.WpwPluginOptions} @override @protected */
     options;
-    /** @type {typedefs.WpwBuildOptionsPluginKey} @private */
-    pluginKey;
     /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
     /** @type {typedefs.WebpackCacheFacade} @protected */
     wpCache;
     /** @type {typedefs.WebpackCacheFacade}  @protected */
     wpCacheCompilation;
-    /** @protected */
-    wpConfig;
     /** @type {typedefs.WebpackLogger} @protected */
     wpLogger;
     /**  @private  */
@@ -98,40 +76,29 @@ class WpBuildPlugin
 
 
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
     {
-        this.validatePluginOptions(options);
-        this.app = options.app;
-        this.logger = this.app.logger;
-        this.wpConfig = options.app.wpc;
-        this.name = this.constructor.name;
-        this.pluginKey = /** @type {typedefs.WpwBuildOptionsPluginKey} */(options.pluginKey || this.baseName.toLowerCase());
-        this.options = /** @type {typedefs.WpBuildPluginOptionsRequired} */(mergeIf(options, { plugins: [] }));
-        this.hashDigestLength = this.app.wpc.output.hashDigestLength || 20;
-        this.initGlobalCache();
-        this.cache = new WpBuildCache(this.app, `plugincache_${this.app.mode}_${this.baseName}.json`);
+        super(options);
+        this.plugins = [];
+        this.validateOptions(options);
+        this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.mode, this.baseName));
         if (!this.options.wrapPlugin)
         {
+            mergeIf(this.options, { plugins: [] });
+            const plugins = asArray(this.options.plugins);
             if (options.registerVendorPluginsOnly) {
-                this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)) ];
+                this.plugins = [ ...plugins.map(p => new p.ctor(p.options)) ];
             }
             else if (options.registerVendorPluginsFirst) {
-                this.plugins = [ ...this.options.plugins.map(p => new p.ctor(p.options)), this ];
+                this.plugins = [ ...plugins.map(p => new p.ctor(p.options)), this ];
             }
             else {
-                this.plugins = [ this, ...this.options.plugins.map(p => new p.ctor(p.options)) ];
+                this.plugins = [ this, ...plugins.map(p => new p.ctor(p.options)) ];
             }
         }
-        else {
-            this.plugins = [];
-        }
-        this.app.disposables.push(this);
     }
-
-
-    get baseName() { return this.name.replace(/^Wpw|^WpBuild|Plugin$|/g, ""); }
 
 
     /**
@@ -143,21 +110,17 @@ class WpBuildPlugin
 
 
     /**
-     * To be overridden by inheriting class if disposing of resources is needed after build completes
-     * @abstract
-     */
-    dispose() {}
-
-
-    /**
      * Break property name into separate spaced words at each camel cased character
-     * @function
      * @private
      * @param {string} prop
      * @returns {string}
      */
     breakProp = (prop) => prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
                               .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
+
+    /**  @protected  */
+    static cacheFilename = (/** @type {string} */ mode, /** @type {string} */ name) => `plugincache_${mode}_${name}.json`;
+
 
     /**
      * @protected
@@ -298,9 +261,7 @@ class WpBuildPlugin
 	 * @param {string | string[]} [ignoreOut]
 	 * @returns {Promise<number | null>}
 	 */
-	exec = (command, program, ignoreOut) =>
-        execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.app.getRcPath("base") }, ignoreOut });
-
+	exec = (command, program, ignoreOut) => execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
 
 
 	/**
@@ -349,20 +310,25 @@ class WpBuildPlugin
      * @param {boolean} [hash]
      * @returns {RegExp}
      */
-    static getEntriesRegex(wpConfig, dbg, ext, hash)
-    {
-        return new RegExp(
-            `(?:${Object.keys(wpConfig.entry).reduce((e, c) => `${e ? e + "|" : ""}${c}`, "")})` +
-            `(?:\\.debug)${!dbg ? "?" : ""}(?:\\.[a-z0-9]{${wpConfig.output.hashDigestLength || 20}})` +
-            `${!hash ? "?" : ""}(?:\\.js|\\.js\\.map)${!ext ? "?" : ""}`
-        );
-    }
+    static getEntriesRegex = (wpConfig, dbg, ext, hash) => new RegExp(
+        `(?:${Object.keys(wpConfig.entry).reduce((e, c) => `${e ? e + "|" : ""}${c}`, "")})` +
+        `(?:\\.debug)${!dbg ? "?" : ""}(?:\\.[a-z0-9]{${wpConfig.output.hashDigestLength || 20}})` +
+        `${!hash ? "?" : ""}(?:\\.js|\\.js\\.map)${!ext ? "?" : ""}`
+    );
 
 
     /**
-     * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpBuildPlugin>)[]}
+     * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpwPlugin>)[]}
      */
     getPlugins() { return this.plugins; }
+
+
+    /**
+     * @abstract
+	 * @protected
+     * @returns {typedefs.WebpackPluginInstance}
+     */
+    getVendorPlugin() { return { apply: () => {} }; };
 
 
 	/**
@@ -391,34 +357,13 @@ class WpBuildPlugin
                 err = new WpBuildError(e.message, fileOrDetails, details);
             }
         }
-        else {
-            err = e;
-        }
+        else { err = e; }
         this.app.logger.error(err);
-        if (this.compilation)
-        {
+        if (this.compilation) {
             this.compilation.errors.push(/** @type {WebpackError} */(e));
         }
-        else {
-            throw err;
-        }
+        else { throw err; }
 	}
-
-
-    /**
-     * @private
-     */
-    initGlobalCache()
-    {
-        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.baseName);
-        if (!this.app.global[baseProp]) {
-            this.app.global[baseProp] = {};
-        }
-        this.global = this.app.global[baseProp];
-        this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.global[p]).forEach(
-            (/** @type {string} */p) => { this.global[p] = {}; }
-        );
-    };
 
 
     /**
@@ -434,7 +379,7 @@ class WpBuildPlugin
      * @param {string} file
      * @returns {boolean}
      */
-    isEntryAsset = (file) => WpBuildPlugin.getEntriesRegex(this.wpConfig).test(file);
+    isEntryAsset = (file) => WpwPlugin.getEntriesRegex(this.wpc).test(file);
 
 
     /**
@@ -516,12 +461,12 @@ class WpBuildPlugin
 
     /**
      * Extending plugins need to call this function when it's specific tassks are done/complete.
-     * Used in the {@link WpBuildPlugin.eventInfo wait} functionality
+     * Used in the {@link WpwPlugin.eventInfo wait} functionality
      *
      * @protected
      * @param {...any} args any plugin specific arguments
      */
-    onDone(...args) { WpBuildPlugin.eventManager.onPluginDone(this.name, ...args); }
+    onDone(...args) { WpwPlugin.eventManager.onPluginDone(this.name, ...args); }
 
 
     /**
@@ -680,37 +625,18 @@ class WpBuildPlugin
 
 
     /**
-     * @private
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
-     * @throws {WpBuildError}
-     */
-	validatePluginOptions(options)
-    {
-        // if (options.plugins)
-        // {
-        //     Object.values(asArray(options.plugins)).forEach((o) =>
-        //     {
-        //         if (o.async && o.hook !== WebpackCompilerAsyncHookName)
-        //         {
-        //             throw new WebpackError(`Specified hook '${o.hook}' is not asynchronous`);
-        //         }
-        //     });
-        // }
-    }
-
-
-    /**
      * Wraps a vendor plugin to give it access to the WpBuildApp instance. vendor plugin instantiation
-     * is done via the constructor's call to  the {@link WpBuildPlugin.getOptions getOptions()} override
-     * @template {WpBuildPlugin} T
-     * @param {new(arg1: typedefs.WpBuildPluginOptions) => T} clsType the extended WpBuildPlugin class type
+     * is done via the constructor's call to  the {@link WpwPlugin.getOptions getOptions()} override
+     * @template {WpwPlugin} T
+     * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type
      * @param {typedefs.WpBuildApp} app current build wrapper
-     * @param {boolean} [checkFlag] convenience param - flag to check if plugin is enabled in the current build
+     * @param {typedefs.WpwBuildOptionsKey} optionsKey
      * @returns {T | undefined}
      */
-    static wrap(clsType, app, checkFlag)
+    static wrap(clsType, app, optionsKey)
     {
-        if (checkFlag !== false)
+        const config = WpwPlugin.getOptionsConfig(optionsKey, app.build.options);
+        if (config.enabled)
         {
             const plugin = new clsType({ app, wrapPlugin: true });
             plugin.plugins.push(plugin.getVendorPlugin());
@@ -721,7 +647,7 @@ class WpBuildPlugin
 
     /**
      * @private
-     * @param {string} message If camel-cased, will be formatted with {@link WpBuildPlugin.breakProp breakProp()}
+     * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpBuildPluginTapOptionsEntry} options
      * @returns {typedefs.WpBuildCallback}
      */
@@ -731,7 +657,7 @@ class WpBuildPlugin
         const logger = this.logger,
               callback = options.callback,
               logMsg = this.breakProp(message),
-              eMgr= WpBuildPlugin.eventManager,
+              eMgr= WpwPlugin.eventManager,
               wait = this.app.build.options.wait;
 
         if (!options.async) {
@@ -756,7 +682,7 @@ class WpBuildPlugin
                 cb = () => {
                     eMgr.register({
                         type: "event",
-                        source: this.pluginKey,
+                        source: /** @type {typedefs.WpwBuildOptionsPluginKey} */(this.key),
                         target: /** @type {typedefs.WpwBuildOptionsPluginKey} */(waitPlugin),
                         name: `${waitPlugin}_done`,
                         callback: () => delayedCb.call(this, message, options)
@@ -769,4 +695,4 @@ class WpBuildPlugin
 }
 
 
-module.exports = WpBuildPlugin;
+module.exports = WpwPlugin;

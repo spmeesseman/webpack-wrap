@@ -8,7 +8,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const VisualizerPlugin = require("webpack-visualizer-plugin2");
 

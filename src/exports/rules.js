@@ -19,7 +19,8 @@ const { existsSync } = require("fs");
 const { resolve, join } = require("path");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
+const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isBoolean } = require("../utils");
+const { getOptionsConfig } = require("../core/base");
 
 /** @typedef {typedefs.WpwSourceCodeConfig} RulesConfig */
 
@@ -33,7 +34,8 @@ const builds =
 	 */
 	jsdoc: (app, rulesConfig) =>
 	{
-		if (app.build.options.jsdoc && (app.build.options.jsdoc === true || app.build.options.jsdoc.type === "entry"))
+		const jsdocOptions = getOptionsConfig("jsdoc", app.build.options);
+		if (jsdocOptions.type === "entry")
 		{
 			const exclude = getExcludes(app, rulesConfig),
 				include = getIncludes(app, rulesConfig),
@@ -111,7 +113,7 @@ const builds =
 			include,
 			exclude,
 			test: /\.ts$/,
-			use: getLoader(app, rulesConfig)
+			use: getSourceLoader(app, rulesConfig)
 		});
 	},
 
@@ -137,7 +139,7 @@ const builds =
 		{
 			test: /\.ts$/,
 			include: getIncludes(app, rulesConfig),
-			use: getLoader(app, rulesConfig, "babel"),
+			use: getSourceLoader(app, rulesConfig, "babel"),
 			exclude: getExcludes(app, rulesConfig, true)
 		});
 	},
@@ -150,7 +152,8 @@ const builds =
 	 */
 	types: (app, rulesConfig) =>
 	{
-		if (app.build.options.typesPackage !== "entry") {
+		const typesConfig = getOptionsConfig("types", app.build.options);
+		if (typesConfig && typesConfig.mode !== "module") {
 			return;
 		}
 
@@ -159,7 +162,7 @@ const builds =
 
 		if (typesSrcPath && existsSync(typesSrcPath))
 		{
-			const loader = getLoader(app, rulesConfig);
+			const loader = getSourceLoader(app, rulesConfig);
 			// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
 			// tsConfig.include.push(typesDir);
 			if (loader.loader === "ts-loader")
@@ -188,6 +191,13 @@ const builds =
 				// TODO - Babel / esbuild loader
 			}
 			app.wpc.module.rules.push(
+			{
+				test: /\.js$/i,
+				// type: "asset/resource",
+				generator: {
+					emit: false
+				}
+			},
 			{
 				use: loader,
 				test: /\.ts$/,
@@ -226,7 +236,7 @@ const builds =
 			exclude,
 			test: /\.tsx?$/,
 			include: getIncludes(app, rulesConfig),
-			use: getLoader(app, rulesConfig)
+			use: getSourceLoader(app, rulesConfig)
 		},
 		{
 			exclude,
@@ -268,19 +278,25 @@ const getIncludes = (app, rulesConfig) => uniq([ app.getSrcPath(), ...rulesConfi
  * @param {string} [loader]
  * @returns {typedefs.WebpackRuleSetUseItem}
  */
-const getLoader = (app, rulesConfig, loader) =>
+const getSourceLoader = (app, rulesConfig, loader) =>
 {
-	if (app.cmdLine.esbuild || loader === "esbuild") {
-		return buildOptions.esbuild(app, rulesConfig);
+	if (app.cmdLine.esbuild)
+	{
+		return sourceLoaders.esbuild(app, rulesConfig);
 	}
-	if (app.build.source.type === "javascript" || app.cmdLine.babel || loader === "babel") {
-		return buildOptions.babel(app, rulesConfig);
+	if (app.build.source.type === "typescript")
+	{
+		if (app.cmdLine.babel)
+		{
+			return sourceLoaders.babel(app, rulesConfig);
+		}
+		return sourceLoaders.ts(app, rulesConfig);
 	}
-	return buildOptions.ts(app, rulesConfig);
+	return sourceLoaders.babel(app, rulesConfig);
 };
 
 
-const buildOptions =
+const sourceLoaders =
 {
 	/**
 	 * @param {WpBuildApp} app
@@ -299,7 +315,7 @@ const buildOptions =
 							node: "16.20.0"
 						} /* { targets: "defaults" }*/}
 					],
-					[ "@babel/preset-typescript" ]
+					app.build.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
 				]
 			}
 		};
@@ -342,6 +358,9 @@ const buildOptions =
 		};
 	}
 };
+
+loaders.javascript = sourceLoaders.babel;
+loaders.typescript = sourceLoaders.ts;
 
 
 /**

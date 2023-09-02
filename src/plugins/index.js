@@ -6,7 +6,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const banner = require("./banner");
 const clean = require("./clean");

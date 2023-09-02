@@ -8,7 +8,7 @@ const { apply } = require("../utils");
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackOptimization} WebpackOptimization */

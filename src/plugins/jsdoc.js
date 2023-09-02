@@ -7,7 +7,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const WpBuilPlugin = require("./base");
 const typedefs = require("../types/typedefs");
@@ -22,7 +22,7 @@ const { isBoolean, WpBuildError, findFiles, pick, isObject, relativePath, apply,
 class WpwJsDocPlugin extends WpBuilPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -63,7 +63,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
               options = this.app.build.options.jsdoc,
               currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
               outDir = isBoolean(options) ? join(this.app.build.paths.dist, "doc") :
-                            /** @type {typedefs.WpwPluginConfigJsDocItem} */(options).destination ||
+                            /** @type {typedefs.WpwBuildOptionsJsDocItem} */(options).destination ||
                             join(this.app.build.paths.dist, "doc") ;
 
 		logger.write("create jsdoc documentation", 1);
@@ -209,7 +209,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //               options = this.app.build.options.jsdoc,
 //               srcDir = this.app.getSrcPath({ build: "module", rel: true, psx: true, dot: true}),
 //               outDir = isBoolean(options) ? join(this.app.build.paths.dist, "doc") :
-//                             /** @type {typedefs.WpwPluginConfigJsDocItem} */(options).destination ||
+//                             /** @type {typedefs.WpwBuildOptionsJsDocItem} */(options).destination ||
 //                             join(this.app.build.paths.dist, "doc") ;
 //
 //         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");

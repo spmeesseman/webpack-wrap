@@ -7,7 +7,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { existsSync } = require("fs");
 const { EventEmitter } = require("events");

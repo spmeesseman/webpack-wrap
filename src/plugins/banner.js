@@ -7,9 +7,9 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { isString, requireResolve } = require("../utils");
 
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -34,7 +34,7 @@ const banner = (app) =>
 		{
 			const author = isString(app.pkgJson.author) ? app.pkgJson.author : app.pkgJson.author?.name;
 			if (author) {
-				banner = "Copyright [DATE_STAMP_YEAR] " + author;
+				banner = "Copyright {DATE_STAMP_YEAR} " + author;
 			}
 		}
 
@@ -42,8 +42,8 @@ const banner = (app) =>
 		{
 			return new webpack.BannerPlugin({
 				entryOnly: true,
-				test: WpBuildPlugin.getEntriesRegex(app.wpc, true, true),
-				banner: banner.replace(new RegExp("\\[DATE_STAMP_YEAR\\]"), new Date().getFullYear().toString())
+				test: WpwPlugin.getEntriesRegex(app.wpc, true, true),
+				banner: banner.replace(new RegExp("[\\{\\[]DATE_STAMP_YEAR[\\}\\]]"), new Date().getFullYear().toString())
 			});
 		}
 	}

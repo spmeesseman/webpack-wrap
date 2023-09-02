@@ -16,13 +16,10 @@
  * @description
  *
  * Generic types and typings
- */
+ *//** */
 import { WebpackError } from "webpack";
 import { WpwWebpackConfig } from "./app";
 
-/**
- *
- */
 
 declare type AsArray<T = any> = T extends any[] ? T : [T];
 // declare type ExtractTypings<T, V > = T extends V<infer X> ? X : never;

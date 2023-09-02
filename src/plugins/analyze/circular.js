@@ -8,7 +8,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { getExcludes, WpBuildError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");

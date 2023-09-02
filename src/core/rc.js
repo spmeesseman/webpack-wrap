@@ -6,11 +6,12 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const os = require("os");
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
+const WpwPlugin = require("../plugins/base");
 const { validate } = require("schema-utils");
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
@@ -21,7 +22,7 @@ const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, uniq, findFilesSync,
-    relativePath, isJsTsConfigPath
+    relativePath, isJsTsConfigPath, isObject
 } = require("../utils/utils");
 
 
@@ -29,7 +30,7 @@ const {
  * @class
  * @implements {typedefs.IWpwRcSchema}
  */
-class WpBuildRc
+class WpwRc
 {
     /** @type {typedefs.WpwWebpackAliasConfig} */
     alias;
@@ -90,7 +91,7 @@ class WpBuildRc
      * all build level 'WpBuildRcApp' instances.  Builds are initialized by merging
      * each layer's configuration from top level down, (i.e. the top level, `this`, and
      * the current mode/environement e.g. `production`) into each defined build config.
-     * @see {@link WpBuildRc.create WpBuildRc.create()} for wbbuild initiantiation process
+     * @see {@link WpwRc.create WpwRc.create()} for wbbuild initiantiation process
      * @see {@link WpBuildApp} for build lvel wrapper defintion.  Stupidly named `app` (???).
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
@@ -218,17 +219,27 @@ class WpBuildRc
      */
     static create = (argv, arge) =>
     {
-        const rc = new WpBuildRc(argv, arge); // Create the top level build wrapper
+        const wpConfigs = [];
+        const rc = new WpwRc(argv, arge); // Create the top level build wrapper
 
         if (rc.hasTypes)// Some build require types to be built, auto-add the types build if defined, and
         {               // a dependency of the single build
-            const typesBuild = rc.getBuild("types"),
-                  thisBuild = arge.build ? rc.getBuild(arge.build) : null;
-            if (typesBuild && arge.build !== typesBuild.name && (!thisBuild || !existsSync(typesBuild.paths.dist)))
+            const typesBuild = rc.getBuild("types");
+            if (typesBuild && arge.build !== typesBuild.name && (!rc.isSingleBuild || !existsSync(typesBuild.paths.dist)))
             {
-                if (!thisBuild || asArray(thisBuild?.options.wait).find(t => t.target === "types")) {
-                    rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
-                    apply(typesBuild, { auto: true });
+                for (const a of rc.apps)
+                {
+                    const dependsOnTypes = (isObject(a.build.entry) && a.build.entry.dependOn === "types");
+                    if (!rc.isSingleBuild || dependsOnTypes)
+                    {
+                        const waitConfig = WpwPlugin.getOptionsConfig("wait", a.build.options);
+                        if (asArray(waitConfig.items).find(t => t.target === "types"))
+                        {
+                            rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
+                            apply(typesBuild, { auto: true });
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -239,10 +250,12 @@ class WpBuildRc
         }
 
         rc.apps.push(
-            ...rc.builds.filter((b) => !arge.build || b.name === arge.build).map((b) => new WpBuildApp(rc, merge({}, b)))
+            ...rc.builds.filter(
+                (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.build.type === b.type)
+            )
+            .map((b) => new WpBuildApp(rc, merge({}, b)))
         );
 
-        const wpConfigs = [];
         for (const app of rc.apps)
         {
             if (!app.build.mode || !app.build.target || !app.build.type) {
@@ -716,4 +729,4 @@ class WpBuildRc
 }
 
 
-module.exports = WpBuildRc;
+module.exports = WpwRc;

@@ -5,7 +5,7 @@
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
- * @author @spmeesseman Scott Meesseman
+ * @author Scott Meesseman @spmeesseman
  *
  * Handy file links:
  *
@@ -39,9 +39,9 @@
  * esX	                    Compile for specified ECMAScript version. Examples: es5, es2020.
  * browserslist             Infer a platform and the ES-features from a browserslist-config (default if browserslist config
  *                          is available)
- */
+ *//** */
 
-import { ConvertType, PickByType } from "./generic";
+import { ConvertType, PickByType, RequireKeys } from "./generic";
 import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable";
 import { Schema as WebpackSchema } from "schema-utils/declarations/validate";
 import webpack, {
@@ -49,7 +49,8 @@ import webpack, {
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
-    WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions
+    WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
+    MemoryCacheOptions as WebpackMemoryCacheOptions
 }from "webpack";
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
@@ -104,7 +105,7 @@ declare type WebpackOptimization = WebpackOptionsNormalized["optimization"];
 
 declare type WebpackEntry = EntryObject;
 
-declare type WebpackOutput = WebpackConfig["output"];
+declare type WebpackOutput = RequireKeys<Exclude<WebpackConfig["output"], undefined>, "path">;
 
 declare type WebpackRawSource = WebpackSources.RawSource;
 
@@ -171,7 +172,9 @@ export {
     WebpackConfig,
     WebpackEntry,
     WebpackEtag,
+    WebpackFileCacheOptions,
     WebpackLogger,
+    WebpackMemoryCacheOptions,
     WebpackMode,
     WebpackModuleOptions,
     WebpackOptimization,

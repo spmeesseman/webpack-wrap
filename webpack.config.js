@@ -36,7 +36,7 @@
  * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  */
 
-const WpBuildRc = require("./src/core/rc");
+const WpwRc = require("./src/core/rc");
 const typedefs = require("./src/types/typedefs");
 
 /**
@@ -50,4 +50,4 @@ const typedefs = require("./src/types/typedefs");
  * @param {typedefs.WebpackRuntimeArgs} argv Webpack command line args
  * @returns {typedefs.WpwWebpackConfig | typedefs.WpwWebpackConfig[]}
  */
-module.exports = (arge, argv) => WpBuildRc.create(argv, arge);
+module.exports = (arge, argv) => WpwRc.create(argv, arge);

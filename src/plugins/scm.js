@@ -7,22 +7,22 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildScmPlugin extends WpBuildPlugin
+class WpBuildScmPlugin extends WpwPlugin
 {
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 

@@ -1,6 +1,7 @@
 /* eslint-disable spaced-comment */
 
 /**
+ * @file types/typedefs.js
  * @namespace typedefs
  */
 
@@ -54,11 +55,11 @@
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
 /** @typedef {import("./rc").WpwBuildModeConfig} WpwBuildModeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsKey} WpwBuildOptionsKey */
+/** @typedef {import("./rc").WpwPluginConfigWeb} WpwPluginConfigWeb */
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
 /** @typedef {import("./constants").WpwRcPathsProps} WpwRcPathsProps */
 /** @typedef {import("./constants").WpwWebpackModes} WpwWebpackModes */
 /** @typedef {import("./rc").TypeWpwBuildOptions} TypeWpwBuildOptions */
-/** @typedef {import("./rc").WebpackCompilerHook} WebpackCompilerHook */
 /** @typedef {import("./rc").WpwFilePathRelative} WpwFilePathRelative */
 /** @typedef {import("./rc").WpwPluginConfigCopy} WpwPluginConfigCopy */
 /** @typedef {import("./rc").WpwPluginConfigWait} WpwPluginConfigWait */
@@ -66,59 +67,58 @@
 /** @typedef {import("./constants").isWpwRcPathsProp} isWpwRcPathsProp */
 /** @typedef {import("./constants").isWpwWebpackMode} isWpwWebpackMode */
 /** @typedef {import("./constants").WpwLogTrueColors} WpwLogTrueColors */
+/** @typedef {import("./rc").WpwOptionsConfigBase} WpwOptionsConfigBase */
 /** @typedef {import("./rc").WpwPluginConfigJsDoc} WpwPluginConfigJsDoc */
+/** @typedef {import("./rc").WpwPluginConfigTypes} WpwPluginConfigTypes */
 /** @typedef {import("./rc").WpwWebpackAliasValue} WpwWebpackAliasValue */
 /** @typedef {import("./rc").WpwWebpackEntryValue} WpwWebpackEntryValue */
 /** @typedef {import("./constants").isWpwLogTrueColor} isWpwLogTrueColor */
 /** @typedef {import("./rc").WebpackConfigOverride} WebpackConfigOverride */
 /** @typedef {import("./rc").WpwBuildOptionsCustom} WpwBuildOptionsCustom */
 /** @typedef {import("./rc").WpwPluginConfigBanner} WpwPluginConfigBanner */
-/** @typedef {import("./rc").WpwPluginConfigCopyEx} WpwPluginConfigCopyEx */
 /** @typedef {import("./rc").WpwPluginConfigUpload} WpwPluginConfigUpload */
 /** @typedef {import("./rc").WpwWebpackAliasConfig} WpwWebpackAliasConfig */
 /** @typedef {import("./rc").WpwWebpackEntryObject} WpwWebpackEntryObject */
 /** @typedef {import("./constants").WpwPackageJsonEnum} WpwPackageJsonEnum */
 /** @typedef {import("./constants").WpwSourceCodeTypes} WpwSourceCodeTypes */
-/** @typedef {import("./rc").WebpackCompilationHook} WebpackCompilationHook */
 /** @typedef {import("./rc").WpwBuildOptionsExports} WpwBuildOptionsExports */
 /** @typedef {import("./rc").WpwBuildOptionsPlugins} WpwBuildOptionsPlugins */
 /** @typedef {import("./rc").WpwFileOrDirectoryPath} WpwFileOrDirectoryPath */
 /** @typedef {import("./rc").WpwPluginConfigAnalyze} WpwPluginConfigAnalyze */
+/** @typedef {import("./rc").WpwPluginConfigWaitDef} WpwPluginConfigWaitDef */
 /** @typedef {import("./rc").WpwSourceCodeConfigKey} WpwSourceCodeConfigKey */
+/** @typedef {import("./rc").WpwWebpackCompilerHook} WpwWebpackCompilerHook */
 /** @typedef {import("./constants").isWpwSourceCodeType} isWpwSourceCodeType */
 /** @typedef {import("./constants").WebpackLibraryTypes} WebpackLibraryTypes */
 /** @typedef {import("./constants").WpwPackageJsonProps} WpwPackageJsonProps */
 /** @typedef {import("./rc").TypeWpwSourceCodeConfig} TypeWpwSourceCodeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsTesting1} WpwBuildOptionsTesting1 */
 /** @typedef {import("./rc").WpwBuildOptionsTesting2} WpwBuildOptionsTesting2 */
+/** @typedef {import("./rc").WpwPluginConfigCopyItem} WpwPluginConfigCopyItem */
 /** @typedef {import("./rc").WpwPluginConfigLogHooks} WpwPluginConfigLogHooks */
 /** @typedef {import("./constants").isWebpackLibraryType} isWebpackLibraryType */
 /** @typedef {import("./constants").isWpwPackageJsonProp} isWpwPackageJsonProp */
-/** @typedef {import("./constants").WebpackCompilerHooks} WebpackCompilerHooks */
 /** @typedef {import("./rc").WpwBuildOptionsCustomKey} WpwBuildOptionsCustomKey */
 /** @typedef {import("./rc").WpwBuildOptionsExportKey} WpwBuildOptionsExportKey */
 /** @typedef {import("./rc").WpwBuildOptionsPluginKey} WpwBuildOptionsPluginKey */
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
 /** @typedef {import("./rc").WpwPackageJsonScopedName} WpwPackageJsonScopedName */
-/** @typedef {import("./rc").WpwPluginConfigJsDocItem} WpwPluginConfigJsDocItem */
 /** @typedef {import("./rc").WpwPluginConfigVendorMod} WpwPluginConfigVendorMod */
 /** @typedef {import("./rc").WpwPluginConfigWaitEvent} WpwPluginConfigWaitEvent */
-/** @typedef {import("./rc").WpwPluginConfigWaitMulti} WpwPluginConfigWaitMulti */
-/** @typedef {import("./constants").isWebpackCompilerHook} isWebpackCompilerHook */
 /** @typedef {import("./rc").TypeWpwBuildOptionsCustom} TypeWpwBuildOptionsCustom */
 /** @typedef {import("./rc").WpwBuildOptionsExportsKey} WpwBuildOptionsExportsKey */
 /** @typedef {import("./rc").WpwBuildOptionsPluginKey1} WpwBuildOptionsPluginKey1 */
 /** @typedef {import("./rc").WpwBuildOptionsPluginsKey} WpwBuildOptionsPluginsKey */
 /** @typedef {import("./rc").WpwPluginConfigRunScripts} WpwPluginConfigRunScripts */
-/** @typedef {import("./rc").WpwPluginConfigWaitSingle} WpwPluginConfigWaitSingle */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModule} WpwSourceCodeNodeJsModule */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsTarget} WpwSourceCodeNodeJsTarget */
+/** @typedef {import("./rc").WpwWebpackCompilationHook} WpwWebpackCompilationHook */
 /** @typedef {import("./rc").TypeWpwBuildOptionsExports} TypeWpwBuildOptionsExports */
 /** @typedef {import("./rc").TypeWpwBuildOptionsPlugins} TypeWpwBuildOptionsPlugins */
+/** @typedef {import("./rc").WpwPluginConfigWebFilename} WpwPluginConfigWebFilename */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptions} WpwSourceCodeConfigOptions */
-/** @typedef {import("./constants").WebpackCompilationHooks} WebpackCompilationHooks */
-/** @typedef {import("./rc").WebhookCompilationHookStage} WebhookCompilationHookStage */
-/** @typedef {import("./constants").isWebpackCompilationHook} isWebpackCompilationHook */
+/** @typedef {import("./constants").WpwWebpackCompilerHooks} WpwWebpackCompilerHooks */
+/** @typedef {import("./constants").isWpwWebpackCompilerHook} isWpwWebpackCompilerHook */
 /** @typedef {import("./rc").DefinitionsDirectoryPathGlob} DefinitionsDirectoryPathGlob */
 /** @typedef {import("./constants").WpwBuildOptionsExportKeys} WpwBuildOptionsExportKeys */
 /** @typedef {import("./constants").WpwBuildOptionsPluginKeys} WpwBuildOptionsPluginKeys */
@@ -131,23 +131,33 @@
 /** @typedef {import("./constants").isWpwPluginConfigWaitEvent} isWpwPluginConfigWaitEvent */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModules} WpwSourceCodeNodeJsModules */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsTargets} WpwSourceCodeNodeJsTargets */
+/** @typedef {import("./constants").WpwWebpackCompilationHooks} WpwWebpackCompilationHooks */
 /** @typedef {import("./rc").TypeWpwSourceCodeConfigOptions} TypeWpwSourceCodeConfigOptions */
+/** @typedef {import("./rc").WpwWebhookCompilationHookStage} WpwWebhookCompilationHookStage */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModule} isWpwSourceCodeNodeJsModule */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsTarget} isWpwSourceCodeNodeJsTarget */
+/** @typedef {import("./constants").isWpwWebpackCompilationHook} isWpwWebpackCompilationHook */
 /** @typedef {import("./rc").WpwBuildOptionsCustomProperties} WpwBuildOptionsCustomProperties */
 /** @typedef {import("./rc").WpwBuildOptionsExportProperties} WpwBuildOptionsExportProperties */
 /** @typedef {import("./rc").WpwBuildOptionsPluginProperties} WpwBuildOptionsPluginProperties */
-/** @typedef {import("./constants").WebhookCompilationHookStages} WebhookCompilationHookStages */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
-/** @typedef {import("./constants").isWebhookCompilationHookStage} isWebhookCompilationHookStage */
-/** @typedef {import("./constants").WpwPluginConfigRunScriptsProps} WpwPluginConfigRunScriptsProps */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
-/** @typedef {import("./constants").isWpwPluginConfigRunScriptsProp} isWpwPluginConfigRunScriptsProp */
+/** @typedef {import("./constants").WpwWebhookCompilationHookStages} WpwWebhookCompilationHookStages */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModuleResolution} WpwSourceCodeNodeJsModuleResolution */
+/** @typedef {import("./constants").isWpwWebhookCompilationHookStage} isWpwWebhookCompilationHookStage */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */
 /* END_RC_DEFS */
+
+
+/***********************************************************************************************************************
+ * BASE
+ ***********************************************************************************************************************/
+
+/** @typedef {import("../core/base").WpwBase} WpwBase */
+/** @typedef {import("./base").IWpwBase} IWpwBase */
+/** @typedef {import("./base").WpwBaseOptions<WpwBuildOptionsKey>} WpwBaseOptions */
 
 
 /***********************************************************************************************************************
@@ -162,6 +172,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
+/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").IWpBuildAppSchema} IWpBuildAppSchema */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
@@ -172,17 +183,26 @@
 
 
 /***********************************************************************************************************************
+ * BASE EXPORT.D.TS
+ ***********************************************************************************************************************/
+
+/** @typedef {import("./export").IWpwExport} IWpwExport */
+/** @typedef {import("./export").WpwExportOptions} WpwExportOptions */
+
+
+/***********************************************************************************************************************
  * PLUGINS PLUGIN.D.TS
  ***********************************************************************************************************************/
 
 
 /** @typedef {import("./plugin").IWpBuildPlugin} IWpBuildPlugin */
-/** @typedef {import("./plugin").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("./plugin").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("./plugin").WpBuildDtsBundleOptions} WpBuildDtsBundleOptions */
 /** @typedef {import("./plugin").WpBuildPluginTapOptions} WpBuildPluginTapOptions */
 /** @typedef {import("./plugin").WpBuildPluginWaitOptions} WpBuildPluginWaitOptions */
 /** @typedef {import("./plugin").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 /** @typedef {import("./plugin").WpBuildPluginTapOptionsEntry} WpBuildPluginTapOptionsEntry */
+/** @typedef {import("./plugin").WpBuildPluginMultiWaitOptions} WpBuildPluginMultiWaitOptions */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
 /** @typedef {import("./plugin").WpBuildPluginCompilationOptionsEntry} WpBuildPluginCompilationOptionsEntry */
 
@@ -192,7 +212,6 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
-/** @typedef {import("./generic").RequireKeys<WpBuildPluginOptions, "plugins">} WpBuildPluginOptionsRequired */
 
 /**
  * Executes a command with a promisified child_process.exec()
@@ -219,9 +238,7 @@
  * UTILS
  ***********************************************************************************************************************/
 
-/** @typedef {import("../utils").WpBuildRc} WpBuildRc */
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
+/** @typedef {import("../utils").WpwRc} WpwRc */
 
 
 /***********************************************************************************************************************
@@ -229,9 +246,10 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
-/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
 /** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
+/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
 /** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
+/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
 
 
 /***********************************************************************************************************************
@@ -257,9 +275,10 @@
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */
 /** @typedef {import("./webpack").WebpackCompilerHookName} WebpackCompilerHookName */
-/** @typedef {import("./webpack").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("./webpack").WebpackFileCacheOptions} WebpackFileCacheOptions */
 /** @typedef {import("./webpack").WebpackCompilationParams} WebpackCompilationParams */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHook} WebpackCompilerAsyncHook */
+/** @typedef {import("./webpack").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("./webpack").WebpackCompilationHookName} WebpackCompilationHookName */
 /** @typedef {import("./webpack").WebpackStatsPrinterContext} WebpackStatsPrinterContext */
 /** @typedef {import("./webpack").WebpackCompilationHookStage} WebpackCompilationHookStage */
@@ -270,5 +289,10 @@
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompilation>} WebpackAsyncCompilationHook */
 
+/**
+ * JS Type definitions
+ * @type {{}}
+ */
+const typedefs = {};
 
-exports.unused = {};
+exports.unused = typedefs;

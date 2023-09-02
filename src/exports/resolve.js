@@ -6,7 +6,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { join } = require("path");
 const { apply } = require("../utils");

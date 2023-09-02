@@ -7,14 +7,14 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
+ const { existsSync } = require("fs");
 const { resolve, join } = require("path");
-const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
 const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
-const { existsAsync, WpBuildError, relativePath } = require("../utils");
+const { existsAsync, WpBuildError } = require("../utils");
 
 
 /**
@@ -23,7 +23,7 @@ const { existsAsync, WpBuildError, relativePath } = require("../utils");
 class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -55,7 +55,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	async types(assets)
 	{
 		const sourceCode = this.app.source;
-		if (sourceCode && sourceCode.config && sourceCode.config.path)
+		if (sourceCode.config.path)
 		{
 			const logger = this.logger,
 				  basePath = /** @type {string} */(this.app.getRcPath("base"));
@@ -96,13 +96,20 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				try { await unlink(tsbuildinfo); } catch {}
 			}
 
+			//
+			// TODO - Use ts api createProgram()
+			//
+
 			const tscArgs = [
 				"--composite", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false",
 				"--declarationDir", typesDirDist, "--tsBuildInfoFile", tsbuildinfo
 			];
 			if (sourceCode.type === "javascript")
 			{
-				tscArgs.push("--allowJs", "--checkJs", "--strict", "false", "--strictNullChecks", "false");
+				tscArgs.push(
+					"--allowJs", "--checkJs", "--strict", "false", "--strictNullChecks", "false", "--skipLibCheck",
+					"--target", "es2020 ", "--moduleResolution", "node"
+				);
 			}
 
 			//
@@ -124,7 +131,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTypesPlugin | undefined}
  */
-const types = (app) => app.build.options.types ? new WpBuildTypesPlugin({ app }) : undefined;
+const types = (app) => WpBuildTypesPlugin.getOptionsConfig("types", app.build.options).mode !== "module" ? new WpBuildTypesPlugin({ app }) : undefined;
 
 
 module.exports = types;

@@ -7,7 +7,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 // const wpwPlugins = require("../plugins");
 const { createEntryObjFromDir /* , asArray, isFunction, isObject  */} = require("../utils");
@@ -47,7 +47,7 @@ const plugins = (app) =>
 		environment(app),        // compiler.hooks.environment
 		vendormod(app),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
 		progress(app),           // n/a - reports progress from webpack engine
-		...clean(app),           // compiler.hooks.emit, compiler.hooks.done
+		clean(app),              // compiler.hooks.emit, compiler.hooks.done
 		types(app),              // compiler.hooks.beforeCompile - build tests / test suite
 		testsuite(app),          // compiler.hooks.beforeCompile - build tests / test suite
 		banner(app),             // compiler.hooks.compilation -> compilation.hooks.processAssets

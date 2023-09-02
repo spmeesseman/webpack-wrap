@@ -20,7 +20,7 @@ const logger = new WpBuildConsoleLogger({
 
 
 function dtsLoader(source, map, meta)
-  {
+{
     const options = this.getOptions();
 
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });

@@ -12,7 +12,7 @@
  * NOTE: The vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be
  * webpack'ed, -> @see {@link https://webpack.js.org/configuration/externals/}
  *
- */
+ *//** */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */

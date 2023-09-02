@@ -15,6 +15,7 @@
 
 const { glob } = require("glob");
 const { basename } = require("path");
+const { getOptionsConfig } = require("../core/base");
 const typedefs = require("../types/typedefs");
 const {
 	apply, WpBuildError, isObjectEmpty, isString, WpBuildApp, isDirectory, relativePath, createEntryObjFromDir
@@ -32,10 +33,11 @@ const builds =
 	 */
 	jsdoc: (app) =>
 	{
-		if (app.build.options.jsdoc && (app.build.options.jsdoc === true || app.build.options.jsdoc.type === "entry"))
+		const jsdocOptions = getOptionsConfig("jsdoc", app.build.options);
+		if (jsdocOptions.type === "entry")
 		{
 			const mainBuild = app.getAppBuild("module"),
-				jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+				  jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			if (mainBuild && jsdocSrcPath)
 			{
 				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
@@ -140,27 +142,30 @@ const builds =
 	 */
 	types: (app) =>
 	{
-		const build = app.build;
-		if (build.options.typesPackage === "entry")
+		const build = app.build,
+			  typesConfig = getOptionsConfig("types", app.build.options);
+
+		if (!typesConfig || typesConfig.mode !== "module") {
+			return;
+		}
+
+		if (typesConfig.entry === "main")
 		{
-			if (build.options.typesEntryMode === "main")
+			const mainBuild = app.getAppBuild("module");
+			if (mainBuild)
 			{
-				const mainBuild = app.getAppBuild("module");
-				if (mainBuild)
-				{
-				    const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-					apply(app.wpc.entry, {
-						[ build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
-					});
-				}
-			}
-			else
-			{
-				const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
 				apply(app.wpc.entry, {
-					index: `${typesPath}/index.ts`
+					[ build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
 				});
 			}
+		}
+		else
+		{
+			const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+			apply(app.wpc.entry, {
+				index: `${typesPath}/index.ts`
+			});
 		}
 	},
 

@@ -7,21 +7,21 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const { isFunction, execAsync, merge, pickNot, WpwPluginConfigRunScriptsProps, apply, capitalize } = require("../utils");
+const { isFunction, execAsync, merge, pickNot, WpwBuildOptionsRunScriptsProps, apply, capitalize } = require("../utils");
 const { execSync } = require("child_process");
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpwRunScriptsPlugin extends WpBuildPlugin
+class WpwRunScriptsPlugin extends WpwPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -35,8 +35,8 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
     {
         const customTaps = /** @type {typedefs.WpBuildPluginTapOptions} */({});
         const pluginOptions = pickNot(
-            /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts),
-            ...WpwPluginConfigRunScriptsProps
+            /** @type {typedefs.WpwBuildOptionsRunScripts} */(this.app.build.options.runscripts),
+            ...WpwBuildOptionsRunScriptsProps
         );
 
         Object.entries(pluginOptions).forEach(([ stage, tapConfig ]) =>
@@ -80,7 +80,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
 
 
     /**
-     * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
+     * @param {typedefs.WpwBuildOptionsRunScriptsItemDef} script
      * @returns {string}
      */
     buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
@@ -92,10 +92,10 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
      */
     runScripts = async (stage) =>
     {
-        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
+        const options = /** @type {typedefs.WpwBuildOptionsRunScripts} */(this.app.build.options.runscripts);
         if (options[stage])
         {
-            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
+            const stageOptions = /** @type {typedefs.WpwBuildOptionsRunScriptsItem} */(options[stage]);
             if (stageOptions.async)
             {
                 if (stageOptions.mode === "parallel")
@@ -111,7 +111,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
                 }
             }
             else {
-                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
+                const stageOptions = /** @type {typedefs.WpwBuildOptionsRunScriptsItem} */(options[stage]);
                 for (const script of stageOptions.scripts) { execSync(this.buildCommand(script)); }
             }
         }
@@ -122,7 +122,7 @@ class WpwRunScriptsPlugin extends WpBuildPlugin
 
 /**
  * Returns a `WpBuildLogHookStagesPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.loghooks`
+ * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
  * property to a boolean value of  `true` or `false`
  *
  * @param {typedefs.WpBuildApp} app

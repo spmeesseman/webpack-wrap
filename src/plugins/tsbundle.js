@@ -7,7 +7,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
@@ -22,7 +22,7 @@ const { isString } = require("../utils");
 class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -37,7 +37,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 		const distPath = this.app.getDistPath({ build: "types" });
 		const entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index;
 		const entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
-		if (entryFile && existsSync(entryFile) && this.app.cmdLine.build === this.app.build.name)
+		if (entryFile && existsSync(entryFile) && this.app.isOnlyBuild)
 		{
 			this.onApply(compiler,
 			{

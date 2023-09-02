@@ -7,7 +7,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
@@ -18,7 +18,7 @@ const { join, dirname, isAbsolute, resolve, relative } = require("path");;
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
@@ -27,7 +27,7 @@ const { join, dirname, isAbsolute, resolve, relative } = require("path");;
 class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 {
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 

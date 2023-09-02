@@ -7,9 +7,9 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
@@ -18,10 +18,16 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildTsForkerPlugin extends WpBuildPlugin
+class WpBuildTsForkerPlugin extends WpwPlugin
 {
+    /**
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     */
+	constructor(options) { super(options); }
+
+
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
@@ -37,13 +43,11 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 			tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
 			if (logLevel >= 2)
 			{
+				tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
 				tsForkCheckerHooks.start.tapPromise(this.name, this.tsForkCheckerStart.bind(this));
 				if (logLevel >= 3)
 				{
-					tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
-					if (logLevel >= 4) {
-						tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
-					}
+					tsForkCheckerHooks.issues.tap(this.name, this.tsForkCheckerIssues.bind(this));
 				}
 			}
 		}
@@ -59,19 +63,19 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
 		/** @type {[ string, "write-dts" | "write-tsbuildinfo" | "readonly" | "write-dts" , string? ]} */
 		let tsParams;
 		const app = this.app,
-			  tsConfig = app.build.source.config,
-			  tsConfigPath = /** @type {string} */(tsConfig.path);
+			  cnfig = app.build.source.config,
+			  configPath = /** @type {string} */(cnfig.path);
 
 		if (app.build.type === "tests")
 		{
-			tsParams = [ tsConfigPath, "write-tsbuildinfo" ];
+			tsParams = [ configPath, "write-tsbuildinfo" ];
 		}
 		else if (app.build.type === "types")
 		{
-			tsParams = [ tsConfigPath, "write-dts" ];
+			tsParams = [ configPath, "write-dts" ];
 		}
 		else {
-			tsParams = [ tsConfigPath, tsConfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly" ];
+			tsParams = [ configPath, cnfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly" ];
 		}
 
 		app.logger.write("get vendor plugin");
@@ -151,7 +155,7 @@ class WpBuildTsForkerPlugin extends WpBuildPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsForkerPlugin | undefined}
  */
-const tscheck = (app) => WpBuildPlugin.wrap(WpBuildTsForkerPlugin, app, app.build.options.tscheck);
+const tscheck = (app) => WpwPlugin.wrap(WpBuildTsForkerPlugin, app, "tscheck");
 
 
 module.exports = tscheck;

@@ -1,12 +1,14 @@
 // @ts-check
 
+const { getOptionsConfig } = require("../core/base");
+
 /**
  * @file exports/devtool.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 
@@ -35,9 +37,11 @@ const devtool = (app) =>
 	// Disabled for this build - Using source-map-plugin - see webpack.plugin.js#sourcemaps
 	// ann the plugins() function below
 	//
-	if (app.build.options.devtool)
+	const devtoolOptions = getOptionsConfig("devtool", app.build.options);
+	if (devtoolOptions.enabled)
 	{
-		if (app.build.options.sourcemaps)
+		const srcmapPluginOptions = getOptionsConfig("sourcemaps", app.build.options);
+		if (srcmapPluginOptions.enabled)
 		{
 			app.wpc.devtool = false;
 		}

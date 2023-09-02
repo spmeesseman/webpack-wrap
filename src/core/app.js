@@ -9,7 +9,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { existsSync } = require("fs");
 const wpexports = require("../exports");
@@ -47,7 +47,7 @@ class WpBuildApp
     logger;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
-    /** @type {typedefs.WpBuildRc} @private */
+    /** @type {typedefs.WpwRc} @private */
     rc;
     /** @type {typedefs.WpwSourceCode} */
     source;
@@ -63,7 +63,7 @@ class WpBuildApp
 
 	/**
 	 * @constructs WpBuildApp
-	 * @param {typedefs.WpBuildRc} rc wpbuild rc configuration
+	 * @param {typedefs.WpwRc} rc wpbuild rc configuration
 	 * @param {typedefs.WpwBuild} build
 	 */
 	constructor(rc, build)
@@ -80,6 +80,7 @@ class WpBuildApp
 
     get buildCount() { return this.rc.buildCount; }
     get cmdLine() { return this.rc.args; }
+    get isOnlyBuild() { return this.rc.isSingleBuild; }
     get pkgJson() { return this.rc.pkgJson; }
 
 
@@ -188,18 +189,7 @@ class WpBuildApp
      */
     buildWebpackConfig = () =>
     {
-        const build = this.build;
-        this.wpc = {
-            context: build.paths.ctx || build.paths.base,
-            entry: {},
-            mode: build.mode === "test" ? "none" : build.mode,
-            module: { rules: [] },
-            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
-            output: {},
-            plugins: [],
-            resolve: {},
-            target: build.target
-        };
+        this.wpc = this.getDefaultWebpackExports();
         try
         {   wpexports.cache(this);          // Asset cache
             wpexports.experiments(this);    // Set any experimental flags that will be used
@@ -261,6 +251,28 @@ class WpBuildApp
      * @returns {R}
      */
     getContextPath = (options) => this.getRcPath("ctx", options);
+
+
+    /**
+     * @private
+     * @returns {typedefs.WpwWebpackConfig}
+     */
+    getDefaultWebpackExports = () =>
+    {
+        const build = this.build;
+        return {
+            cache: { type: "memory" },
+            context: build.paths.ctx || build.paths.base,
+            entry: {},
+            mode: build.mode === "test" ? "none" : build.mode,
+            module: { rules: [] },
+            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
+            output: { path: this.getDistPath() }, // { path: this.getDistPath({ rel: true }) }
+            plugins: [],
+            resolve: {},
+            target: build.target
+        };
+    };
 
 
     /**

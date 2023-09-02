@@ -4,7 +4,7 @@
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
- * @author @spmeesseman Scott Meesseman
+ * @author Scott Meesseman @spmeesseman
  *
  * Handy file links:
  *
@@ -15,8 +15,9 @@
  *
  * @description
  *
- * Colleactively exports all Wpw types
- */
+ * Collectively exports all Wpw types
+ *
+ *//** */
 
 /**
  * Typescript symbol sham
@@ -29,6 +30,14 @@ export declare function hasSymbolSham(): boolean;
  */
 export * from "./app";
 /**
+ * Base typings
+ */
+export * from "./base";
+/**
+ * Wpw application specific types library
+ */
+export * from "./export";
+/**
  * Generic typings
  */
 export * from "./generic";
@@ -37,11 +46,11 @@ export * from "./generic";
  */
 export * from "./logger";
 /**
- * WpBuild application specific types library
+ * Wpw application specific types library
  */
 export * from "./plugin";
 /**
- * WpBuild application specific types library
+ * Wpw application specific types library
  */
 export * from "./rc";
 /**

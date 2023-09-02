@@ -7,10 +7,10 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { apply, asArray } = require("../utils");
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackAsset} WebpackAsset */
@@ -18,17 +18,17 @@ const WpBuildPlugin = require("./base");
 /** @typedef {import("../types").WebpackSource} WebpackSource */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildIstanbulPlugin extends WpBuildPlugin
+class WpBuildIstanbulPlugin extends WpwPlugin
 {
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 

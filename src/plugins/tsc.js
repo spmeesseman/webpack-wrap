@@ -7,11 +7,11 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const dts = require("dts-bundle");
 const { existsSync } = require("fs");
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { access, unlink, readFile } = require("fs/promises");
@@ -21,12 +21,12 @@ const { findFiles, isString, WpBuildError, relativePath } = require("../utils");
 
 /**
  * @abstract
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildBaseTsPlugin extends WpBuildPlugin
+class WpBuildBaseTsPlugin extends WpwPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 

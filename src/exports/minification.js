@@ -10,7 +10,7 @@ const TerserPlugin = require("terser-webpack-plugin");
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 

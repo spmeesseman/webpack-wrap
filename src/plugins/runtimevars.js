@@ -37,25 +37,25 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { isString, apply, isObjectEmpty, merge, WpBuildError } = require("../utils");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackSource} WebpackSource */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
+class WpBuildRuntimeVarsPlugin extends WpwPlugin
 {
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
     {
@@ -290,7 +290,7 @@ class WpBuildRuntimeVarsPlugin extends WpBuildPlugin
 
 /**
  * Returns a `WpBuildRuntimeVarsPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.runtimevars`
+ * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.runtimevars`
  * property to a boolean value of  `true` or `false`
  * @param {WpBuildApp} app
  * @returns {WpBuildRuntimeVarsPlugin | undefined}

@@ -41,7 +41,7 @@ const fullTypes = [
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts"
+    "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts"
 ];
 
 /**
@@ -128,11 +128,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
           .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
           .replace(/\[k\: string\]: (.*?);/g, (_, m) => `[k: string]: ${m} | undefined;`)
-          .replace("export type WpwBuild = ", "export interface WpwBuild ")
-          .replace(/\n\} +\& WpwBuild[0-9] *; *\n/g, "\n}\n")
-          .replace(/export type WpwBuild[0-9](?:[^]*?)\};\n/, "")
-          .replace(/export type WpwDirectoryPath[0-9] *= string; *\n/g, "")
-          .replace(/export type WpwBuildOptionsPluginKey[0-9](?:[^]*?)\};\n/g, "")
+          .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n/g, "")
           .replace(/WpwDirectoryPath[0-9]/g, "WpwDirectoryPath")
           .replace(/\/\* eslint\-disable \*\/$/gm, "")
           .replace(/\n\}\nexport /g, "\n}\n\nexport ")
@@ -215,6 +211,9 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
           .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
+          .replace(/ +& +\n/g, " &\n")
+          .replace(/    ([a-z?]+?): +\n\{/g, (_, m) => "    " + m + ":\n    {")
+          .replace(/([a-z?]): +\n/g, (_, m) => m + ":\n")
           .replace(/ = \{ "= /g, "")
           .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
@@ -372,8 +371,8 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
         data += `${EOL}module.exports = {${EOL}${exported.join("," + EOL)}${EOL}};${EOL}`;
-        data = data.replace("'json-to-typescript' utility", `'generate-wpbuild-types' script together with${EOL} * the 'json-to-typescript' utility`);
-        data = data.replace(/ \* the 'json\-to\-typescript' utility(?:[^]+?) \*\//, ` * the 'json-to-typescript' utility${EOL} */`);
+        data = data.replace("'json-to-typescript' utility", `'generate-rc-types' script and${EOL} * 'json-to-typescript' utility${EOL} *`);
+        data = data.replace(/ \* the 'json\-to\-typescript' utility(?:[^]+?) \*\//, ` * the 'json-to-typescript' utility${EOL} *${EOL} */`);
 
         await writeFile(constantsPath, data);
 
@@ -385,7 +384,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             logPad: "      ",
             program: "tsc",
             execOptions: { cwd: constantsDir },
-            command: `npx tsc --target es2020 --noEmit --skipLibCheck --allowJs ./${constantsFile}`
+            command: `npx tsc --moduleResolution node --target es2020 --noEmit --skipLibCheck --allowJs --checkJs ./${constantsFile}`
         });
 
         if (code === 0) {
@@ -443,17 +442,17 @@ cliWrap(async () =>
           jsontotsFlags = "-f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties";
 
     let data = await readFile(indexPath, "utf8");
-    const match = data.match(/\/\*\*(?:[^]*?)\*\//);
+    const match = data.match(/\/\*\*(?:[^]*?)\*\/\/\*\* \*\//);
     if (!match) {
         throw new Error("Could not read header from index file 'index.d.ts'");
     }
 
     data = await readFile(outputDtsPath, "utf8");
     const hdr =  match[0]
-          .replace(" with `WpBuild`", " with `WpBuildRc`")
-          .replace("@file src/types/index.d.ts", `@file types/${outputDtsFile}`)
-          .replace("@spmeesseman Scott Meesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
-          .replace("Exports all types for this project", description);;
+          .replace(" with `WpBuild`", " with `WpwRc`")
+          .replace("@file types/index.d.ts", `@file types/${outputDtsFile}`)
+          .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
+          .replace("Collectively exports all Wpw types", description);;
 
     logger.log("creating rc configuration file types and typings from schema");
     logger.log("   executing json2ts");

@@ -6,7 +6,7 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { resolve, join } = require("path");
 const { existsSync, readFileSync, mkdirSync, writeFileSync } = require("fs");
@@ -15,7 +15,7 @@ const { existsSync, readFileSync, mkdirSync, writeFileSync } = require("fs");
 /** @typedef {import("../types").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
 
 
-const cacheDir = resolve(__dirname, "..", "..", "node_modules", ".cache", "wpbuild");
+const cacheDir = resolve(__dirname, "..", "..", "node_modules", ".cache", "wpwrap");
 if (!existsSync(cacheDir)) { mkdirSync(cacheDir, { recursive: true }); }
 
 const globalCacheFilePath = join(cacheDir, "global.json");

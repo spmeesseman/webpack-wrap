@@ -35,7 +35,7 @@
  * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  */
 
-const WpBuildRc = require("@spmeesseman/webpack-wrap/src/core/rc");
+const WpwRc = require("@spmeesseman/webpack-wrap/src/core/rc");
 const typedefs = require("@spmeesseman/webpack-wrap/src/types/typedefs");
 /**
  * Exports Webpack build configs to the webpack engine... the build(s) start here. Eenvironment "flags"
@@ -48,4 +48,4 @@ const typedefs = require("@spmeesseman/webpack-wrap/src/types/typedefs");
  * @param {typedefs.WebpackRuntimeArgs} argv Webpack command line args
  * @returns {typedefs.WpwWebpackConfig | typedefs.WpwWebpackConfig[]}
  */
-module.exports = (arge, argv) => WpBuildRc.create(argv, arge);
+module.exports = (arge, argv) => WpwRc.create(argv, arge);

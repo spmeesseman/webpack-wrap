@@ -11,9 +11,9 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 // const { Compilation } = require("webpack");
 const { apply, WpBuildError, requireResolve } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
@@ -23,18 +23,18 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildSourceMapPlugin extends WpBuildPlugin
+class WpBuildSourceMapPlugin extends WpwPlugin
 {
 	/**
-	 * @param {WpBuildPluginOptions} options Plugin options to be applied
+	 * @param {WpwPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
     {

@@ -15,8 +15,6 @@
  *
  * @description
  *
- * @description
- *
  * Provides types to interface the plugin sysem in this project.
  *
  * All types exported from this definition file are prepended with `WpBuildPlugin`.
@@ -46,11 +44,12 @@
  *     6.  Add the module into the modulke in the webpack exports byt importing and placing it
  *         in an appropriate position in the configuraation plugin array.
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
- */
+ *//** */
 
 import { RequireKeys } from "./generic";
 import { IWpBuildLogger } from "./logger";
-import { WpwBuildOptionsPluginKey, WpwPluginConfigWaitSingle } from "./rc";
+import { WpwPluginConfigWaitSingle } from "./rc";
+import { IWpwBase, WpwBaseOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
@@ -58,18 +57,25 @@ import {
 } from "./webpack";
 
 
-declare type WpBuildPluginOptions =
+declare type WpwPluginOptions =
 {
-    // app: ClsWpBuildApp;
+    apps?: string[];
     build?: string;
-    globalCacheProps?: string[];
-    pluginKey?: WpwBuildOptionsPluginKey;
+    plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
     registerVendorPluginsFirst?: boolean;
     registerVendorPluginsOnly?: boolean;
     wrapPlugin?: boolean;
-    plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
-    [ key: string ]: any;
-};
+} & WpwBaseOptions;
+
+// declare type WpwPluginOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
+// {
+//     apps?: string[];
+//     build?: string;
+//     plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
+//     registerVendorPluginsFirst?: boolean;
+//     registerVendorPluginsOnly?: boolean;
+//     wrapPlugin?: boolean;
+// } & WpwBaseOptions<T>;
 
 declare type WpBuildPluginVendorOptions =
 {
@@ -108,7 +114,7 @@ declare type WpBuildPluginTapOptionsEntry =
 };
 declare type WpBuildPluginCompilationOptionsEntry = RequireKeys<WpBuildPluginTapOptionsEntry, "stage" | "hookCompilation">;
 
-declare interface IWpBuildPlugin extends WebpackPluginInstance
+declare interface IWpBuildPlugin extends IWpwBase, WebpackPluginInstance
 {
     // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;
@@ -124,9 +130,10 @@ export {
     WpBuildDtsBundleOptions,
     WpBuildPluginCacheOptions,
     WpBuildPluginCompilationOptionsEntry,
-    WpBuildPluginOptions,
+    WpwPluginOptions,
     WpBuildPluginTapOptions,
     WpBuildPluginTapOptionsEntry,
     WpBuildPluginVendorOptions,
-    WpBuildPluginWaitOptions
+    WpBuildPluginWaitOptions,
+    WpBuildPluginMultiWaitOptions
 };

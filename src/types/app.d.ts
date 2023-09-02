@@ -4,7 +4,7 @@
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
- * @author @spmeesseman Scott Meesseman
+ * @author Scott Meesseman @spmeesseman
  *
  * Handy file links:
  *
@@ -17,14 +17,15 @@
  *
  * Provides types to interface the base `app` runtime instances of each build.
  *
- * All types exported from this definition file are prepended with `WpBuildPlugin`.
- */
+ * All types exported from this definition file are prepended with `WpwPlugin`.
+ *//** */
 
 import { IWpBuildLogger } from "./logger";
 import { IDisposable, ClsWpBuildError } from "./generic";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
-    WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode
+    WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode, WebpackOutput, WebpackFileCacheOptions,
+    WebpackMemoryCacheOptions
 } from "./webpack";
 import {
     WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
@@ -59,6 +60,7 @@ declare interface IWpBuildApp extends IDisposable
     cmdLine: WpBuildCombinedRuntimeArgs;
     errors: ClsWpBuildError[];
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
+    isOnlyBuild: boolean;
     isMain: boolean;
     isMainProd: boolean;
     isMainTest: boolean;
@@ -85,54 +87,13 @@ declare interface IWpBuildApp extends IDisposable
     getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
 }
 
-declare class ClsWpBuildApp implements IWpBuildApp
-{
-    private applyAppRc;
-    private buildWebpackConfig;
-    private initLogger;
-    private printBuildProperties;
-    private printNonFatalIssue;
-    private printWpcProperties;
-    private rc: IWpBuildAppSchema;
-    constructor(rc: IWpwRcSchema, build: WpwBuild);
-    build: WpwBuild;
-    buildCount: number;
-    disposables: IDisposable[];
-    cmdLine: WpBuildCombinedRuntimeArgs;
-    errors: ClsWpBuildError[];
-    global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
-    isMain: boolean;
-    isMainProd: boolean;
-    isMainTest: boolean;
-    isTest: boolean;
-    isWeb: boolean;
-    logger: IWpBuildLogger;
-    mode: WpwWebpackMode;
-    pkgJson: WpwPackageJson;
-    source: WpwSourceCode;
-    target: WebpackTarget;
-    vscode: WpwVsCode;
-    warnings: ClsWpBuildError[];
-    wpc: WpwWebpackConfig;
-    addError: (e: ClsWpBuildError | string, pad?: string) => void;
-    addWarning: (w: ClsWpBuildError | string, pad?: string) => void;
-    buildApp: () => WpwWebpackConfig;
-    dispose: () => Promise<void>;
-    getApp: (name: string) => IWpBuildApp | undefined;
-    getAppBuild: (name: string) => WpwBuild | undefined;
-    getBasePath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getContextPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getDistPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-    getRcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P) => R;
-    getSrcPath: <P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P) => R;
-}
-
 declare interface IWpwWebpackConfig extends WebpackConfig
 {
+    cache: WebpackFileCacheOptions | WebpackMemoryCacheOptions;
     context: string;
     mode: Exclude<WebpackConfig["mode"], undefined>;
     entry: WpwWebpackEntry & WebpackEntry;
-    output: Exclude<WebpackConfig["output"], undefined>;
+    output: WebpackOutput;
     plugins: (
 		| undefined
 		| ((this: WebpackCompiler, compiler: WebpackCompiler) => void)
@@ -146,7 +107,6 @@ declare type WpwWebpackConfig = IWpwWebpackConfig;
 
 
 export {
-    ClsWpBuildApp,
     IWpBuildApp,
     IWpBuildAppSchema,
     WpBuildCombinedRuntimeArgs,

@@ -7,20 +7,20 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { isFunction } = require("../utils");
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildLogHooksPlugin extends WpBuildPlugin
+class WpBuildLogHooksPlugin extends WpwPlugin
 {
     /**
-     * @param {typedefs.WpBuildPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -238,7 +238,7 @@ class WpBuildLogHooksPlugin extends WpBuildPlugin
 
 /**
  * Returns a `WpBuildLogHookStagesPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.loghooks`
+ * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
  * property to a boolean value of  `true` or `false`
  *
  * @param {typedefs.WpBuildApp} app

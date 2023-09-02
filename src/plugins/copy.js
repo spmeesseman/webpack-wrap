@@ -7,30 +7,30 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { existsSync } = require("fs");
 const { apply } = require("../utils");
 const { join, posix } = require("path");
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const CopyPlugin = require("copy-webpack-plugin");
 
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../utils").WpBuildError} WpBuildError */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildCopyPlugin extends WpBuildPlugin
+class WpBuildCopyPlugin extends WpwPlugin
 {
 	/**
-	 * @param {WpBuildPluginOptions} options Plugin options to be applied
+	 * @param {WpwPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
     {

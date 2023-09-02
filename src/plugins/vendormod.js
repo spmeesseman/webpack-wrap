@@ -7,29 +7,37 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
+const WpwPlugin = require("./base");
+const typedefs = require("../types/typedefs");
 const { basename, join, resolve } = require("path");
-const WpBuildPlugin = require("./base");
 const { existsSync, readFileSync, readdirSync, writeFileSync } = require("fs");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../types").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildVendorModPlugin extends WpBuildPlugin
+class WpBuildVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
+    /** @private */
+    buildOptions;
+
 
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions  = this.getOptionsConfig("vendormod");
+	}
 
 
     /**
@@ -54,16 +62,15 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
 	 */
 	modifyVendorSource = () =>
 	{
-		const options = this.app.build.options.vendormod;
-		if (!WpBuildVendorModPlugin.ranOnce && options)
+		if (!WpBuildVendorModPlugin.ranOnce && this.buildOptions.enabled)
 		{
-			if (options === true || options.clean_plugin) {
+			if (this.buildOptions.clean_plugin) {
 				this.cleanPlugin();
 			}
-			if (options === true || options.source_map_plugin) {
+			if (this.buildOptions.source_map_plugin) {
 				this.sourceMapPlugin();
 			}
-			if (options === true || options.ts_loader) {
+			if (this.buildOptions.ts_loader) {
 				this.tsLoader();
 			}
 		}
@@ -167,12 +174,12 @@ class WpBuildVendorModPlugin extends WpBuildPlugin
 
 /**
  * Returns a `WpBuildVendorModPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.vendormod`
+ * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.vendormod`
  * property to a boolean value of  `true` or `false`
  * @param {WpBuildApp} app
  * @returns {WpBuildVendorModPlugin | undefined}
  */
-const vendormod = (app) => app.build.options.vendormod ? new WpBuildVendorModPlugin({ app }) : undefined;
+const vendormod = (app) => WpwPlugin.getOptionsConfig("vendormod", app.build.options).enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
 
 
 module.exports = vendormod;

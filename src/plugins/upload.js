@@ -12,10 +12,10 @@
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
- */
+ *//** */
 
 const { existsSync } = require("fs");
-const WpBuildPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
 const { RegexTestsChunk } = require("../utils");
@@ -25,16 +25,16 @@ const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 /** @typedef {import("../types").WebpackStats} WebpackStats */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("./base").WpBuildPluginOptions} WpBuildPluginOptions */
+/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
- * @extends WpBuildPlugin
+ * @extends WpwPlugin
  */
-class WpBuildUploadPlugin extends WpBuildPlugin
+class WpBuildUploadPlugin extends WpwPlugin
 {
     /**
-     * @param {WpBuildPluginOptions} options Plugin options to be applied
+     * @param {WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
     {
@@ -225,12 +225,12 @@ class WpBuildUploadPlugin extends WpBuildPlugin
 
 /**
  * Returns a `WpBuildUploadPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpconfigrc.json by setting the `plugins.upload`
+ * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.upload`
  * property to a boolean value of `true` or `false`
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => app.build.options.upload ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (app) => WpwPlugin.getOptionsConfig("upload", app.build.options).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
 
 
 module.exports = upload;
