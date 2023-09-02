@@ -15,7 +15,7 @@
 
 const { glob } = require("glob");
 const { basename } = require("path");
-const { getOptionsConfig } = require("../core/base");
+const WpwBase = require("../core/base");
 const typedefs = require("../types/typedefs");
 const {
 	apply, WpBuildError, isObjectEmpty, isString, WpBuildApp, isDirectory, relativePath, createEntryObjFromDir
@@ -33,7 +33,7 @@ const builds =
 	 */
 	jsdoc: (app) =>
 	{
-		const jsdocOptions = getOptionsConfig("jsdoc", app.build.options);
+		const jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
 		if (jsdocOptions.type === "entry")
 		{
 			const mainBuild = app.getAppBuild("module"),
@@ -143,7 +143,7 @@ const builds =
 	types: (app) =>
 	{
 		const build = app.build,
-			  typesConfig = getOptionsConfig("types", app.build.options);
+			  typesConfig = WpwBase.getOptionsConfig("types", app.build.options);
 
 		if (!typesConfig || typesConfig.mode !== "module") {
 			return;

@@ -1,6 +1,6 @@
 // @ts-check
 
-const { getOptionsConfig } = require("../core/base");
+const WpwBase = require("../core/base");
 
 /**
  * @file exports/devtool.js
@@ -37,10 +37,10 @@ const devtool = (app) =>
 	// Disabled for this build - Using source-map-plugin - see webpack.plugin.js#sourcemaps
 	// ann the plugins() function below
 	//
-	const devtoolOptions = getOptionsConfig("devtool", app.build.options);
+	const devtoolOptions = WpwBase.getOptionsConfig("devtool", app.build.options);
 	if (devtoolOptions.enabled)
 	{
-		const srcmapPluginOptions = getOptionsConfig("sourcemaps", app.build.options);
+		const srcmapPluginOptions = WpwBase.getOptionsConfig("sourcemaps", app.build.options);
 		if (srcmapPluginOptions.enabled)
 		{
 			app.wpc.devtool = false;

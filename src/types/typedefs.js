@@ -155,7 +155,7 @@
  * BASE
  ***********************************************************************************************************************/
 
-/** @typedef {import("../core/base").WpwBase} WpwBase */
+/** @typedef {import("../core/base")} WpwBase */
 /** @typedef {import("./base").IWpwBase} IWpwBase */
 /** @typedef {import("./base").WpwBaseOptions<WpwBuildOptionsKey>} WpwBaseOptions */
 

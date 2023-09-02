@@ -16,11 +16,11 @@
 
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
+const WpwBase = require("../core/base");
 const { resolve, join } = require("path");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isBoolean } = require("../utils");
-const { getOptionsConfig } = require("../core/base");
 
 /** @typedef {typedefs.WpwSourceCodeConfig} RulesConfig */
 
@@ -34,7 +34,7 @@ const builds =
 	 */
 	jsdoc: (app, rulesConfig) =>
 	{
-		const jsdocOptions = getOptionsConfig("jsdoc", app.build.options);
+		const jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
 		if (jsdocOptions.type === "entry")
 		{
 			const exclude = getExcludes(app, rulesConfig),
@@ -152,7 +152,7 @@ const builds =
 	 */
 	types: (app, rulesConfig) =>
 	{
-		const typesConfig = getOptionsConfig("types", app.build.options);
+		const typesConfig = WpwBase.getOptionsConfig("types", app.build.options);
 		if (typesConfig && typesConfig.mode !== "module") {
 			return;
 		}

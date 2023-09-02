@@ -17,6 +17,7 @@ const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
 const { apply, WpBuildError, isPromise, resolvePath, pickNot, isString } = require("../utils/utils");
+const WpwPlugin = require("../plugins/base");
 
 
 /**
@@ -169,8 +170,7 @@ class WpBuildApp
         if (this.build.source.type === "typescript")
         {
             apply(this.build.options, {
-                tsbundle: this.build.type === "types" && this.build.options.tsbundle !== false,
-                tscheck: this.build.options.tscheck !== false
+                tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
             });
         }
         //
