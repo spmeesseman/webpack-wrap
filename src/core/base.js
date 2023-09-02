@@ -12,7 +12,7 @@
 const { resolve } = require("path");
 const { readFileSync } = require("fs");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, merge, isArray, isPrimitive } = require("../utils");
+const { lowerCaseFirstChar, merge, isArray, isPrimitive, WpBuildError, WpwBuildOptionsPluginKeys, WpwBuildOptionsExportKeys, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey } = require("../utils");
 
 let schema;
 
@@ -26,6 +26,9 @@ class WpwBase
 {
     /** @type {typedefs.WpBuildApp} */
     app;
+    // eslint-disable-next-line jsdoc/valid-types
+    /** @type {Exclude<typedefs.WpwBuildOptions[typedefs.WpwBuildOptionsKey], undefined>} @abstract */
+    buildOptions;
     /** @type {Record<string, any>} @protected  */
     global;
     /** @type {string}  @protected */
@@ -49,12 +52,15 @@ class WpwBase
      */
 	constructor(options)
     {
+        options.key = options.key || this.baseName;
+        this.validateOptions(options);
+        this.key = options.key;
         this.app = options.app;
         this.options = options;
         this.wpc = this.app.wpc;
         this.logger = this.app.logger;
         this.name = this.constructor.name;
-        this.key = options.key || this.baseName;
+        this.buildOptions  = this.getOptionsConfig(this.key);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.app.disposables.push(this);
@@ -70,7 +76,7 @@ class WpwBase
     /**
      * @returns {typedefs.WpwBuildOptionsPluginKey}
      */
-    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(this.name.replace(/^Wpw|^WpBuild|Plugin$|Export$|/g, "")); }
+    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|Export$|/g, "")); }
 
 
     /**
@@ -161,13 +167,18 @@ class WpwBase
 
 
     /**
-     * @abstract
-     * @protected
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @private
+     * @param {typedefs.WpwBaseOptions} options Plugin options to be applied
      * @throws {typedefs.WpBuildError}
      */
 	validateOptions(options)
     {
+        if (!options.app) {
+            throw WpBuildError.getErrorMissing("app", "core/base.js", this.wpc, "invalid options");
+        }
+        if (!isWpwBuildOptionsPluginKey(options.key) && !isWpwBuildOptionsExportKey(options.key)) {
+            throw WpBuildError.getErrorMissing("key", "core/base.js", this.wpc, "invalid options, key does not exist in build options");
+        }
     }
 }
 

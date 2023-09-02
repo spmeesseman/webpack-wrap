@@ -48,7 +48,7 @@
 
 import { RequireKeys } from "./generic";
 import { IWpBuildLogger } from "./logger";
-import { WpwPluginConfigWaitSingle } from "./rc";
+import { WpwPluginConfigWaitDef } from "./rc";
 import { IWpwBase, WpwBaseOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
@@ -84,7 +84,7 @@ declare type WpBuildPluginVendorOptions =
     [ key: string ]: any;
 }
 
-declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitSingle & { callback: (...args: any[]) => any; };
+declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitDef & { callback: (...args: any[]) => any; };
 
 declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
 

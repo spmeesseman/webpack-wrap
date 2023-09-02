@@ -22,6 +22,9 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
  */
 class WpBuildTsForkerPlugin extends WpwPlugin
 {
+    /** @type {Exclude<typedefs.WpwBuildOptions["tscheck"], undefined>} @override */
+    buildOptions;
+
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
@@ -41,9 +44,9 @@ class WpBuildTsForkerPlugin extends WpwPlugin
 		{
 			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
 			tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
+			tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
 			if (logLevel >= 2)
 			{
-				tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
 				tsForkCheckerHooks.start.tapPromise(this.name, this.tsForkCheckerStart.bind(this));
 				if (logLevel >= 3)
 				{

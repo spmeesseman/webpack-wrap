@@ -26,18 +26,14 @@ class WpBuildVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
-    /** @private */
+    /** @type {Exclude<typedefs.WpwBuildOptions["vendormod"], undefined>} @override */
     buildOptions;
 
 
     /**
      * @param {WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options)
-	{
-		super(options);
-        this.buildOptions  = this.getOptionsConfig("vendormod");
-	}
+	constructor(options) { super(options); }
 
 
     /**

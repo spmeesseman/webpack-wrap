@@ -55,6 +55,9 @@ const {
  */
 class WpwPlugin extends WpwBase
 {
+    // eslint-disable-next-line jsdoc/valid-types
+    /** @type {Exclude<typedefs.WpwBuildOptions[typedefs.WpwBuildOptionsPluginKey], undefined>} @abstract */
+    buildOptions;
     /** @protected */
     cache;
     /** @type {typedefs.WebpackCompilation} */
@@ -82,7 +85,7 @@ class WpwPlugin extends WpwBase
     {
         super(options);
         this.plugins = [];
-        this.validateOptions(options);
+        this.validatePluginOptions(options);
         this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.mode, this.baseName));
         if (!this.options.wrapPlugin)
         {
@@ -621,6 +624,16 @@ class WpwPlugin extends WpwBase
                 }
             }
         }
+    }
+
+
+    /**
+     * @private
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @throws {typedefs.WpBuildError}
+     */
+	validatePluginOptions(options)
+    {
     }
 
 
