@@ -10,20 +10,16 @@
 
 const os = require("os");
 const JSON5 = require("json5");
-const WpBuildApp = require("./app");
-const WpwPlugin = require("../plugins/base");
 const { validate } = require("schema-utils");
 const globalEnv = require("../utils/global");
-const typedefs = require("../types/typedefs");
 const { spawnSync } = require("child_process");
-const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, uniq, findFilesSync,
-    relativePath, isJsTsConfigPath, isObject
-} = require("../utils/utils");
+    relativePath, isJsTsConfigPath, isObject, isObjectEmpty, WpBuildApp, WpBuildConsoleLogger, WpwPlugin, typedefs
+} = require("../utils");
 
 
 /**
@@ -341,6 +337,12 @@ class WpwRc
             this.resolvePaths(build);
             this.configureSourceCode(build);
             this.resolveAliasPaths(build);
+            for (const [ option, config ] of Object.entries(build.options))
+            {
+                if (!config || config.enabled === false || isObjectEmpty(config)) {
+                    delete build.options[option];
+                }
+            }
             this.validateSchema(build, "build");
         });
 

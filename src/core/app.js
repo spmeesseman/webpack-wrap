@@ -125,7 +125,7 @@ class WpBuildApp
 
 
     /**
-     * @param {WpBuildError | string} w
+     * @param {WpBuildError | string | typedefs.WpwWarningCode | typedefs.WpwErrorCode} w
      * @param {string} [pad]
      */
     addWarning = (w, pad) =>
@@ -167,11 +167,12 @@ class WpBuildApp
      */
     buildApp = () =>
     {
-        if (this.build.source.type === "typescript")
+        if (this.build.source.type === "typescript" && (!this.build.options.tscheck || this.build.options.tscheck?.enabled === false))
         {
-            apply(this.build.options, {
-                tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
-            });
+            // apply(this.build.options, {
+            //     tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
+            // });
+            this.addWarning();
         }
         //
         // TODO: implement TS API createProgram() and check syntax in JS using akllowJS:true compiulr option

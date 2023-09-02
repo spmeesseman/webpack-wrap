@@ -1303,7 +1303,12 @@
                     "type": "boolean"
                 },
                 "defaults": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "copies resource files in directories named 'res' for webapp type projects; and for private repo projects, copies all resources in a base directory named 'res' to the 'res' directory of a '../*-info' public project, if it exists"
+                },
+                "entriesNoHash": {
+                    "type": "boolean",
+                    "description": "if entry filenames are hashed, copies the hashed files using a base filename, without the hash.  useful for development debugging / tests"
                 },
                 "items": {
                     "type": "array",
@@ -1334,7 +1339,7 @@
                 }
             },
             "then": {
-                "oneOf": [{
+                "anyOf": [{
                     "required": [
                         "items"
                     ],
@@ -1350,6 +1355,16 @@
                     ],
                     "properties": {
                         "defaults": {
+                            "const": true
+                        }
+                    }
+                },
+                {
+                    "required": [
+                        "entriesNoHash"
+                    ],
+                    "properties": {
+                        "entriesNoHash": {
                             "const": true
                         }
                     }
@@ -2473,6 +2488,19 @@
                     "type": "extension"
                 }
             }]
+        },
+        "WpwMessage": {
+            "$id": "#/WpwErrorMessage",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "WPW300": {
+                    "const": ""
+                },
+                "WPW000": {
+                    "const": "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
+                }
+            }
         },
         "WpwWebpackAliasValue": {
             "$id": "#/WpwWebpackAliasValue",

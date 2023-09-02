@@ -14,10 +14,6 @@ const typedefs = require("../types/typedefs");
 const { basename, join, resolve } = require("path");
 const { existsSync, readFileSync, readdirSync, writeFileSync } = require("fs");
 
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
-
 
 /**
  * @extends WpwPlugin
@@ -31,7 +27,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 
 
     /**
-     * @param {WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -39,7 +35,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
     /**
      * @function Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -172,7 +168,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
  * Returns a `WpBuildVendorModPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.vendormod`
  * property to a boolean value of  `true` or `false`
- * @param {WpBuildApp} app
+ * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildVendorModPlugin | undefined}
  */
 const vendormod = (app) => WpwPlugin.getOptionsConfig("vendormod", app.build.options).enabled ? new WpBuildVendorModPlugin({ app }) : undefined;

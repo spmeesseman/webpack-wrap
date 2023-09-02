@@ -212,6 +212,8 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
+/** @typedef {import("./generic").WpwErrorCode} WpwErrorCode */
+/** @typedef {import("./generic").WpwWarningCode} WpwWarningCode */
 
 /**
  * Executes a command with a promisified child_process.exec()

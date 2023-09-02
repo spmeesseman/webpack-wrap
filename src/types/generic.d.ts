@@ -34,6 +34,20 @@ declare type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P e
 
 declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>>; }
 
+declare type WpwErrorCode = `WPW${3|4|5|6|7|8|9}${number}${number}`;
+declare type WpwWarningCode = `WPW${0|1|2}${number}${number}`;
+
+// declare enum WpwErrorMessage
+// {
+//     WPW300 = ""
+// }
+// 
+// declare enum WpwWarningMessage
+// {
+//     WPW000 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
+// }
+
+
 declare class ClsWpBuildError extends WebpackError {
     static get(message: string, file: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null): ClsWpBuildError;
     static getErrorMissing: (property: string, file: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpBuildError;
@@ -54,5 +68,7 @@ export {
     PartialSome,
     PickByType,
     RequireKeys,
-    ClsWpBuildError
+    ClsWpBuildError,
+    WpwErrorCode,
+    WpwWarningCode
 };
