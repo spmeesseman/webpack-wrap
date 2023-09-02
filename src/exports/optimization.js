@@ -1,6 +1,7 @@
 // @ts-check
 
 const { apply } = require("../utils");
+const WpBuildApp = require("../core/app");
 
 /**
  * @file exports/optimization.js
@@ -10,7 +11,6 @@ const { apply } = require("../utils");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackOptimization} WebpackOptimization */
 /** @typedef {import("../types").WpwWebpackConfig} WpwWebpackConfig */
 

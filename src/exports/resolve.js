@@ -10,10 +10,8 @@
 
 const { join } = require("path");
 const { apply } = require("../utils");
+const WpBuildApp = require("../core/app");
 const resolvePath = require("path").resolve;
-
-
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 
 
 /**

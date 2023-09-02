@@ -10,8 +10,8 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const WpBuildApp = require("../core/app");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 

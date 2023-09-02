@@ -12,11 +12,11 @@
 const { join } = require("path");
 const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
+const WpBuildApp = require("../core/app");
 const { rename, unlink, readdir } = require("fs/promises");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 

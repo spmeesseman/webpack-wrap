@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
-const { merge } = require("../utils/utils");
+const { merge } = require("../utils");
 const TerserPlugin = require("terser-webpack-plugin");
 
 /**
@@ -12,7 +12,7 @@ const TerserPlugin = require("terser-webpack-plugin");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+ const WpBuildApp = require("../core/app");
 
 
 /**

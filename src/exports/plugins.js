@@ -9,6 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const WpBuildApp = require("../core/app");
 // const wpwPlugins = require("../plugins");
 const { createEntryObjFromDir /* , asArray, isFunction, isObject  */} = require("../utils");
 const {
@@ -17,8 +18,6 @@ const {
 	imageminimizer, htmlinlinechunks, testsuite, tsbundle, types, vendormod, webviewapps, scm
 } = require("../plugins");
 
-
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
 
 

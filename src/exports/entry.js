@@ -16,9 +16,10 @@
 const { glob } = require("glob");
 const { basename } = require("path");
 const WpwBase = require("../core/base");
+const WpBuildApp = require("../core/app");
 const typedefs = require("../types/typedefs");
 const {
-	apply, WpBuildError, isObjectEmpty, isString, WpBuildApp, isDirectory, relativePath, createEntryObjFromDir
+	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir
 } = require("../utils");
 
 

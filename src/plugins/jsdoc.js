@@ -10,10 +10,9 @@
  *//** */
 
 const WpBuilPlugin = require("./base");
+const { join, posix } = require("path");
 const typedefs = require("../types/typedefs");
-const { join, relative, posix } = require("path");
-const { access, readFile } = require("fs/promises");
-const { isBoolean, WpBuildError, findFiles, pick, isObject, relativePath, apply, existsAsync, asArray } = require("../utils");
+const { isBoolean, pick, isObject, relativePath, apply, asArray } = require("../utils");
 
 
 /**
@@ -21,6 +20,10 @@ const { isBoolean, WpBuildError, findFiles, pick, isObject, relativePath, apply,
  */
 class WpwJsDocPlugin extends WpBuilPlugin
 {
+    /** @type {Exclude<typedefs.WpwBuildOptions["jsdoc"], undefined>} @override */
+    buildOptions;
+
+
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
@@ -63,7 +66,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
               options = this.app.build.options.jsdoc,
               currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
               outDir = isBoolean(options) ? join(this.app.build.paths.dist, "doc") :
-                            /** @type {typedefs.WpwBuildOptionsJsDocItem} */(options).destination ||
+                            this.buildOptions.destination ||
                             join(this.app.build.paths.dist, "doc") ;
 
 		logger.write("create jsdoc documentation", 1);

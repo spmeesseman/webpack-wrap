@@ -14,15 +14,14 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const WpBuildApp = require("../core/app");
 // const { Compilation } = require("webpack");
-const { apply, WpBuildError, requireResolve } = require("../utils");
-const { WpwMessage } = require("../types");
+const { apply, requireResolve, WpwMessage } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
 // const webpack = require("webpack");
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */

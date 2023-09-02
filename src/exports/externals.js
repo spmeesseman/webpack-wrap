@@ -14,7 +14,8 @@
  *
  *//** */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+const WpBuildApp = require("../core/app");
+
 /** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */
 /** @typedef {import("webpack").ExternalItemObjectKnown & import("webpack").ExternalItemObjectUnknown} NodeExternalsExternalItem */
 

@@ -13,9 +13,9 @@
 const { existsSync } = require("fs");
 const { apply } = require("../utils");
 const { join, posix } = require("path");
+const WpBuildApp = require("../core/app");
 const CopyPlugin = require("copy-webpack-plugin");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../utils").WpBuildError} WpBuildError */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */

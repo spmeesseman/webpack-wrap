@@ -14,14 +14,14 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
+const { existsSync } = require("fs");
+const WpBuildApp = require("../core/app");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
 const { RegexTestsChunk } = require("../utils");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackStats} WebpackStats */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */

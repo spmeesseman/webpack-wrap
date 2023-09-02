@@ -756,6 +756,29 @@ const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } 
 const uniq = (a) => a.sort().filter((item, pos, arr) => !pos || item !== arr[pos - 1]);
 
 
+/**
+ * @type {(keyof typedefs.WpwMessageType)[]}
+ */
+const WpwMessageProps = [ "WPW650", "WPW899", "WPW050" ];
+
+/**
+ * @param {any} v Variable to check type on
+ * @returns {v is (keyof typedefs.WpwMessageType)}
+ */
+const isWpwMessageProp = (v) => !!v && WpwMessageProps.includes(v);
+
+/**
+ * @type {{ [ key in typedefs.WpwMessageKey ]: typedefs.WpwMessage }}
+ */
+let WpwMessage;
+((WpwMessage) => {
+    WpwMessage["WPW650"] = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled";
+    WpwMessage["WPW899"] = "an unknown error has occurred";
+    WpwMessage["WPW050"] = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false";
+// @ts-ignore
+})(WpwMessage = module.exports.WpwMessage || (module.exports.WpwMessage = {}));
+
+
 class WpBuildError extends WebpackError
 {
     /**
@@ -833,7 +856,7 @@ class WpBuildError extends WebpackError
 
 module.exports = {
     apply, applyIf, asArray, capitalize, clone, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
-    getExcludes, isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject,
+    getExcludes, isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, WpwMessageProps, isWpwMessageProp,
     isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick, createEntryObjFromDir,
     pickBy, pickNot, pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath, findExPath, findExPathSync
 };

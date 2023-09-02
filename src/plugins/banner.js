@@ -16,7 +16,7 @@ const { isString, requireResolve } = require("../utils");
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 /*  // const webpack = require("webpack"); */
 /*  // const webpack = require("webpack"); */
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("../core/app")} WpBuildApp */
 /** @typedef {import("webpack").BannerPlugin} BannerPlugin */
 
 

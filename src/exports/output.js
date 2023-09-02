@@ -1,7 +1,6 @@
 // @ts-check
 
-const { apply, isString } = require("../utils/utils");
-const { RegexTestsChunk } = require("../utils");
+const { apply, isString, RegexTestsChunk } = require("../utils");
 
 /**
  * @file exports/output.js
@@ -16,7 +15,7 @@ const { RegexTestsChunk } = require("../utils");
  *
  */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+/** @typedef {import("../core/app")} WpBuildApp */
 /** @typedef {import("../types").WebpackPathData}  WebpackPathData */
 /** @typedef {import("../types").WebpackAssetInfo}  WebpackAssetInfo */
 /** @typedef {import("../types").RequireKeys<WebpackPathData, "filename" | "chunk">} WebpackPathDataOutput */

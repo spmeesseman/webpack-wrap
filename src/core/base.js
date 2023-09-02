@@ -94,7 +94,7 @@ class WpwBase
      */
     static getOptionsConfig = (key, options) =>
     {
-        schema = schema || JSON.parse(readFileSync(resolve(__dirname, "../schema/.wpbuildrc.schema.json"), "utf8"));
+        schema = schema || JSON.parse(readFileSync(resolve(__dirname, "../../schema/.wpbuildrc.schema.json"), "utf8"));
 
         let optionsCfg;
         const config = options[key];

@@ -9,7 +9,8 @@
  *//** */
 
 const { join } = require("path");
-const { WpBuildApp, apply } = require("../utils");
+const { apply } = require("../utils");
+const WpBuildApp = require("../core/app");
 
 /** @typedef {import("../types").WebpackFileCacheOptions} WebpackFileCacheOptions */
 

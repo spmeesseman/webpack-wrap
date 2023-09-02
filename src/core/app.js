@@ -16,8 +16,7 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { apply, WpBuildError, isPromise, resolvePath, pickNot } = require("../utils/utils");
-const { WpwMessage } = require("../types");
+const { apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage } = require("../utils");
 
 
 /**

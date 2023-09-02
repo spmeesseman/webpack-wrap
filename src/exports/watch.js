@@ -8,7 +8,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+ const WpBuildApp = require("../core/app");
 
 
 /**

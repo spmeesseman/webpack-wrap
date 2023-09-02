@@ -38,9 +38,9 @@
  */
 
 const WpwPlugin = require("./base");
+const WpBuildApp = require("../core/app");
 const { isString, apply, isObjectEmpty, merge, WpBuildError } = require("../utils");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackSource} WebpackSource */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */

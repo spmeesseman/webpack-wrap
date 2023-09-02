@@ -11,11 +11,11 @@
 
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
+const WpBuildApp = require("../core/app");
 const { WebpackError } = require("webpack");
 const WpBuildBaseTsPlugin = require("./tsc");
 const { join, dirname, isAbsolute, resolve, relative } = require("path");;
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */

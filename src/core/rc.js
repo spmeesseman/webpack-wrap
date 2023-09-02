@@ -10,15 +10,17 @@
 
 const os = require("os");
 const JSON5 = require("json5");
-const { validate } = require("schema-utils");
+const WpBuildApp = require("./app");
+const WpwPlugin = require("../plugins/base");
 const globalEnv = require("../utils/global");
+const { validate } = require("schema-utils");
 const { spawnSync } = require("child_process");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep, isAbsolute } = require("path");
 const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, uniq, findFilesSync,
-    relativePath, isJsTsConfigPath, isObject, isObjectEmpty, WpBuildApp, WpBuildConsoleLogger, WpwPlugin, typedefs
+    relativePath, isJsTsConfigPath, isObject, isObjectEmpty, WpBuildConsoleLogger, typedefs
 } = require("../utils");
 
 

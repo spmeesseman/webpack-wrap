@@ -17,10 +17,11 @@
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
 const WpwBase = require("../core/base");
+const WpBuildApp = require("../core/app");
 const { resolve, join } = require("path");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpBuildApp, WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isBoolean } = require("../utils");
+const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
 
 /** @typedef {typedefs.WpwSourceCodeConfig} RulesConfig */
 
@@ -359,8 +360,8 @@ const sourceLoaders =
 	}
 };
 
-loaders.javascript = sourceLoaders.babel;
-loaders.typescript = sourceLoaders.ts;
+sourceLoaders.javascript = sourceLoaders.babel;
+sourceLoaders.typescript = sourceLoaders.ts;
 
 
 /**

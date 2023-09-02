@@ -34,19 +34,19 @@ const exclueConstants = [
 const fullTypes = [
     "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
     "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
-    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson", "WpwMessage"
+    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson" // , "WpwMessage"
 ];
 
 const generateEnums = [
-    "WpwMessage"
+    // "WpwMessage"
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts", "WpwMessage"
+    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts" // , "WpwMessage"
 ];
 
 const extFilesCreateEnums = [
-    "message.d.ts"
+    // "message.d.ts"
 ];
 
 /**

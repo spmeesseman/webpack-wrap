@@ -41,11 +41,10 @@ const WpwBase = require("../core/base");
 const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const typedefs = require("../types/typedefs");
+const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
-const {
-    isFunction, mergeIf, execAsync, WpBuildCache, isString, WpBuildError, asArray
-} = require("../utils");
+const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray } = require("../utils");
 
 
 /**

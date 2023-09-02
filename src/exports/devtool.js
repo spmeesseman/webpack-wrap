@@ -10,7 +10,7 @@ const WpwBase = require("../core/base");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
+ const WpBuildApp = require("../core/app");
 
 /**
  * Adds library mode webpack config `output` object.

@@ -9,12 +9,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const WpBuildApp = require("../core/app");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("webpack").IgnorePlugin} IgnorePlugin */
 
 

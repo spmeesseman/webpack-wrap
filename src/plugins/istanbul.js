@@ -9,10 +9,10 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { apply, asArray } = require("../utils");
 const WpwPlugin = require("./base");
+const { apply } = require("../utils");
+const WpBuildApp = require("../core/app");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").WebpackAsset} WebpackAsset */
 /** @typedef {import("../types").WebpackChunk} WebpackChunk */
 /** @typedef {import("../types").WebpackSource} WebpackSource */

@@ -2,15 +2,19 @@
 // @ts-check
 
 /**
- * @module wpbuild.utils.app
- */
+ * @file utils/cache.js
+ * @version 0.0.1
+ * @license MIT
+ * @copyright Scott P Meesseman 2023
+ * @author Scott Meesseman @spmeesseman
+ *//** */
 
+const WpBuildApp = require("../core/app");
 const { merge, clone } = require("./utils");
 const {  writeFile } = require("fs/promises");
 const { resolve, isAbsolute } = require("path");
 const { readFileSync, existsSync, writeFileSync } = require("fs");
 
-/** @typedef {import("../utils").WpBuildApp} WpBuildApp */
 /** @typedef {import("../types").IDisposable} IDisposable */
 
 

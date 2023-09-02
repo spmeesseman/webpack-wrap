@@ -11,8 +11,9 @@
 
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const { isFunction, execAsync, merge, pickNot, WpwBuildOptionsRunScriptsProps, apply, capitalize } = require("../utils");
 const { execSync } = require("child_process");
+const { execAsync, pickNot, capitalize } = require("../utils");
+const { WpwPluginConfigRunScriptsProps } = require("../types/constants");
 
 
 /**
@@ -20,6 +21,9 @@ const { execSync } = require("child_process");
  */
 class WpwRunScriptsPlugin extends WpwPlugin
 {
+    /** @type {Exclude<typedefs.WpwBuildOptions["runscripts"], undefined>} @override */
+    buildOptions;
+
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
@@ -34,10 +38,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
     apply(compiler)
     {
         const customTaps = /** @type {typedefs.WpBuildPluginTapOptions} */({});
-        const pluginOptions = pickNot(
-            /** @type {typedefs.WpwBuildOptionsRunScripts} */(this.app.build.options.runscripts),
-            ...WpwBuildOptionsRunScriptsProps
-        );
+        const pluginOptions = pickNot(this.buildOptions, ...WpwPluginConfigRunScriptsProps);
 
         Object.entries(pluginOptions).forEach(([ stage, tapConfig ]) =>
         {
@@ -80,7 +81,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
 
 
     /**
-     * @param {typedefs.WpwBuildOptionsRunScriptsItemDef} script
+     * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
      * @returns {string}
      */
     buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
@@ -92,10 +93,10 @@ class WpwRunScriptsPlugin extends WpwPlugin
      */
     runScripts = async (stage) =>
     {
-        const options = /** @type {typedefs.WpwBuildOptionsRunScripts} */(this.app.build.options.runscripts);
+        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
         if (options[stage])
         {
-            const stageOptions = /** @type {typedefs.WpwBuildOptionsRunScriptsItem} */(options[stage]);
+            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
             if (stageOptions.async)
             {
                 if (stageOptions.mode === "parallel")
@@ -111,7 +112,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
                 }
             }
             else {
-                const stageOptions = /** @type {typedefs.WpwBuildOptionsRunScriptsItem} */(options[stage]);
+                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
                 for (const script of stageOptions.scripts) { execSync(this.buildCommand(script)); }
             }
         }
