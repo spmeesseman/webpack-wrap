@@ -82,8 +82,8 @@ const nodePlugins = (app) =>
 	if (app.build.type !== "webapp")
 	{
 		plugins.push(
-			tsbundle(app),       // compiler.hooks.afterEnvironment, hooks.afterCompile
-			...copy([], app)     // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
+			tsbundle(app),      // compiler.hooks.afterEnvironment, hooks.afterCompile
+			copy(app)           // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 		);
 	}
 	return plugins;
@@ -107,7 +107,7 @@ const webPlugins = (app) =>
 			// @ts-ignore
 			htmlcsp(app),              //
 			htmlinlinechunks(app),     //
-			...copy(apps, app),        // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
+			copy(app),                 // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 			imageminimizer(app)        //
 		);
 	}

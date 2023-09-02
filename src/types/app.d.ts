@@ -58,8 +58,9 @@ declare interface IWpBuildApp extends IDisposable
     buildCount: number;
     disposables: IDisposable[];
     cmdLine: WpBuildCombinedRuntimeArgs;
-    errors: ClsWpBuildError[];
+    error: ClsWpBuildError[];
     global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
+    info: ClsWpBuildError[];
     isOnlyBuild: boolean;
     isMain: boolean;
     isMainProd: boolean;
@@ -72,9 +73,10 @@ declare interface IWpBuildApp extends IDisposable
     source: WpwSourceCode;
     target: WebpackTarget;
     vscode: WpwVsCode;
-    warnings: ClsWpBuildError[];
+    warning: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
     addError(e: ClsWpBuildError | string, pad?: string): void;
+    addInfo(i: ClsWpBuildError | string, pad?: string): void;
     addWarning(w: ClsWpBuildError | string, pad?: string): void;
     buildApp(): WpwWebpackConfig;
     dispose():Promise<void>;

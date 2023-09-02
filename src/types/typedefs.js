@@ -17,6 +17,7 @@
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
 /** @typedef {import("./rc").WpwVsCode} WpwVsCode */
 /** @typedef {import("./rc").TypeWpwLog} TypeWpwLog */
+/** @typedef {import("./rc").WpwMessage} WpwMessage */
 /** @typedef {import("./rc").WpwRcPaths} WpwRcPaths */
 /** @typedef {import("./rc").WpwBuildKey} WpwBuildKey */
 /** @typedef {import("./rc").WpwFileName} WpwFileName */
@@ -29,8 +30,10 @@
 /** @typedef {import("./rc").WpwLogPadKey} WpwLogPadKey */
 /** @typedef {import("./rc").TypeWpwLogPad} TypeWpwLogPad */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
+/** @typedef {import("./rc").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./rc").WpwRcPathsKey} WpwRcPathsKey */
 /** @typedef {import("./rc").WpwSourceCode} WpwSourceCode */
+/** @typedef {import("./rc").TypeWpwMessage} TypeWpwMessage */
 /** @typedef {import("./rc").TypeWpwRcPaths} TypeWpwRcPaths */
 /** @typedef {import("./rc").WpwLogColoring} WpwLogColoring */
 /** @typedef {import("./rc").WpwPackageJson} WpwPackageJson */
@@ -50,13 +53,14 @@
 /** @typedef {import("./rc").WpwSourceCodeType} WpwSourceCodeType */
 /** @typedef {import("./constants").isWpwBuildType} isWpwBuildType */
 /** @typedef {import("./constants").WebpackTargets} WebpackTargets */
-/** @typedef {import("./constants").WpwRcPathsEnum} WpwRcPathsEnum */
+/** @typedef {import("./constants").WpwMessageEnum} WpwMessageEnum */
 /** @typedef {import("./rc").TypeWpwPackageJson} TypeWpwPackageJson */
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
 /** @typedef {import("./rc").WpwBuildModeConfig} WpwBuildModeConfig */
 /** @typedef {import("./rc").WpwBuildOptionsKey} WpwBuildOptionsKey */
 /** @typedef {import("./rc").WpwPluginConfigWeb} WpwPluginConfigWeb */
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
+/** @typedef {import("./constants").WpwMessageProps} WpwMessageProps */
 /** @typedef {import("./constants").WpwRcPathsProps} WpwRcPathsProps */
 /** @typedef {import("./constants").WpwWebpackModes} WpwWebpackModes */
 /** @typedef {import("./rc").TypeWpwBuildOptions} TypeWpwBuildOptions */
@@ -64,6 +68,7 @@
 /** @typedef {import("./rc").WpwPluginConfigCopy} WpwPluginConfigCopy */
 /** @typedef {import("./rc").WpwPluginConfigWait} WpwPluginConfigWait */
 /** @typedef {import("./rc").WpwSourceCodeConfig} WpwSourceCodeConfig */
+/** @typedef {import("./constants").isWpwMessageProp} isWpwMessageProp */
 /** @typedef {import("./constants").isWpwRcPathsProp} isWpwRcPathsProp */
 /** @typedef {import("./constants").isWpwWebpackMode} isWpwWebpackMode */
 /** @typedef {import("./constants").WpwLogTrueColors} WpwLogTrueColors */
@@ -79,7 +84,6 @@
 /** @typedef {import("./rc").WpwPluginConfigUpload} WpwPluginConfigUpload */
 /** @typedef {import("./rc").WpwWebpackAliasConfig} WpwWebpackAliasConfig */
 /** @typedef {import("./rc").WpwWebpackEntryObject} WpwWebpackEntryObject */
-/** @typedef {import("./constants").WpwPackageJsonEnum} WpwPackageJsonEnum */
 /** @typedef {import("./constants").WpwSourceCodeTypes} WpwSourceCodeTypes */
 /** @typedef {import("./rc").WpwBuildOptionsExports} WpwBuildOptionsExports */
 /** @typedef {import("./rc").WpwBuildOptionsPlugins} WpwBuildOptionsPlugins */
@@ -212,8 +216,11 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
+/** @typedef {import("./generic").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./generic").WpwErrorCode} WpwErrorCode */
+/** @typedef {import("./generic").WpwMessageCode} WpwMessageCode */
 /** @typedef {import("./generic").WpwWarningCode} WpwWarningCode */
+/** @typedef {import("./generic").WpwReservedCode} WpwReservedCode */
 
 /**
  * Executes a command with a promisified child_process.exec()

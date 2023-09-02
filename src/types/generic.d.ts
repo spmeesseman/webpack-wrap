@@ -34,8 +34,16 @@ declare type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P e
 
 declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>>; }
 
-declare type WpwErrorCode = `WPW${3|4|5|6|7|8|9}${number}${number}`;
-declare type WpwWarningCode = `WPW${0|1|2}${number}${number}`;
+declare enum WpwMessageCodePrefix { Error = "WPW", Info = "WPW", Reserved = "WPW", Warning = "WPW" }
+declare type WpwReservedCodePrefix = `${WpwMessageCodePrefix.Reserved}9`;
+declare type WpwErrorCodePrefix = `${WpwMessageCodePrefix.Error}${6|7|8}`;
+declare type WpwWarningCodePrefix = `${WpwMessageCodePrefix.Warning}${3|4|5}`;
+declare type WpwInfoCodePrefix = `${WpwMessageCodePrefix.Info}${0|1|2}`;
+declare type WpwErrorCode = `${WpwErrorCodePrefix}${number}${number}`;
+declare type WpwWarningCode = `${WpwWarningCodePrefix}${number}${number}`;
+declare type WpwInfoCode = `${WpwInfoCodePrefix}${number}${number}`;
+declare type WpwReservedCode = `${WpwReservedCodePrefix}${number}${number}`;
+declare type WpwMessageCode = WpwErrorCode | WpwWarningCode | WpwInfoCode | WpwReservedCode;
 
 // declare enum WpwErrorMessage
 // {
@@ -70,5 +78,8 @@ export {
     RequireKeys,
     ClsWpBuildError,
     WpwErrorCode,
+    WpwInfoCode,
+    WpwMessageCode,
+    WpwReservedCode,
     WpwWarningCode
 };

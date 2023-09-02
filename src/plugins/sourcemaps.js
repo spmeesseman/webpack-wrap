@@ -101,12 +101,7 @@ class WpBuildSourceMapPlugin extends WpwPlugin
             });
         }
         else {
-            this.app.addWarning(
-                WpBuildError.get(
-                    "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
-                    "plugins/ssourcemaps.js"
-                )
-            );
+            this.app.addWarning("WPW");
         }
     };
 

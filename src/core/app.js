@@ -18,6 +18,8 @@ const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
 const { apply, WpBuildError, isPromise, resolvePath, pickNot, isString } = require("../utils/utils");
 const WpwPlugin = require("../plugins/base");
+const { WpwMessageEnum, WpwMessageProps, isWpwMessageProp } = require("../types/constants");
+const { WpwMessage } = require("../types");
 
 
 /**
@@ -31,9 +33,11 @@ class WpBuildApp
     /** @type {Array<typedefs.IDisposable>} */
     disposables;
     /** @type {WpBuildError[]} */
-    errors;
+    error;
     /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
+    /** @type {WpBuildError[]} */
+    info;
     /** @type {boolean} */
     isMain;
     /** @type {boolean} */
@@ -57,7 +61,7 @@ class WpBuildApp
     /** @type {typedefs.WpwVsCode} */
     vscode;
     /** @type {WpBuildError[]} */
-    warnings;
+    warning;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
 
@@ -71,8 +75,9 @@ class WpBuildApp
 	{
         this.rc = rc;
         this.build = build;
-        this.errors = [];
-        this.warnings = [];
+        this.info = [];
+        this.error = [];
+        this.warning = [];
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
@@ -97,13 +102,17 @@ class WpBuildApp
                 await result;
             }
         }
-        if (this.warnings.length > 0) {
-            this.logger.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
-            this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
+        if (this.info.length > 0) {
+            this.logger.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
+            this.info.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.warning));
         }
-        if (this.errors.length > 0) {
+        if (this.warning.length > 0) {
+            this.logger.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
+            this.warning.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
+        }
+        if (this.error.length > 0) {
             this.logger.warning("REPORTED NON-FATAL ERRORS FOR THIS BUILD:");
-            this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
+            this.error.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
         }
         this.logger.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
         this.logger.dispose();
@@ -111,31 +120,50 @@ class WpBuildApp
 
 
     /**
-     * @param {WpBuildError | string} e
+     * @param {typedefs.WpwMessage} codeOrMsg
      * @param {string} [pad]
      */
-    addError = (e, pad) =>
+    addError = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "error", pad);
+
+
+    /**
+     * @param {typedefs.WpwMessage} codeOrMsg
+     * @param {string} [pad]
+     */
+    addInfo = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "info", pad);
+
+
+    /**
+     * @private
+     * @param {typedefs.WpwMessage} codeOrMsg
+     * @param {"error" | "info" | "warning"} type
+     * @param {string} [pad]
+     */
+    addMessage = (codeOrMsg, type, pad) =>
     {
-        if (isString(e)) {
-            e = WpBuildError.get(e, "n/a");
+        let m;
+        const e = new Error();
+        Error.captureStackTrace(e, this.addMessage);
+console.log(e.stack?.split("\n").join(" | "));
+        const file = e.stack?.split("\n")[2];
+console.log("file: " + file);
+        if (isWpwMessageProp(codeOrMsg))
+        {
+            m = WpBuildError.get(codeOrMsg, "n/a");
         }
-        this.logger.error(e, pad);
-        this.errors.push(e);
+        else {
+            m = WpBuildError.get(codeOrMsg, "n/a");
+        }
+        this.logger[type](m, pad);
+        this[type].push(m);
     };
 
 
     /**
-     * @param {WpBuildError | string | typedefs.WpwWarningCode | typedefs.WpwErrorCode} w
+     * @param {typedefs.WpwMessage} codeOrMsg
      * @param {string} [pad]
      */
-    addWarning = (w, pad) =>
-    {
-        if (isString(w)) {
-            w = WpBuildError.get(w, "n/a");
-        }
-        this.logger.warning(w.message, pad);
-        this.warnings.push(w);
-    };
+    addWarning = (codeOrMsg, pad) => this.addMessage(codeOrMsg, "warning", pad);
 
 
 	/**
@@ -172,7 +200,7 @@ class WpBuildApp
             // apply(this.build.options, {
             //     tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
             // });
-            this.addWarning();
+            this.addWarning(WpwMessage.WPW899);
         }
         //
         // TODO: implement TS API createProgram() and check syntax in JS using akllowJS:true compiulr option

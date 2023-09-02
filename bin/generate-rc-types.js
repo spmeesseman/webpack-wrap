@@ -37,11 +37,11 @@ const exclueConstants = [
 const fullTypes = [
     "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
     "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
-    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson"
+    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson", "WpwMessage"
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts"
+    "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts", "WpwMessage"
 ];
 
 /**
@@ -49,6 +49,7 @@ const constantObjectKeyProperties = [
  */
 const requiredProperties = [
     [ "colors", "WpwLog" ],
+    [ "*", "WpwMessage" ],
     [ "mode", "WpwBuild" ],
     [ "pad", "WpwLog" ],
     [ "default", "WpwLogColoring" ],
@@ -164,18 +165,18 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
                             `export declare type ${m1}Key = keyof ${m1};\n` +
                             `export declare type Type${m1} = Required<${m1}>;\n`;
                       requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
-                          src = src.replace(new RegExp(`${p}\\?\\: `, "g"), `${p}: `);
+                          src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
                       });
                       pushTypedef("rc", m1, `${m1}Key`, `Type${m1}`);
-                      if (generateEnums)
+                      if (generateEnums && m2.includes(": \""))
                       {
                           const valuesFmt = m2.replace(/ *\= */, "")
-                                              // .replace(/\s*(.*?)\??\:(?:.*?);(?:\n\}|\n {4,}|$)/g, (_, m1) => `\n    ${capitalize(m1)}: \"${m1.trim()}\",`)
-                                              .replace(/\s*(.*?)\??\:(?:.*?);(?:\n\}|\n {4,}|$)/g, (_, m1) => `\n    ${m1}: \"${m1.trim()}\",`)
-                                              .replace(/\= \n/g, "\n");
+                                              .replace(/\s*(.*?)\??\: /g, (_, m) => `\n    ${m}: `)
+                                              .replace(/\= \n/g, "\n")
+                                              .replace(/";\n/g, "\",\n");
                           enums.push(
-                              `/**\n * @type {{[ key: string ]: keyof typedefs.Type${m1}}}\n */\n` +
-                              `const ${m1}Enum =${EOL}${(`${valuesFmt}\n};\n`).replace(/",\};/g, "\"\n};\n").replace(/",\n\};/g, "\"\n};")}`
+                              `/**\n * @type {typedefs.${m1}}\n */\n` +
+                              `const ${m1}Enum =\n${(`${valuesFmt}\n};\n`).replace(/"[,;]\};/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
                           );
                           logger.log(`      modified type ${m1} with enum`);
                       }
@@ -185,7 +186,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
                   }
                   else {
                       requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
-                          src = src.replace(new RegExp(`${p}\\?\\: `, "g"), `${p}: `);
+                          src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
                       });
                       pushTypedef("rc", m1);
                   }
@@ -274,7 +275,7 @@ const pushExport = (/** @type {string} */property, /** @type {string} */suffix, 
         `const ${pName1} = [ ${values.replace(/ \| /g, ", ")} ];${EOL}`,
         "/**",
         " * @param {any} v Variable to check type on",
-        ` * @returns {v is typedefs.${property}}`,
+        ` * @returns {v is ${!valueType ? `typedefs.${property}` : `${valueType}`}}`,
         " */",
         `const is${pName2} = (v) => !!v && ${pName1}.includes(v);${EOL}`
     );
