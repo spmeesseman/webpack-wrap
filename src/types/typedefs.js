@@ -41,6 +41,7 @@
 /** @typedef {import("./rc").WpwLogTrueColor} WpwLogTrueColor */
 /** @typedef {import("./rc").WpwWebpackEntry} WpwWebpackEntry */
 /** @typedef {import("./constants").WpwLogColors} WpwLogColors */
+/** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./rc").WpwDirectoryPath} WpwDirectoryPath */
 /** @typedef {import("./rc").WpwSourceCodeKey} WpwSourceCodeKey */
 /** @typedef {import("./rc").WpwVersionString} WpwVersionString */
@@ -193,10 +194,9 @@
 
 
 /***********************************************************************************************************************
- * BASE MESSAGE.D.TS
+ * INFO / WARNING / ERROR MESSAGES MESSAGE.D.TS
  ***********************************************************************************************************************/
 
-/** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
 /** @typedef {import("./message").WpwMessageCode} WpwMessageCode */

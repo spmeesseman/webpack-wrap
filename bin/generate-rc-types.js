@@ -45,7 +45,7 @@ const constantObjectKeyProperties = [
     "WpwPackageJson", "WpwRcPaths", "WpwBuildOptionsRunScripts", "WpwMessage"
 ];
 
-const constantAdditionalFiles = [
+const extFilesCreateEnums = [
     "message.d.ts"
 ];
 
@@ -331,11 +331,11 @@ const pushTypedef = (/** @type {string} */source, /** @type {"enum" | "type"} */
 
 const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
+    let match;
     logger.log("   create implementation constants");
 
     const _proc = (data, baseSrc) =>
     {
-        let match;
         const rgxPropEnum = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
               rgxType = new RegExp(`export declare type (${constantObjectKeyProperties.join("|")}) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g"),
               rgxEnum = new RegExp(`export declare enum (${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?),?${EOL}\\}${EOL}`, "g");
@@ -386,6 +386,19 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
     _proc(data, "rc");
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
+    for (const addFile of extFilesCreateEnums)
+    {
+        const source = addFile.replace(".d.ts", "");
+        const addData = (await readFile(join(outputDtsDir, addFile), "utf8")).replace(/\r\n/g, "\n").replace(/\n/g, EOL);
+        _proc(addData, source);
+        const rgxKeys = /export declare type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g;
+        while ((match = rgxKeys.exec(addData)) !== null)
+        {
+            if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
+                pushTypedef(source, "type", match[1]);
+            }
+        }
+    }
 
 /*
     let hooks = Object.keys(webpack.Compiler["hooks"]).filter(h => !("tapPromise" in hooks[h]));
