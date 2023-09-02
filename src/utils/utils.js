@@ -386,7 +386,6 @@ const findExPathSync = (paths) =>
 };
 
 
-
   /**
  * @param {typedefs.WpBuildApp} app
  * @param {typedefs.WpwSourceCodeConfig} [srcConfig]

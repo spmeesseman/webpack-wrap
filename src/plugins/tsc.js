@@ -93,7 +93,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 						if (!entryFile || !existsSync(resolve(typesDirDist, entryFile)))
 						{
 							entryFile = (await findFiles("**/types.d.ts", { maxDepth: 2, cwd: typesDirDist }))[0];
-							if (!existsSync(resolve(typesDirDist, entryFile)))
+							if (!entryFile || !existsSync(resolve(typesDirDist, entryFile)))
 							{
 								const mainBuild = this.app.getAppBuild("module");
 								if (mainBuild) {

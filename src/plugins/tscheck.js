@@ -20,15 +20,10 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 /**
  * @extends WpwPlugin
  */
-class WpBuildTsForkerPlugin extends WpwPlugin
+class WpBuildTsCheckPlugin extends WpwPlugin
 {
     /** @type {Exclude<typedefs.WpwBuildOptions["tscheck"], undefined>} @override */
     buildOptions;
-
-    /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
-     */
-	constructor(options) { super(options); }
 
 
     /**
@@ -156,9 +151,9 @@ class WpBuildTsForkerPlugin extends WpwPlugin
 
 /**
  * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildTsForkerPlugin | undefined}
+ * @returns {WpBuildTsCheckPlugin | undefined}
  */
-const tscheck = (app) => WpwPlugin.wrap(WpBuildTsForkerPlugin, app, "tscheck");
+const tscheck = (app) => WpwPlugin.wrap(WpBuildTsCheckPlugin, app, "tscheck");
 
 
 module.exports = tscheck;

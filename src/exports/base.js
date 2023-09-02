@@ -1,6 +1,6 @@
 
 
-const { WpwBase } = require("../core/base");
+const WpwBase = require("../core/base");
 const typedefs = require("../types/typedefs");
 
 
@@ -12,7 +12,7 @@ const typedefs = require("../types/typedefs");
 class WpwWebpackExport extends WpwBase
 {
     /**
-     * @param {typedefs.WpBuildExportOptions} options Plugin options to be applied
+     * @param {typedefs.WpwExportOptions} options Plugin options to be applied
      */
 	constructor(options)
     {

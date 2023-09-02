@@ -403,7 +403,8 @@ class WpwJsDocPlugin extends WpBuilPlugin
  */
 const jsdoc = (app) =>
     app.build.options.jsdoc &&
-    (app.build.options.jsdoc === true || app.build.options.jsdoc.type === "plugin") ? new WpwJsDocPlugin({ app }) : undefined;
+    app.build.options.jsdoc.enabled !== false &&
+    app.build.options.jsdoc.type === "plugin" ? new WpwJsDocPlugin({ app }) : undefined;
 
 
 module.exports = jsdoc;

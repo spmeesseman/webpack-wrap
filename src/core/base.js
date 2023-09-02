@@ -52,7 +52,7 @@ class WpwBase
      */
 	constructor(options)
     {
-        options.key = options.key || this.baseName;
+        options.key = /** @type {typedefs.WpwBuildOptionsKey} */(options.key || this.baseName.toLowerCase());
         this.validateOptions(options);
         this.key = options.key;
         this.app = options.app;
@@ -105,7 +105,7 @@ class WpwBase
         else {
             optionsCfg = merge(/** @type {Exclude<typedefs.WpwBuildOptions[K], undefined>} */({ enabled: true }), config);
         }
-        let schemaProperty = schema.definitions.WpwPluginOptions[key];
+        let schemaProperty = schema.definitions.WpwBuildOptions[key];
         if (schemaProperty)
         {
             while (schemaProperty.$ref) {
@@ -165,6 +165,13 @@ class WpwBase
         );
     }
 
+    /**
+     * @private
+     */
+    pluginsNoOptions = [
+        "dispose"
+    ];
+
 
     /**
      * @private
@@ -176,7 +183,9 @@ class WpwBase
         if (!options.app) {
             throw WpBuildError.getErrorMissing("app", "core/base.js", this.wpc, "invalid options");
         }
-        if (!isWpwBuildOptionsPluginKey(options.key) && !isWpwBuildOptionsExportKey(options.key)) {
+        if (!options.key || (
+            !isWpwBuildOptionsPluginKey(options.key) && !isWpwBuildOptionsExportKey(options.key) && !this.pluginsNoOptions.includes(options.key)
+        )) {
             throw WpBuildError.getErrorMissing("key", "core/base.js", this.wpc, "invalid options, key does not exist in build options");
         }
     }

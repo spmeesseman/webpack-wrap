@@ -259,7 +259,7 @@ const entry = (app) =>
 	else if (builds[app.build.type])
 	{
 		app.logger.write(`   create entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		builds[app.build.type ](app);
+		builds[app.build.type](app);
 	}
 	//
 	// Error state

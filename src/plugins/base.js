@@ -44,7 +44,7 @@ const typedefs = require("../types/typedefs");
 const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
-const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray } = require("../utils");
+const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray, applyIf } = require("../utils");
 
 
 /**
@@ -63,7 +63,11 @@ class WpwPlugin extends WpwBase
     compilation;
     /** @type {typedefs.WebpackCompiler} compiler */
     compiler;
-    /** @type {typedefs.WpwPluginOptions} @override @protected */
+    /**
+     * @override
+     * @protected
+     * @type {typedefs.WpwPluginOptions}
+     */
     options;
     /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
@@ -85,6 +89,7 @@ class WpwPlugin extends WpwBase
         super(options);
         this.plugins = [];
         this.validatePluginOptions(options);
+        this.options = applyIf(this.options, options);
         this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.mode, this.baseName));
         if (!this.options.wrapPlugin)
         {
