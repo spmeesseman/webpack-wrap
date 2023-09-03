@@ -36,13 +36,15 @@ const {
 class WpwSourceCode
 {
     /** @type {TypeScriptCompilerHost} @private */
-    compilerHost;
+    static compilerHost;
     /** @type {TypeScriptProgram} @private */
     program;
     /** @type {typedefs.WpwRc}/ */
     rc;
+    /** @type {TypeScript} @private */
+    ts;
     /** @type {TypeScript} */
-    typescript;
+    static typescript;
 
 
     /**
@@ -52,6 +54,7 @@ class WpwSourceCode
     constructor(build, rc)
     {
         this.rc = rc;
+        this.ts = WpwSourceCode.typescript;
         const config = this.getJsTsConfig(build),
               compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
         merge(build.source.config, config);
@@ -59,7 +62,7 @@ class WpwSourceCode
         build.source.ext = build.source.type === "typescript" ? "ts" : "js";
         if (build.source.type === "typescript" || build.type === "types")
         {
-            this.typescript = this.typescript || require(require.resolve("typescript"));
+            this.ts = this.ts || require(require.resolve("typescript"));
             this.configurProgram(build);
         }
     };
@@ -73,15 +76,15 @@ class WpwSourceCode
 	 */
     configurProgram = (build) =>
     {
-        this.compilerHost = this.compilerHost || this.createCompilerHost(build);
-        this.program = this.typescript.createProgram(
+        WpwSourceCode.compilerHost = WpwSourceCode.compilerHost || this.createCompilerHost(build);
+        this.program = this.ts.createProgram(
         {
-            host: this.compilerHost,
+            host: WpwSourceCode.compilerHost,
             rootNames: build.source.config.options.files,
             projectReferences: undefined,
             options: this.touchCompilerOptions(build.source.config.options.compilerOptions)
         });
-    }
+    };
 
 
     /**
@@ -91,7 +94,7 @@ class WpwSourceCode
      */
     createCompilerHost = (build) =>
     {
-        const baseCompilerHost = this.typescript.createCompilerHost(
+        const baseCompilerHost = this.ts.createCompilerHost(
             this.touchCompilerOptions(build.source.config.options.compilerOptions)
         );
         return merge({}, baseCompilerHost,
@@ -114,7 +117,17 @@ class WpwSourceCode
      */
     emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
     {
-        this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
+        const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
+        if (result.emittedFiles) {
+            // TODO
+        }
+        else if (result.emitSkipped) {
+            // TODO
+        }
+        if (result.diagnostics) {
+            // TODO
+        }
+        return result;
     };
 
 
@@ -280,8 +293,10 @@ class WpwSourceCode
     touchCompilerOptions = (options) =>
     {
         return mergeIf({
-            jsx: this.typescript.JsxEmit[options.jsx || 0],
-            moduleResolution: this.typescript.ModuleResolutionKind[options.moduleResolution || "node"]
+            jsx: this.ts.JsxEmit[options.jsx || 0],
+            moduleResolution: (options.moduleResolution ?
+                                this.ts.ModuleResolutionKind[options.moduleResolution] : null) ||
+                              this.ts.ModuleResolutionKind.NodeJs
         }, options);
     };
 

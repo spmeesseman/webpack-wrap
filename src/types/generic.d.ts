@@ -32,13 +32,13 @@ declare type ConvertTypeExcludeNon<T, Type, NewType> = { [P in keyof T as T[P] e
 declare type ConvertType2<T, Type, NewType, Type2, NewType2> = { [P in keyof T]: T[P] extends Type | undefined ? NewType :  { [P in keyof T]: T[P] extends Type2 | undefined ? NewType2 : T[P] }};
 declare type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P extends K ? NewType : T[P] };
 
-declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>>; }
+declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>> }
 
 // declare enum WpwErrorMessage
 // {
 //     WPW300 = ""
 // }
-// 
+//
 // declare enum WpwWarningMessage
 // {
 //     WPW000 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
@@ -54,6 +54,15 @@ declare class ClsWpBuildError extends WebpackError {
     file: string;
 }
 
+declare interface MergeOptions<T, U>
+{
+    onlyIf: boolean;
+    deepObj: boolean;
+    deepArr: boolean;
+    values: [ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]];
+}
+
+
 export {
     AsArray,
     ConvertType,
@@ -62,6 +71,7 @@ export {
     ConvertTypeExcludeNon,
     // ExtractTypings,
     IDisposable,
+    MergeOptions,
     PartialSome,
     PickByType,
     RequireKeys,

@@ -1,4 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
+// @ts-check
 
 /**
  * @file types/app.d.ts

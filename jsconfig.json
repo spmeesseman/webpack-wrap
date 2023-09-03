@@ -2,6 +2,7 @@
     "compilerOptions": {
       "allowSyntheticDefaultImports": true,
       "alwaysStrict": false,
+      "allowJs": true,
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "baseUrl": ".",
@@ -41,14 +42,14 @@
       "useUnknownInCatchVariables": false
     },
     "include": [
-      "src",
-      "package.json"
+      "src"
     ],
     "exclude": [
         ".*",
         "bin",
         "dist",
         "doc",
+        "examples",
         "node_modules",
         "res",
         "schema",

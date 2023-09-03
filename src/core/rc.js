@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 // @ts-check
 
 /**
@@ -16,7 +17,7 @@ const WpwPlugin = require("../plugins/base");
 const globalEnv = require("../utils/global");
 const { readFileSync, mkdirSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
-const { validateSchema, SchemaDirectory, getSchema } = require("../utils/schema");
+const { validateSchema, SchemaDirectory, getSchema, getSchemaVersion } = require("../utils/schema");
 const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, findFilesSync,
@@ -213,13 +214,8 @@ class WpwRc
      */
     applyVersions = () =>
     {
-        let schemaVersion = "0.0.1";
-        const wpwVersion = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version,
-              match = getSchema().match(/\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//);
-        if (match) {
-            schemaVersion = match[1];
-        }
-        apply(this, { schemaVersion, version: this.pkgJson.version, wpwVersion });
+        const wpwVersion = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version;
+        apply(this, { schemaVersion: getSchemaVersion(), version: this.pkgJson.version, wpwVersion });
     };
 
 
@@ -280,7 +276,7 @@ class WpwRc
         }
 
         return wpConfigs;
-    }
+    };
 
 
 	/**

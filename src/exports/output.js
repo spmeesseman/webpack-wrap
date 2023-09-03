@@ -1,6 +1,6 @@
 // @ts-check
 
-const { apply, isString, RegexTestsChunk } = require("../utils");
+const { apply, isString, WpwRegex } = require("../utils");
 
 /**
  * @file exports/output.js
@@ -125,7 +125,7 @@ const output = (app) =>
 			filename: (pathData, _assetInfo) =>
 			{
 				const data = /** @type {WebpackPathDataOutput} */(pathData);
-				return RegexTestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
+				return WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
 			}
 		});
 	}

@@ -9,10 +9,11 @@
  *//** */
 
 const JSON5 = require("json5");
+const WpwRegex = require("./regex");
 const { resolve, join } = require("path");
 const { readFileSync } = require("fs");
 const { validate } = require("schema-utils");
-const { WpBuildError } = require("../utils");
+const { WpBuildError } = require("./utils");
 
 /** @typedef {Parameters<validate>[0]} Schema*/
 
@@ -50,6 +51,10 @@ const validateSchema = (options, logger, subschema) =>
 const getSchema = (/** @type {string | undefined} */ schemaKey) => schemas[`Wpw${schemaKey || ""}`] || {};
 
 
+const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
+    schemas[`Wpw${schemaKey || ""}`].$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
+
+
 module.exports = {
-    getSchema, validateSchema, SchemaDirectory
+    getSchema, getSchemaVersion, validateSchema, SchemaDirectory
 };

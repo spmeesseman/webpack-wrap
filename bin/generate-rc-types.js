@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
@@ -427,7 +428,10 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
         exported.sort((a, b) => a.localeCompare(b));
         hdr = hdr.replace(`@file types/${outputDtsFile}`, `@file types/${constantsFile}`);
-        data = `/* eslint-disable no-unused-labels */${EOL}// @ts-check${EOL}${EOL}${hdr}${EOL}${EOL}`;
+        data = `/* eslint-disable no-unused-labels */${EOL}`;
+        data += `/* eslint-disable @typescript-eslint/naming-convention */${EOL}`;
+        data += `// @ts-check${EOL}${EOL}`;
+        data += `${hdr}${EOL}${EOL}`;
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
         data += `${EOL}module.exports = {${EOL}${exported.join("," + EOL)}${EOL}};${EOL}`;

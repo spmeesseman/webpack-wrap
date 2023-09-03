@@ -165,14 +165,14 @@
 
 
 /***********************************************************************************************************************
- * BASE INDEX.D.TS
+ * INDEX.D.TS
  ***********************************************************************************************************************/
 
 // @typedef {import(".").hasSymbolSham} hasSymbolSham */
 
 
 /***********************************************************************************************************************
- * WPBUILDAPP APP.D.TS
+ * APP.D.TS
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/app")} WpBuildApp */
@@ -187,7 +187,7 @@
 
 
 /***********************************************************************************************************************
- * BASE EXPORT.D.TS
+ * EXPORT.D.TS
  ***********************************************************************************************************************/
 
 /** @typedef {import("./export").IWpwExport} IWpwExport */
@@ -195,7 +195,46 @@
 
 
 /***********************************************************************************************************************
- * INFO / WARNING / ERROR MESSAGES MESSAGE.D.TS
+ * GENERIC.D.TS
+ ***********************************************************************************************************************/
+
+/** @typedef {import("./generic").IDisposable} IDisposable */
+/** @typedef {import("./generic").MergeOptions} MergeOptions */
+
+/**
+ * Executes a command with a promisified child_process.exec()
+ * @typedef {object} ExecAsyncOptions
+ * @property {string} command command to execute, with arguments
+ * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
+ * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
+ * @property {string} [program] program name to diasplay in any logging
+ * @property {WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
+ * @property {string} [logPad] a padding to prepend any log messages with
+ * @property {boolean} [stdout] a padding to prepend any log messages with
+ * @returns {Promise<number | null>}
+ */
+
+/**
+ * This callback is displayed as part of the Requester class.
+ * @callback WpBuildCallback
+ * @param {...any} args
+ * @returns {any}
+ */
+
+
+/***********************************************************************************************************************
+ * LOGGER.D.TS
+ ***********************************************************************************************************************/
+
+/** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
+/** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
+/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
+/** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
+/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
+
+
+/***********************************************************************************************************************
+ * MESSAGE.D.TS
  ***********************************************************************************************************************/
 
 /** @typedef {import("./message").WpwMessage} WpwMessage */
@@ -223,44 +262,6 @@
 /** @typedef {import("./plugin").WpBuildPluginMultiWaitOptions} WpBuildPluginMultiWaitOptions */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
 /** @typedef {import("./plugin").WpBuildPluginCompilationOptionsEntry} WpBuildPluginCompilationOptionsEntry */
-
-
-/***********************************************************************************************************************
- * GENERIC.D.TS
- ***********************************************************************************************************************/
-
-/** @typedef {import("./generic").IDisposable} IDisposable */
-
-/**
- * Executes a command with a promisified child_process.exec()
- * @typedef {object} ExecAsyncOptions
- * @property {string} command command to execute, with arguments
- * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
- * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
- * @property {string} [program] program name to diasplay in any logging
- * @property {WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
- * @property {string} [logPad] a padding to prepend any log messages with
- * @property {boolean} [stdout] a padding to prepend any log messages with
- * @returns {Promise<number | null>}
- */
-
-/**
- * This callback is displayed as part of the Requester class.
- * @callback WpBuildCallback
- * @param {...any} args
- * @returns {any}
- */
-
-
-/***********************************************************************************************************************
- * LOGGER
- ***********************************************************************************************************************/
-
-/** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
-/** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
-/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
-/** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
-/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
 
 
 /***********************************************************************************************************************
@@ -300,10 +301,10 @@
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompilation>} WebpackAsyncCompilationHook */
 
+
 /**
  * JS Type definitions
  * @type {{}}
  */
 const typedefs = {};
-
 exports.unused = typedefs;

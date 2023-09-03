@@ -8,8 +8,13 @@
  * @author @spmeesseman Scott Meesseman
  */
 
-const RegexTestsChunk = (/[a-z]+\.(?:tests?|specs?)$|[\/\\]tests?|suite[\/\\]/i);
+const TestsChunk = (/[a-z]+\.(?:tests?|specs?)$|[\/\\]tests?|suite[\/\\]/i);
 
-module.exports = {
-    RegexTestsChunk
+const PathVersion = /\/v([0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?)\//;
+
+
+const WpwRegex = {
+    PathVersion, TestsChunk
 };
+
+module.exports = WpwRegex;
