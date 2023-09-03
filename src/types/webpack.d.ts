@@ -59,16 +59,18 @@ declare type WebpackCacheFacade = ReturnType<WebpackCompilation["getCache"]>;
 
 declare type WebpackSource = WebpackSources.Source;
 
-declare type WebpackCompilationAssets = { [index: string]: WebpackSource; }
+declare interface IWebpackCompilationAssets { [index: string]: WebpackSource }
+declare type WebpackCompilationAssets = IWebpackCompilationAssets;
 
 declare type WebpackCompilationHook = WebpackCompilation["hooks"];
 
 declare type WebpackCompilationHookName = keyof WebpackCompilationHook;
 
-declare type WebpackCompilationParams = {
+declare interface IWebpackCompilationParams {
     normalModuleFactory: any; // WebpackNormalModuleFactory;
     contextModuleFactory: any; // WebpackContextModuleFactoryy;
-};
+}
+declare type WebpackCompilationParams = IWebpackCompilationParams;
 // declare type WebpackNormalModuleFactory = import("webpack").NormalModuleFactory;
 // declare type WebpackContextModuleFactoryy = import("webpack").Compilation.ContextModuleFactory;
 
@@ -111,17 +113,18 @@ declare type WebpackRawSource = WebpackSources.RawSource;
 
 declare type WebpackRuleSetRule = Exclude<ConvertType<RuleSetRule, (false | "" | 0 | RuleSetRule | "..." | null | undefined)[] , RuleSetRule[]>, undefined>;
 
-declare type WebpackRuntimeArgs =
+declare interface IWebpackRuntimeArgs extends Record<string, string[] | string | boolean | WebpackRuntimeEnvArgs | undefined>
 {
     clean?: boolean;
     config: string[];
     env: WebpackRuntimeEnvArgs;
     mode?: WebpackMode;
     watch?: boolean;
-    [ k: string ]: string[] | string | boolean | WebpackRuntimeEnvArgs | undefined;
-};
+}
+declare type WebpackRuntimeArgs = IWebpackRuntimeArgs;
 
-declare type WebpackRuntimeEnvArgs = { WEBPACK_WATCH?: boolean; watch?: boolean }
+declare interface IWebpackRuntimeEnvArgs { WEBPACK_WATCH?: boolean; watch?: boolean }
+declare type WebpackRuntimeEnvArgs = IWebpackRuntimeEnvArgs;
 
 declare type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;
 
@@ -140,11 +143,17 @@ declare type WebpackSyncHook<T> = SyncHook<T>;
 declare type WebpackRuleSetUse = Exclude<RuleSetUse, string>;
 
 // declare type WebpackRuleSetUseItem = Exclude<RuleSetUseItem, (string | undefined)>;
-declare type WebpackRuleSetUseItem = { ident?: string; loader?: string; options: Record<string, any> };
+declare interface IWebpackRuleSetUseItem { ident?: string; loader?: string; options: Record<string, any> };
+declare type WebpackRuleSetUseItem = WebpackRuleSetUseItem;
 
 declare type WebpackType = typeof webpack;
 
 export {
+    IWebpackRuntimeEnvArgs,
+    IWebpackCompilationAssets,
+    IWebpackCompilationParams,
+    IWebpackRuntimeArgs,
+    IWebpackRuleSetUseItem,
     WebpackType,
     WebpackRuntimeArgs,
     WebpackRuntimeEnvArgs,

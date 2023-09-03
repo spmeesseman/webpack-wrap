@@ -12,7 +12,7 @@
 const { resolve } = require("path");
 const { readFileSync } = require("fs");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, merge, isArray, isPrimitive, WpBuildError, WpwBuildOptionsPluginKeys, WpwBuildOptionsExportKeys, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey } = require("../utils");
+const { lowerCaseFirstChar, merge, isArray, isPrimitive, WpBuildError, WpwBuildOptionsPluginKeys, WpwBuildOptionsExportKeys, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal, isWpwBuildOptionsPluginKeyInternal } = require("../utils");
 
 let schema;
 
@@ -76,7 +76,9 @@ class WpwBase
     /**
      * @returns {typedefs.WpwBuildOptionsPluginKey}
      */
-    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|Export$|/g, "")); }
+    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(
+        this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|(?:Webpack)?Export$/g, "")
+    ); }
 
 
     /**
@@ -147,7 +149,7 @@ class WpwBase
             }
         }
         return /** @type {Exclude<typedefs.WpwBuildOptions[K], undefined>} */(optionsCfg);
-    }
+    };
 
 
     /**
@@ -167,10 +169,18 @@ class WpwBase
 
     /**
      * @private
+     * @template {string | undefined} K
+     * @param {K} key
+     * @returns {K is typedefs.WpwBuildOptionsKey}
      */
-    pluginsNoOptions = [
-        "dispose"
-    ];
+    isValidOptionsKey = (key) =>
+        !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsPluginKey(key) || isWpwBuildOptionsExportKey(key) ||
+                  isWpwBuildOptionsExportKeyInternal(key) || isWpwBuildOptionsPluginKeyInternal(key));
+
+    /**
+     * @private
+     */
+    pluginsNoOpts = [ "dispose" ];
 
 
     /**
@@ -181,12 +191,10 @@ class WpwBase
 	validateOptions(options)
     {
         if (!options.app) {
-            throw WpBuildError.getErrorMissing("app", "core/base.js", this.wpc, "invalid options");
+            throw WpBuildError.getErrorMissing("app", "core/base.js", this.wpc, "invalid option[app]");
         }
-        if (!options.key || (
-            !isWpwBuildOptionsPluginKey(options.key) && !isWpwBuildOptionsExportKey(options.key) && !this.pluginsNoOptions.includes(options.key)
-        )) {
-            throw WpBuildError.getErrorMissing("key", "core/base.js", this.wpc, "invalid options, key does not exist in build options");
+        if (!this.isValidOptionsKey(options.key)) {
+            throw WpBuildError.getErrorProperty("key", "core/base.js", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
         }
     }
 }

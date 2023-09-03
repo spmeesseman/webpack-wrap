@@ -12,34 +12,52 @@
  *
  * @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
  *
- */
+ *//** */
 
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
 const WpwBase = require("../core/base");
 const WpBuildApp = require("../core/app");
 const { resolve, join } = require("path");
+const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath } = require("../utils");
-
-/** @typedef {typedefs.WpwSourceCodeConfig} RulesConfig */
+const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isFunction } = require("../utils");
 
 
-const builds =
+/**
+ * @extends {WpwWebpackExport}
+ */
+class WpwRulesExport extends WpwWebpackExport
 {
+	/** @type {typedefs.WpwSourceCodeConfig} @private */
+	sourceConfig;
+
+
+    /**
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     */
+	constructor(options)
+	{
+		super(options);
+		this.sourceConfig = merge({}, this.app.build.source.config);
+		if (isJsTsConfigPath(this.sourceConfig.path)) {
+			this.app.logger.value("   use js/ts config file", this.sourceConfig.path, 2);
+		}
+	}
+
+
 	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 * @throws {WpBuildError}
 	 */
-	jsdoc: (app, rulesConfig) =>
+	jsdoc = () =>
 	{
-		const jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
+		const app = this.app,
+			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
 		if (jsdocOptions.type === "entry")
 		{
-			const exclude = getExcludes(app, rulesConfig),
-				include = getIncludes(app, rulesConfig),
+			const exclude = getExcludes(app, this.sourceConfig),
+				include = this.getIncludes(),
 				jsdocSrcPath= app.getSrcPath();
 
 			if (existsSync(jsdocSrcPath))
@@ -48,7 +66,7 @@ const builds =
 				{
 					include, // : jsdocSrcPath,
 					exclude,
-					test: /\.(?:c|m)?js$/,
+					test: new RegExp(`\\.(?:c|m)?${app.build.source.ext}x?$`),
 					generator: {
 						emit: false
 					},
@@ -69,18 +87,17 @@ const builds =
 		else {
 			throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-	 * @param {RulesConfig} rulesConfig
 	 * @throws {WpBuildError}
 	 */
-	module: (app, rulesConfig) =>
+	module = () =>
 	{
-		const exclude = getExcludes(app, rulesConfig),
-			  include = getIncludes(app, rulesConfig);
+		const app = this.app,
+			  exclude = getExcludes(app, this.sourceConfig),
+			  include = this.getIncludes();
 
 		if (app.build.debug)
 		{
@@ -88,7 +105,7 @@ const builds =
 			{
 				include,
 				exclude,
-				test: /\.ts$/,
+				test: new RegExp(`\\.${app.build.source.ext}$`),
 				issuerLayer: "release",
 				// include(resourcePath, issuer) {
 				// 	console.log(`  context: ${app.wpc.context} (from ${issuer})`);
@@ -97,12 +114,12 @@ const builds =
 				// 	return true; // include all
 				// },
 				loader: "string-replace-loader",
-				options: stripLoggingOptions()
+				options: this.stripLoggingOptions()
 			},
 			{
 				include,
 				exclude,
-				test: /wrapper\.ts$/,
+				test: app.build.source.ext !== "ts" ?  /wrapper\.js$/ : /wrapper\.ts$/,
 				issuerLayer: "release",
 				loader: "string-replace-loader",
 				options: {
@@ -112,23 +129,60 @@ const builds =
 			});
 		}
 
-		app.wpc.module.rules.push(
+		if (app.build.source.type === "typescript")
 		{
-			include,
-			exclude,
-			test: /\.ts$/,
-			use: getTypescriptLoader(app, rulesConfig)
-		});
-	},
+			const loader = this.getSourceLoader();
+			// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
+			// tsConfig.include.push(typesDir);
+			if (loader.loader === "ts-loader" && app.build.options.types)
+			{
+				const tsCheckerEnabled = !!app.build.options.tscheck;
+				apply(loader.options,
+				{
+					transpileOnly: tsCheckerEnabled,
+					// reportFiles: [
+					// 	"src/**/*.{ts,tsx}", "!src/taskexplorer.ts"
+					// ],
+					compilerOptions: {
+						declaration: true,
+						declarationMap: false,
+						//
+						// emitDeclarationsOnly:
+						// See `plugins/vendormod`, setting this flag will skip ts-loader entry output check
+						//
+						// emitDeclarationsOnly: true, // !tsCheckerEnabled,
+						noEmit: false // tsCheckerEnabled
+					}
+				});
+				const declarationDir = app.build.source.config.options.compilerOptions.declarationsDir ||
+									   app.getDistPath({ build: "types" });
+				if (declarationDir) {
+					loader.options.compilerOptions.declarationDir = declarationDir;
+				}
+			}
+			else {
+				// TODO - Babel / esbuild loader for type defs
+			}
+
+			app.wpc.module.rules.push({
+				use: loader,
+				test: app.build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
+				// include: uniq([ mainSrcPath, typesSrcPath ]),
+				include: this.getIncludes(),
+				exclude: getExcludes(app, this.sourceConfig, false, true, true)
+			});
+		}
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
+	 * @throws {WpBuildError}
 	 */
-	tests: (app, rulesConfig) =>
+	tests = () =>
 	{
-		const buildPath = app.getRcPath("base");
+		const app = this.app,
+			  sourceConfig = this.sourceConfig,
+			  buildPath = app.getRcPath("base");
 
 		app.wpc.module.rules.push(
 		{
@@ -154,98 +208,49 @@ const builds =
 		{
 			app.wpc.module.rules.push(
 			{
-				test: /\.ts$/,
-				include: getIncludes(app, rulesConfig),
-				use: getTypescriptLoader(app, rulesConfig, "babel"),
-				exclude: getExcludes(app, rulesConfig, true)
+				test: app.build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
+				include: this.getIncludes(),
+				use: this.getSourceLoader("babel"),
+				exclude: getExcludes(app, sourceConfig, true)
 			});
 		}
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 * @throws {WpBuildError}
 	 */
-	types: (app, rulesConfig) =>
+	types = () =>
 	{
-		const typesConfig = WpwBase.getOptionsConfig("types", app.build.options);
-		if (typesConfig && typesConfig.mode !== "module") {
-			return;
-		}
+		const app = this.app,
+			  typesConfig = WpwBase.getOptionsConfig("types", app.build.options),
+			  typesSrcPath= app.getSrcPath({ build: app.build.name });
 
-		const typesSrcPath= app.getSrcPath({ build: app.build.name }),
-			  typesDirDist = app.getDistPath({ build: app.build.name });
-
-		if (typesSrcPath && existsSync(typesSrcPath))
+		if (typesConfig && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
 		{
 			app.wpc.module.rules.push(
 			{
-				test: /\.js$/i,
+				test: new RegExp(`\\.${app.build.source.ext}$`),
 				// type: "asset/resource",
 				generator: {
 					emit: false
 				}
-			}); // ,
-			// {
-			// 	test: /\.ts$/, // TODO - Loader for DTS bundle
-			// 	use:
-			// 	{
-			// 		loader: resolve(__dirname, "../loaders/dts.js"),
-			// 		options: {}
-			// 	}
-			// });
-			if (app.build.source.type === "typescript")
-			{
-				const loader = getTypescriptLoader(app, rulesConfig);
-				// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
-				// tsConfig.include.push(typesDir);
-				if (loader.loader === "ts-loader")
-				{
-					const tsCheckerEnabled = !!app.build.options.tscheck;
-					apply(loader.options,
-					{
-						transpileOnly: tsCheckerEnabled,
-						// reportFiles: [
-						// 	"src/**/*.{ts,tsx}", "!src/taskexplorer.ts"
-						// ],
-						compilerOptions: {
-							declaration: true,
-							declarationMap: false,
-							declarationDir: typesDirDist,
-							//
-							// emitDeclarationsOnly:
-							// See `plugins/vendormod`, setting this flag will skip ts-loader entry output check
-							//
-							emitDeclarationsOnly: true, // !tsCheckerEnabled,
-							noEmit: false // tsCheckerEnabled
-						}
-					});
-				}
-				else {
-					// TODO - Babel / esbuild loader
-				}
-				app.wpc.module.rules.push({
-					use: loader,
-					test: /\.ts$/,
-					// include: uniq([ mainSrcPath, typesSrcPath ]),
-					include: getIncludes(app, rulesConfig),
-					exclude: getExcludes(app, rulesConfig, false, true, true)
-				});
-			}
+			});
 		}
-	},
+		else {
+			throw WpBuildError.getErrorProperty("rules[types]", "exports/rules.js", app.wpc);
+		}
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig Cloned copy of app.tsConfig info object
 	 * @throws {WpBuildError}
 	 */
-	webapp: (app, rulesConfig) =>
+	webapp = () =>
 	{
-		const exclude = getExcludes(app, rulesConfig);
+		const app = this.app,
+		      sourceConfig = this.sourceConfig,
+			  exclude = getExcludes(app, sourceConfig);
 
 		app.wpc.module.rules.push(
 		{
@@ -260,8 +265,8 @@ const builds =
 			{
 				exclude,
 				test: /\.tsx?$/,
-				include: getIncludes(app, rulesConfig),
-				use: getTypescriptLoader(app, rulesConfig)
+				include: this.getIncludes(),
+				use: this.getSourceLoader()
 			});
 		}
 
@@ -286,163 +291,157 @@ const builds =
 				}
 			}]
 		});
-	}
-
-};
+	};
 
 
-/**
- * @param {WpBuildApp} app
- * @param {RulesConfig} rulesConfig
- * @returns {string[]}
- */
-const getIncludes = (app, rulesConfig) => uniq([ app.getSrcPath(), ...rulesConfig.includeAbs ]);
+	/**
+	 * @private
+	 * @returns {string[]}
+	 */
+	getIncludes = () => uniq([ this.app.getSrcPath(), ...this.sourceConfig.includeAbs ]);
 
 
-/**
- * @param {WpBuildApp} app
- * @param {RulesConfig} rulesConfig
- * @param {string} [loader]
- * @returns {typedefs.WebpackRuleSetUseItem}
- */
-const getTypescriptLoader = (app, rulesConfig, loader) =>
-{
-	if (app.cmdLine.esbuild)
+	/**
+	 * @private
+	 * @param {"esbuild" | "babel" | "ts"} [loader]
+	 * @returns {typedefs.WebpackRuleSetUseItem}
+	 */
+	getSourceLoader = (loader) =>
 	{
-		return sourceLoaders.esbuild(app, rulesConfig);
-	}
-	if (app.build.source.type === "typescript")
-	{
-		if (app.cmdLine.babel)
+		const app = this.app;
+		if (app.cmdLine.esbuild || loader === "esbuild")
 		{
-			return sourceLoaders.babel(app, rulesConfig);
+			return this.sourceLoaders.esbuild();
 		}
-		return sourceLoaders.ts(app, rulesConfig);
-	}
-	return sourceLoaders.babel(app, rulesConfig);
-};
-
-
-const sourceLoaders =
-{
-	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig
-	 * @returns {typedefs.WebpackRuleSetUseItem}
-	 */
-	babel: (app, rulesConfig) =>
-	{
-		return {
-			loader: "babel-loader",
-			options: {
-				cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
-				presets: [
-					[ "@babel/preset-env", {
-						targets: {
-							node: "16.20.0"
-						} /* { targets: "defaults" }*/}
-					],
-					app.build.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
-				]
+		if (app.build.source.type === "typescript")
+		{
+			if (app.cmdLine.babel || loader === "babel")
+			{
+				return this.sourceLoaders.babel();
 			}
-		};
-	},
-
-	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig
-	 * @returns {typedefs.WebpackRuleSetUseItem}
-	 */
-	esbuild: (app, rulesConfig) =>
-	{
-		return {
-			loader: "esbuild",
-			options: {
-				implementation: esbuild,
-				loader: "tsx",
-				target: "es2020",
-				tsconfigRaw: rulesConfig.options
-			}
-		};
-	},
-
-	/**
-	 * @param {WpBuildApp} app
-	 * @param {RulesConfig} rulesConfig
-	 * @returns {typedefs.WebpackRuleSetUseItem}
-	 */
-	ts: (app, rulesConfig) =>
-	{
-		return {
-			loader: "ts-loader",
-			options: {
-				configFile: rulesConfig.path,
-				experimentalWatchApi: false,
-				logInfoToStdOut: app.build.log.level && app.build.log.level >= 0,
-				logLevel: app.build.log.level && app.build.log.level >= 3 ? "info" : (app.build.log.level && app.build.log.level >= 1 ? "warn" : "error"),
-				transpileOnly: true
-			}
-		};
-	}
-};
-
-sourceLoaders.javascript = sourceLoaders.babel;
-sourceLoaders.typescript = sourceLoaders.ts;
-
-
-/**
- * @returns {Record<string, any>}
- */
-const stripLoggingOptions = () => ({
-	multiple: [
-	{
-		search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\)\s*\}\);/g,
-		replace: (/** @type {string} */r) => {
-			return "=> {}\r\n" + r.substring(r.slice(0, r.length - 3).lastIndexOf(")") + 1);
+			return this.sourceLoaders.ts();
 		}
-	},
+		return this.sourceLoaders.babel();
+	};
+
+
+	/**
+	 * @private
+	 */
+	sourceLoaders =
 	{
-		search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2|info|values?|method[A-Z][a-z]+)\s*\([^]*?\),/g,
-		replace: "=> {},"
-	},
-	{
-		search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\) *;/g,
-		replace: "=> {};"
-	},
-	{
-		search: /(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\)\s*;\s*?(?:\r\n|$)/g,
-		replace: "\r\n"
-	},
-	{
-		search: /this\.wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
-		replace: "this.wrapper.emptyFn,"
-	},
-	{
-		search: /wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
-		replace: "wrapper.emptyFn,"
-	},
-	{
-		search: /w\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
-		replace: "w.emptyFn,"
-	},
-	{
-		search: /this\.wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
-		replace: "this.wrapper.emptyFn]"
-	},
-	{
-		search: /wrapper\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
-		replace: "wrapper.emptyFn]"
-	},
-	{
-		search: /w\.log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
-		replace: "w.emptyFn]"
-	}]
-});
+		/**
+		 * @returns {typedefs.WebpackRuleSetUseItem}
+		 */
+		babel: () =>
+		{
+			return {
+				loader: "babel-loader",
+				options: {
+					cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
+					presets: [
+						[ "@babel/preset-env", {
+							targets: {
+								node: "16.20.0"
+							} /* { targets: "defaults" }*/}
+						],
+						this.app.build.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
+					]
+				}
+			};
+		},
+
+		/**
+		 * @returns {typedefs.WebpackRuleSetUseItem}
+		 */
+		esbuild: () =>
+		{
+			return {
+				loader: "esbuild",
+				options: {
+					implementation: esbuild,
+					loader: "tsx",
+					target: "es2020",
+					tsconfigRaw: this.sourceConfig.options
+				}
+			};
+		},
+
+		/**
+		 * @returns {typedefs.WebpackRuleSetUseItem}
+		 */
+		ts: () =>
+		{
+			const logOptions = this.app.build.log;
+			return {
+				loader: "ts-loader",
+				options: {
+					configFile: this.sourceConfig.path,
+					experimentalWatchApi: false,
+					logInfoToStdOut: logOptions.level && logOptions.level >= 0,
+					logLevel: logOptions.level && logOptions.level >= 3 ? "info" : (logOptions.level && logOptions.level >= 1 ? "warn" : "error"),
+					transpileOnly: true
+				}
+			};
+		}
+	};
+
+
+	/**
+	 * @private
+	 * @returns {Record<string, any>}
+	 */
+	stripLoggingOptions = () => ({
+		multiple: [
+		{
+			search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\)\s*\}\);/g,
+			replace: (/** @type {string} */r) => {
+				return "=> {}\r\n" + r.substring(r.slice(0, r.length - 3).lastIndexOf(")") + 1);
+			}
+		},
+		{
+			search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2|info|values?|method[A-Z][a-z]+)\s*\([^]*?\),/g,
+			replace: "=> {},"
+		},
+		{
+			search: /=>\s*(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\) *;/g,
+			replace: "=> {};"
+		},
+		{
+			search: /(?:this\.wrapper|this|wrapper|w)\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\s*\([^]*?\)\s*;\s*?(?:\r\n|$)/g,
+			replace: "\r\n"
+		},
+		{
+			search: /this\.wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
+			replace: "this.wrapper.emptyFn,"
+		},
+		{
+			search: /wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
+			replace: "wrapper.emptyFn,"
+		},
+		{
+			search: /w\.log\.(?:write2?|info|values?|method[A-Z][a-z]+),/g,
+			replace: "w.emptyFn,"
+		},
+		{
+			search: /this\.wrapper\.log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
+			replace: "this.wrapper.emptyFn]"
+		},
+		{
+			search: /wrapper\._?log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
+			replace: "wrapper.emptyFn]"
+		},
+		{
+			search: /w\.log\.(?:write2?|info|values?|method[A-Z][a-z]+)\]/g,
+			replace: "w.emptyFn]"
+		}]
+	});
+
+};
 
 
 /**
  * @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
- *
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  * @throws {WpBuildError}
  */
@@ -450,22 +449,18 @@ const rules = (app) =>
 {
 	app.logger.start("create rules", 2);
 
-	const tsConfig = merge({}, app.build.source.config); // make a merged clone, 'include' will be altered
-	if (isJsTsConfigPath(tsConfig.path)) {
-		app.logger.value("   using js/ts config file", tsConfig.path, 2);
-	}
+	const rulesBuilder = new WpwRulesExport({app});
 
-	const buildFn = builds[app.build.name] || builds[app.build.type];
-	if (buildFn)
+	if (isFunction(rulesBuilder[app.build.type]))
 	{
 		app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		buildFn(app, tsConfig);
+		rulesBuilder[app.build.type]();
 	}
 	else {
 		throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc);
 	}
 
-	app.logger.write("   rules created successfully", 2);
+	app.logger.success("create rules", 2);
 };
 
 

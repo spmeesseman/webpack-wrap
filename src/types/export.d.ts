@@ -51,7 +51,7 @@
 import { IWpwBase, WpwBaseOptions } from "./base";
 
 
-declare type WpwExportOptions = { build?: string; } & WpwBaseOptions;
+declare type WpwExportOptions = { build?: string } & WpwBaseOptions;
 
 
 declare interface IWpwExport extends IWpwBase

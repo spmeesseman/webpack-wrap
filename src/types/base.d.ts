@@ -23,12 +23,13 @@ import { WpwBuildOptionsKey } from "./rc";
 import { IWpBuildLogger } from "./logger";
 
 
-declare type WpwBaseOptions =
+declare interface IWpwBaseOptions
 {
-    app: typeof import("../core/app").prototype,
+    app: typeof import("../core/app").prototype;
     key?: WpwBuildOptionsKey;
     globalCacheProps?: string[];
 };
+declare type WpwBaseOptions = IWpwBaseOptions;
 
 // declare type WpwBaseOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
 // {
@@ -39,10 +40,10 @@ declare type WpwBaseOptions =
 
 declare interface IWpwBase
 {
-    app: typeof import("../core/app").prototype,
+    app: typeof import("../core/app").prototype;
     // key: WpwBuildOptionsKey;
     logger: IWpBuildLogger;
 }
 
 
-export { IWpwBase, WpwBaseOptions };
+export { IWpwBase, IWpwBaseOptions, WpwBaseOptions };

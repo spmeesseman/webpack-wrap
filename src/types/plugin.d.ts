@@ -77,18 +77,20 @@ declare type WpwPluginOptions =
 //     wrapPlugin?: boolean;
 // } & WpwBaseOptions<T>;
 
-declare type WpBuildPluginVendorOptions =
+declare interface IWpBuildPluginVendorOptions
 {
     ctor: new(...args: any[]) => WebpackPluginInstance;
     options: Readonly<Record<string, any>>;
     [ key: string ]: any;
 }
+declare type WpBuildPluginVendorOptions = IWpBuildPluginVendorOptions;
 
-declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitDef & { callback: (...args: any[]) => any; };
+declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitDef & { callback: (...args: any[]) => any };
 
 declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
 
-declare type WpBuildPluginCacheOptions = { file: string; }
+declare interface IWpBuildPluginCacheOptions { file: string }
+declare type WpBuildPluginCacheOptions = IWpBuildPluginCacheOptions;
 
 declare type WpwApplyCallbackCompilationParam = (arg: WebpackCompilation) => void | Promise<void>;
 
@@ -103,7 +105,8 @@ declare type WpwApplyCallbackStatsParam = (arg: WebpackStats) => void | Promise<
 declare type WpwOnApplyCallback = WpwApplyCallbackStatsParam | WpwApplyCallbackCompilationParam | WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam;
 
 declare type WpBuildPluginTapOptions  = Record<string, WpBuildPluginTapOptionsEntry | WpBuildPluginCompilationOptionsEntry>;
-declare type WpBuildPluginTapOptionsEntry =
+
+declare interface WpBuildPluginTapOptionsEntry
 {
     async?: boolean;
     hook: WebpackCompilerHookName;
@@ -122,11 +125,13 @@ declare interface IWpBuildPlugin extends IWpwBase, WebpackPluginInstance
     logger: IWpBuildLogger;
 }
 
-declare type WpBuildDtsBundleOptions = DtsBundleOptions & { baseDir: string; name: string; out: string; };
+declare type WpBuildDtsBundleOptions = DtsBundleOptions & { baseDir: string; name: string; out: string };
 
 
 export {
     IWpBuildPlugin,
+    IWpBuildPluginCacheOptions,
+    IWpBuildPluginVendorOptions,
     WpBuildDtsBundleOptions,
     WpBuildPluginCacheOptions,
     WpBuildPluginCompilationOptionsEntry,

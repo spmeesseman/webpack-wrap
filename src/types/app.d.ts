@@ -36,11 +36,14 @@ import {
 
 declare const __WPBUILD__: any;
 
-declare type WpBuildAppGetPathOptions = { build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string };
+declare interface IWpBuildAppGetPathOptions { build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string };
+declare type WpBuildAppGetPathOptions = IWpBuildAppGetPathOptions;
 
-declare type WpBuildGlobalEnvironment = { buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any };
+declare interface IWpBuildGlobalEnvironment { buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any };
+declare type WpBuildGlobalEnvironment = IWpBuildGlobalEnvironment;
 
-declare type WpBuildRuntimeEnvArgs =  { analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
+declare interface IWpBuildRuntimeEnvArgs { analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
+declare type WpBuildRuntimeEnvArgs = IWpBuildRuntimeEnvArgs;
 
 declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
 
@@ -50,8 +53,9 @@ declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnv
 
 declare interface IWpBuildAppSchema extends IWpwRcSchema
 {
-    args: WpBuildCombinedRuntimeArgs
+    args: WpBuildCombinedRuntimeArgs;
 }
+declare type WpBuildAppSchema = IWpBuildAppSchema;
 
 declare interface IWpBuildApp extends IDisposable
 {
@@ -80,14 +84,14 @@ declare interface IWpBuildApp extends IDisposable
     addInfo(i: WpwMessage, pad?: string): void;
     addWarning(w: WpwMessage, pad?: string): void;
     buildApp(): WpwWebpackConfig;
-    dispose():Promise<void>;
+    dispose(): Promise<void>;
     getApp(name: string): IWpBuildApp | undefined;
     getAppBuild(name: string): WpwBuild | undefined;
-    getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
-    getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
-    getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
-    getRcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(key: WpwRcPathsKey, arg: P): R;
-    getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true; } ? string | undefined : string>(arg: P): R;
+    getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
+    getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
+    getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
+    getRcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(key: WpwRcPathsKey, arg: P): R;
+    getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
 }
 
 declare interface IWpwWebpackConfig extends WebpackConfig
@@ -112,9 +116,14 @@ declare type WpwWebpackConfig = IWpwWebpackConfig;
 export {
     IWpBuildApp,
     IWpBuildAppSchema,
+    IWpwWebpackConfig,
+    IWpBuildRuntimeEnvArgs,
+    IWpBuildAppGetPathOptions,
     WpBuildCombinedRuntimeArgs,
+    IWpBuildGlobalEnvironment,
     WpwBuildModeConfigBase,
     WpBuildAppGetPathOptions,
+    WpBuildAppSchema,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
     WpwWebpackConfig,

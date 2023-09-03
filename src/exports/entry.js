@@ -243,7 +243,7 @@ const builds =
  */
 const entry = (app) =>
 {
-	app.logger.start("create entry points", 2);
+	app.logger.start("create entry points", 1);
 
 	//
 	// If the build rc defined `entry` itself, apply and we're done...
@@ -285,10 +285,10 @@ const entry = (app) =>
 	});
 
 	if (result) {
-		app.logger.write("   entry points created successfully", 2);
+		app.logger.success("create entry points", 2);
 	}
 	else {
-		app.logger.write("   entry points created, but with warnings", 2);
+		app.logger.write("entry points created, but with warnings", 2, "", app.logger.icons.color.warning);
 	}
 };
 
