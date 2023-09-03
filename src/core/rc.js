@@ -480,14 +480,22 @@ class WpwRc
         if (!rc.source)
         {
             rc.source = {
-                type: "typescript", ext: "ts",
-                config: { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }
+                type: "javascript", ext: "ts",
+                config: { options: { compilerOptions: {}, files: [] }, excludeAbs: [], includeAbs: [] }
             };
         }
         else
-        {   if (!rc.source.type) { rc.source.type = "typescript"; }
-            if (!rc.source.config) { rc.source.config = { options: { compilerOptions: {} }, excludeAbs: [], includeAbs: [] }; }
-            if (!rc.source.config.options) { rc.source.config.options = { compilerOptions: {} }; }
+        {   if (!rc.source.type) {
+                rc.source.type = "javascript";
+            }
+            if (!rc.source.config) {
+                rc.source.config = {
+                    options: { compilerOptions: {}, files: [] }, excludeAbs: [], includeAbs: []
+                };
+            }
+            else if (!rc.source.config.options) {
+                rc.source.config.options = { compilerOptions: {}, files: [] };
+            }
         }
     };
 

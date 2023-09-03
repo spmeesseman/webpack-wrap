@@ -11,11 +11,23 @@
 const JSON5 = require("json5");
 const { spawnSync } = require("child_process");
 const { readFileSync, existsSync, readdirSync } = require("fs");
+const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
-    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath, typedefs
+    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath,
+    isJsTsConfigPath, typedefs, mergeIf
 } = require("../utils");
-const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
+
+
+/** @typedef {import("typescript")} TypeScript */
+/** @typedef {import("typescript").Program} TypeScriptProgram */
+/** @typedef {import("typescript").SourceFile} TypeScriptSourceFile */
+/** @typedef {import("typescript").CompilerHost} TypeScriptCompilerHost */
+/** @typedef {import("typescript").CompilerOptions} TypeScriptCompilerOptions */
+/** @typedef {import("typescript").CancellationToken} TypeScriptCancellationToken */
+/** @typedef {import("typescript").WriteFileCallback} TypeScriptWriteFileCallback */
+/** @typedef {import("typescript").CustomTransformers} TypeScriptCustomTransformers */
+/** @typedef {import("typescript").ModuleResolutionKind} TypeScriptModuleResolutionKind*/
 
 
 /**
@@ -23,13 +35,13 @@ const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
  */
 class WpwSourceCode
 {
-    /** @type {any} @private */
+    /** @type {TypeScriptCompilerHost} @private */
     compilerHost;
-    /** @type {any} @private */
+    /** @type {TypeScriptProgram} @private */
     program;
     /** @type {typedefs.WpwRc}/ */
     rc;
-    /** @type {*} */
+    /** @type {TypeScript} */
     typescript;
 
 
@@ -40,12 +52,15 @@ class WpwSourceCode
     constructor(build, rc)
     {
         this.rc = rc;
-        const config = this.getJsTsConfig(build);
-        const compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
-        merge(build.source.config, config, { options: { compilerOptions: compilerOptionsCc }});
+        const config = this.getJsTsConfig(build),
+              compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
+        merge(build.source.config, config);
+        merge(build.source.config.options, { compilerOptions: compilerOptionsCc });
         build.source.ext = build.source.type === "typescript" ? "ts" : "js";
-        if (build.source.type === "typescript") {
-            this.configureTypescript(build);
+        if (build.source.type === "typescript" || build.type === "types")
+        {
+            this.typescript = this.typescript || require(require.resolve("typescript"));
+            this.configurProgram(build);
         }
     };
 
@@ -56,41 +71,52 @@ class WpwSourceCode
 	 * @private
 	 * @param {typedefs.WpwBuild} build
 	 */
-    configureTypescript = (build) =>
+    configurProgram = (build) =>
     {
-        this.typescript = require(require.resolve("typescript"));
-        if (!this.compilerHost) {
-            this.compilerHost = this.createCompilerHost(build);
-        }
-        if (!this.program)
+        this.compilerHost = this.compilerHost || this.createCompilerHost(build);
+        this.program = this.typescript.createProgram(
         {
-            this.program = this.typescript.createProgram({
-                rootNames: build.source.config.options.files,
-                options: build.source.config.options,
-                projectReferences: undefined,
-                host: this.compilerHost
-            });
-        }
+            host: this.compilerHost,
+            rootNames: build.source.config.options.files,
+            projectReferences: undefined,
+            options: this.touchCompilerOptions(build.source.config.options.compilerOptions)
+        });
     }
 
+
     /**
+	 * @private
 	 * @param {typedefs.WpwBuild} build
-     * @returns {any}
+     * @returns {TypeScriptCompilerHost}
      */
     createCompilerHost = (build) =>
     {
-        const baseCompilerHost = this.typescript.typescript.createCompilerHost(build.source.config.options);
-        return merge({},
-            baseCompilerHost,
-            {
-                fileExists: fileExistsSync,
-                readFile: readFileSync,
-                directoryExists: fileExistsSync,
-                getDirectories: readdirSync,
-                realpath: resolve
-            }
+        const baseCompilerHost = this.typescript.createCompilerHost(
+            this.touchCompilerOptions(build.source.config.options.compilerOptions)
         );
+        return merge({}, baseCompilerHost,
+        {
+            realpath: resolve,
+            fileExists: fileExistsSync,
+            getDirectories: readdirSync,
+            directoryExists: fileExistsSync,
+            readFile: (f) => readFileSync(f, "utf8")
+        });
     };
+
+
+    /**
+     * @param {TypeScriptSourceFile} [file]
+     * @param {TypeScriptWriteFileCallback} [writeFileCb]
+     * @param {TypeScriptCancellationToken} [cancellationToken]
+     * @param {boolean} [emitOnlyDts]
+     * @param {TypeScriptCustomTransformers} [transformers]
+     */
+    emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
+    {
+        this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
+    };
+
 
     /**
      * @private
@@ -244,6 +270,19 @@ class WpwSourceCode
 
             return { dir, file, path, options: json, raw: buildJson.raw, includeAbs: uniq(include), excludeAbs: uniq(exclude) };
         }
+    };
+
+
+    /**
+     * @param {typedefs.WpwSourceCodeConfigCompilerOptions} options
+     * @returns {TypeScriptCompilerOptions}
+     */
+    touchCompilerOptions = (options) =>
+    {
+        return mergeIf({
+            jsx: this.typescript.JsxEmit[options.jsx || 0],
+            moduleResolution: this.typescript.ModuleResolutionKind[options.moduleResolution || "node"]
+        }, options);
     };
 
 }

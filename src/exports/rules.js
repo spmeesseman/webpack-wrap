@@ -49,6 +49,9 @@ const builds =
 					include, // : jsdocSrcPath,
 					exclude,
 					test: /\.(?:c|m)?js$/,
+					generator: {
+						emit: false
+					},
 					use:
 					{
 						loader: resolve(__dirname, "../loaders/jsdoc.js"),
@@ -114,7 +117,7 @@ const builds =
 			include,
 			exclude,
 			test: /\.ts$/,
-			use: getSourceLoader(app, rulesConfig)
+			use: getTypescriptLoader(app, rulesConfig)
 		});
 	},
 
@@ -138,11 +141,25 @@ const builds =
 			}
 		},
 		{
-			test: /\.ts$/,
-			include: getIncludes(app, rulesConfig),
-			use: getSourceLoader(app, rulesConfig, "babel"),
-			exclude: getExcludes(app, rulesConfig, true)
+			test: /index\.js$/,
+			include: join(buildPath, "node_modules", "nyc"),
+			loader: "string-replace-loader",
+			options: {
+				search: "selfCoverageHelper = require('../self-coverage-helper')",
+				replace: "selfCoverageHelper = { onExit () {} }"
+			}
 		});
+
+		if (app.build.source.type === "typescript")
+		{
+			app.wpc.module.rules.push(
+			{
+				test: /\.ts$/,
+				include: getIncludes(app, rulesConfig),
+				use: getTypescriptLoader(app, rulesConfig, "babel"),
+				exclude: getExcludes(app, rulesConfig, true)
+			});
+		}
 	},
 
 
@@ -163,34 +180,6 @@ const builds =
 
 		if (typesSrcPath && existsSync(typesSrcPath))
 		{
-			const loader = getSourceLoader(app, rulesConfig);
-			// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
-			// tsConfig.include.push(typesDir);
-			if (loader.loader === "ts-loader")
-			{
-				const tsCheckerEnabled = !!app.build.options.tscheck;
-				apply(loader.options,
-				{
-					transpileOnly: tsCheckerEnabled,
-					// reportFiles: [
-					// 	"src/**/*.{ts,tsx}", "!src/taskexplorer.ts"
-					// ],
-					compilerOptions: {
-						declaration: true,
-						declarationMap: false,
-						declarationDir: typesDirDist,
-						//
-						// emitDeclarationsOnly:
-						// See `plugins/vendormod`, setting this flag will skip ts-loader entry output check
-						//
-						emitDeclarationsOnly: true, // !tsCheckerEnabled,
-						noEmit: false // tsCheckerEnabled
-					}
-				});
-			}
-			else {
-				// TODO - Babel / esbuild loader
-			}
 			app.wpc.module.rules.push(
 			{
 				test: /\.js$/i,
@@ -198,13 +187,6 @@ const builds =
 				generator: {
 					emit: false
 				}
-			},
-			{
-				use: loader,
-				test: /\.ts$/,
-				// include: uniq([ mainSrcPath, typesSrcPath ]),
-				include: getIncludes(app, rulesConfig),
-				exclude: getExcludes(app, rulesConfig, false, true, true)
 			}); // ,
 			// {
 			// 	test: /\.ts$/, // TODO - Loader for DTS bundle
@@ -214,6 +196,44 @@ const builds =
 			// 		options: {}
 			// 	}
 			// });
+			if (app.build.source.type === "typescript")
+			{
+				const loader = getTypescriptLoader(app, rulesConfig);
+				// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
+				// tsConfig.include.push(typesDir);
+				if (loader.loader === "ts-loader")
+				{
+					const tsCheckerEnabled = !!app.build.options.tscheck;
+					apply(loader.options,
+					{
+						transpileOnly: tsCheckerEnabled,
+						// reportFiles: [
+						// 	"src/**/*.{ts,tsx}", "!src/taskexplorer.ts"
+						// ],
+						compilerOptions: {
+							declaration: true,
+							declarationMap: false,
+							declarationDir: typesDirDist,
+							//
+							// emitDeclarationsOnly:
+							// See `plugins/vendormod`, setting this flag will skip ts-loader entry output check
+							//
+							emitDeclarationsOnly: true, // !tsCheckerEnabled,
+							noEmit: false // tsCheckerEnabled
+						}
+					});
+				}
+				else {
+					// TODO - Babel / esbuild loader
+				}
+				app.wpc.module.rules.push({
+					use: loader,
+					test: /\.ts$/,
+					// include: uniq([ mainSrcPath, typesSrcPath ]),
+					include: getIncludes(app, rulesConfig),
+					exclude: getExcludes(app, rulesConfig, false, true, true)
+				});
+			}
 		}
 	},
 
@@ -227,23 +247,29 @@ const builds =
 	{
 		const exclude = getExcludes(app, rulesConfig);
 
-		app.wpc.module.rules.push(...[
+		app.wpc.module.rules.push(
 		{
 			exclude,
 			test: /\.m?js/,
 			resolve: { fullySpecified: false }
-		},
+		});
+
+		if (app.build.source.type === "typescript")
 		{
-			exclude,
-			test: /\.tsx?$/,
-			include: getIncludes(app, rulesConfig),
-			use: getSourceLoader(app, rulesConfig)
-		},
+			app.wpc.module.rules.push(
+			{
+				exclude,
+				test: /\.tsx?$/,
+				include: getIncludes(app, rulesConfig),
+				use: getTypescriptLoader(app, rulesConfig)
+			});
+		}
+
+		app.wpc.module.rules.push(
 		{
 			exclude,
 			test: /\.s?css$/,
-			use: [
-			{
+			use: [{
 				loader: MiniCssExtractPlugin.loader
 			},
 			{
@@ -259,7 +285,7 @@ const builds =
 					sourceMap: app.wpc.mode !== "production"
 				}
 			}]
-		}]);
+		});
 	}
 
 };
@@ -279,7 +305,7 @@ const getIncludes = (app, rulesConfig) => uniq([ app.getSrcPath(), ...rulesConfi
  * @param {string} [loader]
  * @returns {typedefs.WebpackRuleSetUseItem}
  */
-const getSourceLoader = (app, rulesConfig, loader) =>
+const getTypescriptLoader = (app, rulesConfig, loader) =>
 {
 	if (app.cmdLine.esbuild)
 	{

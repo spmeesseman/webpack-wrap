@@ -76,6 +76,7 @@ const requiredProperties = [
     [ "excludeAbs", "WpwSourceCodeConfig" ],
     [ "options", "WpwSourceCodeConfig" ],
     [ "compilerOptions", "WpwSourceCodeConfigOptions" ],
+    [ "files", "WpwSourceCodeConfigOptions" ],
     [ "scopedName", "WpwPackageJson" ],
     [ "ext", "WpwSourceCode" ]
 ];

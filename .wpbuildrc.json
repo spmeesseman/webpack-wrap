@@ -33,7 +33,7 @@
             },
             "types": {
                 "mode": "module",
-                "entry": "index",
+                "entry": "./src/core/rc.js",
                 "bundle": true
             }
         },
@@ -67,29 +67,27 @@
         }
     },
     "test": {
-        "builds": [
-            {
-                "name": "tests",
-                "log": {
-                    "color": "yellow"
-                },
-                "options": {
-                    "wait": {
-                        "items": [{
-                            "type": "event",
-                            "name": "done",
-                            "target": "types",
-                            "timeout": 5000
-                        }]
-                    }
-                },
-                "paths": {
-                    "ctx": "src/test",
-                    "dist": "dist/test",
-                    "src": "src/test"
+        "builds": [{
+            "name": "tests",
+            "log": {
+                "color": "yellow"
+            },
+            "options": {
+                "wait": {
+                    "items": [{
+                        "type": "event",
+                        "name": "done",
+                        "target": "types",
+                        "timeout": 5000
+                    }]
                 }
+            },
+            "paths": {
+                "ctx": "src/test",
+                "dist": "dist/test",
+                "src": "src/test"
             }
-        ]
+        }]
     },
     "log": {
         "level": 3,

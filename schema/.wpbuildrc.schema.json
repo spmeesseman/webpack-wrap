@@ -2026,11 +2026,30 @@
                 },
                 "type": {      
                     "$ref": "#/definitions/WpwSourceCodeType"
+                },
+                "ts": {
+                    "$ref": "#/definitions/WpwSourceCodeTypescriptOptions"
                 }
             },
             "required": [
                 "type"
-            ]
+            ],
+            "dependencies": {
+                "type": {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "javascript"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "ts": false
+                        }
+                    }
+                }
+            }
         },
         "WpwSourceCodeConfig": {
             "$id": "#/WpwSourceCodeConfig",
@@ -2300,12 +2319,35 @@
                 }
             }
         },
+        "WpwSourceCodeTypescriptOptions": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "loader": {
+                    "$ref": "#/definitions/WpwSourceCodeTypescriptLoader"
+                }
+            }
+        },
+        "WpwSourceCodeTypescriptLoader": {
+            "$id": "#/WpwSourceCodeTypescriptLoader",
+            "default": "babel",
+            "description": "preferred loader for typescript files, defaults to `babel`",
+            "oneOf": [{
+                "const": "babel"
+            },
+            {
+                "const": "esbuild"
+            },
+            {
+                "const": "ts-loader"
+            }]
+        },
         "WpwSourceCodeNodeJsModule": {
             "$id": "#/WpwSourceCodeNodeJsModule",
             "type": "string",
             "default": "commonjs",
             "enum": [
-                "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "none", "system", "umd"
+                "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "system", "umd"
             ]
         },
         "WpwSourceCodeNodeJsModuleResolution": {
@@ -2336,7 +2378,7 @@
         },
         "WpwSourceCodeType": {
             "$id": "#/WpwSourceCodeType",
-            "default": "typescript",
+            "default": "javascript",
             "oneOf": [{
                 "const": "javascript"
             },{

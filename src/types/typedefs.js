@@ -120,6 +120,7 @@
 /** @typedef {import("./rc").WpwFilePathRelativeLeadingDot} WpwFilePathRelativeLeadingDot */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItem} WpwPluginConfigRunScriptsItem */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptionsKey} WpwSourceCodeConfigOptionsKey */
+/** @typedef {import("./rc").WpwSourceCodeTypescriptLoader} WpwSourceCodeTypescriptLoader */
 /** @typedef {import("./constants").isWpwBuildOptionsExportKey} isWpwBuildOptionsExportKey */
 /** @typedef {import("./constants").isWpwBuildOptionsPluginKey} isWpwBuildOptionsPluginKey */
 /** @typedef {import("./constants").isWpwPluginConfigWaitEvent} isWpwPluginConfigWaitEvent */
@@ -127,6 +128,7 @@
 /** @typedef {import("./constants").WpwSourceCodeNodeJsTargets} WpwSourceCodeNodeJsTargets */
 /** @typedef {import("./constants").WpwWebpackCompilationHooks} WpwWebpackCompilationHooks */
 /** @typedef {import("./rc").TypeWpwSourceCodeConfigOptions} TypeWpwSourceCodeConfigOptions */
+/** @typedef {import("./rc").WpwSourceCodeTypescriptOptions} WpwSourceCodeTypescriptOptions */
 /** @typedef {import("./rc").WpwWebhookCompilationHookStage} WpwWebhookCompilationHookStage */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModule} isWpwSourceCodeNodeJsModule */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsTarget} isWpwSourceCodeNodeJsTarget */
@@ -135,9 +137,11 @@
 /** @typedef {import("./rc").WpwBuildOptionsPluginKeyInternal} WpwBuildOptionsPluginKeyInternal */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
 /** @typedef {import("./constants").WpwPluginConfigRunScriptsProps} WpwPluginConfigRunScriptsProps */
+/** @typedef {import("./constants").WpwSourceCodeTypescriptLoaders} WpwSourceCodeTypescriptLoaders */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
 /** @typedef {import("./constants").isWpwPluginConfigRunScriptsProp} isWpwPluginConfigRunScriptsProp */
+/** @typedef {import("./constants").isWpwSourceCodeTypescriptLoader} isWpwSourceCodeTypescriptLoader */
 /** @typedef {import("./constants").WpwWebhookCompilationHookStages} WpwWebhookCompilationHookStages */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModuleResolution} WpwSourceCodeNodeJsModuleResolution */
 /** @typedef {import("./constants").isWpwWebhookCompilationHookStage} isWpwWebhookCompilationHookStage */
