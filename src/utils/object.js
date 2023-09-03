@@ -59,22 +59,6 @@ const applyExt = (onlyIf, deepArr, dst, src, defaults) =>
  * @throws {Error}
  */
 const apply = (dst, src, defaults) => applyExt(false, false, dst, src, defaults);
-// const apply = (dst, src, defaults) =>
-// {
-//     if (dst === undefined) {
-//         dst = {};
-//     }
-//     if (isObject(dst))
-//     {
-//         if (isObject(defaults)) {
-//             apply(dst, defaults);
-//         }
-//         if (isObject(src)) {
-//             Object.keys(src).forEach(i => { /** @type {{}} */(dst)[i] = src[i]; });
-//         }
-//     }
-//     return /** @type {T} */(dst);
-// };
 
 
 /**
@@ -88,22 +72,6 @@ const apply = (dst, src, defaults) => applyExt(false, false, dst, src, defaults)
  * @throws {Error}
  */
 const applyIf = (dst, src) => applyExt(true, false, dst, src);
-// const applyIf = (dst, src) =>
-// {
-//     if (dst === undefined) {
-//         dst = {};
-//     }
-//     if (dst && isObject(src))
-//     {
-//         let property;
-//         for (property in src) {
-//             if (dst[property] === undefined) {
-//                 dst[property] = src[property];
-//             }
-//         }
-//     }
-//     return /** @type {T} */(dst);
-// };
 
 
 /**
@@ -218,37 +186,6 @@ const mergeExt = (onlyIf, deepObj, deepArr, ...values) =>
  * @throws {Error}
  */
 const merge = (...values) => mergeExt(false, true, false, ...values);
-// const merge = (...values) =>
-// {
-//     const ln = values.length,
-//           base = values[0] || {};
-//     for (let i = 1; i < ln; i++)
-//     {
-//         const object = values[i] || {};
-//         Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
-//         {
-//             const value = object[key];
-//             if (isObject(value))
-//             {
-//                 const sourceKey = base[key];
-//                 if (isObject(sourceKey))
-//                 {
-//                     merge(sourceKey, value);
-//                 }
-//                 // else if (isArray(sourceKey) && isArray(value)) {
-//                 //     base[key] = [ ...sourceKey, ...clone(value) ];
-//                 // }
-//                 else {
-//                     base[key] = clone(value);
-//                 }
-//             }
-//             else {
-//                 base[key] = value;
-//             }
-//         });
-//     }
-//     return /** @type {T} */(base);
-// };
 
 
 /**
@@ -269,37 +206,6 @@ const mergeWeak = (...values) => mergeExt(false, false, false, ...values);
  * @throws {Error}
  */
 const mergeIf = (...values) => mergeExt(true, true, false, ...values);
-// const mergeIf = (...values) =>
-// {
-//     const ln = values.length,
-//           base = values[0] || {};
-//     for (let i = 1; i < ln; i++)
-//     {
-//         const object = values[i] || {};
-//         Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
-//         {
-//             const value = object[key];
-//             if (isObject(value))
-//             {
-//                 const sourceKey = base[key];
-//                 if (isObject(sourceKey))
-//                 {
-//                     mergeIf(sourceKey, value);
-//                 }
-//                 // else if (isArray(sourceKey) && isArray(value)) {
-//                 //     base[key] = [ ...sourceKey, ...clone(value) ];
-//                 // }
-//                 else {
-//                     base[key] = clone(value);
-//                 }
-//             }
-//             else {
-//                 base[key] = clone(value);
-//             }
-//         });
-//     }
-//     return /** @type {T} */(base);
-// };
 
 
 /**
