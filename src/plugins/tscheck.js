@@ -10,11 +10,14 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const { merge } = require("../utils");
 const typedefs = require("../types/typedefs");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
-/** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
+/** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/plugin-options").ForkTsCheckerWebpackPluginOptions} ForkTsCheckerOptions */
 
 
 /**
@@ -58,43 +61,56 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 	 */
 	getVendorPlugin = () =>
 	{
-		/** @type {[ string, "write-dts" | "write-tsbuildinfo" | "readonly" | "write-dts" , string? ]} */
-		let tsParams;
 		const app = this.app,
-			  cnfig = app.build.source.config,
-			  configPath = /** @type {string} */(cnfig.path);
+			  config = app.build.source.config,
+			  configPath = /** @type {string} */(config.path);
+
+		/** @type {ForkTsCheckerTypescriptOptions} */
+		const tsOptions = {
+			build: false,
+			configFile: configPath,
+			mode: "readonly",
+			diagnosticOptions: {
+				syntactic: true, semantic: true, declaration: false, global: false
+			}
+		};
 
 		if (app.build.type === "tests")
 		{
-			tsParams = [ configPath, "write-tsbuildinfo" ];
+			merge(tsOptions,
+			{
+				mode: "write-tsbuildinfo",
+				diagnosticOptions: {
+					global: true
+				}
+			});
 		}
 		else if (app.build.type === "types")
 		{
-			tsParams = [ configPath, "write-dts" ];
-		}
-		else {
-			tsParams = [ configPath, cnfig.options.compilerOptions.declaration === true ? "write-dts" : "readonly" ];
+			merge(tsOptions,
+			{
+				mode: "write-dts",
+				diagnosticOptions: {
+					declaration: true
+				}
+			});
 		}
 
 		app.logger.write("get vendor plugin");
-		app.logger.write(`   add config file '${tsParams[0]}' to tschecker [${tsParams[1]}][build=${!!tsParams[2]}]`, 2);
+		app.logger.write(`   add config file '${tsOptions.configFile}' to tschecker [${tsOptions.mode}][build=${!!tsOptions.build}]`, 2);
 		app.logger.write("   create 'fork-ts-checker-webpack-plugin' instance");
 
-		return new ForkTsCheckerWebpackPlugin(
+		return new ForkTsCheckerWebpackPlugin(/** @type {ForkTsCheckerOptions} */(
 		{
 			async: false,
 			formatter: "basic",
-			typescript: {
-				build: !!tsParams[2],
-				mode: tsParams[1],
-				configFile: tsParams[0]
-			},
+			typescript: tsOptions,
 			// logger: "webpack-infrastructure"
 			logger: {
 				error: app.logger.error,
 				log: app.logger.write
 			}
-		});
+		}));
 	};
 
 

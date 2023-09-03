@@ -2,9 +2,10 @@
 /* eslint-disable jsdoc/require-property-description */
 // @ts-check
 
+const { merge } = require("./object");
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
-const { isString, isObject, isPrimitive, merge } = require("./utils");
+const { isString, isObject, isPrimitive } = require("./type");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
 
 
@@ -14,27 +15,13 @@ const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
  */
 class WpBuildConsoleLogger
 {
-    /**
-     * The build environment that owns the `WpBuildConsoleLogger` instance
-     *
-     * @private
-     * @type {typedefs.WpwLog}
-     */
+    /** @type {typedefs.WpwLog} @private */
     options;
-    /**
-     * @private
-     * @type {import("../types/typedefs").WpwLogColorMapping}
-     */
+    /** @type {import("../types/typedefs").WpwLogColorMapping} @private */
     defaultColor;
-    /**
-     * @private
-     * @type {string}
-     */
+    /** @type {string} @private */
     infoIcon;
-    /**
-     * @private
-     * @type {number}
-     */
+    /** @type {number} @private */
     separatorLength;
 
 
@@ -71,7 +58,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @private
      * @param {Partial<typedefs.WpwLog>} options
      */
@@ -153,15 +139,12 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
-     * @static
      * @returns {typedefs.WpwLog}
      */
     static defaultOptions = () => ({ level: 2, valueMaxLineLength: 100, colors: { default: "grey" }, pad: { value: 40, base: 0 }});
 
 
     /**
-     * @function
      * @param {any} msg
      * @param {string} [pad]
      */
@@ -203,7 +186,6 @@ class WpBuildConsoleLogger
 
     /**
      * Performs inline text coloring e.g. a message can contain ""..finished italic(main module) in 2.3s"
-     * @function
      * @private
      * @param {string | undefined} msg
      * @returns {string}
@@ -223,7 +205,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @private
      * @param {string | undefined | null | 0 | false} icon
      * @returns {typedefs.WpwLogColorMapping}
@@ -251,9 +232,7 @@ class WpBuildConsoleLogger
     };
 
 
-    /**
-     * @type {typedefs.WpBuildLogIconSet}
-     */
+    /** @type {typedefs.WpBuildLogIconSet} */
     icons =
     {
         bullet: "●",
@@ -289,7 +268,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @param {string} name
      * @param {string} version
      * @param {string} subtitle
@@ -300,8 +278,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
-     * @static
      * @param {string} name
      * @param {string} version
      * @param {string} subtitle
@@ -333,14 +309,10 @@ class WpBuildConsoleLogger
     };
 
 
-    /**
-     * @function
-     */
     sep = () => this.write("-".padEnd(this.separatorLength, "-"));
 
 
     /**
-     * @function
      * @private
      * @param {string} name
      * @param {string} version
@@ -362,7 +334,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @param {string | undefined} msg
      * @param {typedefs.WpBuildLogLevel} [level]
      */
@@ -372,7 +343,6 @@ class WpBuildConsoleLogger
             this.icons.color.start) + (msg ? "  " + msg : ""), level);
 
     /**
-     * @function
      * @param {any} msg
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad]
@@ -387,7 +357,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @param {string | undefined} tagMsg
      * @param {typedefs.WpwLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
      * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
@@ -404,7 +373,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * Write / log a message and an aligned value to the console.  The message pad space is defined
      * by .wpbuildrc.`log.pad.value` (defaults to 45)
      * @param {string} msg
@@ -504,7 +472,6 @@ class WpBuildConsoleLogger
     };
 
     /**
-     * @function
      * @param {string} msg
      * @param {string} dsc
      * @param {typedefs.WpBuildLogLevel} [level]
@@ -532,14 +499,12 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @param {any} msg
      * @param {string} [pad]
      */
     warning = (msg, pad) => this.write(msg, undefined, pad, this.icons.color.warning);
 
     /**
-     * @function
      * @param {string | undefined} msg
      * @param {typedefs.WpwLogColorMapping} color color value
      * @param {boolean} [sticky]
@@ -549,7 +514,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @private
      * @param {typedefs.WpwLogColorMapping} color color value
      * @param {string} [msg] message to include in length calculation
@@ -559,7 +523,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function Write / log a message to the console
      * @param {string} msg
      * @param {typedefs.WpBuildLogLevel} [level]
      * @param {string} [pad]
@@ -586,7 +549,6 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @function
      * @param {string} msg
      * @param {string | undefined} tagMsg
      * @param {typedefs.WpBuildLogLevel} [level]
@@ -606,11 +568,9 @@ class WpBuildConsoleLogger
         );
     };
 
+
     /**
-     * @function
-     * Write / log a message to the console.  This function is just a wrapper for {@link write write()} that
-     * satisfies the javascript `console` interface.
-     * @inheritdoc
+     * just a wrapper for {@link write write()} that satisfies the javascript `console` interface
      */
     log = this.write;
 }

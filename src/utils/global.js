@@ -11,7 +11,6 @@
 const { resolve, join } = require("path");
 const { existsSync, readFileSync, mkdirSync, writeFileSync } = require("fs");
 
-
 /** @typedef {import("../types").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
 
 

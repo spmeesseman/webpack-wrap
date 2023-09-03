@@ -10,78 +10,22 @@
  *//** */
 
 const { glob } = require("glob");
+const { existsSync } = require("fs");
+const { merge } = require("./object");
 const { promisify } = require("util");
 const { access } = require("fs/promises");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
-const { existsSync, lstatSync } = require("fs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
+const { isString, isFunction, isArray, isEmpty, isDirectory } = require("./type");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
 };
 
-
-const toStr = Object.prototype.toString,
-      strValue = String.prototype.valueOf,
-      hasSymbols = require("has-symbols/shams"),
-      hasToStringTag = () =>  hasSymbols() && !!Symbol.toStringTag,
-      hasIteratorTag = () =>  hasSymbols() && !!Symbol.iterator,
-      tryStringObject = (/** @type {{}} */ value) => { try { strValue.call(value); return true; } catch (e) { return false; }};
-
-
-/**
- * @template {{}} T
- * @template {Partial<T> | {}} U
- * @param {T | Partial<T> | undefined} object
- * @param {U | T | Partial<T> | undefined} config
- * @param {U | T | Partial<T> | undefined} [defaults]
- * @returns {T}
- */
-const apply = (object, config, defaults) =>
-{
-    if (object === undefined) {
-        object = {};
-    }
-    if (isObject(object))
-    {
-        if (isObject(defaults)) {
-            apply(object, defaults);
-        }
-        if (isObject(config)) {
-            Object.keys(config).forEach(i => { /** @type {{}} */(object)[i] = config[i]; });
-        }
-    }
-    return /** @type {T} */(object);
-};
-
-
-/**
- * Copies all the properties of config to object if they don't already exist.
- *
- * @template {{}} T
- * @template {Partial<T> | {}} U
- * @param {T | Partial<T> | undefined} object
- * @param {U | T | Partial<T> | undefined} config
- * @returns {T}
- */
- const applyIf = (object, config) =>
- {
-    if (object === undefined) {
-        object = {};
-    }
-    if (object && isObject(config))
-    {
-        let property;
-        for (property in config) {
-            if (object[property] === undefined) {
-                object[property] = config[property];
-            }
-        }
-    }
-    return /** @type {T} */(object);
-};
+const hasSymbols = require("has-symbols/shams"),
+      hasIteratorTag = () =>  hasSymbols() && !!Symbol.iterator;
 
 
 /**
@@ -146,38 +90,6 @@ const capitalize = (value) =>
 //     return value;
 // };
 
-
-/**
- * @template T
- * @param {any} item
- * @returns {T}
- */
-const clone = (item) =>
-{
-    if (!item) {
-        return item;
-    }
-    if (isDate(item)) {
-        return /** @type {T} */(new Date(item.getTime()));
-    }
-    if (isArray(item))
-    {
-        let i = item.length;
-        const c = [];
-        while (i--) { c[i] = clone(item[i]); }
-        return /** @type {T} */(c);
-    }
-    if (isObject(item))
-    {
-        const c = {};
-        Object.keys((item)).forEach((key) =>
-        {
-            c[key] = clone(item[key]);
-        });
-        return /** @type {T} */(c);
-    }
-    return item;
-};
 
 /**
  * @param {string} dir
@@ -419,100 +331,6 @@ const hasIterator = (v) => !!v && hasIteratorTag() && isFunction(typeof v[Symbol
 
 
 /**
- * @template T
- * @param {T} v Variable to check to see if it's an array
- * @param {boolean} [allowEmp] If `true`, return true if v is an empty array
- * @returns {v is T[]}
- */
-const isArray = (v, allowEmp) => !!v && Array.isArray(v) && (allowEmp !== false || v.length > 0);
-
-
-/**
- * @param {any} v Variable to check to see if it's a primitive boolean type
- * @returns {v is boolean}
- */
-const isBoolean = (v) => (v === false || v === true) && typeof v === "boolean";
-
-
-/**
- * @param {any} v Variable to check to see if it's a Date instance
- * @returns {v is Date}
- */
-const isDate = (v) => !!v && Object.prototype.toString.call(v) === "[object Date]";
-
-
-/**
- * @param {string} path
- * @returns {boolean}
- */
-const isDirectory = (path) => existsSync(path) && lstatSync(path).isDirectory();
-
-
-/**
- * @param {any} v Variable to check to see if it's an array
- * @param {boolean} [allowEmpStr] If `true`, return non-empty if isString(v) and v === ""
- * @returns {v is null | undefined | "" | []}
- */
-const isEmpty = (v, allowEmpStr) => v === null || v === undefined || (!allowEmpStr ? v === "" : false) || (isArray(v) && v.length === 0) || (isObject(v) && isObjectEmpty(v));
-
-
-/**
- * @param {any} v Variable to check to see if it's and empty object
- * @returns {boolean}
- */
-const isFunction = (v) => !!v && typeof v === "function";
-
-
-/**
- * @param {string | undefined} path
- * @returns {boolean}
- */
-const isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/]\.?(?:j|t)sconfig\.(?:[\w\-]+?\.)?json/.test(path);
-
-
-/**
- * @template {{}} [T=Record<string, any>]
- * @param {T | undefined} v Variable to check to see if it's an array
- * @param {boolean} [allowArray] If `true`, return true if v is an array
- * @returns {v is T}
- */
-const isObject = (v, allowArray) => !!v && Object.prototype.toString.call(v) === "[object Object]" && (v instanceof Object || typeof v === "object") && (allowArray || !isArray(v));
-
-
-/**
- * @param {any} v Variable to check to see if it's and empty object
- * @returns {boolean}
- */
-const isObjectEmpty = (v) => { if (isObject(v)) { return Object.keys(v).filter(k => ({}.hasOwnProperty.call(v, k))).length === 0; } return true; };
-
-
-/**
- * @param {any} v Variable to check to see if it's a primitive type (i.e. boolean / number / string)
- * @returns {v is boolean | number | string}
- */
-const isPrimitive = (v) => [ "boolean", "number", "string" ].includes(typeof v);
-
-
-/**
- * @template T
- * @param {PromiseLike<T> | any} v Variable to check to see if it's a promise or thenable-type
- * @returns {v is PromiseLike<T>}
- */
-const isPromise = (v) => !!v && (v instanceof Promise || (isObject(v) && isFunction(v.then)));
-
-
-/**
- * @param {any} v Variable to check to see if it's an array
- * @param {boolean} [notEmpty] If `false`, return false if v is a string of 0-length
- * @param {boolean} [stringifyable] If `true`, return true if v is an object and has .toString() method
- * @returns {v is string}
- */
-const isString = (v, notEmpty, stringifyable) =>
-    (!!v || (v === "" && !notEmpty)) && (v instanceof String || typeof v === "string") ||
-    (stringifyable ? (hasToStringTag() ? tryStringObject(v) : toStr.call(v) === "[object String]") : false);
-
-
-/**
  * @param {string} s
  * @param {boolean} [removeSpaces]
  * @returns {string}
@@ -531,127 +349,6 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
         }
     }
     return fs;
-};
-
-
-/**
- * @template {{}} T
- * @template {Partial<T> | {}}  U
- * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
- * @returns {T}
- */
-const merge = (...destination) =>
-{
-    const ln = destination.length,
-          base = destination[0] || {};
-    for (let i = 1; i < ln; i++)
-    {
-        const object = destination[i] || {};
-        Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
-        {
-            const value = object[key];
-            if (isObject(value))
-            {
-                const sourceKey = base[key];
-                if (isObject(sourceKey))
-                {
-                    merge(sourceKey, value);
-                }
-                // else if (isArray(sourceKey) && isArray(value)) {
-                //     base[key] = [ ...sourceKey, ...clone(value) ];
-                // }
-                else {
-                    base[key] = clone(value);
-                }
-            }
-            else {
-                base[key] = value;
-            }
-        });
-    }
-    return /** @type {T} */(base);
-};
-
-
-/**
- * @template {{}} T
- * @template {Partial<T> | {}}  U
- * @param {[ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]]} destination
- * @returns {T}
- */
-const mergeIf = (...destination) =>
-{
-    const ln = destination.length,
-          base = destination[0] || {};
-    for (let i = 1; i < ln; i++)
-    {
-        const object = destination[i] || {};
-        Object.keys(object)/* .filter(key => ({}.hasOwnProperty.call(object, key)))*/.forEach((key) =>
-        {
-            const value = object[key];
-            if (isObject(value))
-            {
-                const sourceKey = base[key];
-                if (isObject(sourceKey))
-                {
-                    mergeIf(sourceKey, value);
-                }
-                // else if (isArray(sourceKey) && isArray(value)) {
-                //     base[key] = [ ...sourceKey, ...clone(value) ];
-                // }
-                else {
-                    base[key] = clone(value);
-                }
-            }
-            else {
-                base[key] = clone(value);
-            }
-        });
-    }
-    return /** @type {T} */(base);
-};
-
-
-/**
- * @template {{}} [T=Record<string, any>]
- * @param {T} obj
- * @param {...string} keys
- * @returns {T}
- */
-const pick = (obj, ...keys) =>
-{
-    const ret = {};
-    keys.forEach(key => { if (obj[key]) ret[key] = obj[key]; });
-    return /** @type {T} */(ret);
-};
-
-
-/**
- * @template {Record<string, T>} T
- * @param {T} obj
- * @param {(arg: string) => boolean} pickFn
- * @returns {Partial<T>}
- */
-const pickBy = (obj, pickFn) =>
-{
-    const ret = {};
-    Object.keys(obj).filter(k => pickFn(k)).forEach(key => { if (obj[key])  ret[key] = obj[key]; });
-    return ret;
-};
-
-
-/**
- * @template {{}} T
- * @template {keyof T} K
- * @param {T} obj
- * @param {...K} keys
- * @returns {Omit<T, K>}
- */
-const pickNot = (obj, ...keys) =>
-{
-    const ret = { ...obj };
-    keys.forEach(key => { delete ret[key]; });
-    return ret;
 };
 
 
@@ -854,8 +551,7 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-    apply, applyIf, asArray, capitalize, clone, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
-    getExcludes, isArray, isBoolean, isDirectory, isDate, isEmpty, isFunction, isJsTsConfigPath, isObject, WpwMessageProps, isWpwMessageProp,
-    isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeIf, pick, createEntryObjFromDir,
-    pickBy, pickNot, pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath, findExPath, findExPathSync
+    asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
+    getExcludes, WpwMessageProps, isWpwMessageProp, lowerCaseFirstChar, createEntryObjFromDir,
+     pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath, findExPath, findExPathSync
 };

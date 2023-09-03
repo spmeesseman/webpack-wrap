@@ -10,7 +10,7 @@
  *//** */
 
 const WpBuildApp = require("../core/app");
-const { merge, clone } = require("./utils");
+const { merge, clone } = require("./object");
 const {  writeFile } = require("fs/promises");
 const { resolve, isAbsolute } = require("path");
 const { readFileSync, existsSync, writeFileSync } = require("fs");

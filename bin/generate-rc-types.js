@@ -50,7 +50,7 @@ const extFilesCreateEnums = [
 ];
 
 /**
- * Types that will be auto populated/required at runtime, but are optional in json schema
+ * Types that will be auto populated/nonnullable at runtime, but are optional in json schema
  */
 const requiredProperties = [
     [ "colors", "WpwLog" ],
@@ -76,7 +76,8 @@ const requiredProperties = [
     [ "excludeAbs", "WpwSourceCodeConfig" ],
     [ "options", "WpwSourceCodeConfig" ],
     [ "compilerOptions", "WpwSourceCodeConfigOptions" ],
-    [ "scopedName", "WpwPackageJson" ]
+    [ "scopedName", "WpwPackageJson" ],
+    [ "ext", "WpwSourceCode" ]
 ];
 
 const outputDtsFile = "rc.d.ts";

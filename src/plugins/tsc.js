@@ -105,7 +105,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 				}
 			}
 
-			if (existsSync(entryFile))
+			if (entryFile && existsSync(entryFile))
 			{
 				l.value("   using main entry file", entryFile, 2);
 				/** @type {typedefs.WpBuildDtsBundleOptions} */
@@ -153,7 +153,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 				}
 			}
 			else {
-				l.warning(`   types entry file '${entryFile}' could not be located, dts bundling skipped`);
+				l.warning(`   types entry file '${entryFile}' could not be located - dts bundling skipped`);
 			}
 		}
 		else if (!typesDirDist) {

@@ -87,9 +87,6 @@ class WpBuildApp
     get pkgJson() { return this.rc.pkgJson; }
 
 
-    /**
-     * @async
-     */
     dispose = async () =>
     {
         for (const d of this.disposables.splice(0))
@@ -464,7 +461,7 @@ console.log("file: " + file);
         l.write("Build Options:", 2, "", 0, l.colors.white);
         l.value("   testsuite enabled", !!this.build.options.testsuite, 2);
         l.value("   types enabled", !!this.build.options.types, 2);
-        l.value("   tsbundle enabled", !!this.build.options.tsbundle, 2);
+        l.value("   tsbundle enabled", !!this.build.options.types?.bundle, 2);
         l.value("   tscheck enabled", !!this.build.options.tscheck, 2);
         l.value("   upload enabled", !!this.build.options.upload, 2);
         l.value("   options configuration", JSON.stringify(this.build.options), 3);

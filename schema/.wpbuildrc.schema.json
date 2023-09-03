@@ -298,32 +298,6 @@
                                     }
                                 }
                             }]
-                        },
-                        "tsbundle": {
-                            "allOf": [
-                            {
-                                "if": {
-                                    "properties": {
-                                        "bundle": { 
-                                            "const": true
-                                        }
-                                    }
-                                },
-                                "then": { 
-                                    "properties": {
-                                        "type": { 
-                                            "enum": [
-                                                "types", "module"
-                                            ]
-                                        },
-                                        "dts": {
-                                            "not": {
-                                                "const": false
-                                            }
-                                        }
-                                    }
-                                }
-                            }]
                         }
                     }
                 },
@@ -519,9 +493,6 @@
                 "testsuite": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
-                "tsbundle": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
-                },
                 "tscheck": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
@@ -536,113 +507,6 @@
                 },
                 "web": {
                     "$ref": "#/definitions/WpwPluginConfigWeb"
-                }
-            },
-            "dependencies": {
-                "tsbundle": {
-                    "allOf": [
-                    {
-                        "if": {
-                            "properties": {
-                                "tsbundle": { 
-                                    "const": true
-                                }
-                            }
-                        },
-                        "then": { 
-                            "anyOf": [
-                            {
-                                "properties": {
-                                    "dts": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "types": {
-                                        "const": true
-                                    }
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
-        },
-        "WpwBuildOptionsCustom": {
-            "$id": "#/WpwBuildOptionsCustom",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "typesPackage": {
-                    "type": "string",
-                    "default": "entry",
-                    "enum": [
-                        "entry", "plugin"
-                    ]
-                },
-                "typesEntryMode": {
-                    "type": "string",
-                    "default": "main",
-                    "enum": [
-                        "main", "index"
-                    ]
-                },
-                "wait": {
-                    "$ref": "#/definitions/WpwPluginConfigWait"
-                }
-            }
-        },
-        "WpwBuildOptionsCustomProperties": {
-            "$id": "#/WpwBuildOptionsCustomProperties",
-            "propertyNames": {
-                "$comment": "Need to anyOf these or else the enum and pattern conflict",
-                "anyOf": [{
-                    "enum": [
-                        "typesPackage", "typesEntryMode"
-                    ]
-                },
-                {
-                    "pattern": "types[a-z0-9]{7,}"
-                }]
-            }
-        },
-        "WpwBuildOptionsExports": {
-            "$id": "#/WpwBuildOptionsExports",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "optimization": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "cache": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "devtool": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "experiments": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "externals": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "ignorewarnings": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "minification": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "watch": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
                 }
             }
         },
@@ -673,119 +537,23 @@
                 "const": "watch"
             }]
         },
-        "WpwBuildOptionsExportProperties": {
-            "$id": "#/WpwBuildOptionsExportProperties",
-            "propertyNames": {
-                "$ref": "#/definitions/WpwBuildOptionsExportKey"
-            }
-        },
-        "WpwBuildOptionsPlugins": {
-            "$id": "#/WpwBuildOptionsPlugins",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "analyze": {
-                    "$ref": "#/definitions/WpwPluginConfigAnalyze"
-                },
-                "banner": {
-                    "$ref": "#/definitions/WpwPluginConfigBanner"
-                },
-                "clean": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "copy": {
-                    "$ref": "#/definitions/WpwPluginConfigCopy"
-                },
-                "ignore": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "istanbul": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "jsdoc": {
-                    "$ref": "#/definitions/WpwPluginConfigJsDoc"
-                },
-                "licensefiles": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "loghooks": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "optimization": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
-                },
-                "progress": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "runscripts": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
-                },
-                "runtimevars": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "scm": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "sourcemaps": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "testsuite": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tsbundle": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "tscheck": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "types": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
-                },
-                "upload": {
-                    "$ref": "#/definitions/WpwPluginConfigUpload"
-                },
-                "vendormod": {
-                    "$ref": "#/definitions/WpwPluginConfigVendorMod"
-                }
+        "WpwBuildOptionsExportKeyInternal": {
+            "$id": "#/WpwBuildOptionsExportKeyInternal",
+            "oneOf": [{
+                "const": "entry"
             },
-            "dependencies": {
-                "tsbundle": {
-                    "allOf": [
-                    {
-                        "if": {
-                            "properties": {
-                                "tsbundle": { 
-                                    "const": true
-                                }
-                            }
-                        },
-                        "then": { 
-                            "anyOf": [
-                            {
-                                "properties": {
-                                    "dts": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": {
-                                        "const": true
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "types": {
-                                        "const": true
-                                    }
-                                }
-                            }]
-                        }
-                    }]
-                }
-            }
+            {
+                "const": "output"
+            },
+            {
+                "const": "plugins"
+            },
+            {
+                "const": "resolve"
+            },
+            {
+                "const": "rules"
+            }]
         },
         "WpwBuildOptionsPluginKey": {
             "$id": "#/WpwBuildOptionsPluginKey",
@@ -838,9 +606,6 @@
                 "const": "testsuite"
             },
             {
-                "const": "tsbundle"
-            },
-            {
                 "const": "tscheck"
             },
             {
@@ -853,35 +618,28 @@
                 "const": "vendormod"
             }]
         },
+        "WpwBuildOptionsPluginKeyInternal": {
+            "$id": "#/WpwBuildOptionsPluginKeyInternal",
+            "oneOf": [{
+                "const": "tsbundle"
+            },
+            {
+                "const": "environment"
+            },
+            {
+                "const": "html"
+            },
+            {
+                "const": "tsc"
+            },
+            {
+                "const": "wait"
+            }]
+        },
         "WpwBuildOptionsPluginKeyReadOnly": {
             "$id": "#/WpwBuildOptionsPluginKeyReadOnly",
             "$ref": "#/definitions/WpwBuildOptionsPluginKey",
             "readOnly": true
-        },
-        "WpwBuildOptionsPluginProperties": {
-            "$id": "#/WpwBuildOptionsPluginProperties",
-            "propertyNames": {
-                "$ref": "#/definitions/WpwBuildOptionsPluginKey"
-            }
-        },
-        "WpwBuildOptionsTesting1": {
-            "$id": "#/WpwBuildOptionsTesting1",
-            "anyOf": [
-                {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
-                {"$ref": "#/definitions/WpwBuildOptionsExports"},
-                {"$ref": "#/definitions/WpwBuildOptionsCustom"},
-                {"$ref": "#/definitions/WpwBuildOptionsPluginProperties"},
-                {"$ref": "#/definitions/WpwBuildOptionsExportProperties"},
-                {"$ref": "#/definitions/WpwBuildOptionsCustomProperties"}
-            ]
-        },
-        "WpwBuildOptionsTesting2": {
-            "$id": "#/WpwBuildOptionsTesting2",
-            "properties": {
-                "plugins": {"$ref": "#/definitions/WpwBuildOptionsPlugins"},
-                "exports": {"$ref": "#/definitions/WpwBuildOptionsExports"},
-                "custom": {"$ref": "#/definitions/WpwBuildOptionsCustom"}
-            }
         },
         "WpwBuildType": {
             "$id": "#/WpwBuildType",
@@ -1104,67 +862,127 @@
             ],
             "properties": {
                 "author": {
-                    "type": [
-                        "string", "object"
-                    ],
-                    "oneOf": [
-                        {
-                            "type": "string",
-                            "minLength": 3,
-                            "maxLength": 30,
-                            "pattern": "^[\\W\\w\\.\\- \\@]+$"
-                        }, 
-                        {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "required": [
-                                "name"
-                            ],
-                            "properties":
-                            {
-                                "name": {
-                                    "type": "string",
-                                    "minLength": 3,
-                                    "maxLength": 30,
-                                    "pattern": "^[\\W\\w\\.\\- \\@]+$"
-                                },
-                                "email": {
-                                    "type": "string",
-                                    "minLength": 6,
-                                    "maxLength": 50,
-                                    "pattern": "^[\\w\\.\\-\\@]+$"
-                                }
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/WpwPackageJsonAuthor"
                 },
                 "description": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500
                 },
                 "displayName": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 100
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FileOrDirectoryPath"
+                    }
                 },
                 "main": {
-                    "type": "string"
+                    "$ref": "#/definitions/FilePath"
                 },
                 "module": {
-                    "type": "string"
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60
                 },
                 "publisher": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 60
+                },
+                "repository": {
+                    "$ref": "#/definitions/WpwPackageJsonRepository"
                 },
                 "scopedName": {
                     "$ref": "#/definitions/WpwPackageJsonScopedName"
                 },
+                "scripts": {
+                    "$ref": "#/definitions/WpwPackageJsonScripts"
+                },
+                "types": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "typescript": {
+                    "$ref": "#/definitions/WpwPackageJsonTypescript"
+                },
                 "version": {
-                    "type": "string"
+                    "$ref": "#/definitions/VersionString"
                 }
             }
         },
+        "WpwPackageJsonAuthor": {
+            "$id": "#/WpwPackageJsonAuthor",
+            "oneOf": [{
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 30,
+                "pattern": "^[\\W\\w\\.\\- \\@]+$"
+            }, 
+            {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "name"
+                ],
+                "properties":
+                {
+                    "name": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 30,
+                        "pattern": "^[\\W\\w\\.\\- \\@]+$"
+                    },
+                    "email": {
+                        "type": "string",
+                        "minLength": 6,
+                        "maxLength": 50,
+                        "pattern": "^[\\w\\.\\-\\@]+$"
+                    }
+                }}
+            ]
+        },
+        "WpwPackageJsonRepository": {
+            "$id": "#/WpwPackageJsonRepository",
+            "oneOf": [{
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 100,
+                "pattern": "^[\\w\\.\\-@/:]+$"
+            }, 
+            {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "type", "url"
+                ],
+                "properties":
+                {
+                    "type": {
+                        "oneOf": [{
+                            "const": "cvs"
+                        },{
+                            "const": "git"
+                        },{
+                            "const": "svn"
+                        }]
+                    },
+                    "url": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 100,
+                        "pattern": "^[\\w\\.\\-@/:&]+$"
+                    }
+                }
+            }]
+        },
         "WpwPackageJsonScopedName": {
+            "$id": "#/WpwPackageJsonScopedName",
             "type": "object",
             "readOnly": true,
             "additionalProperties": false,
@@ -1185,6 +1003,31 @@
             },
             "required": [
                 "name"
+            ]
+        },
+        "WpwPackageJsonScripts": {
+            "$id": "#/WpwPackageJsonScripts",
+            "type": "object",
+            "additionalProperties": true,
+            "patternProperties": {
+                "[\\w_\\-/\\.:|@]+": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 250
+                }
+            }
+        },
+        "WpwPackageJsonTypescript": {
+            "$id": "#/WpwPackageJsonTypescript",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "definition": {
+                    "$ref": "#/definitions/FilePath"
+                }
+            },
+            "required": [
+                "definition"
             ]
         },
         "WpwRcPaths": {
@@ -1785,19 +1628,41 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "bundle": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
                 "mode": {
                     "type": "string",
                     "default": "entry",
-                    "enum": [
-                        "module", "plugin"
-                    ]
+                    "oneOf": [{
+                        "const": "module",
+                        "description": "perform 'types' build as s standard module build that emits only the dts files"
+                    },
+                    {
+                        "const": "plugin",
+                        "description": "perform 'types' build using built in dts plugin"
+                    }]
                 },
                 "entry": {
                     "type": "string",
                     "default": "main",
-                    "enum": [
-                        "main", "index"
-                    ]
+                    "oneOf": [{
+                        "$ref": "#/definitions/WpwWebpackEntryValue"
+                    },
+                    {
+                        "oneOf": [{
+                            "const": "config",
+                            "description": "use the first file listed in the ts/jsconfig file's `include` array as the entry point"
+                        },
+                        {
+                            "const": "main",
+                            "description": "use the main build's entry point"
+                        },
+                        {
+                            "const": "index",
+                            "description": "use the index file in the defined 'types' build source directory as the entry point"
+                        }]
+                    }]
                 }
             },
             "examples": [{
@@ -1959,9 +1824,25 @@
             }
         },
         "WpwPluginConfigWaitEvent": {
-            "enum": [
-                "done", "start"
-            ]
+            "default": "afterEmit",
+            "oneOf": [{
+                "const": "start"
+            },
+            {
+                "const": "beforeCompile"
+            },
+            {
+                "const": "afterCompile"
+            },
+            {
+                "const": "emit"
+            },
+            {
+                "const": "afterEmit"
+            },
+            {
+                "const": "done"
+            }]
         },
         "WpwPluginConfigWait": {
             "$id": "#/WpwPluginConfigWait",
@@ -1974,7 +1855,7 @@
                 "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/WpwPluginConfigWaitDef"
+                        "$ref": "#/definitions/WpwPluginConfigWaitItem"
                     }
                 }
             },
@@ -1997,8 +1878,8 @@
                 }]
             }]
         },
-        "WpwPluginConfigWaitDef": {
-            "$id": "#/WpwPluginConfigWaitDef",
+        "WpwPluginConfigWaitItem": {
+            "$id": "#/WpwPluginConfigWaitItem",
             "type": "object",
             "additionalProperties": false,
             "required": [
@@ -2137,11 +2018,14 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "type": {      
-                    "$ref": "#/definitions/WpwSourceCodeType"
-                },
                 "config": {
                     "$ref": "#/definitions/WpwSourceCodeConfig"
+                },
+                "ext": {
+                    "$ref": "#/definitions/WpwSourceCodeExtension"
+                },
+                "type": {      
+                    "$ref": "#/definitions/WpwSourceCodeType"
                 }
             },
             "required": [
@@ -2441,14 +2325,23 @@
                 "ES5", "ES6", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ESNEXT"
             ]
         },
+        "WpwSourceCodeExtension": {
+            "$id": "#/WpwSourceCodeExtension",
+            "readOnly": true,
+            "oneOf": [{
+                "const": "js"
+            },{
+                "const": "ts"
+            }]
+        },
         "WpwSourceCodeType": {
             "$id": "#/WpwSourceCodeType",
-            "type": "string",
             "default": "typescript",
-            "enum": [
-                "javascript",
-                "typescript"
-            ]
+            "oneOf": [{
+                "const": "javascript"
+            },{
+                "const": "typescript"
+            }]
         },
         "WpwVsCode": {
             "$id": "#/WpwVsCode",

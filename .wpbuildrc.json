@@ -9,8 +9,7 @@
         },
         "options": {
             "banner": {
-                "enabled": true,
-                "text": "Copyright 2023 [...]"
+                "enabled": true
             },
             "licensefiles": {
                 "enabled": true
@@ -32,12 +31,10 @@
             "tscheck": {
                 "enabled": true
             },
-            "tsbundle": {
-                "enabled": true
-            },
             "types": {
                 "mode": "module",
-                "entry": "index"
+                "entry": "index",
+                "bundle": true
             }
         },
         "paths": {
