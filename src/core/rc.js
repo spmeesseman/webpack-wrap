@@ -48,7 +48,7 @@ class WpwRc
     global;
     /** @type {typedefs.WpwLog} */
     log;
-    /** @type {WpBuildConsoleLogger} */
+    /** @type {WpBuildConsoleLogger} @private */
     logger;
     /**
      * Top level mode passed on command line or calcualted using build definitions Note that the mode for
@@ -222,7 +222,7 @@ class WpwRc
     /**
      * Base entry function to initialize build configurations and provide the webpack
      * configuration export(s) to webpack.config.js.
-     * @see ample {@link file:///./../examples/webpack.config.js swebpack.config.js}
+     * @see example {@link file:///./../examples/webpack.config.js}
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
      * @returns {typedefs.WpwWebpackConfig[]} arge
@@ -242,7 +242,7 @@ class WpwRc
                     const dependsOnTypes = (isObject(a.build.entry) && a.build.entry.dependOn === "types");
                     if (!rc.isSingleBuild || dependsOnTypes)
                     {
-                        const waitConfig = WpwPlugin.getOptionsConfig("wait", a.build.options);
+                        const waitConfig = WpwPlugin.getOptionsConfig("wait", a);
                         if (asArray(waitConfig.items).find(t => t.target === "types"))
                         {
                             rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
@@ -346,7 +346,7 @@ class WpwRc
 
         this.builds.forEach((build) =>
         {
-            _log(build, "validate and initialize configuration for");
+            _log(build, "validate and initialize configuration for ");
             this.initializeBaseRc(build);
             this.resolvePaths(build);
             this.configureSourceCode(build);
@@ -368,7 +368,12 @@ class WpwRc
 	 * @private
 	 * @param {typedefs.WpwBuild} build
 	 */
-    configureSourceCode = (build) => this.disposables.push(new WpwSourceCode(build, this));
+    configureSourceCode = (build) =>
+    {
+        const buildSourceConfig = merge({}, build.source);
+        build.source = new WpwSourceCode(buildSourceConfig, build, this.logger);
+        this.disposables.push(/** @type {WpwSourceCode} */(build.source));
+    };
 
 
     /**

@@ -12,11 +12,12 @@
  *//** */
 
 const { existsSync } = require("fs");
+const WpwSourceCode = require("./ts");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage } = require("../utils");
+const { apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwRegex } = require("../utils");
 
 
 /**
@@ -51,7 +52,7 @@ class WpBuildApp
     mode;
     /** @type {typedefs.WpwRc} @private */
     rc;
-    /** @type {typedefs.WpwSourceCode} */
+    /** @type {WpwSourceCode} */
     source;
     /** @type {typedefs.WebpackTarget} */
     target;
@@ -136,10 +137,13 @@ class WpBuildApp
     {
         // let m;
         const se = new Error();
-        Error.captureStackTrace(se, this.addMessage);
+        Error.captureStackTrace(se); // , this);
+        const lines = se.stack?.split("\n") || [],
+              file = lines[2] || "unknown",
+              method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1];
 console.log(se.stack?.split("\n").join(" | "));
-        const file = se.stack?.split("\n")[2] || "unknown";
 console.log("file: " + file);
+console.log("method: " + method);
         // if (isWpwMessageProp(msg))
         // {
         //     m = WpBuildError.get(msg, "n/a");
@@ -181,6 +185,7 @@ console.log("file: " + file);
 	applyAppRc = () =>
 	{
         const b = this.build;
+        this.source = b.source;
 		apply(this,
 		{
 			global: this.rc.global,
@@ -192,7 +197,6 @@ console.log("file: " + file);
             mode: b.mode || this.rc.mode,
             paths: b.paths,
             target: b.target,
-            source: b.source,
             vscode: b.vscode
 		});
 	};

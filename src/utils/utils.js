@@ -468,9 +468,9 @@ const isWpwMessageProp = (v) => !!v && WpwMessageProps.includes(v);
  */
 let WpwMessage;
 ((WpwMessage) => {
-    WpwMessage["WPW650"] = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled";
-    WpwMessage["WPW899"] = "an unknown error has occurred";
-    WpwMessage["WPW050"] = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false";
+    WpwMessage.WPW650 = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled";
+    WpwMessage.WPW899 = "an unknown error has occurred";
+    WpwMessage.WPW050 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false";
 // @ts-ignore
 })(WpwMessage = module.exports.WpwMessage || (module.exports.WpwMessage = {}));
 
@@ -534,7 +534,7 @@ class WpBuildError extends WebpackError
      * @returns {WpBuildError}
      */
     static getErrorMissing = (property, file, wpc, detail) =>
-        this.get(`Could not locate wp-wrap resource '${property}'`, file, wpc, detail);
+        this.get(`Could not locate wpw resource '${property}'`, file, wpc, detail);
 
 
     /**
@@ -545,7 +545,18 @@ class WpBuildError extends WebpackError
      * @returns {WpBuildError}
      */
     static getErrorProperty = (property, file, wpc, detail) =>
-        this.get(`Invalid build configuration - property '${property}', file, wpc, shortDesc`, file, wpc, detail);
+        this.get(`Invalid wpw configuration @ property '${property}'`, file, wpc, detail);
+
+
+    /**
+     * @param {string} fnName
+     * @param {string} file
+     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
+     * @param {string | undefined | null} [detail]
+     * @returns {WpBuildError}
+     */
+    static getAbstractFunction = (fnName, file, wpc, detail) =>
+        this.get(`abstract method '${fnName}' must be overridden`, file, wpc, detail);
 
 }
 

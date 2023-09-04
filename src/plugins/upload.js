@@ -15,11 +15,11 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const { WpwRegex } = require("../utils");
 const { existsSync } = require("fs");
 const WpBuildApp = require("../core/app");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
-const { RegexTestsChunk } = require("../utils");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 
 /** @typedef {import("../types").WebpackStats} WebpackStats */
@@ -116,7 +116,7 @@ class WpBuildUploadPlugin extends WpwPlugin
             await mkdir(toUploadPath);
         }
 
-        for (const chunk of Array.from(compilation.chunks).filter(c => c.canBeInitial() && c.name && !RegexTestsChunk.test(c.name)))
+        for (const chunk of Array.from(compilation.chunks).filter(c => c.canBeInitial() && c.name && !WpwRegex.TestsChunk.test(c.name)))
         {
             for (const file of Array.from(chunk.files))
             {
@@ -230,7 +230,7 @@ class WpBuildUploadPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => WpwPlugin.getOptionsConfig("upload", app.build.options).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (app) => WpwPlugin.getOptionsConfig("upload", app).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
 
 
 module.exports = upload;

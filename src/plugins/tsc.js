@@ -188,15 +188,17 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 		// 	"npx", "babel", tsConfig, "--out-dir", outputDir, "--extensions", ".ts",
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
-		const logger = this.app.logger;
-		const relativeOutputPath = relativePath(this.app.build.paths.base, sourceCodeConfig.path);
+		const logger = this.app.logger,
+			  relativeOutputPath = relativePath(this.app.build.paths.base, sourceCodeConfig.path);
+console.log(JSON.stringify(sourceCodeConfig.options.compilerOptions))
 		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
-		logger.write(`   execute typescript build @ italic(${sourceCodeConfig.path})`, 1);
+		logger.write(`   execute tsc command using config file @ [${sourceCodeConfig.path}]`, 1);
+		logger.write("      command: " + command.slice(4), 2);
 
 		let code = await this.exec(command, "tsc");
 		if (code !== 0)
 		{
-			this.compilation.errors.push(new WebpackError("typescript build failed for " + sourceCodeConfig.path));
+			this.handleError("tsc command failed", "plugins/tsc.js", "using config file @ " + sourceCodeConfig.path);
 			return;
 		}
 		//
@@ -206,7 +208,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 			await access(outputDir);
 		}
 		catch (e) {
-			this.handleError(new WebpackError("typescript build failed for " + sourceCodeConfig.path), "output directory doesn't exist");
+			this.handleError("tsc command failed", "plugins/tsc.js", "output directory doesn't exist");
 			return;
 		}
 		//
@@ -220,7 +222,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 			code = await this.exec(command, "typescript path aliasing");
 			if (code !== 0)
 			{
-				this.compilation.errors.push(new WebpackError("typescript path aliasing failed for " + sourceCodeConfig.path));
+				this.handleError("tsc command failed", "plugins/tsc.js", "path aliasing faile");
 				return;
 			}
 		}
@@ -231,9 +233,9 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 		for (const filePath of files)
 		{
 			// let data, source, hash, newHash, cacheEntry, persistedCache;
-			// const filePathRel = relative(this.compiler.outputPath, filePath);
-
-		// 	logger.value("   process test suite output file", filePathRel, 3);
+			const filePathRel = relative(outputDir, filePath);
+logger.value("   process types output file", filePathRel, 1);
+			logger.value("   process types output file", filePathRel, 4);
 		// 	logger.write("      check compilation cache for snapshot", 4);
 		// 	try {
 		// 		persistedCache = this.cache.get();
@@ -323,7 +325,10 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 		// 	javascriptModule: false,
 		// 	types: true
 		// });
+
+		// logger.value("      add to compilation build dependencies", filePathRel, 5);
 		// this.compilation.buildDependencies.add(filePathRel);
+		logger.write("      add to compilation file dependencies", 5);
 		this.compilation.fileDependencies.add(filePath);
 		// this.compilation.compilationDependencies.add();this.compilation.
 		// this.compilation.contextDependencies.add();
@@ -353,7 +358,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 		// 	}
 		}
 
-		logger.write(`   finished execution of typescript build @ italic(${sourceCodeConfig.path})`, 3);
+		logger.write("   finished execution of tsc command", 3);
 	};
 
 }

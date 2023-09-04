@@ -30,17 +30,12 @@ const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isFunct
  */
 class WpwRulesExport extends WpwWebpackExport
 {
-	/** @type {typedefs.WpwSourceCodeConfig} @private */
-	sourceConfig;
-
-
-    /**
+	/**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
 		super(options);
-		this.sourceConfig = merge({}, this.app.build.source.config);
 		if (isJsTsConfigPath(this.sourceConfig.path)) {
 			this.app.logger.value("   use js/ts config file", this.sourceConfig.path, 2);
 		}
@@ -48,12 +43,41 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+     */
+	static build = (app) => { const e = new this({ app }); e.build(); return e; };
+
+
+	/**
+	 * @override
+     * @protected
+	 * @throws {WpBuildError}
+	 */
+	build = () =>
+	{
+		const app = this.app;
+		app.logger.start("create rules", 2);
+		if (isFunction(this[app.build.type]))
+		{
+			app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+			this[app.build.type]();
+		}
+		else {
+			throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc);
+		}
+		app.logger.success("create rules", 2);
+	};
+
+
+	/**
+	 * @private
 	 * @throws {WpBuildError}
 	 */
 	jsdoc = () =>
 	{
 		const app = this.app,
-			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
+			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app);
 		if (jsdocOptions.type === "entry")
 		{
 			const exclude = getExcludes(app, this.sourceConfig),
@@ -91,7 +115,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @throws {WpBuildError}
+	 * @private
 	 */
 	module = () =>
 	{
@@ -154,7 +178,7 @@ class WpwRulesExport extends WpwWebpackExport
 						noEmit: false // tsCheckerEnabled
 					}
 				});
-				const declarationDir = app.build.source.config.options.compilerOptions.declarationsDir ||
+				const declarationDir = app.build.source.config.options.compilerOptions.declarationDir ||
 									   app.getDistPath({ build: "types" });
 				if (declarationDir) {
 					loader.options.compilerOptions.declarationDir = declarationDir;
@@ -176,7 +200,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @throws {WpBuildError}
+	 * @private
 	 */
 	tests = () =>
 	{
@@ -218,15 +242,16 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+	 * @private
 	 * @throws {WpBuildError}
 	 */
 	types = () =>
 	{
 		const app = this.app,
-			  typesConfig = WpwBase.getOptionsConfig("types", app.build.options),
+			  typesConfig = WpwBase.getOptionsConfig("types", app),
 			  typesSrcPath= app.getSrcPath({ build: app.build.name });
 
-		if (typesConfig && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
+		if (typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
 		{
 			app.wpc.module.rules.push(
 			{
@@ -244,7 +269,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @throws {WpBuildError}
+	 * @private
 	 */
 	webapp = () =>
 	{
@@ -440,28 +465,4 @@ class WpwRulesExport extends WpwWebpackExport
 };
 
 
-/**
- * @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
- * @throws {WpBuildError}
- */
-const rules = (app) =>
-{
-	app.logger.start("create rules", 2);
-
-	const rulesBuilder = new WpwRulesExport({app});
-
-	if (isFunction(rulesBuilder[app.build.type]))
-	{
-		app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		rulesBuilder[app.build.type]();
-	}
-	else {
-		throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc);
-	}
-
-	app.logger.success("create rules", 2);
-};
-
-
-module.exports = rules;
+module.exports = WpwRulesExport.build;

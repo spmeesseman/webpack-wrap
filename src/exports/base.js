@@ -1,8 +1,8 @@
-
+// @ts-check
 
 const WpwBase = require("../core/base");
+const { WpBuildError } = require("../utils");
 const typedefs = require("../types/typedefs");
-
 
 /**
  * @abstract
@@ -14,12 +14,18 @@ class WpwWebpackExport extends WpwBase
     /**
      * @param {typedefs.WpwExportOptions} options Plugin options to be applied
      */
-	constructor(options)
+	constructor(options) { super(options); }
+
+    /**
+     * @abstract
+     * @protected
+	 * @returns {void}
+	 * @throws {typedefs.WpBuildError}
+     */
+    build = () =>
     {
-        super(options);
-    }
-
+        throw WpBuildError.getAbstractFunction("build", "exports/base.js", this.wpc, `name[${this.name}]`);
+    };
 }
-
 
 module.exports = WpwWebpackExport;

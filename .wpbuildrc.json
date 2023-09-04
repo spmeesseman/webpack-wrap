@@ -28,9 +28,6 @@
             }
         },
         "options": {
-            "tscheck": {
-                "enabled": true
-            },
             "types": {
                 "mode": "module",
                 "entry": "./src/core/rc.js",

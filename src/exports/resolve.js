@@ -11,6 +11,7 @@
 const { join } = require("path");
 const { apply } = require("../utils");
 const WpBuildApp = require("../core/app");
+const { stat, readFile } = require("fs");
 const resolvePath = require("path").resolve;
 
 
@@ -32,7 +33,15 @@ const resolve = (app) =>
 			modules: [ resolvePath(__dirname, "../loaders"), wpw_node_modules, "node_modules" ],
 			alias: {
 				"@babel": join(wpw_node_modules, "@babel")
-			}
+			} // ,
+			// fileSystem: {
+			// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+			// 	readlink: (arg0, arg1) => arg1(undefined, ""),
+			// 	// @ts-ignore
+			// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+			// 	// @ts-ignore
+			// 	stat: (arg1, arg2) => stat(arg1, () => arg2(undefined, { isFile: () => true }))
+			// }
 		 }
 	});
 
@@ -43,7 +52,24 @@ const resolve = (app) =>
 		{
 			modules: [ wpw_node_modules, "node_modules" ],
 			mainFields: app.isWeb ? [ "web", "module", "main" ] : [ "module", "main" ],
-			fallback: app.isWeb ? { path: require.resolve("path-browserify"), os: require.resolve("os-browserify/browser") } : undefined
+			fallback: app.isWeb ? { path: require.resolve("path-browserify"), os: require.resolve("os-browserify/browser") } : undefined // ,
+			// fileSystem: {
+			// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+			// 	readlink: (arg0, arg1) => arg1(undefined, ""),
+			// 	// @ts-ignore
+			// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+			// 	// @ts-ignore
+			// 	stat: (arg1, arg2) => stat(arg1, () => arg2(undefined, { isFile: () => true }))
+			// } // ,
+			// resolver: {
+			// 	fileSystem: {
+			// 		readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+			// 		readlink: (arg0, arg1) => arg1(undefined, ""),
+			// 		// @ts-ignore
+			// 		readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+			// 		stat: (arg1, arg2) => stat(arg1, arg2)
+			// 	}
+			// }
 		});
 	}
 	else {

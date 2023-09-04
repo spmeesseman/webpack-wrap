@@ -22,7 +22,6 @@
 /** @typedef {import("./rc").WpwFileName} WpwFileName */
 /** @typedef {import("./rc").WpwFilePath} WpwFilePath */
 /** @typedef {import("./rc").WpwLogColor} WpwLogColor */
-/** @typedef {import("./rc").WpwRcSchema} WpwRcSchema */
 /** @typedef {import("./rc").IWpwRcSchema} IWpwRcSchema */
 /** @typedef {import("./rc").TypeWpwBuild} TypeWpwBuild */
 /** @typedef {import("./rc").WpwBuildType} WpwBuildType */
@@ -30,7 +29,7 @@
 /** @typedef {import("./rc").TypeWpwLogPad} TypeWpwLogPad */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
 /** @typedef {import("./rc").WpwRcPathsKey} WpwRcPathsKey */
-/** @typedef {import("./rc").WpwSourceCode} WpwSourceCode */
+/** @typedef {import("./rc").IWpwSourceCode} IWpwSourceCode */
 /** @typedef {import("./rc").TypeWpwRcPaths} TypeWpwRcPaths */
 /** @typedef {import("./rc").WpwLogColoring} WpwLogColoring */
 /** @typedef {import("./rc").WpwPackageJson} WpwPackageJson */
@@ -41,11 +40,9 @@
 /** @typedef {import("./rc").WpwWebpackEntry} WpwWebpackEntry */
 /** @typedef {import("./constants").WpwLogColors} WpwLogColors */
 /** @typedef {import("./rc").WpwDirectoryPath} WpwDirectoryPath */
-/** @typedef {import("./rc").WpwSourceCodeKey} WpwSourceCodeKey */
 /** @typedef {import("./rc").WpwVersionString} WpwVersionString */
 /** @typedef {import("./constants").isWpwLogColor} isWpwLogColor */
 /** @typedef {import("./constants").WpwBuildTypes} WpwBuildTypes */
-/** @typedef {import("./rc").TypeWpwSourceCode} TypeWpwSourceCode */
 /** @typedef {import("./rc").WpwPackageJsonKey} WpwPackageJsonKey */
 /** @typedef {import("./rc").WpwSourceCodeType} WpwSourceCodeType */
 /** @typedef {import("./constants").isWpwBuildType} isWpwBuildType */
@@ -176,9 +173,10 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/app")} WpBuildApp */
+/** @typedef {import("../core/ts")} WpwSourceCode */
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
-/** @typedef {import("./app").IWpBuildAppSchema} IWpBuildAppSchema */
+/** @typedef {import("./app").IWpwSourceCodeApp} IWpwSourceCodeApp */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
 /** @typedef {import("./app").WpwBuildModeConfigBase} WpwBuildModeConfigBase */
 /** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
@@ -221,6 +219,10 @@
  * @returns {any}
  */
 
+/**
+ * @template {WpwBuildOptionsKey} T
+ * @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsType<T>
+ */
 
 /***********************************************************************************************************************
  * LOGGER.D.TS
@@ -265,6 +267,40 @@
 
 
 /***********************************************************************************************************************
+ * SCHEMA
+ ***********************************************************************************************************************/
+
+/** @typedef {typeof import("schema-utils")} SchemaUtils */
+/** @typedef {import("json-schema").JSONSchema4} JsonSchema4 */
+/** @typedef {import("json-schema").JSONSchema6} JsonSchema6 */
+/** @typedef {import("json-schema").JSONSchema7} JsonSchema7 */
+/** @typedef {Parameters<SchemaUtils["validate"]>[0]} Schema*/
+/** @typedef {import("json-schema").JSONSchema4Object} JsonSchema4Object */
+/** @typedef {import("json-schema").JSONSchema6Object} JsonSchema6Object */
+/** @typedef {import("json-schema").JSONSchema7Object} JsonSchema7Object */
+/** @typedef {import("json-schema").JSONSchema4} JsonSchema4Definition */
+/** @typedef {import("json-schema").JSONSchema6Definition} JsonSchema6Definition */
+/** @typedef {import("json-schema").JSONSchema7Definition} JsonSchema7Definition */
+/** @typedef {JsonSchema4Object | JsonSchema6Object | JsonSchema7Object} SchemaObject */
+/** @typedef {JsonSchema4Definition | JsonSchema6Definition | JsonSchema7Definition} SchemaDefinition */
+
+
+/***********************************************************************************************************************
+ * TYPESCRIPT
+ ***********************************************************************************************************************/
+
+/** @typedef {import("typescript")} TypeScript */
+/** @typedef {import("typescript").Program} TypeScriptProgram */
+/** @typedef {import("typescript").SourceFile} TypeScriptSourceFile */
+/** @typedef {import("typescript").CompilerHost} TypeScriptCompilerHost */
+/** @typedef {import("typescript").CompilerOptions} TypeScriptCompilerOptions */
+/** @typedef {import("typescript").CancellationToken} TypeScriptCancellationToken */
+/** @typedef {import("typescript").WriteFileCallback} TypeScriptWriteFileCallback */
+/** @typedef {import("typescript").CustomTransformers} TypeScriptCustomTransformers */
+/** @typedef {import("typescript").ModuleResolutionKind} TypeScriptModuleResolutionKind*/
+
+
+/***********************************************************************************************************************
  * WEBPACK
  ***********************************************************************************************************************/
 
@@ -293,6 +329,8 @@
 /** @typedef {import("./webpack").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("./webpack").WebpackCompilationHookName} WebpackCompilationHookName */
 /** @typedef {import("./webpack").WebpackStatsPrinterContext} WebpackStatsPrinterContext */
+/** @typedef {import("./webpack").WebpackNormalModuleFactory} WebpackNormalModuleFactory */
+/** @typedef {import("./webpack").WebpackContextModuleFactory} WebpackContextModuleFactory */
 /** @typedef {import("./webpack").WebpackCompilationHookStage} WebpackCompilationHookStage */
 /** @typedef {import("./webpack").WebpackCompilerSyncHookName} WebpackCompilerSyncHookName */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompiler>} WebpackSyncCompilerHook */

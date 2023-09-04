@@ -91,7 +91,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 			}
 			writeFileSync(cleanPlugin, content);
 		}
-	}
+	};
 
 
 	/**
@@ -171,7 +171,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildVendorModPlugin | undefined}
  */
-const vendormod = (app) => WpwPlugin.getOptionsConfig("vendormod", app.build.options).enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
+const vendormod = (app) => WpwPlugin.getOptionsConfig("vendormod", app).enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
 
 
 module.exports = vendormod;

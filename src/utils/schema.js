@@ -10,12 +10,13 @@
 
 const JSON5 = require("json5");
 const WpwRegex = require("./regex");
-const { resolve, join } = require("path");
 const { readFileSync } = require("fs");
-const { validate } = require("schema-utils");
+const { resolve, join } = require("path");
 const { WpBuildError } = require("./utils");
+const { validate } = require("schema-utils");
+const typedefs = require("../types/typedefs");
+const { isBoolean, isString, isObject } = require("./type");
 
-/** @typedef {Parameters<validate>[0]} Schema*/
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
@@ -34,7 +35,7 @@ const validateSchema = (options, logger, subschema) =>
     l.write("validate schema `" + l.withColor(schemaFile, l.colors.italic) + "`", 1);
     try {
         const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
-              /** @type {Schema} */
+              /** @type {typedefs.Schema} */
               schema = schemas[schemaKey] || JSON5.parse(readFileSync(join(SchemaDirectory, schemaFile), "utf8"));
         validate(schema, options, { name: schemaKey, baseDataPath: subschema });
         schemas[schemaKey] = schema;
@@ -51,10 +52,44 @@ const validateSchema = (options, logger, subschema) =>
 const getSchema = (/** @type {string | undefined} */ schemaKey) => schemas[`Wpw${schemaKey || ""}`] || {};
 
 
+/**
+ * @private
+ * @param {boolean | typedefs.Schema} schemaObj
+ * @param {any} definitions
+ * @returns {typedefs.SchemaObject}
+ */
+const getSchemaDefinition = (schemaObj, definitions) =>
+{
+    let property;
+    const _refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", ""),
+          emptySchemaObject = { type: "object", properties: { enabled: { const: true }}};
+
+    if (!isBoolean(schemaObj))
+    {
+        property = schemaObj;
+        while (isString(property.$ref))
+        {
+            const refProperty = definitions[_refName(property.$ref)];
+            if (isBoolean(refProperty) || !isObject(refProperty, true)) {
+                property = emptySchemaObject;
+            }
+            else {
+                property = refProperty.properties || { type: "object", properties: {}};
+            }
+        }
+    }
+    else {
+        property = emptySchemaObject;
+    }
+
+    return property;
+};
+
+
 const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
     schemas[`Wpw${schemaKey || ""}`].$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
 
 
 module.exports = {
-    getSchema, getSchemaVersion, validateSchema, SchemaDirectory
+    getSchema, getSchemaDefinition, getSchemaVersion, validateSchema, SchemaDirectory
 };

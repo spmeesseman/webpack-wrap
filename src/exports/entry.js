@@ -17,28 +17,101 @@ const { glob } = require("glob");
 const { basename } = require("path");
 const WpwBase = require("../core/base");
 const WpBuildApp = require("../core/app");
+const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const {
-	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir
+	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
 } = require("../utils");
 
 
-const globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
-
-
-const builds =
+/**
+ * @extends {WpwWebpackExport}
+ */
+class WpwEntryExport extends WpwWebpackExport
 {
+	/** @type {string} @private */
+	globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
+
+
+    /**
+     * @param {typedefs.WpwPluginOptions} options
+     */
+	constructor(options) { super(options); }
+
+
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-     * @throws {WpBuildError}
+     * @override
+     * @param {typedefs.WpBuildApp} app
+     */
+	static build = (app) => { const e = new this({ app }); e.build(); return e; };
+
+
+	/**
+	 * @override
+     * @protected
+	 * @throws {WpBuildError}
 	 */
-	jsdoc: (app) =>
+	build = () =>
 	{
-		const jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app.build.options);
+		const app = this.app;
+		app.logger.start("create entry points", 1);
+
+		//
+		// If the build rc defined `entry` itself, apply and we're done...
+		//
+		if (!isObjectEmpty(app.build.entry))
+		{
+			app.logger.write(`   add defined entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+			apply(app.wpc.entry, app.build.entry);
+		}
+		else if (isFunction(this[app.build.type]))
+		{
+			app.logger.write(`   create entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+			this[app.build.type]();
+		}
+		else {
+			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc);
+		}
+
+		//
+		// Validate entry pont paths
+		//
+		const result = Object.values(app.wpc.entry).every((e) =>
+		{
+			if (!e || (!isString(e) && !e.import))
+			{
+				throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "entry target is invalid");
+			}
+			const ep = isString(e) ? e : e.import;
+			if (!ep.startsWith("./"))
+			{
+				app.logger.warning(`entry target should contain a leading './' in path, found [${ep}]`, app.logger.level !== 0 ? "   " : "");
+				return false;
+			}
+			return true;
+		});
+
+		if (result) {
+			app.logger.success("create entry points", 2);
+		}
+		else {
+			app.logger.write("entry points created, but with warnings", 2, "", app.logger.icons.color.warning);
+		}
+	};
+
+
+	/**
+	 * @private
+	 * @throws {WpBuildError}
+	 */
+	jsdoc = () =>
+	{
+		const app = this.app,
+			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app);
 		if (jsdocOptions.type === "entry")
 		{
 			const mainBuild = app.getAppBuild("module"),
-				  jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+				jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			if (mainBuild && jsdocSrcPath)
 			{
 				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
@@ -50,15 +123,16 @@ const builds =
 		else {
 			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 * @private
 	 */
-	module: (app) =>
+	module = () =>
 	{
-		const srcPath = app.getSrcPath({ build: app.build.name, rel: true, ctx: true, dot: true, psx: true });
+		const app = this.app,
+			  srcPath = app.getSrcPath({ build: app.build.name, rel: true, ctx: true, dot: true, psx: true });
 		apply(app.wpc.entry,
 		{
 			[app.build.name]: {
@@ -78,35 +152,37 @@ const builds =
 				}
 			});
 		}
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 * @private
 	 * @throws {WpBuildError}
 	 */
-	tests: (app) =>
+	tests = () =>
 	{
-		const testsPath = app.getSrcPath({ build: app.build.name, stat: true });
+		const app = this.app,
+			  testsPath = app.getSrcPath({ build: app.build.name, stat: true });
 		if (testsPath)
 		{
 			apply(app.wpc.entry, {
-				...builds.testRunner(testsPath),
-				...builds.testSuite(testsPath)
+				...this.testRunner(testsPath),
+				...this.testSuite(testsPath)
 			});
 		}
-	},
+	};
 
 
 	/**
+	 * @private
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
-	testRunner: (testsPathAbs) =>
+	testRunner = (testsPathAbs) =>
 	{
 		return glob.sync(
 			"**/*.ts", {
-				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true, ignore: [ globTestSuiteFiles ]
+				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true, ignore: [ this.globTestSuiteFiles ]
 			}
 		)
 		.reduce((obj, e)=>
@@ -116,17 +192,18 @@ const builds =
 			};
 			return obj;
 		}, {});
-	},
+	};
 
 
 	/**
+	 * @private
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
-	testSuite: (testsPathAbs) =>
+	testSuite = (testsPathAbs) =>
 	{
 		return glob.sync(
-			globTestSuiteFiles, {
+			this.globTestSuiteFiles, {
 				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true
 			}
 		)
@@ -135,16 +212,17 @@ const builds =
 			obj[e.replace(".ts", "")] = { import: `./${e}`, dependOn: "runTest" };
 			return obj;
 		}, {});
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 * @private
 	 */
-	types: (app) =>
+	types = () =>
 	{
-		const build = app.build,
-			  typesConfig = WpwBase.getOptionsConfig("types", app.build.options);
+		const app = this.app,
+			  build = app.build,
+			  typesConfig = WpwBase.getOptionsConfig("types", app);
 
 		if (!typesConfig || typesConfig.mode !== "module") {
 			return;
@@ -165,18 +243,19 @@ const builds =
 		{
 			const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			apply(app.wpc.entry, {
-				index: `${typesPath}/index.ts`
+				index: `${typesPath}/index.${build.source.ext}`
 			});
 		}
-	},
+	};
 
 
 	/**
-	 * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	 * @private
 	 */
-	webapp: (app) =>
+	webapp = () =>
 	{
-		const appPath = app.getSrcPath();
+		const app = this.app,
+			  appPath = app.getSrcPath();
 		if (isDirectory(appPath))
 		{
 			apply(app.wpc.entry, createEntryObjFromDir(appPath, ".ts"));
@@ -184,113 +263,52 @@ const builds =
 		else
 		{
 			const relPath = relativePath(app.getContextPath(), appPath),
-			      chunk = basename(relPath).replace(".ts", "");
+				chunk = basename(relPath).replace(".ts", "");
 			apply(app.wpc.entry, { [ chunk ]: `./${relPath}` });
 		}
-	}
-
-};
+	};
 
 
-// /**
-//  * @function
-//  * @private
-//  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-//  * @param {string} file
-//  * @param {Partial<typedefs.EntryObject|typedefs.WpwWebpackEntry>} xOpts
-//  * @throws {WpBuildError}
-//  */
-// const addEntry = (app, file, xOpts) =>
-// {
-// 	const ext = extname(file),
-// 		  chunkName = basename(file).replace(new RegExp(`${ext}$`), "");
-//
-// 	let relPath = (!isAbsolute(file) ? file : relative(app.wpc.context, file)).replace(/\\/g, "/");
-// 	if (!relPath.startsWith("./")) {
-// 		relPath = "./" + relPath;
-// 	}
-//
-// 	apply(app.wpc.entry,
-// 	{
-// 		[chunkName]: {
-// 			import: `${relPath}/${chunkName}.${ext}`
-// 		}
-// 	});
-//
-// 	if (app.build.debug)
-// 	{
-// 		/** @type {typedefs.WpwWebpackEntryObject} */
-// 		(app.wpc.entry[chunkName]).layer = "release";
-// 		apply(app.wpc.entry,
-// 		{
-// 			[`${chunkName}.debug`]:
-// 			{
-// 				import: `${relPath}/${chunkName}.${ext}`,
-// 				layer: "debug"
-// 			}
-// 		});
-// 	}
-// };
-
-
-/**
- * Configures `webpackconfig.exports.entry`
- * @see {@link https://webpack.js.org/configuration/entry-context/}
- *
- * @function
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
- * @throws {WpBuildError}
- */
-const entry = (app) =>
-{
-	app.logger.start("create entry points", 1);
-
+	// /**
+	//  * @function
+	//  * @private
+	//  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+	//  * @param {string} file
+	//  * @param {Partial<typedefs.EntryObject|typedefs.WpwWebpackEntry>} xOpts
+	//  * @throws {WpBuildError}
+	//  */
+	// const addEntry = (app, file, xOpts) =>
+	// {
+	// 	const ext = extname(file),
+	// 		  chunkName = basename(file).replace(new RegExp(`${ext}$`), "");
 	//
-	// If the build rc defined `entry` itself, apply and we're done...
+	// 	let relPath = (!isAbsolute(file) ? file : relative(app.wpc.context, file)).replace(/\\/g, "/");
+	// 	if (!relPath.startsWith("./")) {
+	// 		relPath = "./" + relPath;
+	// 	}
 	//
-	if (!isObjectEmpty(app.build.entry))
-	{
-		app.logger.write(`   add defined entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		apply(app.wpc.entry, app.build.entry);
-	}
+	// 	apply(app.wpc.entry,
+	// 	{
+	// 		[chunkName]: {
+	// 			import: `${relPath}/${chunkName}.${ext}`
+	// 		}
+	// 	});
 	//
-	// Auto-create entry points based on build type
-	//
-	else if (builds[app.build.type])
-	{
-		app.logger.write(`   create entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-		builds[app.build.type](app);
-	}
-	//
-	// Error state
-	//
-	else { throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc); }
-
-	//
-	// Validate entry pont paths
-	//
-	const result = Object.values(app.wpc.entry).every((e) =>
-	{
-		if (!e || (!isString(e) && !e.import))
-		{
-			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "entry target is invalid");
-		}
-		const ep = isString(e) ? e : e.import;
-		if (!ep.startsWith("./"))
-		{
-			app.logger.warning(`entry target should contain a leading './' in path, found [${ep}]`, app.logger.level !== 0 ? "   " : "");
-			return false;
-		}
-		return true;
-	});
-
-	if (result) {
-		app.logger.success("create entry points", 2);
-	}
-	else {
-		app.logger.write("entry points created, but with warnings", 2, "", app.logger.icons.color.warning);
-	}
-};
+	// 	if (app.build.debug)
+	// 	{
+	// 		/** @type {typedefs.WpwWebpackEntryObject} */
+	// 		(app.wpc.entry[chunkName]).layer = "release";
+	// 		apply(app.wpc.entry,
+	// 		{
+	// 			[`${chunkName}.debug`]:
+	// 			{
+	// 				import: `${relPath}/${chunkName}.${ext}`,
+	// 				layer: "debug"
+	// 			}
+	// 		});
+	// 	}
+	// };
+}
 
 
-module.exports = entry;
+module.exports = WpwEntryExport.build;

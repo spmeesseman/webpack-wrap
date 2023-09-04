@@ -30,7 +30,7 @@
         "build-types-all": "npm run build-types-schema && npm run build-types-tsc && npm run build-types-bundle",
         "build-types-app": "npm run build-types-tsc",
 		"build-types-wp": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
-        "build-types-tsc": "tsc --declaration --emitDeclarationOnly --allowJs --checkJs --strict false --strictNullChecks false --tsBuildInfoFile ./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo -p ./.jsconfig.json && cmd /c xcopy .\\src\\types\\*.d.ts .\\src\\types\\build\\types /i /y",
+        "build-types-tsc": "tsc --declaration --emitDeclarationOnly --allowJs --strict false --strictNullChecks false --tsBuildInfoFile ./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo -p ./jsconfig.json && cmd /c xcopy .\\src\\types\\*.d.ts .\\src\\types\\build\\types /i /y",
 		"build-types-bundle": "dts-bundle --name @spmeesseman/webpack-wrap-types --baseDir src/types --main src/types/build/core/rc.d.ts --out types.d.ts --outputAsModuleFolder",
 		"build-types-schema": "npm run schema-build_types",
         "build-types-test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./types/.wpbuildrc.schema.json -o types/rc.base.tmp.d.ts",

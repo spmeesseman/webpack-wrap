@@ -508,6 +508,130 @@
                 "web": {
                     "$ref": "#/definitions/WpwPluginConfigWeb"
                 }
+            },
+            "dependencies": {
+                "devtool": {
+                    "if": {
+                        "not": {
+                            "properties": {
+                                "devtool": {
+                                    "properties": {
+                                        "enabled": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "anyOf": [{
+                            "properties": {
+                                "sourcemaps": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "sourcemaps": {
+                                    "properties": {
+                                        "enabled": {
+                                            "const": false
+                                        }
+                                    }
+                                }
+                            }
+                        }]
+                    }
+                },
+                "runtimevars": {
+                    "if": {
+                        "not": {
+                            "properties": {
+                                "runtimevars": {
+                                    "properties": {
+                                        "enabled": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "types": false
+                        }
+                    }
+                },
+                "sourcemaps": {
+                    "if": {
+                        "not": {
+                            "properties": {
+                                "sourcemaps": {
+                                    "properties": {
+                                        "enabled": false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "anyOf": [{
+                            "properties": {
+                                "devtool": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "devtool": {
+                                    "properties": {
+                                        "enabled": {
+                                            "const": false
+                                        }
+                                    }
+                                }
+                            }
+                        }]
+                    }
+                },
+                "types": {
+                    "if": {
+                        "properties": {
+                            "types": {
+                                "properties": {
+                                    "mode": {
+                                        "const": "plugin"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "tscheck": {
+                                "properties": {
+                                    "enabled": {
+                                        "const": true
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "else": {
+                        "anyOf": [{
+                            "properties": {
+                                "tscheck": {
+                                    "properties": {
+                                        "enabled": {
+                                            "const": false
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "properties": {
+                                "tscheck": false
+                            }
+                        }]
+                    }
+                }
             }
         },
         "WpwBuildOptionsExportKey": {
@@ -2164,7 +2288,7 @@
                 "declaration": {
                     "type": "boolean"
                 },
-                "declarationsDir": {
+                "declarationDir": {
                     "type": "string"
                 },
                 "declarationMap": {

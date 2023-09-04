@@ -72,7 +72,7 @@ const isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/]\.?(
 
 /**
  * @template {{}} [T=Record<string, any>]
- * @param {T | undefined} v Variable to check to see if it's an array
+ * @param {T | undefined | null} v Variable to check to see if it's an array
  * @param {boolean} [allowArray] If `true`, return true if v is an array
  * @returns {v is T}
  */

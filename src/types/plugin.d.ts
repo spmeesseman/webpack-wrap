@@ -8,10 +8,10 @@
  *
  * Handy file links:
  *
- * WEBPACK TYPES: file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
- * COMPILER  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
- * TAPABLE   : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
- * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
+ * WEBPACK TYPES  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
+ * COMPILER       : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
+ * TAPABLE        : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
+ * RC DEFAULTS    : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  *
  * @description
  *
@@ -53,7 +53,8 @@ import { IWpwBase, WpwBaseOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
-    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation, WebpackStats
+    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation,
+    WebpackStats, WebpackNormalModuleFactory
 } from "./webpack";
 
 
@@ -102,7 +103,11 @@ declare type WpwApplyCallbackCompilationParamsParam = (arg: WebpackCompilationPa
 
 declare type WpwApplyCallbackStatsParam = (arg: WebpackStats) => void | Promise<void>;
 
-declare type WpwOnApplyCallback = WpwApplyCallbackStatsParam | WpwApplyCallbackCompilationParam | WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam;
+declare type WpwApplyCallbackNormalModuleFactoryParam = (arg: WebpackNormalModuleFactory) => void | Promise<void>;
+
+declare type WpwOnApplyCallback = WpwApplyCallbackStatsParam | WpwApplyCallbackCompilationParam |
+             WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam |
+             WpwApplyCallbackNormalModuleFactoryParam;
 
 declare type WpBuildPluginTapOptions  = Record<string, WpBuildPluginTapOptionsEntry | WpBuildPluginCompilationOptionsEntry>;
 

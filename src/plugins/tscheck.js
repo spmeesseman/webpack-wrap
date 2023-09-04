@@ -117,7 +117,7 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 	/**
 	 * @private
 	 */
-	tsForkCheckerError = () => { this.logger.error("tschecker error"); }
+	tsForkCheckerError = () => { this.logger.error("tschecker error"); };
 
 
 	/**
@@ -154,13 +154,13 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 			}
 		}
 		return filesChange;
-	}
+	};
 
 
 	/**
 	 * @private
 	 */
-	tsForkCheckerWaiting = () => { this.logger.start("tsforkchecker waiting for issues"); }
+	tsForkCheckerWaiting = () => { this.logger.start("tsforkchecker waiting for issues"); };
 
 }
 

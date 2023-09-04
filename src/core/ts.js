@@ -10,62 +10,62 @@
 
 const JSON5 = require("json5");
 const { spawnSync } = require("child_process");
+const WpBuildConsoleLogger = require("../utils/console");
 const { readFileSync, existsSync, readdirSync } = require("fs");
 const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
-    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath,
-    isJsTsConfigPath, typedefs, mergeIf
+    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
+    typedefs, mergeIf, apply
 } = require("../utils");
-
-
-/** @typedef {import("typescript")} TypeScript */
-/** @typedef {import("typescript").Program} TypeScriptProgram */
-/** @typedef {import("typescript").SourceFile} TypeScriptSourceFile */
-/** @typedef {import("typescript").CompilerHost} TypeScriptCompilerHost */
-/** @typedef {import("typescript").CompilerOptions} TypeScriptCompilerOptions */
-/** @typedef {import("typescript").CancellationToken} TypeScriptCancellationToken */
-/** @typedef {import("typescript").WriteFileCallback} TypeScriptWriteFileCallback */
-/** @typedef {import("typescript").CustomTransformers} TypeScriptCustomTransformers */
-/** @typedef {import("typescript").ModuleResolutionKind} TypeScriptModuleResolutionKind*/
 
 
 /**
  * @implements {typedefs.IDisposable}
+ * @implements {typedefs.IWpwSourceCode}
+ * @implements {typedefs.IWpwSourceCodeApp}
  */
 class WpwSourceCode
 {
-    /** @type {TypeScriptCompilerHost} @private */
+    /** @type {typedefs.TypeScriptCompilerHost | undefined} @private */
     static compilerHost;
-    /** @type {TypeScriptProgram} @private */
-    program;
-    /** @type {typedefs.WpwRc}/ */
-    rc;
-    /** @type {TypeScript} @private */
-    ts;
-    /** @type {TypeScript} */
+    /** @type {typedefs.TypeScript | undefined} */
     static typescript;
+    /** @type {typedefs.WpwSourceCodeConfig} */
+    config;
+    /** @type {typedefs.WpwSourceCodeExtension} */
+    ext;
+    /** @type {WpBuildConsoleLogger} @private */
+    logger;
+    /** @type {typedefs.TypeScriptProgram | undefined} @private */
+    program;
+    /** @type {typedefs.WpwSourceCodeType} */
+    type;
 
 
     /**
+	 * @param {typedefs.IWpwSourceCode} sourceCodeOptions
 	 * @param {typedefs.WpwBuild} build
-     * @param {typedefs.WpwRc} rc
+	 * @param {WpBuildConsoleLogger} logger
      */
-    constructor(build, rc)
+    constructor(sourceCodeOptions, build, logger)
     {
-        this.rc = rc;
-        this.ts = WpwSourceCode.typescript;
-        const config = this.getJsTsConfig(build),
-              compilerOptionsCc = merge({}, build.source.config.options.compilerOptions);
-        merge(build.source.config, config);
-        merge(build.source.config.options, { compilerOptions: compilerOptionsCc });
-        build.source.ext = build.source.type === "typescript" ? "ts" : "js";
-        if (build.source.type === "typescript" || build.type === "types")
+        const compilerOptionsCc = merge({}, sourceCodeOptions.config.options?.compilerOptions);
+        apply(this, {
+            logger,
+            type: sourceCodeOptions.type,
+            ext: sourceCodeOptions.type === "typescript" ? "ts" : "js",
+            config: merge(this.getSourceCodeConfig(sourceCodeOptions.config), this.getJsTsConfig(build) || {})
+        });
+        merge(this.config.options, { compilerOptions: compilerOptionsCc });
+        if (this.type === "typescript" || build.type === "types")
         {
-            this.ts = this.ts || require(require.resolve("typescript"));
+            WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
+            this.createCompilerHost(build);
             this.configurProgram(build);
         }
     };
+
 
     dispose = () => {};
 
@@ -76,8 +76,7 @@ class WpwSourceCode
 	 */
     configurProgram = (build) =>
     {
-        WpwSourceCode.compilerHost = WpwSourceCode.compilerHost || this.createCompilerHost(build);
-        this.program = this.ts.createProgram(
+        this.program = WpwSourceCode.typescript?.createProgram(
         {
             host: WpwSourceCode.compilerHost,
             rootNames: build.source.config.options.files,
@@ -90,14 +89,13 @@ class WpwSourceCode
     /**
 	 * @private
 	 * @param {typedefs.WpwBuild} build
-     * @returns {TypeScriptCompilerHost}
      */
     createCompilerHost = (build) =>
     {
-        const baseCompilerHost = this.ts.createCompilerHost(
+        const baseCompilerHost = WpwSourceCode.typescript?.createCompilerHost(
             this.touchCompilerOptions(build.source.config.options.compilerOptions)
         );
-        return merge({}, baseCompilerHost,
+        WpwSourceCode.compilerHost = merge({}, baseCompilerHost,
         {
             realpath: resolve,
             fileExists: fileExistsSync,
@@ -109,25 +107,38 @@ class WpwSourceCode
 
 
     /**
-     * @param {TypeScriptSourceFile} [file]
-     * @param {TypeScriptWriteFileCallback} [writeFileCb]
-     * @param {TypeScriptCancellationToken} [cancellationToken]
+     * @param {typedefs.TypeScriptSourceFile} [file]
+     * @param {typedefs.TypeScriptWriteFileCallback} [writeFileCb]
+     * @param {typedefs.TypeScriptCancellationToken} [cancellationToken]
      * @param {boolean} [emitOnlyDts]
-     * @param {TypeScriptCustomTransformers} [transformers]
+     * @param {typedefs.TypeScriptCustomTransformers} [transformers]
      */
     emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
     {
-        const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
-        if (result.emittedFiles) {
-            // TODO
+        console.log("EMITTTT");
+        if (this.program)
+        {
+            console.log("EMITTTT222222222222222");
+            const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
+            if (result.emittedFiles) {
+                // TODO
+            console.log("3333333333333333333");
+            }
+            else if (result.emitSkipped) {
+                // TODO
+            console.log("444444444444444444444444");
+            }
+            if (result.diagnostics) {
+                // TODO
+            console.log("55555555555555555555555");
+            result.diagnostics.forEach((d) =>
+            {
+                console.log("------------" + d.category);
+                console.log(d.messageText);
+            });
+            }
+            return result;
         }
-        else if (result.emitSkipped) {
-            // TODO
-        }
-        if (result.diagnostics) {
-            // TODO
-        }
-        return result;
     };
 
 
@@ -138,7 +149,7 @@ class WpwSourceCode
      */
     findJsTsConfig = (build) =>
     {
-        const cfgFiles = build.source.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
+        const cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
         /**
          * @param {string | undefined} base
          * @returns {string | undefined}
@@ -287,17 +298,52 @@ class WpwSourceCode
 
 
     /**
+     * @private
+     * @param {typedefs.WpwSourceCodeConfig} config
+     * @returns {typedefs.WpwSourceCodeConfig}
+     */
+    getSourceCodeConfig = (config) =>
+    {
+        const cfg = merge({}, config);
+        if (!cfg.options)
+        {
+            apply(cfg,  { options: { compilerOptions: {}, files: [] }});
+        }
+        else
+        {   if (!cfg.options.compilerOptions) {
+                cfg.options.compilerOptions = {};
+            }
+            if (!cfg.options.files) {
+                cfg.options.files = [];
+            }
+        }
+        if (!cfg.excludeAbs) {
+            cfg.excludeAbs = [];
+        }
+        if (!cfg.includeAbs) {
+            cfg.includeAbs = [];
+        }
+        return cfg;
+    };
+
+
+    /**
+     * @private
      * @param {typedefs.WpwSourceCodeConfigCompilerOptions} options
-     * @returns {TypeScriptCompilerOptions}
+     * @returns {typedefs.TypeScriptCompilerOptions}
      */
     touchCompilerOptions = (options) =>
     {
-        return mergeIf({
-            jsx: this.ts.JsxEmit[options.jsx || 0],
-            moduleResolution: (options.moduleResolution ?
-                                this.ts.ModuleResolutionKind[options.moduleResolution] : null) ||
-                              this.ts.ModuleResolutionKind.NodeJs
-        }, options);
+        if (WpwSourceCode.typescript)
+        {
+            return mergeIf({
+                jsx: WpwSourceCode.typescript.JsxEmit[options.jsx || 0],
+                moduleResolution: (options.moduleResolution ?
+                    WpwSourceCode.typescript.ModuleResolutionKind[options.moduleResolution] : null) ||
+                    WpwSourceCode.typescript.ModuleResolutionKind.NodeJs
+            }, options);
+        }
+        return {};
     };
 
 }

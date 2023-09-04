@@ -1,3 +1,4 @@
+// @ts-check
 
 /**
  * @file types/app.d.ts
@@ -8,10 +9,10 @@
  *
  * Handy file links:
  *
- * WEBPACK TYPES: file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
- * COMPILER  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
- * TAPABLE   : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
- * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
+ * WEBPACK TYPES  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
+ * COMPILER       : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
+ * TAPABLE        : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
+ * RC DEFAULTS    : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  *
  * @description
  *
@@ -24,38 +25,47 @@ import { WpwMessage } from "./message";
 import { IWpBuildLogger } from "./logger";
 import { IDisposable, ClsWpBuildError } from "./generic";
 import {
-    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
-    WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackMode, WebpackOutput, WebpackFileCacheOptions,
-    WebpackMemoryCacheOptions
+    EmitResult, CustomTransformers, CancellationToken, CompilerOptions, WriteFileCallback, SourceFile
+} from "typescript";
+import {
+    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
+    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler,
+    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions
 } from "./webpack";
 import {
     WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson
+    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode
 } from "./rc";
 
 
 declare const __WPBUILD__: any;
 
-declare interface IWpBuildAppGetPathOptions { build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string };
+declare interface IWpBuildAppGetPathOptions {
+    build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string;
+};
 declare type WpBuildAppGetPathOptions = IWpBuildAppGetPathOptions;
 
-declare interface IWpBuildGlobalEnvironment { buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any };
+declare interface IWpBuildGlobalEnvironment {
+    buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any;
+};
 declare type WpBuildGlobalEnvironment = IWpBuildGlobalEnvironment;
 
-declare interface IWpBuildRuntimeEnvArgs { analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel };
+declare interface IWpBuildRuntimeEnvArgs {
+    analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel;
+};
 declare type WpBuildRuntimeEnvArgs = IWpBuildRuntimeEnvArgs;
 
 declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
 
 // declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
-declare type WpBuildCombinedRuntimeArgs = WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
+declare type WpBuildCombinedRuntimeArgs =
+    WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
 
-declare interface IWpBuildAppSchema extends IWpwRcSchema
+declare interface IWpwSourceCodeApp extends IWpwSourceCode
 {
-    args: WpBuildCombinedRuntimeArgs;
+    emit: (file?: SourceFile, writeFileCb?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDts?: boolean, transformers?: CustomTransformers) => EmitResult | undefined;
 }
-declare type WpBuildAppSchema = IWpBuildAppSchema;
 
 declare interface IWpBuildApp extends IDisposable
 {
@@ -75,7 +85,6 @@ declare interface IWpBuildApp extends IDisposable
     logger: IWpBuildLogger;
     mode: WpwWebpackMode;
     pkgJson: WpwPackageJson;
-    source: WpwSourceCode;
     target: WebpackTarget;
     vscode: WpwVsCode;
     warnings: ClsWpBuildError[];
@@ -115,7 +124,7 @@ declare type WpwWebpackConfig = IWpwWebpackConfig;
 
 export {
     IWpBuildApp,
-    IWpBuildAppSchema,
+    IWpwSourceCodeApp,
     IWpwWebpackConfig,
     IWpBuildRuntimeEnvArgs,
     IWpBuildAppGetPathOptions,
@@ -123,7 +132,6 @@ export {
     IWpBuildGlobalEnvironment,
     WpwBuildModeConfigBase,
     WpBuildAppGetPathOptions,
-    WpBuildAppSchema,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
     WpwWebpackConfig,

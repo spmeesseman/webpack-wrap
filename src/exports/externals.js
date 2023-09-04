@@ -42,7 +42,7 @@ const externals = (app) =>
 	}
 	if (app.vscode)
 	{
-		if (app.build.name !== "tests")
+		if (app.build.type === "module" || app.build.type === "webapp")
 		{
 			// app.wpc.externals = [
 			// 	(data, callback) => { logAsset(data, app); callback(undefined, { vscode: "commonjs vscode" }); },
@@ -60,7 +60,7 @@ const externals = (app) =>
 			];
 		}
 	}
-	else if (app.build.options.externals && app.build.name !== "tests" && app.build.name !== "types")
+	else if (app.build.options.externals && app.build.name !== "module" && app.build.name !== "webapp")
 	{
 		app.wpc.externals = /** @type {NodeExternalsExternalItem} */(nodeExternals());
 	}

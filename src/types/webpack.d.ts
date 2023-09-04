@@ -9,10 +9,10 @@
  *
  * Handy file links:
  *
- * WEBPACK TYPES: file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
- * COMPILER  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
- * TAPABLE   : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
- * RC DEFAULTS : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
+ * WEBPACK TYPES  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
+ * COMPILER       : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
+ * TAPABLE        : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
+ * RC DEFAULTS    : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  *
  * @description
  *
@@ -67,12 +67,10 @@ declare type WebpackCompilationHook = WebpackCompilation["hooks"];
 declare type WebpackCompilationHookName = keyof WebpackCompilationHook;
 
 declare interface IWebpackCompilationParams {
-    normalModuleFactory: any; // WebpackNormalModuleFactory;
-    contextModuleFactory: any; // WebpackContextModuleFactoryy;
+    normalModuleFactory: WebpackNormalModuleFactory;
+    contextModuleFactory: WebpackContextModuleFactory;
 }
 declare type WebpackCompilationParams = IWebpackCompilationParams;
-// declare type WebpackNormalModuleFactory = import("webpack").NormalModuleFactory;
-// declare type WebpackContextModuleFactoryy = import("webpack").Compilation.ContextModuleFactory;
 
 declare type WebpackCompilationHookStage = "ADDITIONAL" | "PRE_PROCESS" | "DERIVED" | "ADDITIONS" |  "OPTIMIZE" |
                                            "OPTIMIZE_COUNT" | "OPTIMIZE_COMPATIBILITY" | "OPTIMIZE_SIZE" |
@@ -91,6 +89,8 @@ declare type WebpackCompilerAsyncHookName = keyof WebpackCompilerAsyncHook;
 
 declare type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
 
+declare type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
+
 declare type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
 
 declare type WebpackHookMap<H> = HookMap<H>;
@@ -102,6 +102,8 @@ declare type WebpackLogLevel = Exclude<WebpackConfig["infrastructureLogging"], u
 declare type WebpackMode = WebpackConfig["mode"];
 
 declare type WebpackModuleOptions = { rules: WebpackRuleSetRule[] } & ModuleOptions;
+
+declare type WebpackNormalModuleFactory =  ReturnType<WebpackCompiler["createNormalModuleFactory"]>;
 
 declare type WebpackOptimization = WebpackOptionsNormalized["optimization"];
 
@@ -179,6 +181,7 @@ export {
     WebpackCompilerSyncHook,
     WebpackCompilerSyncHookName,
     WebpackConfig,
+    WebpackContextModuleFactory,
     WebpackEntry,
     WebpackEtag,
     WebpackFileCacheOptions,
@@ -186,6 +189,7 @@ export {
     WebpackMemoryCacheOptions,
     WebpackMode,
     WebpackModuleOptions,
+    WebpackNormalModuleFactory,
     WebpackOptimization,
     WebpackPathData,
     WebpackPluginInstance,
