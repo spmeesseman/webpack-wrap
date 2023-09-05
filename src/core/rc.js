@@ -271,6 +271,7 @@ class WpwRc
             if (!app.build.mode || !app.build.target || !app.build.type) {
                 throw WpBuildError.getErrorProperty("type", "utils/app.js");
             }
+            rc.resolveAliasPaths(app);
             wpConfigs.push(app.buildApp());
             apply(app.build, { active: true });
         }
@@ -349,8 +350,6 @@ class WpwRc
             _log(build, "validate and initialize configuration for ");
             this.initializeBaseRc(build);
             this.resolvePaths(build);
-            this.configureSourceCode(build);
-            this.resolveAliasPaths(build);
             for (const [ option, config ] of Object.entries(build.options))
             {
                 if (!config || config.enabled === false || isObjectEmpty(config)) {
@@ -361,18 +360,6 @@ class WpwRc
         });
 
         this.logger.write("build configuration complete", 2);
-    };
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WpwBuild} build
-	 */
-    configureSourceCode = (build) =>
-    {
-        const buildSourceConfig = merge({}, build.source);
-        build.source = new WpwSourceCode(buildSourceConfig, build, this.logger);
-        this.disposables.push(/** @type {WpwSourceCode} */(build.source));
     };
 
 
@@ -524,14 +511,14 @@ class WpwRc
 
     /**
      * @private
-     * @param {typedefs.WpwBuild} build
+     * @param {typedefs.WpBuildApp} app
      */
-    resolveAliasPaths = (build) =>
+    resolveAliasPaths = (app) =>
     {
-        if (!build.alias) { return; }
+        if (!app.build.alias) { return; }
 
-        const alias = build.alias,
-              jstsConfig = build.source.config,
+        const alias = app.build.alias,
+              jstsConfig = app.source.config,
               jstsDir = jstsConfig.dir,
               jstsPaths = jstsConfig.options.compilerOptions.paths;
 
@@ -557,9 +544,9 @@ class WpwRc
 
         if (!alias[":env"])
         {
-            const basePath = build.paths.base,
-                  srcPath = relativePath(basePath, build.paths.src),
-                  envGlob = `**/${srcPath}/**/{env,environment,target}/${build.target}/`,
+            const basePath = app.build.paths.base,
+                  srcPath = relativePath(basePath, app.build.paths.src),
+                  envGlob = `**/${srcPath}/**/{env,environment,target}/${app.build.target}/`,
                   envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
             envDirs.forEach((path) => _pushAlias(":env", path), this);
         }

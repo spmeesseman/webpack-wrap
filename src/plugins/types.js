@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/valid-types */
 /* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
@@ -14,7 +15,7 @@ const { resolve, join } = require("path");
 const { unlink } = require("fs/promises");
 const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
-const { existsAsync, WpBuildError } = require("../utils");
+const { existsAsync, WpBuildError, apply, pushIfNotExists } = require("../utils");
 
 
 /**
@@ -25,7 +26,11 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+		this.buildOptions = /** @type {Exclude<typedefs.WpwBuildOptions["types"], undefined>} */(this.buildOptions);
+	}
 
 
 	/**
@@ -79,6 +84,124 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 
 
 	/**
+	 * @private
+	 * @template {string} T
+	 * @template {T extends "program" ? typedefs.WpwSourceCodeConfigCompilerOptions : string[]} R
+	 * @param {T} type
+	 * @returns {R}
+	 */
+	getCompilerOptions(type)
+	{
+		const sourceCode = this.app.source,
+			  configuredOptions = this.app.source.config.options.compilerOptions,
+			  basePath = /** @type {string} */(this.app.getRcPath("base")),
+			  typesDirDist = configuredOptions.declarationDir ?
+							 resolve(this.app.getBasePath(), configuredOptions.declarationDir) : this.app.getDistPath();
+
+		// const tsbuildinfo = resolve(basePath, sourceCode.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo");
+		const tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo");
+
+		if (type === "program")
+		{
+			/** @type {typedefs.WpwSourceCodeConfigCompilerOptions} */
+			const programOptions = {
+				declaration: true,
+				declarationMap: false,
+				emitDeclarationOnly: true,
+				noEmit: false,
+				skipLibCheck: true
+			};
+			if (sourceCode.type === "javascript")
+			{
+				apply(programOptions, {
+					allowJs: true,
+					strictNullChecks: false
+				});
+			}
+			if (!configuredOptions.target)
+			{
+				programOptions.target = "es2020";
+			}
+			if (!configuredOptions.moduleResolution)
+			{   //
+				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
+				//
+				if (this.app.build.target !== "node") {
+					programOptions.moduleResolution = "node";
+				}
+				// else if (this.app.nodeVersion < 12) {
+				//	programOptions.moduleResolution = "node10";
+				// }
+				else {
+					programOptions.moduleResolution = "node";
+					// programOptions.moduleResolution = "node16";
+				}
+			}
+			if (!configuredOptions.incremental && !!configuredOptions.composite)
+			{
+				apply(programOptions, {
+					incremental: true,
+					tsBuildInfoFile
+				});
+			}
+			if (!configuredOptions.tsBuildInfoFile)
+			{
+				programOptions.tsBuildInfoFile = tsBuildInfoFile;
+			}
+			if (!configuredOptions.declarationDir)
+			{
+				programOptions.declarationDir = typesDirDist;
+			}
+			return /** @type {R} */(programOptions);
+		}
+		else
+		{
+			const tscArgs = [
+				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false", "--noEmit", "false"
+			];
+			if (sourceCode.type === "javascript")
+			{
+				tscArgs.push("--allowJs", "--strictNullChecks", "false");
+			}
+			if (!configuredOptions.target)
+			{
+				tscArgs.push("--target", "es2020 ");
+			}
+			if (!configuredOptions.moduleResolution)
+			{   //
+				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
+				//
+				if (this.app.build.target !== "node") {
+					tscArgs.push("--moduleResolution", "node");
+				}
+				// else if (this.app.nodeVersion < 12) {
+				// 	tscArgs.push("--moduleResolution", "node10");
+				// }
+				else {
+					tscArgs.push("--moduleResolution", "node");
+					// tscArgs.push("--moduleResolution", "node16");
+				}
+			}
+			if (!configuredOptions.incremental && !!configuredOptions.composite)
+			{
+				tscArgs.push("--incremental");
+				tscArgs.push("--tsBuildInfoFile", tsBuildInfoFile, "--tsBuildInfoFile", tsBuildInfoFile);
+			}
+			if (!configuredOptions.tsBuildInfoFile)
+			{
+				pushIfNotExists(tscArgs, "--tsBuildInfoFile", tsBuildInfoFile);
+			}
+			if (!configuredOptions.declarationDir)
+			{
+				tscArgs.push("--declarationDir", typesDirDist);
+			}
+			return /** @type {R} */(tscArgs);
+		}
+	};
+
+
+	/**
+	 * @private
 	 * @param {typedefs.WebpackNormalModuleFactory} factory
 	 */
 	resolve(factory)
@@ -104,78 +227,39 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 		if (sourceCode.config.path)
 		{
 			const logger = this.logger,
-				  compilerOptions = sourceCode.config.options.compilerOptions,
+				  method = this.buildOptions.method,
+			      compilerOptions = sourceCode.config.options.compilerOptions,
 				  basePath = /** @type {string} */(this.app.getRcPath("base")),
 				  typesDirDist = compilerOptions.declarationDir ?
 				  				 resolve(this.app.getBasePath(), compilerOptions.declarationDir) : this.app.getDistPath();
 
 			logger.write("start types build", 2);
+			logger.value("   method", typesDirDist, 3);
 			logger.value("   base path", basePath, 3);
 			logger.value("   types dist path", typesDirDist, 3);
 
-			// const tsbuildinfo = resolve(basePath, sourceCode.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo");
-			const tsbuildinfo = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo");
-			if (!existsSync(typesDirDist))
+			if (method !== "tsc")
 			{
-				logger.write("   force clean tsbuildinfo file", 2);
-				try { await unlink(tsbuildinfo); } catch {}
-			}
-
-			//
-			// TODO - Use ts api createProgram()
-			//
-
-			const tscArgs = [
-				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false", "--noEmit", "false"
-			];
-			if (sourceCode.type === "javascript")
-			{
-				tscArgs.push("--allowJs", "--strictNullChecks", "false");
-			}
-			// else {
-			// 	tscArgs.push(
-			// 		"--composite"
-			// 	);
-			// }
-
-			if (!compilerOptions.target)
-			{
-				tscArgs.push("--target", "es2020 ");
-			}
-			if (!compilerOptions.moduleResolution)
-			{   //
-				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
-				//
-				if (this.app.build.target !== "node") {
-					tscArgs.push("--moduleResolution", "node");
+				const options = this.getCompilerOptions("program");
+				if (!existsSync(typesDirDist) && options.tsBuildInfoFile)
+				{
+					logger.write("   force clean tsbuildinfo file", 2);
+					try { await unlink(options.tsBuildInfoFile); } catch {}
 				}
-				// else if (this.app.nodeVersion < 12) {
-				// 	tscArgs.push("--moduleResolution", "node10");
-				// }
-				else {
-					tscArgs.push("--moduleResolution", "node");
-					// tscArgs.push("--moduleResolution", "node16");
+				this.app.source.createProgram(options);
+				this.app.source.emit(undefined, undefined, undefined, true);
+			}
+			else
+			{
+				const tscArgs = this.getCompilerOptions("tsc"),
+					  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
+				if (!existsSync(typesDirDist) && tsBuildInfoFile)
+				{
+					logger.write("   force clean tsbuildinfo file", 2);
+					try { await unlink(tsBuildInfoFile); } catch {}
 				}
+				await this.execTsBuild(sourceCode.config, tscArgs, 1, typesDirDist);
 			}
-			if (!compilerOptions.incremental && !!compilerOptions.composite)
-			{
-				tscArgs.push("--incremental");
-				tscArgs.push("--tsBuildInfoFile", tsbuildinfo);
-			}
-			if (!compilerOptions.tsBuildInfoFile)
-			{
-				tscArgs.push("--tsBuildInfoFile", tsbuildinfo);
-			}
-			if (!compilerOptions.declarationDir)
-			{
-				tscArgs.push("--declarationDir", typesDirDist);
-			}
-
-			// this.app.build.source.emit(undefined, undefined, undefined, true);
-			//
-			// Build
-			//
-			await this.execTsBuild(sourceCode.config, tscArgs, 1, typesDirDist);
 
 			//
 			// Bundle

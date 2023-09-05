@@ -137,6 +137,7 @@
 /** @typedef {import("./constants").WpwSourceCodeTypescriptLoaders} WpwSourceCodeTypescriptLoaders */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
+/** @typedef {import("./rc").WpwSourceCodeTypescriptBuildMethod} WpwSourceCodeTypescriptBuildMethod */
 /** @typedef {import("./constants").isWpwPluginConfigRunScriptsProp} isWpwPluginConfigRunScriptsProp */
 /** @typedef {import("./constants").isWpwSourceCodeTypescriptLoader} isWpwSourceCodeTypescriptLoader */
 /** @typedef {import("./constants").WpwWebhookCompilationHookStages} WpwWebhookCompilationHookStages */
@@ -146,6 +147,8 @@
 /** @typedef {import("./constants").WpwBuildOptionsPluginKeyInternals} WpwBuildOptionsPluginKeyInternals */
 /** @typedef {import("./constants").isWpwBuildOptionsExportKeyInternal} isWpwBuildOptionsExportKeyInternal */
 /** @typedef {import("./constants").isWpwBuildOptionsPluginKeyInternal} isWpwBuildOptionsPluginKeyInternal */
+/** @typedef {import("./constants").WpwSourceCodeTypescriptBuildMethods} WpwSourceCodeTypescriptBuildMethods */
+/** @typedef {import("./constants").isWpwSourceCodeTypescriptBuildMethod} isWpwSourceCodeTypescriptBuildMethod */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */
 /* END_RC_DEFS */
@@ -173,8 +176,8 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/app")} WpBuildApp */
-/** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
+/** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").IWpwSourceCodeApp} IWpwSourceCodeApp */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */

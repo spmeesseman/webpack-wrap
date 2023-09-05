@@ -26,6 +26,7 @@ const {
  */
 const plugins = (app) =>
 {
+	app.logger.start("create plugins configuration", 2);
 	// Object.keys(wpwPlugins).forEach((p) =>
 	// {
 	// 	if (isFunction(wpwPlugins[p])) {
@@ -66,7 +67,9 @@ const plugins = (app) =>
 		scm(app),                // compiler.hooks.shutdown
 		dispose(app)             // perform cleanup, dispose registred disposables
 	);
+
 	app.wpc.plugins.slice().reverse().forEach((p, i, a) => { if (!p) { app.wpc.plugins.splice(a.length - 1 - i, 1); }});
+	app.logger.write("   plugins configuration created successfully", 2);
 };
 
 

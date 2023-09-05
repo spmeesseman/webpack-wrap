@@ -62,7 +62,7 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 	getVendorPlugin = () =>
 	{
 		const app = this.app,
-			  config = app.build.source.config,
+			  config = app.source.config,
 			  configPath = /** @type {string} */(config.path);
 
 		/** @type {ForkTsCheckerTypescriptOptions} */

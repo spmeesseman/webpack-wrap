@@ -413,10 +413,10 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 /**
  * @template T
  * @param {T[]} arr
- * @param {T} item
+ * @param {...T} items
  * @returns {T[]}
  */
-const pushIfNotExists = (arr, item) => { if (!arr.includes(item)) arr.push(item); return arr; };
+const pushIfNotExists = (arr, ...items) => { items.forEach(item => { if (!arr.includes(item)) arr.push(item); }); return arr; };
 
 
 /**

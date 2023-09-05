@@ -50,8 +50,6 @@ class WpwBase
     options;
     /** @private */
     pluginsNoOpts = [ "dispose" ];
-    /** @type {typedefs.WpwSourceCodeConfig} @protected */
-    sourceConfig;
     /** @protected */
     wpc;
 
@@ -69,8 +67,8 @@ class WpwBase
         this.wpc = this.app.wpc;
         this.logger = this.app.logger;
         this.name = this.constructor.name;
+        console.log("$$$$$$$$$$$$$$$$$$$$$$" + this.name + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         this.buildOptions  = this.getOptionsConfig(this.key);
-		this.sourceConfig = merge({}, this.app.build.source.config);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.app.disposables.push(this);
@@ -124,6 +122,7 @@ class WpwBase
         const config = app.build.options[key],
               definitions = WpwBase.schema.definitions,
               emptyConfig = /** @type {typedefs.WpwBuildOptionsType<K>} */({ enabled: false });
+
         if (!config || !definitions) {
             return emptyConfig;
         }
@@ -133,6 +132,7 @@ class WpwBase
             }
             optionsCfg = merge({}, emptyConfig, config);
         }
+
         const buildOptionSchema = definitions.WpwBuildOptions;
         if (!buildOptionSchema || isBoolean(buildOptionSchema) || !buildOptionSchema.properties) {
             return emptyConfig;
@@ -216,6 +216,8 @@ class WpwBase
                 }
             }
         }
+        console.log("------------ 2 -----------");
+        console.log(JSON.stringify(optionsCfg, null, 3));
         return optionsCfg;
     };
 

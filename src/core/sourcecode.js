@@ -16,7 +16,7 @@ const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
     isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
-    typedefs, mergeIf, apply, WpBuildError
+    typedefs, mergeIf, apply, WpBuildError, applyIf
 } = require("../utils");
 
 
@@ -31,6 +31,8 @@ class WpwSourceCode
     static compilerHost;
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
+    /** @type {typedefs.WpwBuild} */
+    build;
     /** @type {typedefs.WpwSourceCodeConfig} */
     config;
     /** @type {typedefs.WpwSourceCodeExtension} */
@@ -52,6 +54,7 @@ class WpwSourceCode
     {
         const compilerOptionsCc = merge({}, sourceCodeOptions.config.options?.compilerOptions);
         apply(this, {
+            build,
             logger,
             type: sourceCodeOptions.type,
             ext: sourceCodeOptions.type === "typescript" ? "ts" : "js",
@@ -69,42 +72,39 @@ class WpwSourceCode
 
 
     /**
-	 * @param {typedefs.WpwBuild} build
-     * @param {typedefs.WpwSourceCodeConfigCompilerOptions | undefined} [options] typescript compiler options
+     * @param {typedefs.WpwSourceCodeConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
 	 */
-    createProgram = (build, options) =>
+    createProgram = (compilerOptions) =>
     {
         if (this.program)
         {   //
             // TODO - cleanup program ??
         }   //
+        const options = this.touchCompilerOptions(merge({}, this.build.source.config.options.compilerOptions, compilerOptions));
         this.program = WpwSourceCode.typescript?.createProgram(
         {
-            host: this.createCompilerHost(build, options),
-            rootNames: build.source.config.options.files,
+            options,
             //
             // TODO - support project references
             //
             projectReferences: undefined,
-            options: this.touchCompilerOptions(build.source.config.options.compilerOptions)
+            host: this.createCompilerHost(options),
+            rootNames: this.config.options.files
         });
     };
 
 
     /**
 	 * @private
-	 * @param {typedefs.WpwBuild} build
-     * @param {typedefs.WpwSourceCodeConfigCompilerOptions | undefined} [options] typescript compiler options
+     * @param {typedefs.TypeScriptCompilerOptions} options typescript compiler options
      * @throws {WpBuildError}
      */
-    createCompilerHost = (build, options) =>
+    createCompilerHost = (options) =>
     {
         if (!WpwSourceCode.typescript) {
             throw WpBuildError.get("typescript program is unavailable", "core/sourcecode.js");
         }
-        const baseCompilerHost = WpwSourceCode.typescript.createCompilerHost(
-            this.touchCompilerOptions(merge({}, build.source.config.options.compilerOptions, options))
-        );
+        const baseCompilerHost = WpwSourceCode.typescript.createCompilerHost(options);
         return merge({}, baseCompilerHost,
         {
             realpath: resolve,

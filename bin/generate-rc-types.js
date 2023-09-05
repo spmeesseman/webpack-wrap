@@ -44,6 +44,7 @@ const fullTypes = [
 
 const generateEnums = [
     // "WpwMessage"
+    "WpwSourceCodeTypescriptBuildMethod"
 ];
 
 const constantObjectKeyProperties = [
@@ -267,29 +268,39 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
 };
 
 
-const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type"} */kind, /** @type {string} */value) =>
+const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type" | "object"} */kind, /** @type {string} */value) =>
 {
     if (generateEnums.includes(property))
     {
+        let jsdoc;
         let valueFmt;
+        let propertyName = property;
         if (kind === "enum")
         {
+            propertyName = property + "Enum";
+            jsdoc = `/**\n * @type {{ [ key in typedefs.${property} ]: typedefs.${property} }}\n */`;
+            valueFmt = value.replace(/\|? *"(.*?)"/g, (_, m) => `\n    ${m}: "${m}",`)
+                            .replace(/",\n\}/g, "\n}").replace(/", +\n/g, "\",\n");
+        }
+        else if (kind === "object")
+        {
+            jsdoc = `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */`;
             valueFmt = value.replace(/\s*(.*?) = "/g, (_, m) => `\n    ${m}: "`)
                             .replace(/\= \n/g, "\n")
                             .replace(/";\n/g, "\",\n");
         }
         else {
+            jsdoc = `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */`;
             valueFmt = value.replace(/ *\= */, "")
                             .replace(/\s*(.*?)\??\: /g, (_, m) => `\n    ${m}: `)
                             .replace(/\= \n/g, "\n")
                             .replace(/";\n/g, "\",\n");
         }
         enums.push(
-            `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */\n` +
-            `const ${property} =\n{${(`${valueFmt}\n};\n`).replace(/"[,;]\},/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
+            `${jsdoc}\nconst ${propertyName} =\n{${(`${valueFmt}\n};\n`).replace(/"[,;]\},/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
         );
-        exported.push(`    ${property}`);
-        logger.log(`      added enum ${property}`);
+        exported.push(`    ${propertyName}`);
+        logger.log(`      added enum ${propertyName}`);
     }
 };
 
@@ -376,6 +387,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
                     match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
                 }
                 pushTypedef("constants", "type", ...pushExport(match[1], "s", match[2]));
+                pushEnum(match[1], "enum", match[2]);
             }
         }
 
@@ -388,6 +400,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
                       valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
                                               .replace(/(?:, ""|"", )/g, "");
                 pushTypedef("constants", "type", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+                pushEnum(match[1], "enum", match[2]);
             }
         }
 
@@ -398,7 +411,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             pushTypedef(baseSrc, "type", match[1]);
             pushTypedef(baseSrc, "enum", match[1] + "Type");
             pushTypedef("constants", "type", ...pushExport(match[1], "Props", valuesFmt, `(keyof typedefs.${match[1] + "Type"})`));
-            pushEnum(match[1], "enum", match[2]);
+            pushEnum(match[1], "object", match[2]);
         }
 
         const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;

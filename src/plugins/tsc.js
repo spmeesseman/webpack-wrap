@@ -190,7 +190,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 		// ];
 		const logger = this.app.logger,
 			  relativeOutputPath = relativePath(this.app.build.paths.base, sourceCodeConfig.path);
-console.log(JSON.stringify(sourceCodeConfig.options.compilerOptions))
+
 		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
 		logger.write(`   execute tsc command using config file @ [${sourceCodeConfig.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);

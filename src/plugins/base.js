@@ -54,9 +54,6 @@ const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray, applyIf
  */
 class WpwPlugin extends WpwBase
 {
-    // eslint-disable-next-line jsdoc/valid-types
-    /** @type {Exclude<typedefs.WpwBuildOptions[typedefs.WpwBuildOptionsPluginKey], undefined>} @abstract */
-    buildOptions;
     /** @protected */
     cache;
     /** @type {typedefs.WebpackCompilation} */

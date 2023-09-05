@@ -79,6 +79,8 @@ class WpBuildApp
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
+        this.source = new WpwSourceCode(this.build.source, this.build, this.logger);
+        this.disposables.push(this.source);
 	}
 
 
@@ -185,7 +187,6 @@ console.log("method: " + method);
 	applyAppRc = () =>
 	{
         const b = this.build;
-        this.source = b.source;
 		apply(this,
 		{
 			global: this.rc.global,
@@ -207,30 +208,12 @@ console.log("method: " + method);
      */
     buildApp = () =>
     {
-        if (this.build.source.type === "typescript" && (!this.build.options.tscheck || this.build.options.tscheck?.enabled === false))
+        const buildOptions = this.build.options;
+        this.wpc = this.getDefaultWebpackExports();
+        if (this.source.type === "typescript" && (!buildOptions.tscheck || buildOptions.tscheck?.enabled === false))
         {
-            // apply(this.build.options, {
-            //     tscheck: WpwPlugin.getOptionsConfig("tscheck", this.build.options).enabled !== false
-            // });
             this.addWarning(WpwMessage.WPW050);
         }
-        //
-        // TODO: implement TS API createProgram() and check syntax in JS using akllowJS:true compiulr option
-        //
-        return this.buildWebpackConfig();
-    };
-
-
-    /**
-     * Called by top level rc wrapper after instantiating this app wrapper instance.
-     * Calls each ./exports/* default export to construct a {@link typedefs.WpwWebpackConfig webpack build configuration}.
-     *
-     * @private
-     * @returns {typedefs.WpwWebpackConfig}
-     */
-    buildWebpackConfig = () =>
-    {
-        this.wpc = this.getDefaultWebpackExports();
         try
         {   wpexports.cache(this);          // Asset cache
             wpexports.experiments(this);    // Set any experimental flags that will be used
@@ -455,7 +438,7 @@ console.log("method: " + method);
         l.value("      is test", this.isTest, 2);
         l.value("      is web", this.isWeb, 2);
         l.value("      is vscode extension", this.build.vscode && this.build.vscode.type && this.build.vscode.type !== "none", 2);
-        l.value("   source code type", this.build.source.type, 2);
+        l.value("   source code type", this.source.type, 2);
         l.value("   logging level", this.build.log.level, 2);
         l.value("   alias configuration", JSON.stringify(this.build.alias), 3);
         l.value("   log configuration", JSON.stringify(this.build.log), 3);
@@ -482,10 +465,10 @@ console.log("method: " + method);
         l.value("   temp directory", this.getRcPath("temp"), 2);
         l.sep();
         l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
-        l.value("   source code type", this.build.source.type, 1);
-        l.value("   ts/js config file", this.build.source.config.file, 2);
-        l.value("   ts/js config directory", this.build.source.config.dir, 2);
-        l.value("   ts/js config path", this.build.source.config.path, 2);
+        l.value("   source code type", this.source.type, 1);
+        l.value("   ts/js config file", this.source.config.file, 2);
+        l.value("   ts/js config directory", this.source.config.dir, 2);
+        l.value("   ts/js config path", this.source.config.path, 2);
         l.value("   source code base configuration", JSON.stringify(pickNot(this.build.source.config, "raw", "options")), 3);
         l.value("   ts/js configured options", JSON.stringify(pickNot(this.build.source.config.options, "compilerOptions", "files")), 3);
         l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);

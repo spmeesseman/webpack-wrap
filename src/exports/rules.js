@@ -36,8 +36,8 @@ class WpwRulesExport extends WpwWebpackExport
 	constructor(options)
 	{
 		super(options);
-		if (isJsTsConfigPath(this.sourceConfig.path)) {
-			this.app.logger.value("   use js/ts config file", this.sourceConfig.path, 2);
+		if (isJsTsConfigPath(this.app.source.config.path)) {
+			this.app.logger.value("   use js/ts config file", this.app.source.config.path, 2);
 		}
 	}
 
@@ -80,7 +80,7 @@ class WpwRulesExport extends WpwWebpackExport
 			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app);
 		if (jsdocOptions.type === "entry")
 		{
-			const exclude = getExcludes(app, this.sourceConfig),
+			const exclude = getExcludes(app, this.app.source.config),
 				include = this.getIncludes(),
 				jsdocSrcPath= app.getSrcPath();
 
@@ -90,7 +90,7 @@ class WpwRulesExport extends WpwWebpackExport
 				{
 					include, // : jsdocSrcPath,
 					exclude,
-					test: new RegExp(`\\.(?:c|m)?${app.build.source.ext}x?$`),
+					test: new RegExp(`\\.(?:c|m)?${app.source.ext}x?$`),
 					generator: {
 						emit: false
 					},
@@ -120,7 +120,7 @@ class WpwRulesExport extends WpwWebpackExport
 	module = () =>
 	{
 		const app = this.app,
-			  exclude = getExcludes(app, this.sourceConfig),
+			  exclude = getExcludes(app, this.app.source.config),
 			  include = this.getIncludes();
 
 		if (app.build.debug)
@@ -129,7 +129,7 @@ class WpwRulesExport extends WpwWebpackExport
 			{
 				include,
 				exclude,
-				test: new RegExp(`\\.${app.build.source.ext}$`),
+				test: new RegExp(`\\.${app.source.ext}$`),
 				issuerLayer: "release",
 				// include(resourcePath, issuer) {
 				// 	console.log(`  context: ${app.wpc.context} (from ${issuer})`);
@@ -143,7 +143,7 @@ class WpwRulesExport extends WpwWebpackExport
 			{
 				include,
 				exclude,
-				test: app.build.source.ext !== "ts" ?  /wrapper\.js$/ : /wrapper\.ts$/,
+				test: app.source.ext !== "ts" ?  /wrapper\.js$/ : /wrapper\.ts$/,
 				issuerLayer: "release",
 				loader: "string-replace-loader",
 				options: {
@@ -153,7 +153,7 @@ class WpwRulesExport extends WpwWebpackExport
 			});
 		}
 
-		if (app.build.source.type === "typescript")
+		if (app.source.type === "typescript")
 		{
 			const loader = this.getSourceLoader();
 			// mainSrcPath = app.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
@@ -178,7 +178,7 @@ class WpwRulesExport extends WpwWebpackExport
 						noEmit: false // tsCheckerEnabled
 					}
 				});
-				const declarationDir = app.build.source.config.options.compilerOptions.declarationDir ||
+				const declarationDir = app.source.config.options.compilerOptions.declarationDir ||
 									   app.getDistPath({ build: "types" });
 				if (declarationDir) {
 					loader.options.compilerOptions.declarationDir = declarationDir;
@@ -190,10 +190,10 @@ class WpwRulesExport extends WpwWebpackExport
 
 			app.wpc.module.rules.push({
 				use: loader,
-				test: app.build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
+				test: app.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
 				// include: uniq([ mainSrcPath, typesSrcPath ]),
 				include: this.getIncludes(),
-				exclude: getExcludes(app, this.sourceConfig, false, true, true)
+				exclude: getExcludes(app, this.app.source.config, false, true, true)
 			});
 		}
 	};
@@ -205,7 +205,6 @@ class WpwRulesExport extends WpwWebpackExport
 	tests = () =>
 	{
 		const app = this.app,
-			  sourceConfig = this.sourceConfig,
 			  buildPath = app.getRcPath("base");
 
 		app.wpc.module.rules.push(
@@ -228,14 +227,14 @@ class WpwRulesExport extends WpwWebpackExport
 			}
 		});
 
-		if (app.build.source.type === "typescript")
+		if (app.source.type === "typescript")
 		{
 			app.wpc.module.rules.push(
 			{
-				test: app.build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
+				test: app.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
 				include: this.getIncludes(),
 				use: this.getSourceLoader("babel"),
-				exclude: getExcludes(app, sourceConfig, true)
+				exclude: getExcludes(app, this.app.source.config, true)
 			});
 		}
 	};
@@ -255,7 +254,7 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			app.wpc.module.rules.push(
 			{
-				test: new RegExp(`\\.${app.build.source.ext}$`),
+				test: new RegExp(`\\.${app.source.ext}$`),
 				// type: "asset/resource",
 				generator: {
 					emit: false
@@ -274,8 +273,7 @@ class WpwRulesExport extends WpwWebpackExport
 	webapp = () =>
 	{
 		const app = this.app,
-		      sourceConfig = this.sourceConfig,
-			  exclude = getExcludes(app, sourceConfig);
+			  exclude = getExcludes(app, this.app.source.config);
 
 		app.wpc.module.rules.push(
 		{
@@ -284,7 +282,7 @@ class WpwRulesExport extends WpwWebpackExport
 			resolve: { fullySpecified: false }
 		});
 
-		if (app.build.source.type === "typescript")
+		if (app.source.type === "typescript")
 		{
 			app.wpc.module.rules.push(
 			{
@@ -323,7 +321,7 @@ class WpwRulesExport extends WpwWebpackExport
 	 * @private
 	 * @returns {string[]}
 	 */
-	getIncludes = () => uniq([ this.app.getSrcPath(), ...this.sourceConfig.includeAbs ]);
+	getIncludes = () => uniq([ this.app.getSrcPath(), ...this.app.source.config.includeAbs ]);
 
 
 	/**
@@ -338,7 +336,7 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			return this.sourceLoaders.esbuild();
 		}
-		if (app.build.source.type === "typescript")
+		if (app.source.type === "typescript")
 		{
 			if (app.cmdLine.babel || loader === "babel")
 			{
@@ -370,7 +368,7 @@ class WpwRulesExport extends WpwWebpackExport
 								node: "16.20.0"
 							} /* { targets: "defaults" }*/}
 						],
-						this.app.build.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
+						this.app.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
 					]
 				}
 			};
@@ -387,7 +385,7 @@ class WpwRulesExport extends WpwWebpackExport
 					implementation: esbuild,
 					loader: "tsx",
 					target: "es2020",
-					tsconfigRaw: this.sourceConfig.options
+					tsconfigRaw: this.app.source.config.raw
 				}
 			};
 		},
@@ -401,7 +399,7 @@ class WpwRulesExport extends WpwWebpackExport
 			return {
 				loader: "ts-loader",
 				options: {
-					configFile: this.sourceConfig.path,
+					configFile: this.app.source.config.path,
 					experimentalWatchApi: false,
 					logInfoToStdOut: logOptions.level && logOptions.level >= 0,
 					logLevel: logOptions.level && logOptions.level >= 3 ? "info" : (logOptions.level && logOptions.level >= 1 ? "warn" : "error"),
