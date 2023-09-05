@@ -16,7 +16,7 @@ const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
     isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
-    typedefs, mergeIf, apply, WpBuildError, applyIf
+    typedefs, mergeIf, apply, WpBuildError
 } = require("../utils");
 
 
@@ -27,8 +27,6 @@ const {
  */
 class WpwSourceCode
 {
-    /** @type {typedefs.TypeScriptCompilerHost | undefined} @private */
-    static compilerHost;
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
     /** @type {typedefs.WpwBuild} */
@@ -138,11 +136,11 @@ class WpwSourceCode
         if (this.program)
         {
             const logger = this.logger;
-            logger.start("typescript emit");
+            logger.start("typescript.emit");
             logger.value("   source file", file, 2);
             logger.value("   emit types only", emitOnlyDts, 2);
             logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
-/*
+
             const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
 
             if (result.emittedFiles)
@@ -165,7 +163,7 @@ class WpwSourceCode
                     logger.write(`     message: ${d.messageText}`, 1, "", logger.icons.color.warning);
                 });
             }
-*/
+
             logger.write("typescript.emit completed");
             return result;
         }

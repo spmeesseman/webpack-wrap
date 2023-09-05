@@ -95,21 +95,25 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 		const sourceCode = this.app.source,
 			  configuredOptions = this.app.source.config.options.compilerOptions,
 			  basePath = /** @type {string} */(this.app.getRcPath("base")),
-			  typesDirDist = configuredOptions.declarationDir ?
-							 resolve(this.app.getBasePath(), configuredOptions.declarationDir) : this.app.getDistPath();
-
-		// const tsbuildinfo = resolve(basePath, sourceCode.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo");
-		const tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo");
+			  //
+			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
+			  //        if separate, use buildinfofile specified in config file
+			  //
+			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
+			  // tsBuildInfoFile = resolve(basePath, sourceCode.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
+			  declarationDir = configuredOptions.declarationDir || this.app.getDistPath({ rel: true, psx: true });
 
 		if (type === "program")
 		{
 			/** @type {typedefs.WpwSourceCodeConfigCompilerOptions} */
 			const programOptions = {
 				declaration: true,
+				declarationDir,
 				declarationMap: false,
 				emitDeclarationOnly: true,
 				noEmit: false,
-				skipLibCheck: true
+				skipLibCheck: true,
+				tsBuildInfoFile
 			};
 			if (sourceCode.type === "javascript")
 			{
@@ -117,6 +121,10 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 					allowJs: true,
 					strictNullChecks: false
 				});
+			}
+			if (!configuredOptions.incremental && !!configuredOptions.composite)
+			{
+				programOptions.incremental = true;
 			}
 			if (!configuredOptions.target)
 			{
@@ -137,31 +145,21 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 					// programOptions.moduleResolution = "node16";
 				}
 			}
-			if (!configuredOptions.incremental && !!configuredOptions.composite)
-			{
-				apply(programOptions, {
-					incremental: true,
-					tsBuildInfoFile
-				});
-			}
-			if (!configuredOptions.tsBuildInfoFile)
-			{
-				programOptions.tsBuildInfoFile = tsBuildInfoFile;
-			}
-			if (!configuredOptions.declarationDir)
-			{
-				programOptions.declarationDir = typesDirDist;
-			}
 			return /** @type {R} */(programOptions);
 		}
 		else
 		{
 			const tscArgs = [
-				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false", "--noEmit", "false"
+				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false",
+				"--noEmit", "false", "--declarationDir", declarationDir, "--tsBuildInfoFile", tsBuildInfoFile
 			];
 			if (sourceCode.type === "javascript")
 			{
 				tscArgs.push("--allowJs", "--strictNullChecks", "false");
+			}
+			if (!configuredOptions.incremental && !!configuredOptions.composite)
+			{
+				tscArgs.push("--incremental");
 			}
 			if (!configuredOptions.target)
 			{
@@ -181,19 +179,6 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 					tscArgs.push("--moduleResolution", "node");
 					// tscArgs.push("--moduleResolution", "node16");
 				}
-			}
-			if (!configuredOptions.incremental && !!configuredOptions.composite)
-			{
-				tscArgs.push("--incremental");
-				tscArgs.push("--tsBuildInfoFile", tsBuildInfoFile, "--tsBuildInfoFile", tsBuildInfoFile);
-			}
-			if (!configuredOptions.tsBuildInfoFile)
-			{
-				pushIfNotExists(tscArgs, "--tsBuildInfoFile", tsBuildInfoFile);
-			}
-			if (!configuredOptions.declarationDir)
-			{
-				tscArgs.push("--declarationDir", typesDirDist);
 			}
 			return /** @type {R} */(tscArgs);
 		}
@@ -234,13 +219,13 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				  				 resolve(this.app.getBasePath(), compilerOptions.declarationDir) : this.app.getDistPath();
 
 			logger.write("start types build", 2);
-			logger.value("   method", typesDirDist, 3);
+			logger.value("   method", method, 3);
 			logger.value("   base path", basePath, 3);
 			logger.value("   types dist path", typesDirDist, 3);
 
-			if (method !== "tsc")
+			if (method === "program")
 			{
-				const options = this.getCompilerOptions("program");
+				const options = this.getCompilerOptions(method);
 				if (!existsSync(typesDirDist) && options.tsBuildInfoFile)
 				{
 					logger.write("   force clean tsbuildinfo file", 2);
@@ -249,9 +234,9 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				this.app.source.createProgram(options);
 				this.app.source.emit(undefined, undefined, undefined, true);
 			}
-			else
+			else if (method === "tsc")
 			{
-				const tscArgs = this.getCompilerOptions("tsc"),
+				const tscArgs = this.getCompilerOptions(method),
 					  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
 				if (!existsSync(typesDirDist) && tsBuildInfoFile)
 				{

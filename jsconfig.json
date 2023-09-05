@@ -6,8 +6,6 @@
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "baseUrl": ".",
-      "declaration": true,
-      "declarationDir": "src/types/build",
       "experimentalDecorators": true,
       "incremental": true,
       "lib": [
