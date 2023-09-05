@@ -21,8 +21,8 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
-import { WpwMessage } from "./message";
 import { IWpBuildLogger } from "./logger";
+import { WpwErrorCode, WpwInfoCode, WpwWarningCode } from "./message";
 import { IDisposable, ClsWpBuildError } from "./generic";
 import {
     EmitResult, CustomTransformers, CancellationToken, CompilerOptions, WriteFileCallback, SourceFile
@@ -89,9 +89,9 @@ declare interface IWpBuildApp extends IDisposable
     vscode: WpwVsCode;
     warnings: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
-    addError(e: WpwMessage, pad?: string): void;
-    addInfo(i: WpwMessage, pad?: string): void;
-    addWarning(w: WpwMessage, pad?: string): void;
+    addError(e: WpwErrorCode, d?: detail, pad?: string): void;
+    addInfo(i: WpwInfoCode, d?: detail, pad?: string): void;
+    addWarning(w: WpwWarningCode, d?: detail, pad?: string): void;
     buildApp(): WpwWebpackConfig;
     dispose(): Promise<void>;
     getApp(name: string): IWpBuildApp | undefined;

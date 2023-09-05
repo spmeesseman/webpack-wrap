@@ -15,7 +15,7 @@ const { resolve, join } = require("path");
 const { unlink } = require("fs/promises");
 const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
-const { existsAsync, WpBuildError, apply, pushIfNotExists } = require("../utils");
+const { existsAsync, WpBuildError, apply, pushIfNotExists, WpwMessage, WpwMessageEnum } = require("../utils");
 
 
 /**
@@ -186,6 +186,24 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 
 
 	/**
+	 * @param {string | undefined} tsBuildInfoFile
+	 * @param {string} outputDir
+	 */
+	async maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir)
+	{
+		if (tsBuildInfoFile)
+		{
+			const typesDirDistAbs = resolve(this.app.getBasePath(), outputDir);
+			if (!existsSync(typesDirDistAbs) && tsBuildInfoFile)
+			{
+				this.logger.write("   force clean tsbuildinfo file", 2);
+				try { await unlink(tsBuildInfoFile); } catch {}
+			}
+		}
+	}
+
+
+	/**
 	 * @private
 	 * @param {typedefs.WebpackNormalModuleFactory} factory
 	 */
@@ -215,42 +233,46 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				  method = this.buildOptions.method,
 			      compilerOptions = sourceCode.config.options.compilerOptions,
 				  basePath = /** @type {string} */(this.app.getRcPath("base")),
-				  typesDirDist = compilerOptions.declarationDir ?
-				  				 resolve(this.app.getBasePath(), compilerOptions.declarationDir) : this.app.getDistPath();
+				  typesDirDist = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
 
-			logger.write("start types build", 2);
-			logger.value("   method", method, 3);
+			logger.write("start types build", 1);
+			logger.value("   method", method, 2);
+			logger.value("   mode", this.buildOptions.mode, 2);
+			logger.value("   entry", this.buildOptions.entry, 2);
+			logger.value("   output directory", typesDirDist, 2);
 			logger.value("   base path", basePath, 3);
-			logger.value("   types dist path", typesDirDist, 3);
+			logger.value("   build options", this.buildOptions, 4);
 
 			if (method === "program")
 			{
 				const options = this.getCompilerOptions(method);
-				if (!existsSync(typesDirDist) && options.tsBuildInfoFile)
-				{
-					logger.write("   force clean tsbuildinfo file", 2);
-					try { await unlink(options.tsBuildInfoFile); } catch {}
-				}
+				this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, typesDirDist);
 				this.app.source.createProgram(options);
-				this.app.source.emit(undefined, undefined, undefined, true);
+				const result = this.app.source.emit(undefined, undefined, undefined, true);
+				if (!result)
+				{
+					this.app.addError(WpwMessageEnum.TYPES_FAILED);
+					return;
+				}
 			}
 			else if (method === "tsc")
 			{
 				const tscArgs = this.getCompilerOptions(method),
 					  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
-				if (!existsSync(typesDirDist) && tsBuildInfoFile)
-				{
-					logger.write("   force clean tsbuildinfo file", 2);
-					try { await unlink(tsBuildInfoFile); } catch {}
-				}
+				this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, typesDirDist);
 				await this.execTsBuild(sourceCode.config, tscArgs, 1, typesDirDist);
 			}
 
-			//
-			// Bundle
-			//
-			this.bundleDts(assets);
-			logger.write("type definitions created successfully @ " + typesDirDist, 1);
+			if (this.buildOptions.bundle) {
+				this.bundleDts(assets);
+			}
+
+			if (await existsAsync(resolve(this.app.getBasePath(), typesDirDist))) {
+				logger.write("type definitions created successfully @ " + typesDirDist, 1);
+			}
+			else {
+				this.app.addError(WpwMessageEnum.TYPES_FAILED_NO_OUTPUT_DIR);
+			}
 		}
 	}
 }

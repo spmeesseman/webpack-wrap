@@ -5,7 +5,7 @@
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
-const { isString, isObject, isPrimitive, merge } = require("@spmeesseman/type-utils");
+const { isString, isObject, isPrimitive, merge, isArray } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -455,6 +455,24 @@ class WpBuildConsoleLogger
                         this.write(vMsg, level, pad, icon, color);
                     }
                     return;
+                }
+                else if (isArray(val))
+                {
+                    vMsg += "array[ " + val.join(" | ") + " ]";
+                }
+                else if (isObject(val))
+                {
+                    try {
+                        vMsg += JSON.stringify(val);
+                    }
+                    catch
+                    {   try {
+                            vMsg += val.toString();
+                        }
+                        catch {
+                            vMsg += "object[object]";
+                        }
+                    }
                 }
                 else {
                     vMsg += val;

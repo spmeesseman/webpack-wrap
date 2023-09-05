@@ -12,9 +12,9 @@ const JSON5 = require("json5");
 const WpwRegex = require("./regex");
 const { readFileSync } = require("fs");
 const { resolve, join } = require("path");
-const { WpBuildError } = require("./utils");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
+const { WpBuildError } = require("./message");
 const { isBoolean, isString, isObject } = require("@spmeesseman/type-utils");
 
 
@@ -35,7 +35,7 @@ const validateSchema = (options, logger, subschema) =>
     l.write("validate schema `" + l.withColor(schemaFile, l.colors.italic) + "`", 1);
     try {
         const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
-              /** @type {typedefs.Schema} */
+              /** @type {typedefs.JsonSchema} */
               schema = schemas[schemaKey] || JSON5.parse(readFileSync(join(SchemaDirectory, schemaFile), "utf8"));
         validate(schema, options, { name: schemaKey, baseDataPath: subschema });
         schemas[schemaKey] = schema;
@@ -54,14 +54,16 @@ const getSchema = (/** @type {string | undefined} */ schemaKey) => schemas[`Wpw$
 
 /**
  * @private
- * @param {boolean | typedefs.Schema} schemaObj
+ * @param {boolean | typedefs.JsonSchema} schemaObj
  * @param {any} definitions
- * @returns {typedefs.SchemaObject}
+ * @returns {NonNullable<typedefs.JsonSchema>}
  */
-const getSchemaDefinition = (schemaObj, definitions) =>
+const getDefinitionSchema = (schemaObj, definitions) =>
 {
+    /** @type {NonNullable<typedefs.JsonSchema>} */
     let property;
     const _refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", ""),
+          /** @type {typedefs.SchemaWithProperties} */
           emptySchemaObject = { type: "object", properties: { enabled: { const: true }}};
 
     if (!isBoolean(schemaObj))
@@ -81,8 +83,23 @@ const getSchemaDefinition = (schemaObj, definitions) =>
     else {
         property = emptySchemaObject;
     }
-
     return property;
+};
+
+
+/**
+ * @private
+ * @param {boolean | typedefs.JsonSchema} schemaObj
+ * @param {any} definitions
+ * @returns {NonNullable<typedefs.JsonSchema>}
+ */
+const getDefinitionSchemaProperties = (schemaObj, definitions) =>
+{
+    const schema = getDefinitionSchema(schemaObj, definitions);
+    if (schema.properties) {
+        return schema.properties;
+    }
+    return { enabled: { const: false }};
 };
 
 
@@ -91,5 +108,5 @@ const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
 
 
 module.exports = {
-    getSchema, getSchemaDefinition, getSchemaVersion, validateSchema, SchemaDirectory
+    getSchema, getDefinitionSchema, getDefinitionSchemaProperties, getSchemaVersion, validateSchema, SchemaDirectory
 };

@@ -11,10 +11,16 @@ export declare type WpwInfoCode = `${WpwInfoCodePrefix}${number}${number}`;
 export declare type WpwReservedCode = `${WpwReservedCodePrefix}${number}${number}`;
 export declare type WpwMessageCode = WpwErrorCode | WpwWarningCode | WpwInfoCode | WpwReservedCode;
 
-export declare enum WpwMessage
+export declare type WpwMessageText = string;
+
+export declare interface IWpwMessage
 {
-    WPW650 = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
-    WPW899 = "an unknown error has occurred",
-    WPW050 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
+    [ key: WpwMessageCode ]: WpwMessageText;
 }
-export declare type WpwMessageKey = keyof typeof WpwMessage;
+
+export declare type WpwMessageKey = keyof IWpwMessage;
+
+export declare interface IWpwMessageEnum
+{
+    [ key: string ]: WpwMessageCode;
+}

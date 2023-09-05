@@ -17,7 +17,9 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
 const WpBuildConsoleLogger = require("../utils/console");
-const { apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwRegex } = require("../utils");
+const {
+    apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum, WpwRegex
+} = require("../utils");
 
 
 /**
@@ -117,25 +119,28 @@ class WpBuildApp
 
 
     /**
-     * @param {typedefs.WpwMessage} msg
+     * @param {typedefs.WpwErrorCode} code
+     * @param {string} [detail]
      * @param {string} [pad]
      */
-    addError = (msg, pad) => this.addMessage(msg,  pad);
+    addError = (code, detail, pad) => this.addMessage(code, detail, pad);
 
 
     /**
-     * @param {typedefs.WpwMessage} msg
+     * @param {typedefs.WpwInfoCode} code
+     * @param {string} [detail]
      * @param {string} [pad]
      */
-    addInfo = (msg, pad) => this.addMessage(msg, pad);
+    addInfo = (code, detail, pad) => this.addMessage(code, detail, pad);
 
 
     /**
      * @private
-     * @param {typedefs.WpwMessage} msg
+     * @param {typedefs.WpwMessageCode} code
+     * @param {string} [detail]
      * @param {string} [pad]
      */
-    addMessage = (msg, pad) =>
+    addMessage = (code, detail, pad) =>
     {
         // let m;
         const se = new Error();
@@ -152,21 +157,21 @@ console.log("method: " + method);
         // }
         // else {
         // }
-        if (/WPW[0-2][0-9][0-9]/.test(msg))
+        if (/WPW[0-2][0-9][0-9]/.test(WpwMessage[code]))
         {
-            const i = WpBuildError.get(msg, file, undefined);
+            const i = WpBuildError.get(WpwMessage[code], file, undefined);
             this.logger.warning(i, pad);
             this.info.push(i);
         }
-        else if (/WPW[3-5][0-9][0-9]/.test(msg))
+        else if (/WPW[3-5][0-9][0-9]/.test(WpwMessage[code]))
         {
-            const w = WpBuildError.get(msg, file, undefined);
+            const w = WpBuildError.get(WpwMessage[code], file, undefined);
             this.logger.warning(w, pad);
             this.warnings.push(w);
         }
-        else if (/WPW[6-8][0-9][0-9]/.test(msg))
+        else if (/WPW[6-8][0-9][0-9]/.test(WpwMessage[code]))
         {
-            const e = WpBuildError.get(msg, file, undefined);
+            const e = WpBuildError.get(WpwMessage[code], file, undefined);
             this.logger.error(e, pad);
             this.errors.push(e);
         }
@@ -174,14 +179,14 @@ console.log("method: " + method);
 
 
     /**
-     * @param {typedefs.WpwMessage} msg
+     * @param {typedefs.WpwWarningCode} code
+     * @param {string} [detail]
      * @param {string} [pad]
      */
-    addWarning = (msg, pad) => this.addMessage(msg, pad);
+    addWarning = (code, detail, pad) => this.addMessage(code, detail, pad);
 
 
 	/**
-	 * @function
 	 * @private
 	 */
 	applyAppRc = () =>
@@ -212,7 +217,7 @@ console.log("method: " + method);
         this.wpc = this.getDefaultWebpackExports();
         if (this.source.type === "typescript" && (!buildOptions.tscheck || buildOptions.tscheck?.enabled === false))
         {
-            this.addWarning(WpwMessage.WPW050);
+            this.addInfo(WpwMessageEnum.SHOULD_ENABLE_TSCHECK);
         }
         try
         {   wpexports.cache(this);          // Asset cache

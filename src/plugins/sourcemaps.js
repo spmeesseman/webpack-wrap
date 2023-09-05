@@ -16,7 +16,7 @@
 const WpwPlugin = require("./base");
 const WpBuildApp = require("../core/app");
 // const { Compilation } = require("webpack");
-const { apply, requireResolve, WpwMessage } = require("../utils");
+const { apply, requireResolve, WpwMessage, WpwMessageEnum } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
 // const webpack = require("webpack");
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -101,7 +101,7 @@ class WpBuildSourceMapPlugin extends WpwPlugin
             });
         }
         else {
-            this.app.addWarning(WpwMessage.WPW650);
+            this.app.addWarning(WpwMessageEnum.SOURCEMAPS_RUNTIMEVARS_NOT_SET);
         }
     };
 

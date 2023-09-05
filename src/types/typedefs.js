@@ -201,6 +201,11 @@
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
 /** @typedef {import("./generic").MergeOptions} MergeOptions */
+/**
+ * @template T
+ * @template {keyof T} K
+ * @typedef {import("./generic").RequireKeys<T, K>} RequireKeys
+ */
 
 /**
  * Executes a command with a promisified child_process.exec()
@@ -242,11 +247,12 @@
  * MESSAGE.D.TS
  ***********************************************************************************************************************/
 
-/** @typedef {import("./message").WpwMessage} WpwMessage */
+/** @typedef {import("./message").IWpwMessage} IWpwMessage */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
 /** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./message").WpwMessageCode} WpwMessageCode */
+/** @typedef {import("./message").WpwMessageText} WpwMessageText */
 /** @typedef {import("./message").WpwWarningCode} WpwWarningCode */
 /** @typedef {import("./message").WpwReservedCode} WpwReservedCode */
 /** @typedef {typeof import("./message").WpwMessage} WpwMessageType */
@@ -277,7 +283,7 @@
 /** @typedef {import("json-schema").JSONSchema4} JsonSchema4 */
 /** @typedef {import("json-schema").JSONSchema6} JsonSchema6 */
 /** @typedef {import("json-schema").JSONSchema7} JsonSchema7 */
-/** @typedef {Parameters<SchemaUtils["validate"]>[0]} Schema*/
+/** @typedef {import("json-schema").JSONSchema4 | import("json-schema").JSONSchema6 | import("json-schema").JSONSchema7 } JsonSchema*/
 /** @typedef {import("json-schema").JSONSchema4Object} JsonSchema4Object */
 /** @typedef {import("json-schema").JSONSchema6Object} JsonSchema6Object */
 /** @typedef {import("json-schema").JSONSchema7Object} JsonSchema7Object */
@@ -285,6 +291,7 @@
 /** @typedef {import("json-schema").JSONSchema6Definition} JsonSchema6Definition */
 /** @typedef {import("json-schema").JSONSchema7Definition} JsonSchema7Definition */
 /** @typedef {JsonSchema4Object | JsonSchema6Object | JsonSchema7Object} SchemaObject */
+/** @typedef {typedefs.RequireKeys<NonNullable<typedefs.Schema>, "properties">} SchemaWithProperties */
 /** @typedef {JsonSchema4Definition | JsonSchema6Definition | JsonSchema7Definition} SchemaDefinition */
 
 

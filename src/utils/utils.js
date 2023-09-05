@@ -13,11 +13,11 @@ const { glob } = require("glob");
 const { existsSync } = require("fs");
 const { promisify } = require("util");
 const { access } = require("fs/promises");
-const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { isString, isFunction, isArray, isEmpty, isDirectory, merge } = require("@spmeesseman/type-utils");
+const { isFunction, isArray, isEmpty, isDirectory, merge } = require("@spmeesseman/type-utils");
+const { WpBuildError } = require("./message");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -451,117 +451,8 @@ const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } 
 const uniq = (a) => a.sort().filter((item, pos, arr) => !pos || item !== arr[pos - 1]);
 
 
-/**
- * @type {(keyof typedefs.WpwMessageType)[]}
- */
-const WpwMessageProps = [ "WPW650", "WPW899", "WPW050" ];
-
-/**
- * @param {any} v Variable to check type on
- * @returns {v is (keyof typedefs.WpwMessageType)}
- */
-const isWpwMessageProp = (v) => !!v && WpwMessageProps.includes(v);
-
-/**
- * @type {{ [ key in typedefs.WpwMessageKey ]: typedefs.WpwMessage }}
- */
-let WpwMessage;
-((WpwMessage) => {
-    WpwMessage.WPW650 = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled";
-    WpwMessage.WPW899 = "an unknown error has occurred";
-    WpwMessage.WPW050 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false";
-// @ts-ignore
-})(WpwMessage = module.exports.WpwMessage || (module.exports.WpwMessage = {}));
-
-
-class WpBuildError extends WebpackError
-{
-    /**
-     * @type {string | undefined}
-     */
-    details;
-    /**
-     * @param {string} message
-     * @param {string} file
-     * @param {string} [details]
-     * @param {boolean} [capture]
-     */
-    constructor(message, file, details, capture)
-    {
-        super(message);
-        this.file = file;
-        this.details = details;
-        // Object.setPrototypeOf(this, new.target.prototype);
-        if (capture !== false) {
-            WpBuildError.captureStackTrace(this, this.constructor);
-        }
-    }
-
-
-    /**
-     * @param {string} message
-     * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
-     */
-    static get(message, file, wpc, detail)
-    {
-        if (wpc) {
-            if (wpc.mode) {
-                message += ` | mode:[${wpc.mode}]`;
-            }
-            if (wpc.target) {
-                message += ` | target:[${wpc.target}]`;
-            }
-        }
-        message += ` | [${file}]`;
-        if (isString(detail)) {
-            message += ` | ${detail}`;
-        }
-        const e =new WpBuildError(message, file, detail ?? undefined, false);
-        WpBuildError.captureStackTrace(e, this.get);
-        return e;
-    }
-
-
-    /**
-     * @param {string} property
-     * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
-     */
-    static getErrorMissing = (property, file, wpc, detail) =>
-        this.get(`Could not locate wpw resource '${property}'`, file, wpc, detail);
-
-
-    /**
-     * @param {string} property
-     * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
-     */
-    static getErrorProperty = (property, file, wpc, detail) =>
-        this.get(`Invalid wpw configuration @ property '${property}'`, file, wpc, detail);
-
-
-    /**
-     * @param {string} fnName
-     * @param {string} file
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
-     */
-    static getAbstractFunction = (fnName, file, wpc, detail) =>
-        this.get(`abstract method '${fnName}' must be overridden`, file, wpc, detail);
-
-}
-
-
 module.exports = {
-    asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
-    getExcludes, WpwMessageProps, isWpwMessageProp, lowerCaseFirstChar, createEntryObjFromDir,
-     pushIfNotExists, requireResolve, uniq, WpBuildError, relativePath, resolvePath, findExPath, findExPathSync
+    asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp, getExcludes,
+    lowerCaseFirstChar, createEntryObjFromDir, pushIfNotExists, requireResolve, uniq, relativePath,
+    resolvePath, findExPath, findExPathSync
 };

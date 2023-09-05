@@ -14,8 +14,8 @@ const { readFileSync } = require("fs");
 const typedefs = require("../types/typedefs");
 const {
     lowerCaseFirstChar, merge, isArray, isPrimitive, WpBuildError, isWpwBuildOptionsPluginKey,
-    getSchemaDefinition, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal,
-    isWpwBuildOptionsPluginKeyInternal, isBoolean, isObject, asArray
+    getDefinitionSchemaProperties, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal,
+    isWpwBuildOptionsPluginKeyInternal, isBoolean, isObject, getDefinitionSchema
 } = require("../utils");
 
 
@@ -26,7 +26,7 @@ const {
  */
 class WpwBase
 {
-    /** @type {typedefs.Schema} @private */
+    /** @type {typedefs.JsonSchema} @private */
     static schema;
 
     /** @type {typedefs.WpBuildApp} */
@@ -137,12 +137,12 @@ class WpwBase
             return emptyConfig;
         }
 
-        const buildConfig = getSchemaDefinition(buildOptionSchema.properties[/** @type {string} */(key)], definitions);
+        const buildConfig = getDefinitionSchemaProperties(buildOptionSchema.properties[/** @type {string} */(key)], definitions);
         if (!buildConfig || !isObject(buildConfig)) {
             return emptyConfig;
         }
 
-        return this.mergeOptions(optionsCfg, buildConfig);
+        return this.mergeOptions(optionsCfg, buildConfig, definitions);
     };
 
 
@@ -176,42 +176,44 @@ class WpwBase
      * @private
      * @template T
      * @param {T} optionsCfg
-     * @param {typedefs.SchemaObject} object
+     * @param {typedefs.JsonSchema} schemaObject
+     * @param {any} definitions
      * @returns {T}
+     * @throws {WpBuildError}
      */
-    static mergeOptions = (optionsCfg, object) =>
+    static mergeOptions = (optionsCfg, schemaObject, definitions) =>
     {
-        for (const [ key, def ] of Object.entries(object))
+        for (const [ key, def ] of Object.entries(schemaObject))
         {
-            if ((typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
+            if (def && (typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
             {
-                if (!def) {
-                    continue;
+                if (isPrimitive(def) || isArray(def)) {
+                    throw WpBuildError.getErrorProperty("schema.definition." + key, "core/base.js");
                 }
-                if (isPrimitive(def)) {
-                    optionsCfg[key] = def;
-                    continue;
+                else if (def.$ref) {
+                    const schema = getDefinitionSchema(def, definitions);
+                    this.mergeOptions(optionsCfg, schema.properties || schema, definitions);
                 }
-                for (const d of /** @type {typedefs.SchemaObject[]} */(asArray(def)))
-                {
-                    if (d.default || isPrimitive(d.default)) {
-                        optionsCfg[key] = d.default;
-                    }
-                    else if (d.type === "string") {
-                        optionsCfg[key] = "";
-                    }
-                    else if (d.type === "boolean") {
-                        optionsCfg[key] = false;
-                    }
-                    else if (isArray(d.enum)) {
-                        optionsCfg[key] = d.enum[0];
-                    }
-                    else if (d.type === "array") {
-                        optionsCfg[key] = [];
-                    }
-                    else { // if (d.type === "object") {
-                        optionsCfg[key] = {};
-                    }
+                else if (def.default || isPrimitive(def.default)) {
+                    optionsCfg[key] = def.default;
+                }
+                else if (def.type === "string") {
+                    optionsCfg[key] = "";
+                }
+                else if (def.type === "boolean") {
+                    optionsCfg[key] = false;
+                }
+                else if (isArray(def.enum)) {
+                    optionsCfg[key] = def.enum[0];
+                }
+                else if (isArray(def.oneOf)) {
+                    optionsCfg[key] = def.enum[0];
+                }
+                else if (def.type === "array") {
+                    optionsCfg[key] = [];
+                }
+                else {
+                    optionsCfg[key] = {};
                 }
             }
         }
