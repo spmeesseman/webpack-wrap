@@ -320,6 +320,7 @@
 /** @typedef {import("./webpack").WebpackRuntimeArgs} WebpackRuntimeArgs */
 /** @typedef {import("./webpack").WebpackCacheFacade} WebpackCacheFacade */
 /** @typedef {import("./webpack").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("./webpack").WebpackExternalItem} WebpackExternalItem */
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */
 /** @typedef {import("./webpack").WebpackCompilerHookName} WebpackCompilerHookName */

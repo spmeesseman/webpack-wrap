@@ -10,23 +10,18 @@
  * @description
  *
  * NOTE: The vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be
- * webpack'ed, -> @see {@link https://webpack.js.org/configuration/externals/}
+ * webpack'ed, -> @see {@link https://webpack.js.org/configuration/externals/ webpack.js.org/externals}
  *
  *//** */
 
 const WpBuildApp = require("../core/app");
-
-/** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */
-/** @typedef {import("webpack").ExternalItemObjectKnown & import("webpack").ExternalItemObjectUnknown} NodeExternalsExternalItem */
-
-// eslint-disable-next-line import/no-extraneous-dependencies
 const nodeExternals = require("webpack-node-externals");
+
+/** @typedef {import("../types").WebpackExternalItem} WebpackExternalItem */
+/** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */
 
 
 /**
- * @see {@link https://webpack.js.org/configuration/externals/}
- *
- * @function
  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
  */
 const externals = (app) =>
@@ -56,13 +51,13 @@ const externals = (app) =>
 			app.wpc.externals = [
 				{ vscode: "commonjs vscode" },
 				// { nyc: "commonjs nyc" },
-				/** @type {NodeExternalsExternalItem}*/(nodeExternals())
+				/** @type {WebpackExternalItem}*/(nodeExternals())
 			];
 		}
 	}
 	else if (app.build.options.externals && app.build.name !== "module" && app.build.name !== "webapp")
 	{
-		app.wpc.externals = /** @type {NodeExternalsExternalItem} */(nodeExternals());
+		app.wpc.externals = /** @type {WebpackExternalItem} */(nodeExternals());
 	}
 };
 

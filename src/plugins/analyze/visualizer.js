@@ -18,7 +18,7 @@ const VisualizerPlugin = require("webpack-visualizer-plugin2");
 
 /**
  * @param {WpBuildApp} app
- * @returns {VisualizerPlugin| undefined}
+ * @returns {WebpackPluginInstance | undefined}
  */
 const visualizer = (app) =>
 {

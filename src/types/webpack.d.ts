@@ -41,16 +41,16 @@
  *                          is available)
  *//** */
 
-import { ConvertType, PickByType, RequireKeys } from "./generic";
 import { AsyncSeriesHook, HookMap, SyncHook, SyncBailHook } from "tapable";
 import { Schema as WebpackSchema } from "schema-utils/declarations/validate";
+import { ConvertType, PickByType, RequireKeys, ArrayInnerType } from "./generic";
 import webpack, {
     Asset as WebpackAsset, AssetInfo as WebpackAssetInfo, AssetEmittedInfo as WebpackAssetEmittedInfo,
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
-    MemoryCacheOptions as WebpackMemoryCacheOptions
+    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin
 }from "webpack";
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
@@ -92,6 +92,8 @@ declare type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
 declare type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
 
 declare type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
+
+declare type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
 
 declare type WebpackHookMap<H> = HookMap<H>;
 
@@ -184,6 +186,7 @@ export {
     WebpackContextModuleFactory,
     WebpackEntry,
     WebpackEtag,
+    WebpackExternalItem,
     WebpackFileCacheOptions,
     WebpackLogger,
     WebpackMemoryCacheOptions,

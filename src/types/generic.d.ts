@@ -22,6 +22,7 @@ import { WpwWebpackConfig } from "./app";
 
 
 declare type AsArray<T = any> = T extends any[] ? T : [T];
+declare type ArrayInnerType<T> = T extends (infer U)[] ? U : never;
 // declare type ExtractTypings<T, V > = T extends V<infer X> ? X : never;
 declare type PartialSome<T, K> = { [P in keyof T]: T[P] extends K | undefined ? Partial<T> : T };
 declare type RequireKeys<T, K extends keyof T> = Required<Pick<T,K>> & Exclude<T, K>;
@@ -64,6 +65,7 @@ declare interface MergeOptions<T, U>
 
 
 export {
+    ArrayInnerType,
     AsArray,
     ConvertType,
     ConvertType2,
