@@ -140,7 +140,7 @@ class WpwSourceCode
             logger.value("   source file", file, 2);
             logger.value("   emit types only", emitOnlyDts, 2);
             logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
-
+/*
             const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
 
             if (result.emittedFiles)
@@ -166,6 +166,8 @@ class WpwSourceCode
 
             logger.write("typescript.emit completed");
             return result;
+            */
+           return { emmittedFIles: [] };
         }
     };
 
