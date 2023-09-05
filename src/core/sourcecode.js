@@ -65,7 +65,7 @@ class WpwSourceCode
     };
 
 
-    dispose = () => {};
+    dispose = () => { /* TODO - cleanup program ?? */ };
 
 
     /**
@@ -74,10 +74,17 @@ class WpwSourceCode
 	 */
     createProgram = (build, options) =>
     {
+        if (this.program)
+        {   //
+            // TODO - cleanup program ??
+        }   //
         this.program = WpwSourceCode.typescript?.createProgram(
         {
             host: this.createCompilerHost(build, options),
             rootNames: build.source.config.options.files,
+            //
+            // TODO - support project references
+            //
             projectReferences: undefined,
             options: this.touchCompilerOptions(build.source.config.options.compilerOptions)
         });
