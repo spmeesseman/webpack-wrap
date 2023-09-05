@@ -12,7 +12,7 @@
  *//** */
 
 const { existsSync } = require("fs");
-const WpwSourceCode = require("./ts");
+const WpwSourceCode = require("./sourcecode");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");

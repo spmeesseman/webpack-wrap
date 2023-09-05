@@ -12,7 +12,7 @@
 const os = require("os");
 const JSON5 = require("json5");
 const WpBuildApp = require("./app");
-const WpwSourceCode = require("./ts");
+const WpwSourceCode = require("./sourcecode");
 const WpwPlugin = require("../plugins/base");
 const globalEnv = require("../utils/global");
 const { readFileSync, mkdirSync, existsSync } = require("fs");

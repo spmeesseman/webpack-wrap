@@ -173,7 +173,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/app")} WpBuildApp */
-/** @typedef {import("../core/ts")} WpwSourceCode */
+/** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").IWpwSourceCodeApp} IWpwSourceCodeApp */
