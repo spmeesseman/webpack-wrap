@@ -6,15 +6,16 @@
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "baseUrl": ".",
-      "checkJs": true,
-      "composite": true,
+      "declaration": true,
       "declarationDir": "src/types/build",
       "experimentalDecorators": true,
+      "incremental": true,
       "lib": [
         "es2020"
       ],
       "module": "commonjs",
       "moduleResolution": "node",
+      "noEmit": false,
       "noFallthroughCasesInSwitch": false,
       "noImplicitAny": false,
       "noImplicitOverride": false,
@@ -22,6 +23,7 @@
       "noImplicitUseStrict": true,
       "noImplicitThis": false,
       "noPropertyAccessFromIndexSignature": false,
+      "noResolve": false,
       "noUncheckedIndexedAccess": false,
       "noUnusedLocals": false,
       "noUnusedParameters": false,
@@ -42,7 +44,7 @@
       "useUnknownInCatchVariables": false
     },
     "include": [
-      "src"
+      "src/**/*.js"
     ],
     "exclude": [
         ".*",
@@ -53,6 +55,8 @@
         "node_modules",
         "res",
         "schema",
-        "test-fixture"
+        "test-fixture",
+        "**/types/**",
+        "src/plugins/analyze/visualizer.js"
     ]
 }

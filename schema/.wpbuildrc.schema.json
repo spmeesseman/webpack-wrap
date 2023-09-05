@@ -2285,6 +2285,9 @@
                 "checkJs": {
                     "type": "boolean"
                 },
+                "composite": {
+                    "type": "boolean"
+                },
                 "declaration": {
                     "type": "boolean"
                 },

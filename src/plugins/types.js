@@ -126,14 +126,11 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 			//
 
 			const tscArgs = [
-				"--incremental", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false",
-				"--noEmit", "false", "--tsBuildInfoFile", tsbuildinfo
+				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false", "--noEmit", "false"
 			];
 			if (sourceCode.type === "javascript")
 			{
-				tscArgs.push(
-					"--allowJs", "--strict", "false", "--strictNullChecks", "false", "--skipLibCheck"
-				);
+				tscArgs.push("--allowJs", "--strictNullChecks", "false");
 			}
 			// else {
 			// 	tscArgs.push(
@@ -146,8 +143,28 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 				tscArgs.push("--target", "es2020 ");
 			}
 			if (!compilerOptions.moduleResolution)
+			{   //
+				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
+				//
+				if (this.app.build.target !== "node") {
+					tscArgs.push("--moduleResolution", "node");
+				}
+				// else if (this.app.nodeVersion < 12) {
+				// 	tscArgs.push("--moduleResolution", "node10");
+				// }
+				else {
+					tscArgs.push("--moduleResolution", "node");
+					// tscArgs.push("--moduleResolution", "node16");
+				}
+			}
+			if (!compilerOptions.incremental && !!compilerOptions.composite)
 			{
-				tscArgs.push("--moduleResolution", "node");
+				tscArgs.push("--incremental");
+				tscArgs.push("--tsBuildInfoFile", tsbuildinfo);
+			}
+			if (!compilerOptions.tsBuildInfoFile)
+			{
+				tscArgs.push("--tsBuildInfoFile", tsbuildinfo);
 			}
 			if (!compilerOptions.declarationDir)
 			{
