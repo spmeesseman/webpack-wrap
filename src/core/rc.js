@@ -21,7 +21,7 @@ const { validateSchema, SchemaDirectory, getSchema, getSchemaVersion } = require
 const { isWpwBuildType, isWpwWebpackMode, isWebpackTarget, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, mergeIf, resolvePath, asArray, findFilesSync,
-    relativePath, isObject, isObjectEmpty, WpBuildConsoleLogger, typedefs, isPromise
+    relativePath, isObject, isObjectEmpty, WpBuildConsoleLogger, typedefs, isPromise, applyIf
 } = require("../utils");
 
 
@@ -315,7 +315,7 @@ class WpwRc
             _applyProperty("log", dst, src);
             if (dst.log.color) {
                 const clr = dst.log.color;
-                apply(dst.log.colors, { valueStar: clr, buildBracket: clr, tagBracket: clr, infoIcon: clr });
+                applyIf(dst.log.colors, { valueStar: clr, buildBracket: clr, tagBracket: clr, infoIcon: clr });
             }
             apply(dst, { mode: dst.mode || this.mode, target: this.getTarget(dst), type: this.getType(dst) });
             return dst;
