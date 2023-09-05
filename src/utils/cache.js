@@ -10,9 +10,9 @@
  *//** */
 
 const WpBuildApp = require("../core/app");
-const { merge, clone } = require("./object");
 const {  writeFile } = require("fs/promises");
 const { resolve, isAbsolute } = require("path");
+const { merge, clone } = require("@spmeesseman/type-utils");
 const { readFileSync, existsSync, writeFileSync } = require("fs");
 
 /** @typedef {import("../types").IDisposable} IDisposable */

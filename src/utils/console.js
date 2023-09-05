@@ -2,11 +2,10 @@
 /* eslint-disable jsdoc/require-property-description */
 // @ts-check
 
-const { merge } = require("./object");
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
-const { isString, isObject, isPrimitive } = require("./type");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
+const { isString, isObject, isPrimitive, merge } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -86,7 +85,7 @@ class WpBuildConsoleLogger
         if (!options.pad || !options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
             this.options.pad.envTag = envTagLen;
         }
-    }
+    };
 
 
     /**

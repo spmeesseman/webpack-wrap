@@ -11,14 +11,13 @@
 
 const { glob } = require("glob");
 const { existsSync } = require("fs");
-const { merge } = require("./object");
 const { promisify } = require("util");
 const { access } = require("fs/promises");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { isString, isFunction, isArray, isEmpty, isDirectory } = require("./type");
+const { isString, isFunction, isArray, isEmpty, isDirectory, merge } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]

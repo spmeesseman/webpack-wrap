@@ -15,7 +15,7 @@ const { resolve, join } = require("path");
 const { WpBuildError } = require("./utils");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
-const { isBoolean, isString, isObject } = require("./type");
+const { isBoolean, isString, isObject } = require("@spmeesseman/type-utils");
 
 
 const schemas = {};

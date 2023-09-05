@@ -274,23 +274,22 @@ const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type" | "o
     {
         let jsdoc;
         let valueFmt;
-        let propertyName = property;
+        const propertyName = property + "Enum";
         if (kind === "enum")
         {
-            propertyName = property + "Enum";
-            jsdoc = `/**\n * @type {{ [ key in typedefs.${property} ]: typedefs.${property} }}\n */`;
+            jsdoc = `/**\n * @enum {typedefs.${property}}\n * @type {{ [ key in typedefs.${property} ]: typedefs.${property} }}\n */`;
             valueFmt = value.replace(/\|? *"(.*?)"/g, (_, m) => `\n    ${m}: "${m}",`)
                             .replace(/",\n\}/g, "\n}").replace(/", +\n/g, "\",\n");
         }
         else if (kind === "object")
         {
-            jsdoc = `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */`;
+            jsdoc = `/**\n * @enum {typedefs.${property}}\n * @type {{ [ key in typedefs.${property}Key ]: typedefs.${property}Key }}\n */`;
             valueFmt = value.replace(/\s*(.*?) = "/g, (_, m) => `\n    ${m}: "`)
                             .replace(/\= \n/g, "\n")
                             .replace(/";\n/g, "\",\n");
         }
         else {
-            jsdoc = `/**\n * @type {{ [ key in typedefs.${property}Key ]: string }}\n */`;
+            jsdoc = `/**\n * @enum {typedefs.${property}}\n * @type {{ [ key in typedefs.${property}Key ]: typedefs.${property}Key  }}\n */`;
             valueFmt = value.replace(/ *\= */, "")
                             .replace(/\s*(.*?)\??\: /g, (_, m) => `\n    ${m}: `)
                             .replace(/\= \n/g, "\n")
@@ -365,6 +364,7 @@ const replaceBooleanTypedefs = (data) =>
                .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
                .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
 };
+
 
 const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
