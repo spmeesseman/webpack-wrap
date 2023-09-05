@@ -67,7 +67,6 @@ class WpwBase
         this.wpc = this.app.wpc;
         this.logger = this.app.logger;
         this.name = this.constructor.name;
-        console.log("$$$$$$$$$$$$$$$$$$$$$$" + this.name + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         this.buildOptions  = this.getOptionsConfig(this.key);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
@@ -216,8 +215,6 @@ class WpwBase
                 }
             }
         }
-        console.log("------------ 2 -----------");
-        console.log(JSON.stringify(optionsCfg, null, 3));
         return optionsCfg;
     };
 

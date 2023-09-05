@@ -207,13 +207,13 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	resolve(factory)
 	{
 		// factory.hooks.beforeResolve.tap(this.name, () => false);
-		factory.fs = {
-			readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-			readlink: (arg0, arg1) => arg1(undefined, ""),
-			// @ts-ignore
-			readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-			stat: (arg1, arg2) => stat(arg1, arg2)
-		};
+		// factory.fs = {
+		// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+		// 	readlink: (arg0, arg1) => arg1(undefined, ""),
+		// 	// @ts-ignore
+		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+		// 	stat: (arg1, arg2) => stat(arg1, arg2)
+		// };
 	}
 
 
