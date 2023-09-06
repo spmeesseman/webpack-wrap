@@ -199,6 +199,9 @@ class WpwBase
                         optionsCfg[key] = schema.default;
                     }
                 }
+                // else if (isBoolean(def)) {
+                //     throw WpBuildError.getErrorProperty("schema.definition." + key);
+                // }
                 else if (isPrimitive(def) || isArray(def)) {
                     throw WpBuildError.getErrorProperty("schema.definition." + key);
                 }

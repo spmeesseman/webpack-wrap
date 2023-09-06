@@ -29,7 +29,7 @@ class WpwSourceCode
 {
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
-    /** @type {typedefs.WpwBuild} */
+    /** @type {typedefs.IWpwBuild} */
     build;
     /** @type {typedefs.WpwSourceCodeConfig} */
     config;
@@ -44,7 +44,7 @@ class WpwSourceCode
 
 
     /**
-	 * @param {typedefs.WpwBuild} build
+	 * @param {typedefs.IWpwBuild} build
 	 * @param {WpwLogger} logger
      */
     constructor(build, logger)
@@ -172,7 +172,7 @@ class WpwSourceCode
 
     /**
      * @private
-     * @param {typedefs.WpwBuild} build
+     * @param {typedefs.IWpwBuild} build
      * @returns {string | undefined}
      */
     findJsTsConfig = (build) =>
@@ -251,7 +251,7 @@ class WpwSourceCode
 
     /**
      * @private
-     * @param {typedefs.WpwBuild} build
+     * @param {typedefs.IWpwBuild} build
      * @returns {typedefs.WpwSourceCodeConfig | undefined}
      */
     getJsTsConfigFileInfo = (build) =>

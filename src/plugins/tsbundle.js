@@ -19,12 +19,25 @@ const { isString } = require("../utils");
 /**
  * @extends WpBuildBaseTsPlugin
  */
-class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
+class WpwTsBundlePlugin extends WpBuildBaseTsPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
+
+	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+	 * @returns {WpwTsBundlePlugin | undefined}
+     */
+	static build = (app) =>
+	{
+		const typesOpts = WpwTsBundlePlugin.getBuildOptions("types", app);
+		if (typesOpts.enabled && typesOpts.bundle && typesOpts.mode === "plugin") {
+			return new WpwTsBundlePlugin({ app });
+		}
+	};
 
     /**
      * Called by webpack runtime to initialize this plugin
@@ -45,7 +58,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					hook: "compilation",
 					stage: "DERIVED",
 					statsProperty: "tsbundle",
-					callback: this.bundleDtsFiles.bind(this)
+					callback: () => this.bundleDts("tsbundle")
 				}
 			});
 		}
@@ -57,25 +70,12 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					async: true,
 					hook: "afterEmit",
 					statsProperty: "tsbundle",
-					callback: this.bundleDtsFiles.bind(this)
+					callback: () => this.bundleDts("tsbundle")
 				}
 			});
 		}
     }
-
-	/**
-	 * @returns {Promise<void>}
-	 */
-	bundleDtsFiles = () => this.bundleDts(this.app.getDistPath({ build: "types" }), "tsbundle");
 }
 
 
-/**
- * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildTsBundlePlugin | undefined}
- */
-const tsbundle = (app) =>
-	app.build.options.types?.bundle && app.build.options.types?.mode === "plugin" ? new WpBuildTsBundlePlugin({ app }) : undefined;
-
-
-module.exports = tsbundle;
+module.exports = WpwTsBundlePlugin.build;

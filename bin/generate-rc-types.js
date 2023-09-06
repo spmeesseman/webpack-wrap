@@ -22,7 +22,7 @@ const description = "Provides types macthing the .wpbuildrc.json configuration f
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const classTypes = [
-    "WpwRcSchema", "WpwSourceCode"
+    "WpwRcSchema", "WpwSourceCode", "WpwBuild"
 ];
 
 const excludeTypedefs = [

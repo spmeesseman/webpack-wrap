@@ -2010,7 +2010,14 @@
                     "type": "boolean"
                 },
                 "bundle": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                    "default": false,
+                    "oneOf": [
+                    {
+                        "type": "boolean"
+                    },
+                    {
+                        "$ref": "#/definitions/WpwPluginConfigTypesBundle"
+                    }]
                 },
                 "method": {
                     "$ref": "#/definitions/WpwSourceCodeTypescriptBuildMethod"
@@ -2049,7 +2056,8 @@
                     }]
                 }
             },
-            "examples": [{
+            "examples": [
+            {
                 "enabled": false
             },
             {
@@ -2068,6 +2076,19 @@
                 "required": [
                     "mode", "entry"
                 ]
+            }
+        },
+        "WpwPluginConfigTypesBundle": {
+            "$id": "#/WpwPluginConfigTypesBundle",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "removeSource": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                }
             }
         },
         "WpwPluginConfigUpload": {

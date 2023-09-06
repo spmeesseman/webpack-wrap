@@ -11,19 +11,17 @@
 
 /* START_RC_DEFS */
 /** @typedef {import("./rc").WpwLog} WpwLog */
-/** @typedef {import("./rc").WpwBuild} WpwBuild */
+/** @typedef {import("./rc").IWpwBuild} IWpwBuild */
 /** @typedef {import("./rc").WpwBuilds} WpwBuilds */
 /** @typedef {import("./rc").WpwLogKey} WpwLogKey */
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
 /** @typedef {import("./rc").WpwVsCode} WpwVsCode */
 /** @typedef {import("./rc").TypeWpwLog} TypeWpwLog */
 /** @typedef {import("./rc").WpwRcPaths} WpwRcPaths */
-/** @typedef {import("./rc").WpwBuildKey} WpwBuildKey */
 /** @typedef {import("./rc").WpwFileName} WpwFileName */
 /** @typedef {import("./rc").WpwFilePath} WpwFilePath */
 /** @typedef {import("./rc").WpwLogColor} WpwLogColor */
 /** @typedef {import("./rc").IWpwRcSchema} IWpwRcSchema */
-/** @typedef {import("./rc").TypeWpwBuild} TypeWpwBuild */
 /** @typedef {import("./rc").WpwBuildType} WpwBuildType */
 /** @typedef {import("./rc").WpwLogPadKey} WpwLogPadKey */
 /** @typedef {import("./rc").TypeWpwLogPad} TypeWpwLogPad */
@@ -104,6 +102,7 @@
 /** @typedef {import("./rc").WpwSourceCodeNodeJsModule} WpwSourceCodeNodeJsModule */
 /** @typedef {import("./rc").WpwSourceCodeNodeJsTarget} WpwSourceCodeNodeJsTarget */
 /** @typedef {import("./rc").WpwWebpackCompilationHook} WpwWebpackCompilationHook */
+/** @typedef {import("./rc").WpwPluginConfigTypesBundle} WpwPluginConfigTypesBundle */
 /** @typedef {import("./rc").WpwPluginConfigWebFilename} WpwPluginConfigWebFilename */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptions} WpwSourceCodeConfigOptions */
 /** @typedef {import("./constants").WpwSourceCodeExtensions} WpwSourceCodeExtensions */
@@ -160,12 +159,13 @@
 
 /** @typedef {import("../core/rc")} WpwRc */
 /** @typedef {import("../core/base")} WpwBase */
+/** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("./base").IWpwBase} IWpwBase */
 /** @typedef {import("./base").WpwBaseOptions} WpwBaseOptions */
 
 
 /***********************************************************************************************************************
- * INDEX.D.TS
+ * BUILD.D.TS
  ***********************************************************************************************************************/
 
 // @typedef {import(".").hasSymbolSham} hasSymbolSham */

@@ -32,164 +32,166 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 
 	/**
 	 * @protected
-	 * @param {string} outputDir full path
 	 * @param {string} statsProperty
+	 * @param {string | undefined} [outputDir] full path
 	 */
-	bundleDts = async (outputDir, statsProperty) =>
+	bundleDts = async (statsProperty, outputDir) =>
 	{
 		const l = this.app.logger;
 		l.write("start bundle dts", 1);
 		l.value("   types output directory", outputDir, 2);
 
-		if (!outputDir || !(await existsAsync(outputDir))) {
-			this.app.addError(WpwMessageEnum.ERROR_NO_OUTPUT_DIR, this.compilation, "dts bundling failed");
-			return;
-		}
-		else if (this.global.typesBundled) {
+		if (this.global.typesBundled) {
 			this.app.addInfo(WpwMessageEnum.INFO_BUILD_SKIPPED_NON_FATAL, "dts bundling already completed");
 			return;
 		}
 
-		const baseDir = this.app.getBasePath(),
-			  dtsFile = this.app.build.name + ".d.ts",
+		const baseDir = this.app.getBasePath();
+		if (!outputDir)
+		{
+			const compilerOptions = this.app.source.config.options.compilerOptions;
+			outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
+			outputDir = resolvePath(baseDir, outputDir);
+			if (!(await existsAsync(outputDir)))
+			{
+				this.app.addError(WpwMessageEnum.ERROR_NO_OUTPUT_DIR, this.compilation, "dts bundling failed");
+				return;
+			}
+		}
+
+		// const baseDir = this.app.getBasePath(),
+		// 	  dtsFile = this.app.build.name + ".d.ts",
+		// 	  dtsFilePathAbs = join(outputDir, dtsFile),
+		// 	  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
+		// 	  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
+		// 	  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
+		// 	  outputDirRelBase = relativePath(baseDir, outputDir),
+		// 	  entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.app.build.name)?.options);
+		// 		// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.app.build.name)?.options);
+		// let entryName = /** @type {string} */(entryOptions.name),
+		// 	entryFile = /** @type {string} */(this.compilation.getAsset(entryName)?.name),
+		// 	entryFileAbs, entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.app.source.ext,
+
+		// if (entryFile)
+		// {
+		// 	entryFileAbs = resolvePath(outputDir, entryFile);
+		// 	entryFileRel = relativePath(outputDir, entryFileAbs);
+		// 	entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
+		// 	entryFileRelBase = relativePath(baseDir, entryFileAbs);
+		// }
+
+		// f (!entryFileAbs || !existsSync(entryFileAbs))
+		//
+		// 	const typesOptions = WpBuildBaseTsPlugin.getBuildOptions("types", this.app);
+		// 	if (typesOptions.enabled && typesOptions.entry)
+		// 	{
+		// 		entryName = this.fileNameStrip(typesOptions.entry, true);
+		// 		entryFile = typesOptions.entry;
+		// 		entryFileAbs = resolvePath(outputDir, entryFile);
+		// 		entryFileRel = relativePath(outputDir, entryFileAbs);
+		// 		entryFileRelBase = relativePath(baseDir, entryFileAbs);
+		// 		entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
+		// 	}
+
+		// if (!entryFileRel || !entryFileRelBase || !entryFileAbs || !entryFileRelContext)
+		// {
+		// 	this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "could not determine entry file");
+		// 	return;
+		// }
+
+		// entryFile = entryFile.replace(/\\/g, "/");
+		// entryFileRel = entryFileRel.replace(/\\/g, "/");
+		// entryFileRelBase = entryFileRelBase.replace(/\\/g, "/");
+		// entryFileRelContext = entryFileRelBase.replace(/\\/g, "/");
+
+		// let dtsEntryFile = entryFile.replace(this.app.source.ext, "d.ts");
+		// const rootDir = this.app.source.config.options.compilerOptions.rootDir;
+		// if (rootDir && rootDir !== ".") {
+		// 	dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
+		// }
+		// const dtsEntryFileAbs = resolvePath(outputDir, dtsEntryFile),
+		// 	  dtsEntryFileRel = relativePath(outputDir, dtsEntryFileAbs),
+		// 	  dtsEntryFileRelContext = relativePath(this.compiler.context, dtsEntryFileAbs),
+		// 	  dtsEntryFileRelBase = relativePath(baseDir, dtsEntryFileAbs);
+
+		const dtsFile = this.app.build.name + ".d.ts",
 			  dtsFilePathAbs = join(outputDir, dtsFile),
 			  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			  outputDirRelBase = relativePath(baseDir, outputDir),
-			  entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.app.build.name)?.options);
-				// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.app.build.name)?.options);
-		let entryName = /** @type {string} */(entryOptions.name),
-			entryFile = /** @type {string} */(this.compilation.getAsset(entryName)?.name),
-			entryFileAbs, entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.app.source.ext,
-
-		if (entryFile)
-		{
-			entryFileAbs = resolvePath(outputDir, entryFile);
-			entryFileRel = relativePath(outputDir, entryFileAbs);
-			entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
-			entryFileRelBase = relativePath(baseDir, entryFileAbs);
-		}
-
-		if (!entryFileAbs || !existsSync(entryFileAbs))
-		{
-			const typesOptions = WpBuildBaseTsPlugin.getBuildOptions("types", this.app);
-			if (typesOptions.enabled && typesOptions.entry)
-			{
-				entryName = this.fileNameStrip(typesOptions.entry, true);
-				entryFile = typesOptions.entry;
-				entryFileAbs = resolvePath(outputDir, entryFile);
-				entryFileRel = relativePath(outputDir, entryFileAbs);
-				entryFileRelBase = relativePath(baseDir, entryFileAbs);
-				entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
-			}
-		}
-
-		if (!entryFileRel || !entryFileRelBase || !entryFileAbs || !entryFileRelContext)
-		{
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "could not determine entry file");
-			return;
-		}
-
-		entryFile = entryFile.replace(/\\/g, "/");
-		entryFileRel = entryFileRel.replace(/\\/g, "/");
-		entryFileRelBase = entryFileRelBase.replace(/\\/g, "/");
-		entryFileRelContext = entryFileRelBase.replace(/\\/g, "/");
-
-		let dtsEntryFile = entryFile.replace(this.app.source.ext, "d.ts");
-		const rootDir = this.app.source.config.options.compilerOptions.rootDir;
-		if (rootDir && rootDir !== ".") {
-			dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
-		}
-		const dtsEntryFileAbs = resolvePath(outputDir, dtsEntryFile),
-			  dtsEntryFileRel = relativePath(outputDir, dtsEntryFileAbs),
-			  dtsEntryFileRelContext = relativePath(this.compiler.context, dtsEntryFileAbs),
-			  dtsEntryFileRelBase = relativePath(baseDir, dtsEntryFileAbs);
+			  outputDirRelBase = relativePath(baseDir, outputDir).replace(/\\/g, "/");
 
 		if (this.logger.level >= 2)
 		{
-			l.write("   entry file info:");
-			l.value("      name", entryName);
-			l.value("      filename", entryFile);
-			l.value("      relative path (dist)", entryFileRel);
-			l.value("      relative path (context)", entryFileRelContext);
-			l.value("      relative path (base)", entryFileRelBase);
-			l.value("      absolute path", entryFileAbs);
+			// l.write("   entry file info:");
+			// l.value("      name", entryName);
+			// l.value("      filename", entryFile);
+			// l.value("      relative path (->dist)", entryFileRel);
+			// l.value("      relative path (->context)", entryFileRelContext);
+			// l.value("      relative path (->base)", entryFileRelBase);
+			// l.value("      absolute path", entryFileAbs);
 			l.write("   output bundle info:");
-			l.value("      relative path (dist)", dtsFilePathRel);
-			l.value("      relative path (context)", dtsFilePathRelContext);
-			l.value("      relative path (base)", dtsFilePathRelBase);
+			l.value("      dist dir relative path (->base)", outputDirRelBase);
+			l.value("      relative path (->dist)", dtsFilePathRel);
+			l.value("      relative path (->context)", dtsFilePathRelContext);
+			l.value("      relative path (->base)", dtsFilePathRelBase);
 			l.value("      absolute path", dtsFilePathAbs);
-			l.write("   output bundle entryfile info:");
-			l.value("      filename", dtsEntryFile);
-			l.value("      relative path (dist)", dtsEntryFileRel);
-			l.value("      relative path (context)", dtsEntryFileRelContext);
-			l.value("      relative path (base)", dtsEntryFileRelBase);
-			l.value("      absolute path", dtsEntryFileAbs);
+			// l.write("   output bundle entryfile info:");
+			// l.value("      filename", dtsEntryFile);
+			// l.value("      relative path (->dist)", dtsEntryFileRel);
+			// l.value("      relative path (->context)", dtsEntryFileRelContext);
+			// l.value("      relative path (->base)", dtsEntryFileRelBase);
+			// l.value("      absolute path", dtsEntryFileAbs);
 		}
 
-		if (existsSync(dtsEntryFileAbs))
+		if (existsSync(dtsFilePathAbs))
 		{
-			if (existsSync(dtsFilePathAbs)) {
-				l.write("   clean/remove prior bundle output @ " + dtsFilePathRelBase, 2);
-				await unlink(dtsFilePathAbs);
-			}
-
-			/** @type {typedefs.WpBuildDtsBundleOptions} */
-			const bundleCfg = {
-				name: `${this.app.pkgJson.name}-${this.app.build.name}`,
-				baseDir: outputDirRelBase,
-				headerPath: "",
-				headerText: "",
-				main: dtsEntryFileRelBase,
-				out: dtsFile,
-				outputAsModuleFolder: true,
-				// removeSource: true,
-				verbose: this.app.build.log.level === 5
-			};
-				//
-			try // Create bundle - using dts bundling library
-			{	// TODO - Can typescript.program() bundle, using 'out' compilerOption?
-				//
-				dts.bundle(bundleCfg);
-				this.global.typesBundled = true;
-				//
-				// Add .d.ts file as file dependencies
-				//
-				// this.compilation.fileDependencies.clear();
-				const outputFiles = await findFiles("**/*.d.ts", { cwd: outputDir});
-				outputFiles.forEach((f) => { this.compilation.fileDependencies.add(f); });
-				//
-				// Emit bundled file as compilation asset
-				//
-				const info = /** @type {typedefs.WebpackAssetInfo} */({
-					// contenthash: newHash,
-					immutable: false, // newHash === persistedCache[filePathRel],
-					javascriptModule: false,
-					[statsProperty]: true
-				});
-				const data = await readFile(dtsFilePathAbs),
-					  source = new this.compiler.webpack.sources.RawSource(data);
-				this.compilation.emitAsset(dtsFilePathRel, source, info);
-				// this.compilation.fileDependencies.add(dtsFilePathAbs);
-				//
-				// Remove js file produced by webpack bundler, by default there's no way to load source
-				// code without specifying an entry point that will in the end produce a js bundle, which,
-				// of course, is what Web[packis for and does.  In the case of building declarations/types
-				// though, it doesnt really fit "module" definition as defined by Webpack.
-				//
-				// entryFile = join(typesDirDist, basename(entryFile).replace(".d.ts", ".js"));
-				if (entryFileAbs.startsWith(this.app.build.paths.temp) && existsSync(entryFileAbs)) { // // dtscfg.removeSource: true, ???
-					await unlink(entryFileAbs);
-				}
-				l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
-			}
-			catch (e) {
-				this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, e);
-			}
+			l.write("   clean/remove prior bundle output @ " + dtsFilePathRelBase, 2);
+			await unlink(dtsFilePathAbs);
 		}
-		else {
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "could not determine entry file");
+
+		/** @type {typedefs.WpBuildDtsBundleOptions} */
+		const bundleCfg =
+		{
+			name: `${this.app.pkgJson.name}-${this.app.build.name}`,
+			baseDir: outputDirRelBase,
+			headerPath: "",
+			headerText: "",
+			main: outputDirRelBase + "/**/*.d.ts",
+			out: dtsFile,
+			outputAsModuleFolder: true,
+			// removeSource: true,
+			verbose: this.app.build.log.level >= 4
+		};
+			//
+		try // Create bundle - using dts bundling library
+		{	// TODO - Can typescript.program() bundle, using 'out' compilerOption?
+			//
+			dts.bundle(bundleCfg);
+			this.global.typesBundled = true;
+			//
+			// Add .d.ts file as file dependencies
+			//
+			// this.compilation.fileDependencies.clear();
+			const outputFiles = await findFiles("**/*.d.ts", { cwd: outputDir});
+			outputFiles.forEach((f) => { this.compilation.fileDependencies.add(f); });
+			//
+			// Emit bundled file as compilation asset
+			//
+			const info = /** @type {typedefs.WebpackAssetInfo} */({
+				// contenthash: newHash,
+				immutable: false, // newHash === persistedCache[filePathRel],
+				javascriptModule: false,
+				[statsProperty]: true
+			});
+			const data = await readFile(dtsFilePathAbs),
+				  source = new this.compiler.webpack.sources.RawSource(data);
+			this.compilation.emitAsset(dtsFilePathRel, source, info);
+			// this.compilation.fileDependencies.add(dtsFilePathAbs);
+			l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
+		}
+		catch (e) {
+			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, e);
 		}
 	};
 
@@ -202,7 +204,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
-	 * @throws {WpBuildError}
+	 * @throws {typedefs.WpBuildError}
 	 */
 	execTsBuild = async (sourceCodeConfig, args, identifier, outputDir, alias) =>
 	{

@@ -20,6 +20,7 @@ const WpwLogger = require("../utils/console");
 const {
     apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum, WpwRegex
 } = require("../utils");
+const WpwBuild = require("./build");
 
 
 /**
@@ -74,14 +75,14 @@ class WpBuildApp
 	constructor(rc, build)
 	{
         this.rc = rc;
-        this.build = build;
         this.info = [];
         this.errors = [];
         this.warnings = [];
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
-        this.source = new WpwSourceCode(this.build, this.logger);
+        this.build = build; // new WpwBuild(this, rc, build);
+        this.source = new WpwSourceCode(build, this.logger);
         this.disposables.push(this.source);
 	}
 
@@ -256,7 +257,7 @@ class WpBuildApp
 
     /**
      * @param {string} name
-     * @returns {typedefs.WpwBuild | undefined}
+     * @returns {typedefs.IWpwBuild | undefined}
      */
     getAppBuild = (name) => this.rc.getBuild(name);
 
