@@ -12,7 +12,8 @@
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
-const { isString } = require("@spmeesseman/type-utils");
+const { isString, isError } = require("@spmeesseman/type-utils");
+const WpwRegex = require("./regex");
 
 
 /**
@@ -26,28 +27,21 @@ const WpwMessageProps = [ "WPW650", "WPW899", "WPW050" ];
  */
 const isWpwMessageProp = (v) => !!v && WpwMessageProps.includes(v);
 
-// /**
-//  * @type {{ [ key in typedefs.WpwMessageKey ]: typedefs.WpwMessage }}
-//  */
-let WpwMessage2;
-((WpwMessage2) => {
-    WpwMessage2.WPW650 = "failed to modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled";
-    WpwMessage2.WPW899 = "an unknown error has occurred";
-    WpwMessage2.WPW050 = "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false";
-// @ts-ignore
-})(WpwMessage2 = module.exports.WpwMessage2 || (module.exports.WpwMessage2 = {}));
 
 /**
  * @type {typedefs.IWpwMessage}
  */
 const WpwMessage =
 {
+    WPW025: "build skipped (non-fatal)",
+    WPW075: "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false",
     WPW450: "did not modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
     WPW605: "build failed - output directory does not exist",
     WPW660: "type definitions build failed",
     WPW661: "type definitions build failed - output directory does not exist",
-    WPW899: "an unknown error has occurred",
-    WPW050: "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false"
+    WPW662: "type definitions build failed - invalid build method",
+    WPW700: "an error has occurred",
+    WPW899: "an unknown error has occurred"
 };
 
 /**
@@ -55,12 +49,15 @@ const WpwMessage =
  */
 const WpwMessageEnum =
 {
-    FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
-    SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW050"),
-    SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450"),
-    TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
-    TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
-    UNKNOWN_ERROR: /** @type {typedefs.WpwErrorCode} */("WPW899")
+    ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW700"),
+    ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
+    ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
+    ERROR_TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
+    ERROR_TYPES_FAILED_INVALID_METHOD: /** @type {typedefs.WpwErrorCode} */("WPW662"),
+    ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899"),
+    INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
+    INFO_SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW075"),
+    WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450")
 };
 
 
@@ -68,35 +65,46 @@ class WpBuildError extends WebpackError
 {
     /**
      * @param {string} message
-     * @param {string} file
-     * @param {string} [details]
-     * @param {boolean} [capture]
+     * @param {string | Error} [details]
      */
-    constructor(message, file, details, capture)
+    constructor(message, details)
     {
         super(message);
-        this.file = file;
-        this.details = details;
         // this.loc = file;
 		this.name = "WpBuildError";
         // Object.setPrototypeOf(this, new.target.prototype);
-        if (capture !== false) {
-            WpBuildError.captureStackTrace(this, this.constructor);
+        if (isError (details)) {
+            this.details = details.message;
         }
-        if (!this.details && this.stack) {
-		    this.details = cleanUp(this.stack, this.message);
+        else if (isString(details)) {
+            this.details = details;
+        }
+        WpBuildError.captureStackTrace(this, this.constructor);
+        if (this.stack)
+        {
+            const lines = this.stack?.split("\n") || [],
+                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [])[1]),
+                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [])[1];
+            this.file = this.file || (lines[3].match(WpwRegex.StackTraceCurrentFile) || [])[1];
+            this.loc = {
+                end: { line, column },
+                start: {line, column },
+                name: (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1]
+            };
+            if (!this.details) {
+		        this.details = cleanUp(this.stack, this.message);
+            }
         }
     }
 
 
     /**
      * @param {string} message
-     * @param {string} file
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
+     * @param {Error | string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
-    static get(message, file, wpc, detail)
+    static get(message, wpc, detail)
     {
         if (wpc) {
             if (wpc.mode) {
@@ -106,47 +114,42 @@ class WpBuildError extends WebpackError
                 message += ` | target:[${wpc.target}]`;
             }
         }
-        message += ` | [${file}]`;
         if (isString(detail)) {
             message += ` | ${detail}`;
         }
-        const e =new WpBuildError(message, file, detail ?? undefined, false);
-        WpBuildError.captureStackTrace(e, this.get);
+        const e = new WpBuildError(message, detail ?? undefined);
         return e;
     }
 
 
     /**
      * @param {string} property
-     * @param {string} file
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
-    static getErrorMissing = (property, file, wpc, detail) =>
-        this.get(`Could not locate wpw resource '${property}'`, file, wpc, detail);
+    static getErrorMissing = (property, wpc, detail) =>
+        this.get(`Could not locate wpw resource '${property}'`, wpc, detail);
 
 
     /**
      * @param {string} property
-     * @param {string} file
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
-    static getErrorProperty = (property, file, wpc, detail) =>
-        this.get(`Invalid wpw configuration @ property '${property}'`, file, wpc, detail);
+    static getErrorProperty = (property, wpc, detail) =>
+        this.get(`Invalid wpw configuration @ property '${property}'`, wpc, detail);
 
 
     /**
      * @param {string} fnName
-     * @param {string} file
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpBuildError}
      */
-    static getAbstractFunction = (fnName, file, wpc, detail) =>
-        this.get(`abstract method '${fnName}' must be overridden`, file, wpc, detail);
+    static getAbstractFunction = (fnName, wpc, detail) =>
+        this.get(`abstract method '${fnName}' must be overridden`, wpc, detail);
 
 }
 

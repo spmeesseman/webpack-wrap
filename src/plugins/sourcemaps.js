@@ -101,7 +101,7 @@ class WpBuildSourceMapPlugin extends WpwPlugin
             });
         }
         else {
-            this.app.addWarning(WpwMessageEnum.SOURCEMAPS_RUNTIMEVARS_NOT_SET);
+            this.app.addWarning(WpwMessageEnum.WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET);
         }
     };
 

@@ -17,7 +17,6 @@ const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
 const { isFunction, isArray, isEmpty, isDirectory, merge } = require("@spmeesseman/type-utils");
-const { WpBuildError } = require("./message");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -201,8 +200,11 @@ const execAsync = async (options) =>
  * @param {string} path
  * @returns {Promise<boolean>}
  */
-const existsAsync = async(path) =>
+const existsAsync = async (path) =>
 {
+    if (!path) {
+        return false;
+    }
     try {
         await access(path);
         return true;
@@ -233,13 +235,12 @@ const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions
  * @param {string} dir
  * @param {string} fileName
  * @returns {string | undefined}
- * @throws {WpBuildError}
  */
 const findFileUp = (dir, fileName) =>
 {
     dir = resolve(dir);
     if (!existsSync(dir) || !isDirectory(dir)) {
-        throw new WpBuildError("invalid directory specified", "utils/utils.js", dir);
+        return undefined;
     }
     const dirs = dir.split(sep);
     for (let i = 0; i < dirs.length; i++)

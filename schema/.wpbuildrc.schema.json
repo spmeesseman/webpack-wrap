@@ -547,16 +547,27 @@
                             "properties": {
                                 "runtimevars": {
                                     "properties": {
-                                        "enabled": false
+                                        "enabled": {
+                                            "const": false
+                                        }
                                     }
                                 }
                             }
                         }
                     },
                     "then": {
-                        "properties": {
-                            "types": false
-                        }
+                        "anyOf": [{
+                            "properties": {
+                                "types": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "types": {
+                                    "const": false
+                                }
+                            }
+                        }]
                     }
                 },
                 "sourcemaps": {
@@ -591,46 +602,246 @@
                     }
                 },
                 "types": {
-                    "if": {
-                        "properties": {
-                            "types": {
-                                "properties": {
-                                    "mode": {
-                                        "const": "plugin"
-                                    }
+                    "allOf": [{
+                        "if": {
+                            "properties": {
+                                "types": {
+                                    "anyOf": [{
+                                        "properties": {
+                                            "enabled": {
+                                                "const": true
+                                            },
+                                            "mode": {
+                                                "const": "plugin"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "properties": {
+                                            "enabled": false,
+                                            "mode": {
+                                                "const": "plugin"
+                                            }
+                                        }
+                                    }]
                                 }
                             }
-                        }
-                    },
-                    "then": {
-                        "properties": {
-                            "tscheck": {
-                                "properties": {
-                                    "enabled": {
-                                        "const": true
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "else": {
-                        "anyOf": [{
+                        },
+                        "then": {
                             "properties": {
                                 "tscheck": {
-                                    "properties": {
-                                        "enabled": {
-                                            "const": false
+                                    "anyOf": [{
+                                        "properties": {
+                                            "enabled": {
+                                                "const": true
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "properties": {
+                                            "enabled": false
+                                        }
+                                    }]
+                                }
+                            }
+                        },
+                        "else": {
+                            "anyOf": [{
+                                "properties": {
+                                    "tscheck": {
+                                        "properties": {
+                                            "enabled": {
+                                                "const": false
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                "properties": {
+                                    "tscheck": false
+                                }
+                            }]
+                        }
+                    },
+                    {
+                        "if": {
+                            "not": {
+                                "properties": {
+                                    "types": {
+                                        "properties": {
+                                            "enabled": false
                                         }
                                     }
                                 }
                             }
                         },
-                        {
-                            "properties": {
-                                "tscheck": false
-                            }
-                        }]
-                    }
+                        "then": {
+                            "allOf": [
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "analyze": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "analyze": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "analyze": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            },
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "runtimevars": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "runtimevars": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "runtimevars": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            },
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "upload": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "upload": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "upload": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            },
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "istanbul": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "istanbul": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "istanbul": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            },
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "testsuite": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "testsuite": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "testsuite": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            },
+                            {
+                                "anyOf": [{
+                                    "properties": {
+                                        "jsdoc": false
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "jsdoc": {
+                                            "properties": {
+                                                "enabled": false
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    "properties": {
+                                        "jsdoc": {
+                                            "properties": {
+                                                "enabled": {
+                                                    "const": false
+                                                }
+                                            }
+                                        }
+                                    }
+                                }]
+                            }]
+                        }
+                    }]
                 }
             }
         },
@@ -857,7 +1068,7 @@
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "level": {
-                    "title": "WpBuildLogLevel",
+                    "title": "WpwLoggerLevel",
                     "oneOf": [{
                         "const": 0,
                         "description": "No logging"
@@ -1561,28 +1772,74 @@
                     "type": "boolean"
                 }
             },
-            "if": {
-                "anyOf": [
-                {
-                    "properties": {
-                        "optimization": true
+            "dependencies": {
+                "hashing": {
+                    "if": {
+                        "properties": {
+                            "hashing": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "anyOf": [{
+                            "properties": {
+                                "all": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "all": {
+                                    "const": false
+                                }
+                            }
+                        }]
                     }
                 },
-                {
-                    "properties": {
-                        "deprecated": true
+                "optimization": {
+                    "if": {
+                        "properties": {
+                            "optimization": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "anyOf": [{
+                            "properties": {
+                                "all": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "all": {
+                                    "const": false
+                                }
+                            }
+                        }]
                     }
                 },
-                {
-                    "properties": {
-                        "processAssets": true
-                    }
-                }]
-            },
-            "then": {
-                "not": {
-                    "properties": {
-                        "all": true
+                "processAssets": {
+                    "if": {
+                        "properties": {
+                            "processAssets": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "anyOf": [{
+                            "properties": {
+                                "all": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "all": {
+                                    "const": false
+                                }
+                            }
+                        }]
                     }
                 }
             }

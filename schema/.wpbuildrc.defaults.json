@@ -37,33 +37,80 @@
     },
     "options": {
         "analyze": {
-            "circular": false,
-            "analyzer": false,
-            "visualizer": false
+            "enabled": false
         },
-        "banner": false,
-        "cache": false,
-        "copy": false,
-        "devtool": true,
-        "experiments": true,
-        "externals": true,
-        "ignore": true,
-        "ignorewarnings": false,
-        "istanbul": false,
-        "jsdoc": false,
-        "licensefiles": false,
-        "loghooks": true,
-        "minification": false,
-        "optimization": true,
-        "progress": false,
-        "runtimevars": false,
-        "scm": false,
-        "sourcemaps": false,
-        "tscheck": false,
-        "tsbundle": false,
-        "types": false,
-        "upload": false,
-        "vendormod": false,
-        "watch": false
+        "banner": {
+            "enabled": true
+        },
+        "cache": {
+            "enabled": false
+        },
+        "copy": {
+            "enabled": false
+        },
+        "devtool": {
+            "enabled": false
+        },
+        "experiments": {
+            "enabled": true
+        },
+        "externals": {
+            "enabled": true
+        },
+        "ignore": {
+            "enabled": true
+        },
+        "ignorewarnings": {
+            "enabled": false
+        },
+        "istanbul": {
+            "enabled": false
+        },
+        "jsdoc": {
+            "enabled": false
+        },
+        "licensefiles": {
+            "enabled": false
+        },
+        "loghooks": {
+            "enabled": true,
+            "compiler": true,
+            "compilation": {
+                "processAssets": true
+            }
+        },
+        "minification": {
+            "enabled": false
+        },
+        "optimization": {
+            "enabled": true
+        },
+        "progress": {
+            "enabled": false
+        },
+        "runtimevars": {
+            "enabled": false
+        },
+        "scm": {
+            "enabled": false
+        },
+        "sourcemaps": {
+            "enabled": false
+        },
+        "tscheck": {
+            "enabled": false
+        },
+        "types": {
+            "enabled": false
+        },
+        "upload": {
+            "enabled": false
+        },
+        "vendormod": {
+            "enabled": false
+        },
+        "watch": {
+            "enabled": false
+        }
     }
 }

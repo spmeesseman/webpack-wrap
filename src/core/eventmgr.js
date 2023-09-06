@@ -13,13 +13,13 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @class WpBuildLogHookStagesPlugin
+ * @class WpwLoggerHookStagesPlugin
  * @implements {typedefs.IDisposable}
  */
 class WpBuildEventManager
 {
 	/**
-	 * @class WpBuildLogHookStagesPlugin
+	 * @class WpwLoggerHookStagesPlugin
 	 */
 	constructor()
 	{

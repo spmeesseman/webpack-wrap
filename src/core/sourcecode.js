@@ -10,7 +10,7 @@
 
 const JSON5 = require("json5");
 const { spawnSync } = require("child_process");
-const WpBuildConsoleLogger = require("../utils/console");
+const WpwLogger = require("../utils/console");
 const { readFileSync, existsSync, readdirSync } = require("fs");
 const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
@@ -35,7 +35,7 @@ class WpwSourceCode
     config;
     /** @type {typedefs.WpwSourceCodeExtension} */
     ext;
-    /** @type {WpBuildConsoleLogger} @private */
+    /** @type {WpwLogger} @private */
     logger;
     /** @type {typedefs.TypeScriptProgram | undefined} @private */
     program;
@@ -44,21 +44,21 @@ class WpwSourceCode
 
 
     /**
-	 * @param {typedefs.IWpwSourceCode} sourceCodeOptions
 	 * @param {typedefs.WpwBuild} build
-	 * @param {WpBuildConsoleLogger} logger
+	 * @param {WpwLogger} logger
      */
-    constructor(sourceCodeOptions, build, logger)
+    constructor(build, logger)
     {
-        const jtsconfigFileInfo = this.getJsTsConfigFileInfo(build),
-              defaultConfig = this.getDefaultConfig(sourceCodeOptions.config),
-              compilerOptions = merge({}, sourceCodeOptions.config.options?.compilerOptions);
+        const sourceConfig = build.source,
+              jtsconfigFileInfo = this.getJsTsConfigFileInfo(build),
+              defaultConfig = this.getDefaultConfig(sourceConfig.config),
+              compilerOptions = merge({}, sourceConfig.config.options?.compilerOptions);
         this.logger = logger;
         this.config = merge(defaultConfig, jtsconfigFileInfo || {});
         apply(this, {
             build,
-            type: sourceCodeOptions.type,
-            ext: sourceCodeOptions.type === "typescript" ? "ts" : "js"
+            type: sourceConfig.type,
+            ext: sourceConfig.type === "typescript" ? "ts" : "js"
         });
         merge(this.config.options, { compilerOptions });
         if (this.type === "typescript" || build.type === "types")
@@ -86,7 +86,7 @@ class WpwSourceCode
     {
         const ts = WpwSourceCode.typescript;
         if (!ts) {
-            throw WpBuildError.get("typescript.program is unavailable", "core/sourcecode.js");
+            throw WpBuildError.get("typescript.program is unavailable");
         }
         this.cleanupProgram();
         const programOptions = merge({}, this.config.options.compilerOptions, compilerOptions),
@@ -177,7 +177,8 @@ class WpwSourceCode
      */
     findJsTsConfig = (build) =>
     {
-        const cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
+        const sourceConfig = build.source,
+              cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
         /**
          * @param {string | undefined} base
          * @returns {string | undefined}
@@ -218,9 +219,9 @@ class WpwSourceCode
             }
         };
 
-        if (isJsTsConfigPath(build.source.config.path))
+        if (isJsTsConfigPath(sourceConfig.config.path))
         {
-            const curPath = resolvePath(build.paths.base, build.source.config.path);
+            const curPath = resolvePath(build.paths.base, sourceConfig.config.path);
             if (curPath && existsSync(curPath)) {
                 return curPath;
             }

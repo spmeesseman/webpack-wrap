@@ -30,7 +30,7 @@ const circular = (app) =>
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                compilation.warnings.push(new WpBuildError(paths.join(" -> "), "plugins/analyze/circular.js"));
+                compilation.warnings.push(new WpBuildError(paths.join(" -> ")));
             }
         });
     }

@@ -87,7 +87,7 @@ class WpwPluginWaitManager
             }
             else if (Date.now() - start > options.timeout)
             {
-                reject(new WpBuildError(`Wait operation times out at ${options.timeout} ms`, "plugin/wait.js"));
+                reject(new WpBuildError(`Wait operation times out at ${options.timeout} ms`));
             }
             else {
                 setTimeout(_poll, options.interval, resolve, reject);

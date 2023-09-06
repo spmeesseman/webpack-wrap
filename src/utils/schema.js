@@ -42,7 +42,7 @@ const validateSchema = (options, logger, subschema) =>
         l.success("   schema validation successful", 1);
     }
     catch (e) {
-        const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`, "core/rc.js");
+        const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
         l.error(err);
         throw err;
     }
@@ -76,7 +76,7 @@ const getDefinitionSchema = (schemaObj, definitions) =>
                 property = emptySchemaObject;
             }
             else {
-                property = refProperty.properties || { type: "object", properties: {}};
+                property = refProperty;
             }
         }
     }

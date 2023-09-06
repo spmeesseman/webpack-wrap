@@ -15,7 +15,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const { WpwRegex } = require("../utils");
+const { WpwRegex, WpwMessageEnum } = require("../utils");
 const { existsSync } = require("fs");
 const WpBuildApp = require("../core/app");
 const { join, basename } = require("path");
@@ -86,7 +86,7 @@ class WpBuildUploadPlugin extends WpwPlugin
                 this.app.logger.write("upload plugin cleanup completed");
         }   }
         catch (e) {
-            this.handleError(e);
+			this.app.addError(WpwMessageEnum.ERROR_GENERAL, this.compilation, e);
         }
     };
 
@@ -230,7 +230,7 @@ class WpBuildUploadPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => WpwPlugin.getOptionsConfig("upload", app).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (app) => WpwPlugin.getBuildOptions("upload", app).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
 
 
 module.exports = upload;

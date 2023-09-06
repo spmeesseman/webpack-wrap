@@ -21,7 +21,7 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
-import { IWpBuildLogger } from "./logger";
+import { IWpwLogger } from "./logger";
 import { WpwErrorCode, WpwInfoCode, WpwWarningCode } from "./message";
 import { IDisposable, ClsWpBuildError } from "./generic";
 import {
@@ -30,10 +30,10 @@ import {
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
     WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler,
-    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions
+    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackCompilation
 } from "./webpack";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpBuildLogLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WpwBuild, WebpackTarget, WpwRcPathsKey,
     WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode
 } from "./rc";
 
@@ -51,7 +51,7 @@ declare interface IWpBuildGlobalEnvironment {
 declare type WpBuildGlobalEnvironment = IWpBuildGlobalEnvironment;
 
 declare interface IWpBuildRuntimeEnvArgs {
-    analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpBuildLogLevel | WebpackLogLevel;
+    analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
 };
 declare type WpBuildRuntimeEnvArgs = IWpBuildRuntimeEnvArgs;
 
@@ -82,16 +82,16 @@ declare interface IWpBuildApp extends IDisposable
     isMainTest: boolean;
     isTest: boolean;
     isWeb: boolean;
-    logger: IWpBuildLogger;
+    logger: IWpwLogger;
     mode: WpwWebpackMode;
     pkgJson: WpwPackageJson;
     target: WebpackTarget;
     vscode: WpwVsCode;
     warnings: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
-    addError(e: WpwErrorCode, d?: detail, pad?: string): void;
-    addInfo(i: WpwInfoCode, d?: detail, pad?: string): void;
-    addWarning(w: WpwWarningCode, d?: detail, pad?: string): void;
+    addError(e: WpwErrorCode, c?: WebpackCompilation, d?: string, pad?: string): void;
+    addInfo(i: WpwInfoCode, d?: string, pad?: string): void;
+    addWarning(w: WpwWarningCode, c?: WebpackCompilation, d?: string, pad?: string): void;
     buildApp(): WpwWebpackConfig;
     dispose(): Promise<void>;
     getApp(name: string): IWpBuildApp | undefined;

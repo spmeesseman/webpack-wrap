@@ -37,9 +37,9 @@ const devtool = (app) =>
 	// Disabled for this build - Using source-map-plugin - see webpack.plugin.js#sourcemaps
 	// ann the plugins() function below
 	//
-	if (WpwBase.getOptionsConfig("devtool", app).enabled)
+	if (WpwBase.getBuildOptions("devtool", app).enabled)
 	{
-		if (WpwBase.getOptionsConfig("sourcemaps", app).enabled)
+		if (WpwBase.getBuildOptions("sourcemaps", app).enabled)
 		{
 			app.wpc.devtool = false;
 		}

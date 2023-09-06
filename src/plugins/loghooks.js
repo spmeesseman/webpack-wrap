@@ -17,12 +17,20 @@ const { isFunction } = require("../utils");
 /**
  * @extends WpwPlugin
  */
-class WpBuildLogHooksPlugin extends WpwPlugin
+class WpwLogHooksPlugin extends WpwPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
+
+
+	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+	 * @returns {WpwLogHooksPlugin | undefined}
+     */
+	static build = (app) => this.getBuildOptions("loghooks", app).enabled ? new WpwLogHooksPlugin({ app }) : undefined;
 
 
     /**
@@ -158,7 +166,7 @@ class WpBuildLogHooksPlugin extends WpwPlugin
 				this.addCompilationHook("log");
 				this.addCompilationHook("processWarnings");
 				this.addCompilationHook("processErrors");
-				this.addCompilationHook("statsPreset");
+				// this.addCompilationHook("statsPreset"); // receive runtime deprecation error
 				this.addCompilationHook("statsNormalize");
 				this.addCompilationHook("statsFactory");
 				this.addCompilationHook("statsPrinter");
@@ -236,15 +244,4 @@ class WpBuildLogHooksPlugin extends WpwPlugin
 }
 
 
-/**
- * Returns a `WpBuildLogHookStagesPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
- * property to a boolean value of  `true` or `false`
- *
- * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildLogHooksPlugin | undefined}
- */
-const loghooks = (app) => app.build.options.loghooks ? new WpBuildLogHooksPlugin({ app }) : undefined;
-
-
-module.exports = loghooks;
+module.exports = WpwLogHooksPlugin.build;

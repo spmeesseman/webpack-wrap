@@ -20,7 +20,7 @@
  *//** */
 
 import { WpwBuildOptionsKey } from "./rc";
-import { IWpBuildLogger } from "./logger";
+import { IWpwLogger } from "./logger";
 
 
 declare interface IWpwBaseOptions
@@ -42,7 +42,7 @@ declare interface IWpwBase
 {
     app: typeof import("../core/app").prototype;
     // key: WpwBuildOptionsKey;
-    logger: IWpBuildLogger;
+    logger: IWpwLogger;
 }
 
 

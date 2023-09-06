@@ -26,7 +26,6 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
      */
 	constructor(options) { super(options); }
 
-
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
@@ -46,7 +45,7 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					hook: "compilation",
 					stage: "DERIVED",
 					statsProperty: "tsbundle",
-					callback: this.bundleDts.bind(this)
+					callback: this.bundleDtsFiles.bind(this)
 				}
 			});
 		}
@@ -58,22 +57,16 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
 					async: true,
 					hook: "afterEmit",
 					statsProperty: "tsbundle",
-					callback: this.bundleDtsAfterEmit.bind(this)
+					callback: this.bundleDtsFiles.bind(this)
 				}
 			});
 		}
     }
 
 	/**
-	 * @param {typedefs.WebpackCompilation} compilation
 	 * @returns {Promise<void>}
 	 */
-	bundleDtsAfterEmit = (compilation) =>
-	{
-		this.compilation = compilation;
-		return this.bundleDts(compilation.assets);
-	};
-
+	bundleDtsFiles = () => this.bundleDts(this.app.getDistPath({ build: "types" }), "tsbundle");
 }
 
 
@@ -81,7 +74,8 @@ class WpBuildTsBundlePlugin extends WpBuildBaseTsPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildTsBundlePlugin | undefined}
  */
-const tsbundle = (app) => app.build.options.types?.bundle ? new WpBuildTsBundlePlugin({ app }) : undefined;
+const tsbundle = (app) =>
+	app.build.options.types?.bundle && app.build.options.types?.mode === "plugin" ? new WpBuildTsBundlePlugin({ app }) : undefined;
 
 
 module.exports = tsbundle;

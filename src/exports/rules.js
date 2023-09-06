@@ -64,7 +64,7 @@ class WpwRulesExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc);
+			throw WpBuildError.getErrorProperty("rules", app.wpc);
 		}
 		app.logger.success("create rules", 2);
 	};
@@ -77,7 +77,7 @@ class WpwRulesExport extends WpwWebpackExport
 	jsdoc = () =>
 	{
 		const app = this.app,
-			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app);
+			  jsdocOptions = WpwBase.getBuildOptions("jsdoc", app);
 		if (jsdocOptions.type === "entry")
 		{
 			const exclude = getExcludes(app, this.app.source.config),
@@ -105,11 +105,11 @@ class WpwRulesExport extends WpwWebpackExport
 				});
 			}
 			else {
-				throw WpBuildError.get("jsdoc source path does not exist", "exports/rules.js", app.wpc);
+				throw WpBuildError.get("jsdoc source path does not exist", app.wpc);
 			}
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules", "exports/rules.js", app.wpc, "build not configured for jsdoc 'entry' type");
+			throw WpBuildError.getErrorProperty("rules", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
 	};
 
@@ -247,8 +247,8 @@ class WpwRulesExport extends WpwWebpackExport
 	types = () =>
 	{
 		const app = this.app,
-			  typesConfig = WpwBase.getOptionsConfig("types", app),
-			  typesSrcPath= app.getSrcPath({ build: app.build.name });
+			  typesConfig = WpwBase.getBuildOptions("types", app),
+			  typesSrcPath= app.getSrcPath({ build: app.build.type });
 
 		if (typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
 		{
@@ -262,7 +262,7 @@ class WpwRulesExport extends WpwWebpackExport
 			});
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules[types]", "exports/rules.js", app.wpc);
+			throw WpBuildError.getErrorProperty("rules[types]", app.wpc);
 		}
 	};
 

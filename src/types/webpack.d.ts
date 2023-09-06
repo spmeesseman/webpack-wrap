@@ -50,7 +50,7 @@ import webpack, {
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
-    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin
+    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError
 }from "webpack";
 
 declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
@@ -185,6 +185,8 @@ export {
     WebpackConfig,
     WebpackContextModuleFactory,
     WebpackEntry,
+    WebpackEntryOptions,
+    WebpackError,
     WebpackEtag,
     WebpackExternalItem,
     WebpackFileCacheOptions,

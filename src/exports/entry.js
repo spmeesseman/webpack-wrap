@@ -14,7 +14,7 @@
  */
 
 const { glob } = require("glob");
-const { basename } = require("path");
+const { basename, resolve } = require("path");
 const WpwBase = require("../core/base");
 const WpBuildApp = require("../core/app");
 const WpwWebpackExport = require("./base");
@@ -22,6 +22,7 @@ const typedefs = require("../types/typedefs");
 const {
 	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
 } = require("../utils");
+const { existsSync } = require("fs");
 
 
 /**
@@ -70,7 +71,7 @@ class WpwEntryExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc);
+			throw WpBuildError.getErrorProperty("entry", app.wpc);
 		}
 
 		//
@@ -80,7 +81,7 @@ class WpwEntryExport extends WpwWebpackExport
 		{
 			if (!e || (!isString(e) && !e.import))
 			{
-				throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "entry target is invalid");
+				throw WpBuildError.getErrorProperty("entry", app.wpc, "entry target is invalid");
 			}
 			const ep = isString(e) ? e : e.import;
 			if (!ep.startsWith("./"))
@@ -107,7 +108,7 @@ class WpwEntryExport extends WpwWebpackExport
 	jsdoc = () =>
 	{
 		const app = this.app,
-			  jsdocOptions = WpwBase.getOptionsConfig("jsdoc", app);
+			  jsdocOptions = WpwBase.getBuildOptions("jsdoc", app);
 		if (jsdocOptions.type === "entry")
 		{
 			const mainBuild = app.getAppBuild("module"),
@@ -121,7 +122,7 @@ class WpwEntryExport extends WpwWebpackExport
 			}
 		}
 		else {
-			throw WpBuildError.getErrorProperty("entry", "exports/entry.js", app.wpc, "build not configured for jsdoc 'entry' type");
+			throw WpBuildError.getErrorProperty("entry", app.wpc, "build not configured for jsdoc 'entry' type");
 		}
 	};
 
@@ -222,7 +223,7 @@ class WpwEntryExport extends WpwWebpackExport
 	{
 		const app = this.app,
 			  build = app.build,
-			  typesConfig = WpwBase.getOptionsConfig("types", app);
+			  typesConfig = WpwBase.getBuildOptions("types", app);
 
 		if (!typesConfig || typesConfig.mode !== "module") {
 			return;
@@ -235,15 +236,27 @@ class WpwEntryExport extends WpwWebpackExport
 			{
 				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
 				apply(app.wpc.entry, {
-					[ build.name ]: `${mainSrcPath}/${mainBuild.name}.ts`
+					[ build.name ]: `${mainSrcPath}/${mainBuild.name}.${app.source.ext}`
 				});
 			}
 		}
-		else
+		else if (typesConfig.entry === "index")
 		{
 			const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			apply(app.wpc.entry, {
-				index: `${typesPath}/index.${build.source.ext}`
+				[ build.name ]: `${typesPath}/index.${app.source.ext}`
+			});
+		}
+		// else if (typesConfig.entry && existsSync(resolve(this.app.getContextPath(), typesConfig.entry)))
+		// {
+		// 	apply(app.wpc.entry, {
+		// 		[ build.name ]: typesConfig.entry
+		// 	});
+		// }
+		else
+		{
+			apply(app.wpc.entry, {
+				[ build.name ]: `${app.build.paths.temp}/index.${app.source.ext}`
 			});
 		}
 	};

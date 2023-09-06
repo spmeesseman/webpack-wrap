@@ -32,9 +32,9 @@
 /** @typedef {import("./rc").IWpwSourceCode} IWpwSourceCode */
 /** @typedef {import("./rc").TypeWpwRcPaths} TypeWpwRcPaths */
 /** @typedef {import("./rc").WpwLogColoring} WpwLogColoring */
+/** @typedef {import("./rc").WpwLoggerLevel} WpwLoggerLevel */
 /** @typedef {import("./rc").WpwPackageJson} WpwPackageJson */
 /** @typedef {import("./rc").WpwWebpackMode} WpwWebpackMode */
-/** @typedef {import("./rc").WpBuildLogLevel} WpBuildLogLevel */
 /** @typedef {import("./rc").WpwBuildOptions} WpwBuildOptions */
 /** @typedef {import("./rc").WpwLogTrueColor} WpwLogTrueColor */
 /** @typedef {import("./rc").WpwWebpackEntry} WpwWebpackEntry */
@@ -214,7 +214,7 @@
  * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
  * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
  * @property {string} [program] program name to diasplay in any logging
- * @property {WpBuildConsoleLogger} [logger] a WpBuildConsoleLogger instance
+ * @property {WpwLogger} [logger] a WpwLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
  * @property {boolean} [stdout] a padding to prepend any log messages with
  * @returns {Promise<number | null>}
@@ -236,11 +236,13 @@
  * LOGGER.D.TS
  ***********************************************************************************************************************/
 
-/** @typedef {import("./logger").WpBuildLogIcon} WpBuildLogIcon */
+/** @typedef {import("./logger").WpwLoggerIcon} WpwLoggerIcon */
 /** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
-/** @typedef {import("./logger").WpBuildLogIconSet} WpBuildLogIconSet */
+/** @typedef {import("./logger").WpwLoggerIconSet} WpwLoggerIconSet */
 /** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
-/** @typedef {import("../utils").WpBuildConsoleLogger} WpBuildConsoleLogger */
+/** @typedef {import("../utils").WpwLogger} WpwLogger */
+/** @typedef {import("./logger").WpwLoggerIconBlueSet} WpwLoggerIconBlueSet */
+/** @typedef {import("./logger").WpwLoggerIconColorSet} WpwLoggerIconColorSet */
 
 
 /***********************************************************************************************************************
@@ -318,6 +320,7 @@
 /** @typedef {import("./webpack").WebpackType} WebpackType */
 /** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
 /** @typedef {import("./webpack").WebpackStats} WebpackStats */
+/** @typedef {import("./webpack").WebpackError} WebpackError */
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */
 /** @typedef {import("./webpack").WebpackSource} WebpackSource */
 /** @typedef {import("./webpack").WebpackCompiler} WebpackCompiler */
@@ -330,6 +333,7 @@
 /** @typedef {import("./webpack").WebpackRuntimeArgs} WebpackRuntimeArgs */
 /** @typedef {import("./webpack").WebpackCacheFacade} WebpackCacheFacade */
 /** @typedef {import("./webpack").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("./webpack").WebpackEntryOptions} WebpackEntryOptions */
 /** @typedef {import("./webpack").WebpackExternalItem} WebpackExternalItem */
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */

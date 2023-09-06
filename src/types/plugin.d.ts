@@ -47,7 +47,7 @@
  *//** */
 
 import { RequireKeys } from "./generic";
-import { IWpBuildLogger } from "./logger";
+import { IWpwLogger } from "./logger";
 import { WpwPluginConfigWaitDef } from "./rc";
 import { IWpwBase, WpwBaseOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
@@ -93,21 +93,7 @@ declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
 declare interface IWpBuildPluginCacheOptions { file: string }
 declare type WpBuildPluginCacheOptions = IWpBuildPluginCacheOptions;
 
-declare type WpwApplyCallbackCompilationParam = (arg: WebpackCompilation) => void | Promise<void>;
-
-declare type WpwApplyCallbackCompilerParam = (arg: WebpackCompiler) => void | Promise<void>;
-
-declare type WpwApplyCallbackAssetsParam = (arg: WebpackCompilationAssets) => void | Promise<void>;
-
-declare type WpwApplyCallbackCompilationParamsParam = (arg: WebpackCompilationParams) => void | Promise<void>;
-
-declare type WpwApplyCallbackStatsParam = (arg: WebpackStats) => void | Promise<void>;
-
-declare type WpwApplyCallbackNormalModuleFactoryParam = (arg: WebpackNormalModuleFactory) => void | Promise<void>;
-
-declare type WpwOnApplyCallback = WpwApplyCallbackStatsParam | WpwApplyCallbackCompilationParam |
-             WpwApplyCallbackCompilerParam | WpwApplyCallbackAssetsParam | WpwApplyCallbackCompilationParamsParam |
-             WpwApplyCallbackNormalModuleFactoryParam;
+declare type WpwApplyCallback = (...args: any[]) => void | PromiseLike<void>;
 
 declare type WpBuildPluginTapOptions  = Record<string, WpBuildPluginTapOptionsEntry | WpBuildPluginCompilationOptionsEntry>;
 
@@ -127,7 +113,7 @@ declare interface IWpBuildPlugin extends IWpwBase, WebpackPluginInstance
     // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;
     compiler?: WebpackCompiler;
-    logger: IWpBuildLogger;
+    logger: IWpwLogger;
 }
 
 declare type WpBuildDtsBundleOptions = DtsBundleOptions & { baseDir: string; name: string; out: string };

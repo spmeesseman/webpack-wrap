@@ -44,7 +44,7 @@ const typedefs = require("../types/typedefs");
 const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
-const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray, applyIf } = require("../utils");
+const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray, applyIf, WpwMessageEnum } = require("../utils");
 
 
 /**
@@ -60,11 +60,7 @@ class WpwPlugin extends WpwBase
     compilation;
     /** @type {typedefs.WebpackCompiler} compiler */
     compiler;
-    /**
-     * @override
-     * @protected
-     * @type {typedefs.WpwPluginOptions}
-     */
+    /** @type {typedefs.WpwPluginOptions} @override @protected */
     options;
     /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
@@ -107,6 +103,7 @@ class WpwPlugin extends WpwBase
 
     /**
      * Called by webpack runtime to initialize this plugin.  To be overridden by inheriting class.
+     *
      * @abstract
      * @param {typedefs.WebpackCompiler} compiler
      */
@@ -115,12 +112,14 @@ class WpwPlugin extends WpwBase
 
     /**
      * Break property name into separate spaced words at each camel cased character
+     *
      * @private
      * @param {string} prop
      * @returns {string}
      */
     breakProp = (prop) => prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
                               .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
+
 
     /**  @protected  */
     static cacheFilename = (/** @type {string} */ mode, /** @type {string} */ name) => `plugincache_${mode}_${name}.json`;
@@ -146,7 +145,7 @@ class WpwPlugin extends WpwBase
             cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
         }
         catch (e) {
-            this.handleError(e, "failed while checking cache");
+            this.handleError("failed while checking cache", e);
             return result;
         }
 
@@ -158,7 +157,7 @@ class WpwPlugin extends WpwBase
                 isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
             }
             catch (e) {
-                this.handleError(e, "failed while checking snapshot");
+                this.handleError("failed while checking snapshot", e);
                 return result;
             }
             if (isValidSnapshot)
@@ -181,7 +180,7 @@ class WpwPlugin extends WpwBase
                 result.snapshot = await this.createSnapshot(startTime, filePath);
             }
             catch (e) {
-                this.handleError(e, "failed while creating snapshot");
+                this.handleError("failed while creating snapshot", e);
                 return result;
             }
             if (source && result.snapshot)
@@ -194,7 +193,7 @@ class WpwPlugin extends WpwBase
                     result.source = source;
                 }
                 catch (e) {
-                    this.handleError(e, "failed while caching snapshot");
+                    this.handleError("failed while caching snapshot", e);
                     return result;
                 }
             }
@@ -221,7 +220,7 @@ class WpwPlugin extends WpwBase
             cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
         }
         catch (e) {
-            this.handleError(e, "failed while checking if cached snapshot exists");
+            this.handleError("failed while checking if cached snapshot exists", e);
         }
         return !!cacheEntry && !!cacheEntry.snapshot;
     };
@@ -265,7 +264,8 @@ class WpwPlugin extends WpwBase
 	 * @param {string | string[]} [ignoreOut]
 	 * @returns {Promise<number | null>}
 	 */
-	exec = (command, program, ignoreOut) => execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
+	exec = (command, program, ignoreOut) =>
+        execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
 
 
 	/**
@@ -336,37 +336,18 @@ class WpwPlugin extends WpwBase
 
 
 	/**
-	 * @protected
-	 * @param {WpBuildError | WebpackError | Error | string} e
-	 * @param {string | undefined | null | false | 0} [msgOrFile]
-	 * @param {string} [fileOrDetails]
-	 * @param {string} [details]
+	 * @private
+	 * @param {string} message
+	 * @param {WpBuildError | WebpackError | Error | undefined} [error]
 	 * @throws {WpBuildError}
 	 */
-	handleError(e, msgOrFile, fileOrDetails, details)
+	handleError(message, error)
 	{
-        /** @type {WpBuildError | WebpackError | Error} */
-        let err;
-        if (isString(e))
-        {
-            err = msgOrFile ? new WpBuildError(e, msgOrFile, fileOrDetails) : new WebpackError(e);
+        const err = error ?? new WpBuildError(message, error);
+        this.app.addError(WpwMessageEnum.ERROR_GENERAL, this.compilation, err);
+        if (!this.compilation) {
+            throw err;
         }
-        else if (!(e instanceof WebpackError) && !(e instanceof WpBuildError))
-        {
-            this.app.logger.error(msgOrFile ?? "an error has occurred");
-            if (!fileOrDetails) {
-                err = new WebpackError(e.message);
-            }
-            else {
-                err = new WpBuildError(e.message, fileOrDetails, details);
-            }
-        }
-        else { err = e; }
-        this.app.logger.error(err);
-        if (this.compilation) {
-            this.compilation.errors.push(/** @type {WebpackError} */(e));
-        }
-        else { throw err; }
 	}
 
 
@@ -434,7 +415,7 @@ class WpwPlugin extends WpwBase
                         hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
                     }
                     else {
-                        this.handleError(new WebpackError(`Invalid async hook parameters specified: ${tapOpts.hook}`));
+                        this.handleError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
                         return;
                     }
                 }
@@ -521,13 +502,13 @@ class WpwPlugin extends WpwBase
                         tapOpts.hookCompilation = "processAssets";
                     }
                     else {
-                        this.handleError(new WebpackError("Invalid hook parameters: stage and hookCompilation not specified"));
+                        this.handleError("Invalid hook parameters: stage and hookCompilation not specified");
                         return;
                     }
                 }
                 else if (tapOpts.hookCompilation === "processAssets" && !tapOpts.stage)
                 {
-                    this.handleError(new WebpackError("Invalid hook parameters: stage not specified for processAssets"));
+                    this.handleError("Invalid hook parameters: stage not specified for processAssets");
                     return;
                 }
                 this.tapCompilationStage(name, /** @type {typedefs.WpBuildPluginCompilationOptionsEntry} */(tapOpts));
@@ -570,7 +551,7 @@ class WpwPlugin extends WpwBase
                         hook.tapPromise(name, this.wrapCallback(optionName, options).bind(this));
                     }
                     else {
-                        this.handleError(new WebpackError(`Invalid async hook specified: ${options.hook}`));
+                        this.handleError(`Invalid async hook specified: ${options.hook}`);
                         return;
                     }
                 }
@@ -630,10 +611,10 @@ class WpwPlugin extends WpwBase
 
     /**
      * @private
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} _options Plugin options to be applied
      * @throws {typedefs.WpBuildError}
      */
-	validatePluginOptions(options)
+	validatePluginOptions(_options)
     {
     }
 
@@ -649,7 +630,7 @@ class WpwPlugin extends WpwBase
      */
     static wrap(clsType, app, optionsKey)
     {
-        if (WpwPlugin.getOptionsConfig(optionsKey, app).enabled)
+        if (WpwPlugin.getBuildOptions(optionsKey, app).enabled)
         {
             const plugin = new clsType({ app, wrapPlugin: true });
             plugin.plugins.push(plugin.getVendorPlugin());

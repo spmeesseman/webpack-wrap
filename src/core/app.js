@@ -16,7 +16,7 @@ const WpwSourceCode = require("./sourcecode");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const { isAbsolute, relative, sep } = require("path");
-const WpBuildConsoleLogger = require("../utils/console");
+const WpwLogger = require("../utils/console");
 const {
     apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum, WpwRegex
 } = require("../utils");
@@ -48,7 +48,7 @@ class WpBuildApp
     isTest;
     /** @type {boolean} */
     isWeb;
-    /** @type {WpBuildConsoleLogger} */
+    /** @type {WpwLogger} */
     logger;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
@@ -81,7 +81,7 @@ class WpBuildApp
         this.disposables = [];
 		this.applyAppRc();
         this.initLogger();
-        this.source = new WpwSourceCode(this.build.source, this.build, this.logger);
+        this.source = new WpwSourceCode(this.build, this.logger);
         this.disposables.push(this.source);
 	}
 
@@ -120,10 +120,11 @@ class WpBuildApp
 
     /**
      * @param {typedefs.WpwErrorCode} code
-     * @param {string} [detail]
+     * @param {typedefs.WebpackCompilation} [compilation]
+     * @param {Error | string} [detail]
      * @param {string} [pad]
      */
-    addError = (code, detail, pad) => this.addMessage(code, detail, pad);
+    addError = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
 
 
     /**
@@ -131,59 +132,55 @@ class WpBuildApp
      * @param {string} [detail]
      * @param {string} [pad]
      */
-    addInfo = (code, detail, pad) => this.addMessage(code, detail, pad);
+    addInfo = (code, detail, pad) => this.addMessage(code, undefined, detail, pad);
 
 
     /**
      * @private
-     * @param {typedefs.WpwMessageCode} code
-     * @param {string} [detail]
+     * @param {typedefs.WpwMessageCode} code defined error, info, or warning code
+     * @param {typedefs.WebpackCompilation} [compilation] If set, build will bail
+     * @param {Error | string} [detail] additional detail about the error / warning / event
      * @param {string} [pad]
      */
-    addMessage = (code, detail, pad) =>
+    addMessage = (code, compilation, detail, pad) =>
     {
-        // let m;
-        const se = new Error();
-        Error.captureStackTrace(se); // , this);
-        const lines = se.stack?.split("\n") || [],
-              file = lines[2] || "unknown",
-              method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1];
-console.log(se.stack?.split("\n").join(" | "));
-console.log("file: " + file);
-console.log("method: " + method);
-        // if (isWpwMessageProp(msg))
-        // {
-        //     m = WpBuildError.get(msg, "n/a");
-        // }
-        // else {
-        // }
-        if (/WPW[0-2][0-9][0-9]/.test(WpwMessage[code]))
+        const icons = this.logger.icons;
+        if (/WPW[0-2][0-9][0-9]/.test(code))
         {
-            const i = WpBuildError.get(WpwMessage[code], file, undefined);
-            this.logger.warning(i, pad);
+            const i = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            this.logger.write(i.message, 1, pad, icons.blue.info);
             this.info.push(i);
         }
-        else if (/WPW[3-5][0-9][0-9]/.test(WpwMessage[code]))
+        else if (/WPW[3-5][0-9][0-9]/.test(code))
         {
-            const w = WpBuildError.get(WpwMessage[code], file, undefined);
-            this.logger.warning(w, pad);
+            const w = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            this.logger.write(w.message, undefined, pad, icons.color.warning);
             this.warnings.push(w);
+            compilation?.warnings.push(w);
         }
-        else if (/WPW[6-8][0-9][0-9]/.test(WpwMessage[code]))
+        else if (/WPW[6-8][0-9][0-9]/.test(code))
         {
-            const e = WpBuildError.get(WpwMessage[code], file, undefined);
-            this.logger.error(e, pad);
+            const e = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            this.logger.write(e.message, undefined, pad, icons.color.error);
             this.errors.push(e);
+            compilation?.errors.push(e);
+        }
+        else if (/WPW9[0-9][0-9]/.test(code)) {
+            this.logger.write("reserved message type", undefined, pad, icons.color.warning);
+        }
+        else {
+            this.logger.warning("unknown message type", pad);
         }
     };
 
 
     /**
      * @param {typedefs.WpwWarningCode} code
+     * @param {typedefs.WebpackCompilation} [compilation]
      * @param {string} [detail]
      * @param {string} [pad]
      */
-    addWarning = (code, detail, pad) => this.addMessage(code, detail, pad);
+    addWarning = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
 
 
 	/**
@@ -217,7 +214,7 @@ console.log("method: " + method);
         this.wpc = this.getDefaultWebpackExports();
         if (this.source.type === "typescript" && (!buildOptions.tscheck || buildOptions.tscheck?.enabled === false))
         {
-            this.addInfo(WpwMessageEnum.SHOULD_ENABLE_TSCHECK);
+            this.addInfo(WpwMessageEnum.INFO_SHOULD_ENABLE_TSCHECK);
         }
         try
         {   wpexports.cache(this);          // Asset cache
@@ -393,7 +390,7 @@ console.log("method: " + method);
     initLogger = () =>
     {
         apply(this.build.log, { envTag1: this.build.name , envTag2: this.target.toString() });
-        const l = this.logger = new WpBuildConsoleLogger(this.build.log);
+        const l = this.logger = new WpwLogger(this.build.log);
         this.global.buildCount = this.global.buildCount || 0;
         l.value(
             `Start Webpack build ${++this.global.buildCount}`,
@@ -470,11 +467,12 @@ console.log("method: " + method);
         l.value("   temp directory", this.getRcPath("temp"), 2);
         l.sep();
         l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
+        l.value("   source code ext", this.source.ext, 1);
         l.value("   source code type", this.source.type, 1);
         l.value("   ts/js config file", this.source.config.file, 2);
         l.value("   ts/js config directory", this.source.config.dir, 2);
         l.value("   ts/js config path", this.source.config.path, 2);
-        l.value("   source code base configuration", JSON.stringify(pickNot(this.build.source.config, "raw", "options")), 3);
+        l.value("   sourcecode configured options", JSON.stringify(pickNot(this.build.source.config, "raw", "options")), 3);
         l.value("   ts/js configured options", JSON.stringify(pickNot(this.build.source.config.options, "compilerOptions", "files")), 3);
         l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);
         l.value("   ts/js configured files", JSON.stringify(this.build.source.config.options.files), 4);

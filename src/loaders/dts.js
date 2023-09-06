@@ -2,7 +2,7 @@
 
 const { validate } = require("schema-utils");
 const { urlToRequest } = require("loader-utils");
-const WpBuildConsoleLogger = require("../utils/console");
+const WpwLogger = require("../utils/console");
 
 /** @type {import("schema-utils/declarations/validate").Schema} */
 const schema = {
@@ -14,7 +14,7 @@ const schema = {
     }
 };
 
-const logger = new WpBuildConsoleLogger({
+const logger = new WpwLogger({
     envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
 });
 

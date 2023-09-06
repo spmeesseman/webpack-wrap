@@ -24,7 +24,7 @@ class WpwWebpackExport extends WpwBase
      */
     build = () =>
     {
-        throw WpBuildError.getAbstractFunction("build", "exports/base.js", this.wpc, `name[${this.name}]`);
+        throw WpBuildError.getAbstractFunction("build", this.wpc, `name[${this.name}]`);
     };
 }
 

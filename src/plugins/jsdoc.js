@@ -226,7 +226,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 // 		// Ensure output directory exists
 // 		//
 // 		if (!(await existsAsync(outDir))) {
-// 			this.handleError(new WpBuildError("jsdoc build failed - output directory doesn't exist", "plugins/jsdoc.js", outDir));
+// 			this.handleError("jsdoc build failed - output directory doesn't exist", e);
 // 			return;
 // 		}
 //
@@ -274,7 +274,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //                 cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
 //             }
 //             catch (e) {
-//                 this.handleError(e, "failed while checking cache");
+//                 this.handleError("failed while checking cache", e);
 //                 return;
 //             }
 //
@@ -286,7 +286,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //                     isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
 //                 }
 //                 catch (e) {
-//                     this.handleError(e, "failed while checking snapshot");
+//                     this.handleError("failed while checking snapshot", e);
 //                     return;
 //                 }
 //                 if (isValidSnapshot)
@@ -319,7 +319,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //                     snapshot = await this.createSnapshot(startTime, filePath);
 //                 }
 //                 catch (e) {
-//                     this.handleError(e, "failed while creating snapshot for " + filePathRel);
+//                     this.handleError("failed while creating snapshot for " + filePathRel, e);
 //                     return;
 //                 }
 //                 if (snapshot)
@@ -332,7 +332,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //                         cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
 //                     }
 //                     catch (e) {
-//                         this.handleError(e, "failed while caching snapshot " + filePathRel);
+//                         this.handleError("failed while caching snapshot " + filePathRel, e);
 //                         return;
 //                     }
 //                 }

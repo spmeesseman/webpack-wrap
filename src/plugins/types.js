@@ -39,7 +39,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	 * @returns {WpBuildTypesPlugin | undefined}
      */
 	static build = (app) =>
-		this.getOptionsConfig("types", app).enabled ? new WpBuildTypesPlugin({ app }) : undefined;
+		this.getBuildOptions("types", app).enabled ? new WpBuildTypesPlugin({ app }) : undefined;
 
 
     /**
@@ -227,31 +227,34 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	async types(assets)
 	{
 		const sourceCode = this.app.source;
+
+		Object.keys(assets).forEach((file) => { this.compilation.deleteAsset(file); });
+
 		if (sourceCode.config.path)
 		{
 			const logger = this.logger,
 				  method = this.buildOptions.method,
 			      compilerOptions = sourceCode.config.options.compilerOptions,
 				  basePath = /** @type {string} */(this.app.getRcPath("base")),
-				  typesDirDist = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
+				  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
 
 			logger.write("start types build", 1);
 			logger.value("   method", method, 2);
 			logger.value("   mode", this.buildOptions.mode, 2);
 			logger.value("   entry", this.buildOptions.entry, 2);
-			logger.value("   output directory", typesDirDist, 2);
+			logger.value("   output directory", outputDir, 2);
 			logger.value("   base path", basePath, 3);
 			logger.value("   build options", this.buildOptions, 4);
 
 			if (method === "program")
 			{
 				const options = this.getCompilerOptions(method);
-				this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, typesDirDist);
+				this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDir);
 				this.app.source.createProgram(options);
 				const result = this.app.source.emit(undefined, undefined, undefined, true);
 				if (!result)
 				{
-					this.app.addError(WpwMessageEnum.TYPES_FAILED);
+					this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation);
 					return;
 				}
 			}
@@ -259,19 +262,23 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 			{
 				const tscArgs = this.getCompilerOptions(method),
 					  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
-				this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, typesDirDist);
-				await this.execTsBuild(sourceCode.config, tscArgs, 1, typesDirDist);
-			}
-
-			if (this.buildOptions.bundle) {
-				this.bundleDts(assets);
-			}
-
-			if (await existsAsync(resolve(this.app.getBasePath(), typesDirDist))) {
-				logger.write("type definitions created successfully @ " + typesDirDist, 1);
+				this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir);
+				await this.execTsBuild(sourceCode.config, tscArgs, 1, outputDir);
 			}
 			else {
-				this.app.addError(WpwMessageEnum.TYPES_FAILED_NO_OUTPUT_DIR);
+				this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED_INVALID_METHOD, this.compilation, `configured build method is '${method}'`);
+			}
+
+			const outputDirAbs = resolve(this.app.getBasePath(), outputDir);
+			if (await existsAsync(outputDirAbs))
+			{
+				if (this.buildOptions.bundle) {
+					await this.bundleDts(outputDirAbs, "types");
+				}
+				logger.write("type definitions created successfully @ " + outputDir, 1);
+			}
+			else {
+				this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
 			}
 		}
 	}

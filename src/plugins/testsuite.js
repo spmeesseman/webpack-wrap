@@ -12,9 +12,10 @@
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
 const WpBuildApp = require("../core/app");
-const { WebpackError } = require("webpack");
 const WpBuildBaseTsPlugin = require("./tsc");
-const { join, dirname, isAbsolute, resolve, relative } = require("path");;
+const { WpwMessageEnum } = require("../utils");
+const { join, dirname, isAbsolute, resolve, relative } = require("path");
+;
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
@@ -67,7 +68,7 @@ class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
 		if (!this.app.source.config.options || !this.app.source.config.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
-			this.handleError(new WebpackError(eMsg));
+			this.app.addError(WpwMessageEnum.ERROR_GENERAL, this.compilation, eMsg);
 			this.logger.warning("consider possible solutions:");
 			this.logger.warning("   (1) rename test suite config file according to convention");
 			this.logger.warning("   (2) disable testsuite plugin in italic(.wsbuildrc.plugins.testsuite)");

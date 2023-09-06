@@ -19,65 +19,74 @@
  */
 
 
-import { WpBuildLogLevel, WpwLogTrueColor, WpwLogColor } from "./rc";
+import { WpwLoggerLevel, WpwLogTrueColor, WpwLogColor } from "./rc";
 
-declare type WpBuildLogIcon = keyof Omit<WpBuildLogIconSet, "blue" | "color">;
+declare type WpwLoggerIcon = keyof Omit<WpwLoggerIconSet, "blue" | "color">;
+declare type WpwLoggerBlueIcon = keyof WpwLoggerIconBlueSet;
+declare type WpwLoggerColorIcon = keyof WpwLoggerIconColorSet;
 
 declare type WpwLogColorValue = 0 | 1 | 3 | 4 | 7 | 22 | 23 | 24 | 27 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 39 | 90;
 
 declare type WpwLogColorMapping = [ WpwLogColorValue, WpwLogColorValue ];
 
-declare interface IWpBuildLogIconBaseSet
+declare type WpwLogIconString = `${string}`;
+declare type WpwLogIconString2 = `${string}${keyof WpwLoggerIconBaseSet}${string}`;
+
+declare interface IWpwLoggerIconBaseSet
 {
-    bullet: string;
-    error: string;
-    info: string;
-    star: string;
-    start: string;
-    success: string;
-    up: string;
-    warning: string;
+    bullet: WpwLogIconString;
+    error: WpwLogIconString;
+    info: WpwLogIconString;
+    star: WpwLogIconString;
+    start: WpwLogIconString;
+    success: WpwLogIconString;
+    up: WpwLogIconString;
+    warning: WpwLogIconString;
 };
-declare type WpBuildLogIconBaseSet = IWpBuildLogIconBaseSet;
+declare type WpwLoggerIconBaseSet = IWpwLoggerIconBaseSet;
 
-declare type WpBuildLogIconBlueSet = Pick<WpBuildLogIconBaseSet, "error"|"info"|"success"|"warning">;
+declare type WpwLoggerIconBlueSet = Pick<WpwLoggerIconBaseSet, "error"|"info"|"success"|"warning">;
 
-declare type WpBuildLogIconActionSet =
+declare type WpwLoggerIconColorSet =
 {
-    errorTag: string;
-    starCyan: string;
-    successTag: string;
-} & WpBuildLogIconBaseSet;
+    errorTag: WpwLogIconString;
+    infoTag: WpwLogIconString;
+    starCyan: WpwLogIconString;
+    successTag: WpwLogIconString;
+    warningTag: WpwLogIconString;
+} & WpwLoggerIconBaseSet;
 
-declare type WpBuildLogIconSet =
+declare type WpwLoggerIconSet =
 {
-    blue: WpBuildLogIconBlueSet;
-    color: WpBuildLogIconActionSet;
-} & WpBuildLogIconBaseSet;
+    blue: WpwLoggerIconBlueSet;
+    color: WpwLoggerIconColorSet;
+} & WpwLoggerIconBaseSet;
 
-declare interface IWpBuildLogger
+declare interface IWpwLogger
 {
     colors: Record<WpwLogColor, WpwLogColorMapping>;
-    icons: WpBuildLogIconSet;
+    icons: WpwLoggerIconSet;
     withColor(msg: string | undefined, color: WpwLogColorMapping, sticky?: boolean): string;
     error: (msg: any, pad?: string) => void;
-    start: (msg: string, level?: WpBuildLogLevel) => void;
+    start: (msg: string, level?: WpwLoggerLevel) => void;
     tag: (msg: string, bracketColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
-    value: (msg: string, value: any, level?: WpBuildLogLevel, pad?: string, icon?: string | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;
-    valuestar: (msg: string, value: any, level?: WpBuildLogLevel, pad?: string, iconColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
+    value: (msg: string, value: any, level?: WpwLoggerLevel, pad?: string, icon?: WpwLogIconString | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;
+    valuestar: (msg: string, value: any, level?: WpwLoggerLevel, pad?: string, iconColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
     warning: (msg: any, pad?: string) => void;
-    write: (msg: string, level?: WpBuildLogLevel, pad?: string, icon?: string | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;
-    writeMsgTag: (msg: string, tagMsg: string, level?: WpBuildLogLevel, pad?: string, bracketColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
+    write: (msg: string, level?: WpwLoggerLevel, pad?: string, icon?: WpwLogIconString | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;
+    writeMsgTag: (msg: string, tagMsg: string, level?: WpwLoggerLevel, pad?: string, bracketColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
 }
 
 export {
-    IWpBuildLogger,
-    IWpBuildLogIconBaseSet,
+    IWpwLogger,
+    IWpwLoggerIconBaseSet,
+    WpwLoggerIconBlueSet,
+    WpwLoggerIconColorSet,
     WpwLogColor,
     WpwLogColorMapping,
     WpwLogColorValue,
-    WpBuildLogIcon,
-    WpBuildLogIconSet,
-    WpBuildLogLevel,
+    WpwLoggerIcon,
+    WpwLoggerIconSet,
+    WpwLoggerLevel,
     WpwLogTrueColor
 };

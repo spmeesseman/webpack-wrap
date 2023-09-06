@@ -9,10 +9,10 @@ const { isString, isObject, isPrimitive, merge, isArray } = require("@spmeessema
 
 
 /**
- * @class WpBuildConsoleLogger
+ * @class WpwLogger
  * @implements {typedefs.IDisposable}
  */
-class WpBuildConsoleLogger
+class WpwLogger
 {
     /** @type {typedefs.WpwLog} @private */
     options;
@@ -25,7 +25,7 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @class WpBuildConsoleLogger
+     * @class WpwLogger
      * @param {Partial<typedefs.WpwLog>} options
      */
     constructor(options)
@@ -71,7 +71,7 @@ class WpBuildConsoleLogger
         }
 
         this.options = merge(
-            WpBuildConsoleLogger.defaultOptions(),
+            WpwLogger.defaultOptions(),
             {
                 envTag1: "wpbuild",
                 envTag2: "info",
@@ -89,7 +89,7 @@ class WpBuildConsoleLogger
 
 
     /**
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string | undefined | null | 0 | false} [icon]
      */
     blank(level, icon) { this.write(" ", level, "", icon); }
@@ -230,8 +230,7 @@ class WpBuildConsoleLogger
         return this.colors[this.options.colors.infoIcon || this.options.color || "blue"];
     };
 
-
-    /** @type {typedefs.WpBuildLogIconSet} */
+    /** @type {typedefs.WpwLoggerIconSet} */
     icons =
     {
         bullet: "●",
@@ -242,6 +241,7 @@ class WpBuildConsoleLogger
         success: "✔",
         up: "△",
         warning: "⚠",
+        /** @type {typedefs.WpwLoggerIconBlueSet} */
         blue:
         {
             error: this.withColor("✘", this.colors.blue),
@@ -249,9 +249,11 @@ class WpBuildConsoleLogger
             success: this.withColor("✔", this.colors.blue),
             warning: this.withColor("⚠", this.colors.blue)
         },
+        /** @type {typedefs.WpwLoggerIconColorSet} */
         color:
         {
             bullet: this.withColor("●", this.colors.white),
+            infoTag: this.withColor("[", this.colors.white) + this.withColor("INFO", this.colors.blue) + this.withColor("]", this.colors.white),
             errorTag: this.withColor("[", this.colors.white) + this.withColor("ERROR", this.colors.red) + this.withColor("]", this.colors.white),
             info: this.withColor("ℹ", this.colors.magenta),
             star: this.withColor("★", this.colors.yellow),
@@ -261,6 +263,7 @@ class WpBuildConsoleLogger
             successTag: this.withColor("[", this.colors.white) + this.withColor("SUCCESS", this.colors.green) + this.withColor("]", this.colors.white),
             up: this.withColor("△", this.colors.white),
             warning: this.withColor("⚠", this.colors.yellow),
+            warningTag: this.withColor("[", this.colors.white) + this.withColor("WARNING", this.colors.yellow) + this.withColor("]", this.colors.white),
             error: this.withColor("✘", this.colors.red)
         }
     };
@@ -273,7 +276,7 @@ class WpBuildConsoleLogger
      * @param {tinycolor.ColorInput[]} colors
      */
     printBanner = (name, version, subtitle, ...colors) =>
-        WpBuildConsoleLogger.printBanner(name, version, subtitle, undefined, this);
+        WpwLogger.printBanner(name, version, subtitle, undefined, this);
 
 
     /**
@@ -281,13 +284,13 @@ class WpBuildConsoleLogger
      * @param {string} version
      * @param {string} subtitle
      * @param {typedefs.WpBuildCallback} [cb]
-     * @param {WpBuildConsoleLogger} [logger]
+     * @param {WpwLogger} [logger]
      * @param {tinycolor.ColorInput[]} colors
      */
     static printBanner = (name, version, subtitle, cb, logger, ...colors) =>
     {
         const instLogger = !!logger;
-        logger = logger || new WpBuildConsoleLogger({
+        logger = logger || new WpwLogger({
             envTagDisable: true, colors: { default: "grey" }, level: 5, pad: { value: 100 }
         });
         logger.sep();
@@ -334,7 +337,7 @@ class WpBuildConsoleLogger
 
     /**
      * @param {string | undefined} msg
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      */
     start = (msg, level) =>  this.write(
         (this.options.color ?
@@ -343,7 +346,7 @@ class WpBuildConsoleLogger
 
     /**
      * @param {any} msg
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad]
      * @param {boolean} [successIcon]
      */
@@ -376,7 +379,7 @@ class WpBuildConsoleLogger
      * by .wpbuildrc.`log.pad.value` (defaults to 45)
      * @param {string} msg
      * @param {any} val
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad] Message pre-padding
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null} [color]
@@ -491,7 +494,7 @@ class WpBuildConsoleLogger
     /**
      * @param {string} msg
      * @param {string} dsc
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad] Message pre-padding
      * @param {typedefs.WpwLogColorMapping | null} [iconColor]
      * @param {typedefs.WpwLogColorMapping | null} [msgColor]
@@ -541,7 +544,7 @@ class WpBuildConsoleLogger
 
     /**
      * @param {string} msg
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null} [color]
@@ -568,7 +571,7 @@ class WpBuildConsoleLogger
     /**
      * @param {string} msg
      * @param {string | undefined} tagMsg
-     * @param {typedefs.WpBuildLogLevel} [level]
+     * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
      * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
@@ -593,4 +596,4 @@ class WpBuildConsoleLogger
 }
 
 
-module.exports = WpBuildConsoleLogger;
+module.exports = WpwLogger;

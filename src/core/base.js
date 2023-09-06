@@ -42,7 +42,7 @@ class WpwBase
     hashDigestLength;
     /** @type {typedefs.WpwBuildOptionsKey} @protected */
     key;
-    /** @type {typedefs.WpBuildConsoleLogger} */
+    /** @type {typedefs.WpwLogger} */
     logger;
     /**  @protected */
     name;
@@ -67,7 +67,7 @@ class WpwBase
         this.wpc = this.app.wpc;
         this.logger = this.app.logger;
         this.name = this.constructor.name;
-        this.buildOptions  = this.getOptionsConfig(this.key);
+        this.buildOptions  = this.getBuildOptions(this.key);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.app.disposables.push(this);
@@ -82,7 +82,7 @@ class WpwBase
      */
 	static build = (..._args) =>
     {
-        throw WpBuildError.getAbstractFunction("build[static]", "core/base.js", null, `this.name[${this.name}]`);
+        throw WpBuildError.getAbstractFunction("build[static]", undefined, `this.name[${this.name}]`);
     };
 
 
@@ -104,7 +104,7 @@ class WpwBase
      * @template {typedefs.WpwBuildOptionsKey} K
      * @param {K} key
      */
-    getOptionsConfig(key) { return WpwBase.getOptionsConfig(key, this.app); }
+    getBuildOptions(key) { return WpwBase.getBuildOptions(key, this.app); }
 
 
     /**
@@ -113,7 +113,7 @@ class WpwBase
      * @param {typedefs.WpBuildApp} app
      * @returns {NonNullable<typedefs.WpwBuildOptions[K]>}
      */
-    static getOptionsConfig = (key, app) =>
+    static getBuildOptions = (key, app) =>
     {
         this.readSchema();
 
@@ -178,42 +178,55 @@ class WpwBase
      * @param {T} optionsCfg
      * @param {typedefs.JsonSchema} schemaObject
      * @param {any} definitions
+     * @param {string} [baseKey]
      * @returns {T}
      * @throws {WpBuildError}
      */
-    static mergeOptions = (optionsCfg, schemaObject, definitions) =>
+    static mergeOptions = (optionsCfg, schemaObject, definitions, baseKey) =>
     {
-        for (const [ key, def ] of Object.entries(schemaObject))
+        for (const [ k, def ] of Object.entries(schemaObject))
         {
+            const key = baseKey || k;
             if (def && (typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
             {
-                if (isPrimitive(def) || isArray(def)) {
-                    throw WpBuildError.getErrorProperty("schema.definition." + key, "core/base.js");
-                }
-                else if (def.$ref) {
+                if (def.$ref)
+                {
                     const schema = getDefinitionSchema(def, definitions);
-                    this.mergeOptions(optionsCfg, schema.properties || schema, definitions);
+                    if (schema.properties) {
+                        this.mergeOptions(optionsCfg, schema.properties || schema, definitions, key);
+                    }
+                    else if (schema.default || isPrimitive(schema.default)) {
+                        optionsCfg[key] = schema.default;
+                    }
                 }
-                else if (def.default || isPrimitive(def.default)) {
-                    optionsCfg[key] = def.default;
+                else if (isPrimitive(def) || isArray(def)) {
+                    throw WpBuildError.getErrorProperty("schema.definition." + key);
                 }
-                else if (def.type === "string") {
-                    optionsCfg[key] = "";
+                else if (def.default) {
+                    // if (isPrimitive(def.default)) {
+                        optionsCfg[key] = def.default;
+                    // }
+                    // else {
+                    //     optionsCfg[key] = undefined; // ?
+                    // }
                 }
-                else if (def.type === "boolean") {
-                    optionsCfg[key] = false;
-                }
-                else if (isArray(def.enum)) {
-                    optionsCfg[key] = def.enum[0];
-                }
-                else if (isArray(def.oneOf)) {
-                    optionsCfg[key] = def.enum[0];
-                }
-                else if (def.type === "array") {
-                    optionsCfg[key] = [];
-                }
+                // else if (def.type === "string") {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (def.type === "boolean") {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (isArray(def.enum)) {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (isArray(def.oneOf)) {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (def.type === "array") {
+                //     optionsCfg[key] = undefined; // [];
+                // }
                 else {
-                    optionsCfg[key] = {};
+                    optionsCfg[key] = undefined; // {};
                 }
             }
         }
@@ -239,10 +252,10 @@ class WpwBase
 	validateOptions(options)
     {
         if (!options.app) {
-            throw WpBuildError.getErrorMissing("app", "core/base.js", this.wpc, "invalid option[app]");
+            throw WpBuildError.getErrorMissing("app", this.wpc, "invalid option[app]");
         }
         if (!this.isValidOptionsKey(options.key)) {
-            throw WpBuildError.getErrorProperty("key", "core/base.js", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
+            throw WpBuildError.getErrorProperty("key", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
         }
     }
 

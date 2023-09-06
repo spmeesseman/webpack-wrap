@@ -8,7 +8,7 @@ const loaderUtils = require("loader-utils");
 const { validate } = require("schema-utils");
 const { RawSource } = require("webpack").sources;
 const { urlToRequest } = require("loader-utils");
-const WpBuildConsoleLogger = require("../utils/console");
+const WpwLogger = require("../utils/console");
 const { WpBuildError, relativePath, pick } = require("../utils");
 
 
@@ -33,7 +33,7 @@ const schema = {
     }
 };
 
-const logger = new WpBuildConsoleLogger({
+const logger = new WpwLogger({
     envTag1: "loader", envTag2: "jsdoc", colors: { default: "grey" }, level: 5
 });
 

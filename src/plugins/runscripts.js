@@ -122,7 +122,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
 
 
 /**
- * Returns a `WpBuildLogHookStagesPlugin` instance if appropriate for the current build
+ * Returns a `WpwLoggerHookStagesPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
  * property to a boolean value of  `true` or `false`
  *
