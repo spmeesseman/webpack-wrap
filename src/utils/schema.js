@@ -15,38 +15,11 @@ const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
 const { WpBuildError } = require("./message");
-const { isBoolean, isString, isObject } = require("@spmeesseman/type-utils");
+const { isBoolean, isString, isObject, isObjectEmpty, isEmpty } = require("@spmeesseman/type-utils");
 
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
-
-
-/**
- * @param {*} options
- * @param {any} logger
- * @param {string} [subschema]
- * @throws {WpBuildError}
- */
-const validateSchema = (options, logger, subschema) =>
-{
-    const l = logger,
-              schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
-    l.write("validate schema `" + l.withColor(schemaFile, l.colors.italic) + "`", 1);
-    try {
-        const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
-              /** @type {typedefs.JsonSchema} */
-              schema = schemas[schemaKey] || JSON5.parse(readFileSync(join(SchemaDirectory, schemaFile), "utf8"));
-        validate(schema, options, { name: schemaKey, baseDataPath: subschema });
-        schemas[schemaKey] = schema;
-        l.success("   schema validation successful", 1);
-    }
-    catch (e) {
-        const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
-        l.error(err);
-        throw err;
-    }
-};
 
 
 const getSchema = (/** @type {string | undefined} */ schemaKey) => schemas[`Wpw${schemaKey || ""}`] || {};
@@ -107,6 +80,71 @@ const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
     schemas[`Wpw${schemaKey || ""}`].$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
 
 
+/**
+ * @param {typedefs.WpwBuildOptions} options
+ * @param {typedefs.WpwBuildOptions} initialOptions
+ * @throws {WpBuildError}
+ */
+const validateBuildOptions = (options, initialOptions) =>
+{
+    Object.keys(options || {}).forEach((k) =>
+    {
+        if (options[k] === true) {
+            options[k] = { enabled: true };
+        }
+        else if (options[k] === false) {
+            delete options[k];
+        }
+        else if (isObject(options[k]))
+        {
+            if (options[k].enabled === false || options[k].enabled !== true)
+            {
+                if (!initialOptions[k] || initialOptions[k].enabled === false) {
+                    delete options[k];
+                }
+                else {
+                    options[k].enabled = true;
+                }
+            }
+            else if (isObjectEmpty(options[k]) || isEmpty(options[k].enabled)) {
+                options[k].enabled = true;
+            }
+        }
+        else {
+            throw WpBuildError.get("invalid build options schema");
+        }
+    });
+};
+
+
+/**
+ * @param {*} options
+ * @param {any} logger
+ * @param {string} [subschema]
+ * @throws {WpBuildError}
+ */
+const validateSchema = (options, logger, subschema) =>
+{
+    const l = logger,
+              schemaFile = `.wpbuildrc.schema.${subschema ? `${subschema}.` : ""}json`;
+    l.write("validate schema `" + l.withColor(schemaFile, l.colors.italic) + "`", 1);
+    try {
+        const schemaKey = "Wpw" + (subschema ? `.${subschema}` : ""),
+              /** @type {typedefs.JsonSchema} */
+              schema = schemas[schemaKey] || JSON5.parse(readFileSync(join(SchemaDirectory, schemaFile), "utf8"));
+        validate(schema, options, { name: schemaKey, baseDataPath: subschema });
+        schemas[schemaKey] = schema;
+        l.success("   schema validation successful", 1);
+    }
+    catch (e) {
+        const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
+        l.error(err);
+        throw err;
+    }
+};
+
+
 module.exports = {
-    getSchema, getDefinitionSchema, getDefinitionSchemaProperties, getSchemaVersion, validateSchema, SchemaDirectory
+    getSchema, getDefinitionSchema, getDefinitionSchemaProperties, getSchemaVersion,
+    validateBuildOptions, validateSchema, SchemaDirectory
 };

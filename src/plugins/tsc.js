@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const { join } = require("path");
+const { join } = require("path");
 const dts = require("dts-bundle");
 const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
@@ -22,18 +22,9 @@ const { findFiles, relativePath, resolvePath, WpwMessageEnum, existsAsync } = re
  * @abstract
  * @extends WpwPlugin
  */
-class WpBuildBaseTsPlugin extends WpwPlugin
+class WpwTscPlugin extends WpwPlugin
 {
     /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
-     */
-	constructor(options)
-	{
-		super(options);
-	}
-
-
-	/**
 	 * @protected
 	 * @param {string} statsProperty
 	 * @param {string | undefined} [outputDir] full path
@@ -85,7 +76,7 @@ class WpBuildBaseTsPlugin extends WpwPlugin
 
 		// f (!entryFileAbs || !existsSync(entryFileAbs))
 		//
-		// 	const typesOptions = WpBuildBaseTsPlugin.getBuildOptions("types", this.app);
+		// 	const typesOptions = WpwTscPlugin.getBuildOptions("types", this.app);
 		// 	if (typesOptions.enabled && typesOptions.entry)
 		// 	{
 		// 		entryName = this.fileNameStrip(typesOptions.entry, true);
@@ -395,4 +386,4 @@ logger.value("   process types output file", filePathRel, 1);
 }
 
 
-module.exports = WpBuildBaseTsPlugin;
+module.exports = WpwTscPlugin;

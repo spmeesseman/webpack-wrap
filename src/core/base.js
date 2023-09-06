@@ -26,14 +26,8 @@ const {
  */
 class WpwBase
 {
-    /** @type {typedefs.JsonSchema} @private */
-    static schema;
-
     /** @type {typedefs.WpBuildApp} */
     app;
-    // eslint-disable-next-line jsdoc/valid-types
-    /** @type {Exclude<typedefs.WpwBuildOptions[typedefs.WpwBuildOptionsKey], undefined>} @abstract */
-    buildOptions;
     /** @type {Record<string, any>} @protected  */
     global;
     /** @type {string}  @protected */
@@ -67,7 +61,6 @@ class WpwBase
         this.wpc = this.app.wpc;
         this.logger = this.app.logger;
         this.name = this.constructor.name;
-        this.buildOptions  = this.getBuildOptions(this.key);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.app.disposables.push(this);
@@ -101,52 +94,6 @@ class WpwBase
 
 
     /**
-     * @template {typedefs.WpwBuildOptionsKey} K
-     * @param {K} key
-     */
-    getBuildOptions(key) { return WpwBase.getBuildOptions(key, this.app); }
-
-
-    /**
-     * @template {typedefs.WpwBuildOptionsKey} K
-     * @param {K} key
-     * @param {typedefs.WpBuildApp} app
-     * @returns {NonNullable<typedefs.WpwBuildOptions[K]>}
-     */
-    static getBuildOptions = (key, app) =>
-    {
-        this.readSchema();
-
-        let optionsCfg;
-        const config = app.build.options[key],
-              definitions = WpwBase.schema.definitions,
-              emptyConfig = /** @type {typedefs.WpwBuildOptionsType<K>} */({ enabled: false });
-
-        if (!config || !definitions) {
-            return emptyConfig;
-        }
-        else {
-            if (config.enabled === undefined) {
-                config.enabled = true;
-            }
-            optionsCfg = merge({}, emptyConfig, config);
-        }
-
-        const buildOptionSchema = definitions.WpwBuildOptions;
-        if (!buildOptionSchema || isBoolean(buildOptionSchema) || !buildOptionSchema.properties) {
-            return emptyConfig;
-        }
-
-        const buildConfig = getDefinitionSchemaProperties(buildOptionSchema.properties[/** @type {string} */(key)], definitions);
-        if (!buildConfig || !isObject(buildConfig)) {
-            return emptyConfig;
-        }
-
-        return this.mergeOptions(optionsCfg, buildConfig, definitions);
-    };
-
-
-    /**
      * @private
      */
     initGlobalCache()
@@ -170,82 +117,6 @@ class WpwBase
     isValidOptionsKey = (key) =>
         !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsPluginKey(key) || isWpwBuildOptionsExportKey(key) ||
                   isWpwBuildOptionsExportKeyInternal(key) || isWpwBuildOptionsPluginKeyInternal(key));
-
-
-    /**
-     * @private
-     * @template T
-     * @param {T} optionsCfg
-     * @param {typedefs.JsonSchema} schemaObject
-     * @param {any} definitions
-     * @param {string} [baseKey]
-     * @returns {T}
-     * @throws {WpBuildError}
-     */
-    static mergeOptions = (optionsCfg, schemaObject, definitions, baseKey) =>
-    {
-        for (const [ k, def ] of Object.entries(schemaObject))
-        {
-            const key = baseKey || k;
-            if (def && (typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
-            {
-                if (def.$ref)
-                {
-                    const schema = getDefinitionSchema(def, definitions);
-                    if (schema.properties) {
-                        this.mergeOptions(optionsCfg, schema.properties || schema, definitions, key);
-                    }
-                    else if (schema.default || isPrimitive(schema.default)) {
-                        optionsCfg[key] = schema.default;
-                    }
-                }
-                // else if (isBoolean(def)) {
-                //     throw WpBuildError.getErrorProperty("schema.definition." + key);
-                // }
-                else if (isPrimitive(def) || isArray(def)) {
-                    throw WpBuildError.getErrorProperty("schema.definition." + key);
-                }
-                else if (def.default) {
-                    // if (isPrimitive(def.default)) {
-                        optionsCfg[key] = def.default;
-                    // }
-                    // else {
-                    //     optionsCfg[key] = undefined; // ?
-                    // }
-                }
-                // else if (def.type === "string") {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (def.type === "boolean") {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (isArray(def.enum)) {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (isArray(def.oneOf)) {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (def.type === "array") {
-                //     optionsCfg[key] = undefined; // [];
-                // }
-                else {
-                    optionsCfg[key] = undefined; // {};
-                }
-            }
-        }
-        return optionsCfg;
-    };
-
-
-    /**
-     * @private
-     */
-    static readSchema = () =>
-    {
-        WpwBase.schema = WpwBase.schema ||
-            JSON.parse(readFileSync(resolve(__dirname, "../../schema/.wpbuildrc.schema.json"), "utf8"));
-    };
-
 
     /**
      * @private

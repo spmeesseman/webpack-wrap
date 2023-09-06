@@ -74,7 +74,7 @@ class WpBuildUploadPlugin extends WpwPlugin
      */
     async cleanup(_stats)
     {
-        const tmpUploadPath = join(this.app.build.paths.temp, this.app.mode);
+        const tmpUploadPath = join(this.app.build.paths.temp, this.app.build.mode);
         try
         {   if (existsSync(tmpUploadPath))
             {
@@ -104,7 +104,7 @@ class WpBuildUploadPlugin extends WpwPlugin
         //
         const app = this.app,
               logger = app.logger,
-              toUploadPath = join(app.build.paths.temp, app.mode);
+              toUploadPath = join(app.build.paths.temp, app.build.mode);
 
         if (!app.global.runtimeVars) {
             return;
@@ -131,7 +131,7 @@ class WpBuildUploadPlugin extends WpwPlugin
                     {
                         const sourceMapFile = asset.info.related.sourceMap.toString();
                         logger.value("   queue sourcemap for upload", logger.tag(sourceMapFile), 2);
-                        if (app.mode === "production") {
+                        if (app.build.mode === "production") {
                             logger.value("   remove production sourcemap from distribution", sourceMapFile, 3);
                             await rename(join(distPath, sourceMapFile), join(toUploadPath, sourceMapFile));
                         }
@@ -171,10 +171,10 @@ class WpBuildUploadPlugin extends WpwPlugin
         const plinkCmds = [
             `mkdir ${rBasePath}/${name}`,
             `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}`,
-            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}/${app.mode}`,
-            `rm -f ${rBasePath}/${name}/v${app.pkgJson.version}/${app.mode}/*.*`
+            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}/${app.build.mode}`,
+            `rm -f ${rBasePath}/${name}/v${app.pkgJson.version}/${app.build.mode}/*.*`
         ];
-        if (app.mode === "production") { plinkCmds.pop(); }
+        if (app.build.mode === "production") { plinkCmds.pop(); }
 
         const plinkArgs = [
             "-ssh",       // force use of ssh protocol
@@ -230,7 +230,7 @@ class WpBuildUploadPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => WpwPlugin.getBuildOptions("upload", app).enabled ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (app) => app.build.options.upload?.enabled ? new WpBuildUploadPlugin({ app }) : undefined;
 
 
 module.exports = upload;

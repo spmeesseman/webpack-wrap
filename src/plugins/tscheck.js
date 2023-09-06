@@ -25,10 +25,6 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
  */
 class WpBuildTsCheckPlugin extends WpwPlugin
 {
-    /** @type {Exclude<typedefs.WpwBuildOptions["tscheck"], undefined>} @override */
-    buildOptions;
-
-
     /**
      * Called by webpack runtime to initialize this plugin
      * @override

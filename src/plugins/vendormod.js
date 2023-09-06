@@ -22,14 +22,18 @@ class WpBuildVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
-    /** @type {Exclude<typedefs.WpwBuildOptions["vendormod"], undefined>} @override */
+    /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} @private */
     buildOptions;
 
 
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} */(this.app.build.options.vendormod);
+	}
 
 
     /**
@@ -171,7 +175,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
  * @param {typedefs.WpBuildApp} app
  * @returns {WpBuildVendorModPlugin | undefined}
  */
-const vendormod = (app) => WpwPlugin.getBuildOptions("vendormod", app).enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
+const vendormod = (app) => app.build.options.vendormod?.enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
 
 
 module.exports = vendormod;

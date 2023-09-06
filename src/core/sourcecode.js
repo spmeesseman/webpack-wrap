@@ -58,7 +58,8 @@ class WpwSourceCode
             ext: sourceConfig.type === "typescript" ? "ts" : "js"
         });
         merge(this.config.options, { compilerOptions });
-        if (this.type === "typescript" || build.type === "types")
+        if (this.type === "typescript" || (build.type === "types" && build.options.types &&
+                                           build.options.types.enabled && build.options.types.method === "program"))
         {
             WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         }

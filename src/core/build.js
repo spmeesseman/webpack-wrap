@@ -11,12 +11,12 @@
 
 const os = require("os");
 const WpwSourceCode = require("./sourcecode");
-const { mkdirSync, existsSync } = require("fs");
+const { mkdirSync, existsSync, readFileSync } = require("fs");
 const { resolve, dirname, sep } = require("path");
-const { validateSchema } = require("../utils/schema");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
-    apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isEmpty, isObjectEmpty, isObject, isArray, WpBuildError, mergeWeak
+    apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isArray,
+    relativePath, findFilesSync, validateSchema, validateBuildOptions, isBoolean, getDefinitionSchemaProperties, isObject, getDefinitionSchema, isPrimitive, WpBuildError
 } = require("../utils");
 
 const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
@@ -28,6 +28,9 @@ const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
  */
 class WpwBuild
 {
+    /** @type {typedefs.JsonSchema} @private */
+    static schema;
+
     /** @type {string} */
     name;
     /** @type {boolean | undefined} */
@@ -74,7 +77,12 @@ class WpwBuild
         this.configure(config);
         const sourceConfig = merge({}, this.source);
         this.source = new WpwSourceCode(sourceConfig, this, this.logger);
+        //
+        // Alias paths need to be resolved "after" app` instance is created (notably the `app.source` instance)
+        //
+        this.resolveAliasPaths();
     }
+
 
     dispose = () => this.source.dispose();
 
@@ -146,7 +154,6 @@ class WpwBuild
      *
 	 * @private
      * @param {typedefs.IWpwBuild} buildConfig
-     * @throws {WpBuildError}
 	 */
     configure = (buildConfig) =>
     {
@@ -180,90 +187,85 @@ class WpwBuild
             return dst;
         };
 
-        //
-        // If enable isn't explicitly set to `false`, it's enabled, set non-existent enabled
-        // properties as all options with !enabled will be removed upoon initialization completion
-        //
-        const config = merge({}, buildConfig);
-        this.logger.write(`configure build '${config.name}'`, 1);
-        // for (const [ option, buildOptions ] of Object.entries(config.options))
-        // {
-        //     if (!buildOptions || buildOptions.enabled === false || isObjectEmpty(buildOptions)) {
-        //         delete config.options[option];
-        //     }
-        // }
-
-        applyIf(config, {
-            mode: config.mode || this.rc.mode, target: this.getTarget(config), type: this.getType(config)
-        });
+        this.logger.write(`configure build '${this.name}'`, 1);
+        merge(this, buildConfig);
 
         this.logger.write("   apply base configuration", 2);
-        _applyRc(config, this.applyDefaultRc(this.rc));
+        apply(this, { mode: this.mode || this.rc.mode, target: this.getTarget(), type: this.getType() });
+        _applyRc(this, this.applyDefaultRc(this.rc));
 
         const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this.rc[this.rc.mode]);
-        const modeBuildRc = asArray(modeRc?.builds).find(b => b.name === config.name);
+        const modeBuildRc = asArray(modeRc?.builds).find(b => b.name === this.name);
         if (modeBuildRc) {
             this.logger.write("   apply mode configuration", 2);
-            _applyRc(config, modeBuildRc);
+            _applyRc(this, modeBuildRc);
         }
 
         this.logger.write("   resolve build paths", 2);
-        this.applyDefaultRc(config);
-        this.resolvePaths(config);
+        this.applyDefaultRc(this);
+        this.resolvePaths();
 
-        this.logger.write("   validate build options", 2);
-        Object.keys(config.options || {}).forEach((k) =>
-        {
-            if (config.options[k] === true) {
-                config.options[k] = { enabled: true };
-            }
-            else if (config.options[k] === false) {
-                delete config.options[k];
-            }
-            else if (isObject(config.options[k]))
-            {
-                if (config.options[k].enabled === false || config.options[k].enabled !== true)
-                {
-                    if (!buildConfig.options[k] || buildConfig.options[k].enabled === false) {
-                        delete config.options[k];
-                    }
-                    else {
-                        config.options[k].enabled = true;
-                    }
-                }
-                else if (isObjectEmpty(config.options[k]) || isEmpty(config.options[k].enabled)) {
-                    config.options[k].enabled = true;
-                }
-            }
-            else {
-                throw WpBuildError.get("invalid build options schema found");
-            }
-        });
+        this.logger.write("   trim & validate build options", 2);
+        validateBuildOptions(this.options, buildConfig.options);
 
         this.logger.write("   validate final build configuration", 2);
-        validateSchema(config, this.logger, "build");
+        validateSchema(this, this.logger, "build");
 
-        merge(this, config);
-        mergeWeak(buildConfig, config);
+        this.logger.write(`final configuration for build '${this.name}' complete`, 2);
+    };
 
-        this.logger.write(`final configuration for build '${config.name}' complete`, 2);
+
+    /**
+     * @template {typedefs.WpwBuildOptionsKey} K
+     * @param {K} key
+     * @returns {NonNullable<typedefs.WpwBuildOptions[K]>}
+     */
+    getBuildOptions = (key) =>
+    {
+        this.readSchema();
+
+        let optionsCfg;
+        const config = this.options[key],
+              definitions = WpwBuild.schema.definitions,
+              emptyConfig = /** @type {typedefs.WpwBuildOptionsType<K>} */({ enabled: false });
+
+        if (!config || !definitions) {
+            return emptyConfig;
+        }
+        else {
+            if (config.enabled === undefined) {
+                config.enabled = true;
+            }
+            optionsCfg = merge({}, emptyConfig, config);
+        }
+
+        const buildOptionSchema = definitions.WpwBuildOptions;
+        if (!buildOptionSchema || isBoolean(buildOptionSchema) || !buildOptionSchema.properties) {
+            return emptyConfig;
+        }
+
+        const buildConfig = getDefinitionSchemaProperties(buildOptionSchema.properties[/** @type {string} */(key)], definitions);
+        if (!buildConfig || !isObject(buildConfig)) {
+            return emptyConfig;
+        }
+
+        return this.mergeOptions(optionsCfg, buildConfig, definitions);
     };
 
 
     /**
      * @private
-     * @param {typedefs.IWpwBuild} buildConfig
      */
-    getTarget = (buildConfig) =>
+    getTarget = () =>
     {
-        let target = buildConfig.target;
+        let target = this.target;
         if (!isWebpackTarget(target))
         {
             target = "node";
             if (isWebpackTarget(this.rc.args.target)) { target = this.rc.args.target; }
-            else if ((/web(?:worker|app|view)/).test(buildConfig.name) || buildConfig.type === "webapp") { target = "webworker"; }
-            else if ((/web|browser/).test(buildConfig.name)) { target = "web"; }
-            else if ((/module|node/).test(buildConfig.name) || buildConfig.type === "module") { target = "node"; }
+            else if ((/web(?:worker|app|view)/).test(this.name) || this.type === "webapp") { target = "webworker"; }
+            else if ((/web|browser/).test(this.name)) { target = "web"; }
+            else if ((/module|node/).test(this.name) || this.type === "module") { target = "node"; }
         }
         return target;
     };
@@ -271,37 +273,151 @@ class WpwBuild
 
     /**
      * @private
-     * @param {typedefs.IWpwBuild} buildConfig
      */
-    getType = (buildConfig) =>
+    getType = () =>
     {
-        let type = buildConfig.type;
+        let type = this.type;
         if (!type)
         {
             type = "module";
-            if (isWpwBuildType(buildConfig.name)) { type = buildConfig.name; }
-            else if ((/web(?:worker|app|view)/).test(buildConfig.name)) { type = "webapp"; }
-            else if ((/tests?/).test(buildConfig.name)) { type = "tests"; }
-            else if ((/typ(?:es|ings)/).test(buildConfig.name)) { type = "types"; }
-            else if (buildConfig.target === "webworker") { type = "webapp"; }
+            if (isWpwBuildType(this.name)) { type = this.name; }
+            else if ((/web(?:worker|app|view)/).test(this.name)) { type = "webapp"; }
+            else if ((/tests?/).test(this.name)) { type = "tests"; }
+            else if ((/typ(?:es|ings)/).test(this.name)) { type = "types"; }
+            else if (this.target === "webworker") { type = "webapp"; }
         }
         return type;
+    };
+    /**
+     * @private
+     * @template T
+     * @param {T} optionsCfg
+     * @param {typedefs.JsonSchema} schemaObject
+     * @param {any} definitions
+     * @param {string} [baseKey]
+     * @returns {T}
+     * @throws {WpBuildError}
+     */
+    mergeOptions = (optionsCfg, schemaObject, definitions, baseKey) =>
+    {
+        for (const [ k, def ] of Object.entries(schemaObject))
+        {
+            const key = baseKey || k;
+            if (def && (typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
+            {
+                if (def.$ref)
+                {
+                    const schema = getDefinitionSchema(def, definitions);
+                    if (schema.properties) {
+                        this.mergeOptions(optionsCfg, schema.properties || schema, definitions, key);
+                    }
+                    else if (schema.default || isPrimitive(schema.default)) {
+                        optionsCfg[key] = schema.default;
+                    }
+                }
+                // else if (isBoolean(def)) {
+                //     throw WpBuildError.getErrorProperty("schema.definition." + key);
+                // }
+                else if (isPrimitive(def) || isArray(def)) {
+                    throw WpBuildError.getErrorProperty("schema.definition." + key);
+                }
+                else if (def.default) {
+                    // if (isPrimitive(def.default)) {
+                        optionsCfg[key] = def.default;
+                    // }
+                    // else {
+                    //     optionsCfg[key] = undefined; // ?
+                    // }
+                }
+                // else if (def.type === "string") {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (def.type === "boolean") {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (isArray(def.enum)) {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (isArray(def.oneOf)) {
+                //     optionsCfg[key] = undefined;
+                // }
+                // else if (def.type === "array") {
+                //     optionsCfg[key] = undefined; // [];
+                // }
+                else {
+                    optionsCfg[key] = undefined; // {};
+                }
+            }
+        }
+        return optionsCfg;
+    };
+
+
+    /**
+     * @private
+     */
+    readSchema = () =>
+    {
+        WpwBuild.schema = WpwBuild.schema ||
+            JSON.parse(readFileSync(resolve(__dirname, "../../schema/.wpbuildrc.schema.json"), "utf8"));
+    };
+
+
+    /**
+     * @private
+     */
+    resolveAliasPaths = () =>
+    {
+        if (!this.alias) { return; }
+
+        const alias = this.alias,
+              jstsConfig = this.source.config,
+              jstsDir = jstsConfig.dir,
+              jstsPaths = jstsConfig.options.compilerOptions.paths;
+
+        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
+        {
+            const value = alias[key];
+            if (isArray(value))
+            {
+                if (!value.includes(path)) {
+                    value.push(path);
+                }
+            }
+            else { alias[key] = [ path ]; }
+        };
+
+        if (jstsDir && jstsPaths)
+        {
+            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
+            {
+                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
+            });
+        }
+
+        if (!alias[":env"])
+        {
+            const basePath = this.paths.base,
+                  srcPath = relativePath(basePath, this.paths.src),
+                  envGlob = `**/${srcPath}/**/{env,environment,target}/${this.target}/`,
+                  envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
+            envDirs.forEach((path) => _pushAlias(":env", path), this);
+        }
     };
 
 
 	/**
 	 * @private
-     * @param {typedefs.IWpwBuild} buildConfig
 	 */
-	resolvePaths = (buildConfig) =>
+	resolvePaths = () =>
 	{
-        const paths = buildConfig.paths,
+        const paths = this.paths,
               base = dirname(this.rc.pkgJsonPath),
               // @ts-ignore
               ostemp = os.tmpdir ? os.tmpdir() : os.tmpDir(),
 			  temp = resolve(
                   ostemp ? `${ostemp}${sep}${this.rc.pkgJson.scopedName.name}` : defaultTempDir,
-                  `${buildConfig.target}${sep}${buildConfig.mode}`
+                  `${this.target}${sep}${this.mode}`
               );
 		if (!existsSync(temp)) {
 			mkdirSync(temp, { recursive: true });

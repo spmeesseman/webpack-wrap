@@ -169,7 +169,11 @@
  ***********************************************************************************************************************/
 
 // @typedef {import(".").hasSymbolSham} hasSymbolSham */
-
+/**@typedef {Exclude<WpwBuildOptions[WpwBuildOptionsKey], undefined>} BuildOptionsConfig */
+/**
+ * @template {WpwBuildOptionsKey} T
+ * @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsConfig<T>
+ */
 
 /***********************************************************************************************************************
  * APP.D.TS

@@ -15,7 +15,7 @@ const WpwSourceCode = require("./sourcecode");
 const WpwPlugin = require("../plugins/base");
 const globalEnv = require("../utils/global");
 const { readFileSync, existsSync } = require("fs");
-const { resolve, basename, join, dirname, sep } = require("path");
+const { resolve, basename, join, dirname } = require("path");
 const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
 const { isWpwWebpackMode, WpwPackageJsonProps } = require("../types/constants");
 const {
@@ -217,7 +217,7 @@ class WpwRc
 	 */
     configureBuilds = () =>
     {
-        this.logger.write("configure defined builds", 1);
+        this.logger.write("configure all defined builds", 1);
         const buildConfigs = clone(this.builds || []);
         this.builds = [];
         const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this[this.mode]);
@@ -257,8 +257,7 @@ class WpwRc
                     const dependsOnTypes = (isObject(a.build.entry) && a.build.entry.dependOn === "types");
                     if (!rc.isSingleBuild || dependsOnTypes)
                     {
-                        const waitConfig = WpwPlugin.getBuildOptions("wait", a);
-                        if (asArray(waitConfig.items).find(t => t.target === "types"))
+                        if (asArray(a.build.options.wait?.items).find(t => t.target === "types"))
                         {
                             rc.apps.push(new WpBuildApp(rc, typesBuild));
                             apply(typesBuild, { auto: true });
@@ -285,10 +284,7 @@ class WpwRc
         {
             if (!app.build.mode || !app.build.target || !app.build.type) {
                 throw WpBuildError.getErrorProperty("type");
-            } //
-             // Alias paths needed to be initialzed "after" app` instance is created (notably the `app.source` instance)
-            //
-            rc.resolveAliasPaths(app);
+            }
             wpConfigs.push(app.buildWrapper());
             apply(app.build, { active: true });
         }
@@ -347,50 +343,6 @@ class WpwRc
                 l.sep();
             }, this.logger
         );
-    };
-
-
-    /**
-     * @private
-     * @param {typedefs.WpBuildApp} app
-     */
-    resolveAliasPaths = (app) =>
-    {
-        if (!app.build.alias) { return; }
-
-        const alias = app.build.alias,
-              jstsConfig = app.source.config,
-              jstsDir = jstsConfig.dir,
-              jstsPaths = jstsConfig.options.compilerOptions.paths;
-
-        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
-        {
-            const value = alias[key];
-            if (isArray(value))
-            {
-                if (!value.includes(path)) {
-                    value.push(path);
-                }
-            }
-            else { alias[key] = [ path ]; }
-        };
-
-        if (jstsDir && jstsPaths)
-        {
-            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
-            {
-                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
-            });
-        }
-
-        if (!alias[":env"])
-        {
-            const basePath = app.build.paths.base,
-                  srcPath = relativePath(basePath, app.build.paths.src),
-                  envGlob = `**/${srcPath}/**/{env,environment,target}/${app.build.target}/`,
-                  envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
-            envDirs.forEach((path) => _pushAlias(":env", path), this);
-        }
     };
 
 }

@@ -12,7 +12,7 @@
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
 const WpBuildApp = require("../core/app");
-const WpBuildBaseTsPlugin = require("./tsc");
+const WpwTscPlugin = require("./tsc");
 const { WpwMessageEnum } = require("../utils");
 const { join, dirname, isAbsolute, resolve, relative } = require("path");
 ;
@@ -23,9 +23,9 @@ const { join, dirname, isAbsolute, resolve, relative } = require("path");
 
 
 /**
- * @extends WpBuildBaseTsPlugin
+ * @extends WpwTscPlugin
  */
-class WpBuildTestSuitePlugin extends WpBuildBaseTsPlugin
+class WpBuildTestSuitePlugin extends WpwTscPlugin
 {
     /**
      * @param {WpwPluginOptions} options Plugin options to be applied

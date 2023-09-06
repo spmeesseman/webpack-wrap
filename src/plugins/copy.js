@@ -14,15 +14,8 @@ const { existsSync } = require("fs");
 const { apply } = require("../utils");
 const { join, posix } = require("path");
 const WpBuildApp = require("../core/app");
+const typedefs = require("../types/typedefs");
 const CopyPlugin = require("copy-webpack-plugin");
-
-/** @typedef {import("../utils").WpBuildError} WpBuildError */
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("../types").WpwBuildOptions} WpwBuildOptions */
-/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
-/** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
 /**
@@ -30,12 +23,12 @@ const CopyPlugin = require("copy-webpack-plugin");
  */
 class WpBuildCopyPlugin extends WpwPlugin
 {
-    /** @type {Exclude<WpwBuildOptions["copy"], undefined>} @override */
+    /** @type {typedefs.WpwBuildOptionsConfig<"copy">} @private */
     buildOptions;
 
 
 	/**
-	 * @param {WpwPluginOptions} options Plugin options to be applied
+	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options) { super(options); }
 
@@ -43,7 +36,7 @@ class WpBuildCopyPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -75,7 +68,7 @@ class WpBuildCopyPlugin extends WpwPlugin
 	/**
 	 * @private
 	 * @async
-	 * @param {WebpackCompilationAssets} assets
+	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
 	copyEntryModulesNoHash(assets)
 	{
@@ -121,7 +114,7 @@ class WpBuildCopyPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationAssets} assets
      */
     sourcemap = (assets) =>
     {

@@ -20,14 +20,18 @@ const { isBoolean, pick, isObject, relativePath, apply, asArray } = require("../
  */
 class WpwJsDocPlugin extends WpBuilPlugin
 {
-    /** @type {Exclude<typedefs.WpwBuildOptions["jsdoc"], undefined>} @override */
+    /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} @private */
     buildOptions;
 
 
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.app.build.options.jsdoc);
+	}
 
 
     /**

@@ -53,7 +53,7 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
 	 */
 	setVersion = () =>
 	{
-		if (this.app.build.type === "module" && this.app.mode === "production")
+		if (this.app.build.type === "module" && this.app.build.mode === "production")
 		{
 			// let version = app.pkgJson.version;
 		}
@@ -66,7 +66,7 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildEnvironmentPlugin | undefined}
  */
-const environment = (app) => app.mode === "production" ? new WpBuildEnvironmentPlugin({ app }) : undefined;
+const environment = (app) => app.build.mode === "production" ? new WpBuildEnvironmentPlugin({ app }) : undefined;
 
 
 module.exports = environment;

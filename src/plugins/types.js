@@ -10,20 +10,20 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { existsSync, readdir, stat, readFile } = require("fs");
-const { resolve, join } = require("path");
+const { resolve } = require("path");
+const { existsSync } = require("fs");
+const WpwTscPlugin = require("./tsc");
 const { unlink } = require("fs/promises");
-const WpBuildBaseTsPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
-const { existsAsync, WpBuildError, apply, pushIfNotExists, WpwMessage, WpwMessageEnum } = require("../utils");
+const { existsAsync, apply, WpwMessageEnum } = require("../utils");
 
 
 /**
- * @extends WpBuildBaseTsPlugin
+ * @extends WpwTscPlugin
  */
-class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
+class WpBuildTypesPlugin extends WpwTscPlugin
 {
-    /** @type {Exclude<typedefs.WpwBuildOptions["types"], undefined>} @override */
+    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
     buildOptions;
 
 
@@ -33,7 +33,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions  = this.getBuildOptions("types");
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.app.build.options.types);
 	}
 
 
@@ -43,7 +43,7 @@ class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 	 * @returns {WpBuildTypesPlugin | undefined}
      */
 	static build = (app) =>
-		this.getBuildOptions("types", app).enabled ? new WpBuildTypesPlugin({ app }) : undefined;
+		app.build.options.types?.enabled ? new WpBuildTypesPlugin({ app }) : undefined;
 
 
     /**

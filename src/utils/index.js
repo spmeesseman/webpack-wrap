@@ -7,8 +7,8 @@ const WpwLogger = require("./console");
 const { WpwMessage, WpwMessageEnum, WpwMessageProps, isWpwMessageProp, WpBuildError } = require("./message");
 
 const {
-    getSchema, getDefinitionSchema, getDefinitionSchemaProperties, getSchemaVersion, validateSchema,
-    SchemaDirectory
+    getSchema, getDefinitionSchema, getDefinitionSchemaProperties, getSchemaVersion, SchemaDirectory,
+    validateBuildOptions, validateSchema
 } = require("./schema");
 
 const {/* START_RC_DEFS */ isWebpackLibraryType, isWebpackMode, isWebpackTarget, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal, isWpwBuildOptionsPluginKey, isWpwBuildOptionsPluginKeyInternal, isWpwBuildType, isWpwLogColor, isWpwLogTrueColor, isWpwPackageJsonProp, isWpwPluginConfigRunScriptsProp, isWpwPluginConfigWaitEvent, isWpwRcPathsProp, isWpwSourceCodeExtension, isWpwSourceCodeNodeJsModule, isWpwSourceCodeNodeJsModuleResolution, isWpwSourceCodeNodeJsTarget, isWpwSourceCodeType, isWpwSourceCodeTypescriptBuildMethod, isWpwSourceCodeTypescriptLoader, isWpwWebhookCompilationHookStage, isWpwWebpackCompilationHook, isWpwWebpackCompilerHook, isWpwWebpackMode, WebpackLibraryTypes, WebpackModes, WebpackTargets, WpwBuildOptionsExportKeyInternals, WpwBuildOptionsExportKeys, WpwBuildOptionsPluginKeyInternals, WpwBuildOptionsPluginKeys, WpwBuildTypes, WpwLogColors, WpwLogTrueColors, WpwPackageJsonProps, WpwPluginConfigRunScriptsProps, WpwPluginConfigWaitEvents, WpwRcPathsProps, WpwSourceCodeExtensions, WpwSourceCodeNodeJsModuleResolutions, WpwSourceCodeNodeJsModules, WpwSourceCodeNodeJsTargets, WpwSourceCodeTypes, WpwSourceCodeTypescriptBuildMethodEnum, WpwSourceCodeTypescriptBuildMethods, WpwSourceCodeTypescriptLoaders, WpwWebhookCompilationHookStages, WpwWebpackCompilationHooks, WpwWebpackCompilerHooks, WpwWebpackModes /* END_RC_DEFS */} = require("../types/constants");
@@ -35,10 +35,10 @@ const {
 module.exports = {
     apply, applyExt, applyIf, asArray, capitalize, clone, createEntryObjFromDir, execAsync, existsAsync,
     findExPath, findExPathSync, findFiles, findFilesSync, findFileUp, getExcludes, getSchema, isArray, isBoolean,
-    isDirectory, isDate, isEmpty, isError, isFunction, isJsTsConfigPath, isObject, typeUtils, isObjectEmpty, isPrimitive,
-    isPromise, isString, isWpwMessageProp, lowerCaseFirstChar, merge, mergeExt, mergeExt2, mergeIf, mergeWeak,
-    mergeIfWeak, objUtils, pick, pickBy, pickNot, getDefinitionSchema, getDefinitionSchemaProperties,
-    getSchemaVersion, pushIfNotExists, relativePath,resolvePath, requireResolve, SchemaDirectory, typedefs, uniq,
-    utils, validateSchema, WpwLogger, WpBuildError, WpwMessage, WpwMessageEnum, WpwMessageProps, WpwRegex,
+    isDirectory, isDate, isEmpty, isError, isFunction, isJsTsConfigPath, isObject, typeUtils, isObjectEmpty,
+    isPrimitive, isPromise, isString, isWpwMessageProp, lowerCaseFirstChar, merge, mergeExt, mergeExt2, mergeIf,
+    mergeWeak, mergeIfWeak, objUtils, pick, pickBy, pickNot, getDefinitionSchema, getDefinitionSchemaProperties,
+    getSchemaVersion, pushIfNotExists, relativePath,resolvePath, requireResolve, SchemaDirectory, validateBuildOptions,
+    typedefs, uniq, utils, validateSchema, WpwLogger, WpBuildError, WpwMessage, WpwMessageEnum, WpwMessageProps, WpwRegex,
     /* START_RC_DEFS */ isWebpackLibraryType, isWebpackMode, isWebpackTarget, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal, isWpwBuildOptionsPluginKey, isWpwBuildOptionsPluginKeyInternal, isWpwBuildType, isWpwLogColor, isWpwLogTrueColor, isWpwPackageJsonProp, isWpwPluginConfigRunScriptsProp, isWpwPluginConfigWaitEvent, isWpwRcPathsProp, isWpwSourceCodeExtension, isWpwSourceCodeNodeJsModule, isWpwSourceCodeNodeJsModuleResolution, isWpwSourceCodeNodeJsTarget, isWpwSourceCodeType, isWpwSourceCodeTypescriptBuildMethod, isWpwSourceCodeTypescriptLoader, isWpwWebhookCompilationHookStage, isWpwWebpackCompilationHook, isWpwWebpackCompilerHook, isWpwWebpackMode, WebpackLibraryTypes, WebpackModes, WebpackTargets, WpwBuildOptionsExportKeyInternals, WpwBuildOptionsExportKeys, WpwBuildOptionsPluginKeyInternals, WpwBuildOptionsPluginKeys, WpwBuildTypes, WpwLogColors, WpwLogTrueColors, WpwPackageJsonProps, WpwPluginConfigRunScriptsProps, WpwPluginConfigWaitEvents, WpwRcPathsProps, WpwSourceCodeExtensions, WpwSourceCodeNodeJsModuleResolutions, WpwSourceCodeNodeJsModules, WpwSourceCodeNodeJsTargets, WpwSourceCodeTypes, WpwSourceCodeTypescriptBuildMethodEnum, WpwSourceCodeTypescriptBuildMethods, WpwSourceCodeTypescriptLoaders, WpwWebhookCompilationHookStages, WpwWebpackCompilationHooks, WpwWebpackCompilerHooks, WpwWebpackModes /* END_RC_DEFS */
 };

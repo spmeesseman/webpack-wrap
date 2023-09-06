@@ -30,7 +30,7 @@ class WpwLogHooksPlugin extends WpwPlugin
      * @param {typedefs.WpBuildApp} app
 	 * @returns {WpwLogHooksPlugin | undefined}
      */
-	static build = (app) => this.getBuildOptions("loghooks", app).enabled ? new WpwLogHooksPlugin({ app }) : undefined;
+	static build = (app) => app.build.options.loghooks?.enabled ? new WpwLogHooksPlugin({ app }) : undefined;
 
 
     /**

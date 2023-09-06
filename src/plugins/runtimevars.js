@@ -109,7 +109,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
         const logger = this.app.logger,
               hashInfo = this.app.global.runtimeVars,
               labelLength = this.app.build.log.pad.value || 45;
-        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.app.mode, logger.colors.italic)}`, 1);
+        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.app.build.mode, logger.colors.italic)}`, 1);
         logger.write("   previous:", 2);
         if (!isObjectEmpty(hashInfo.current))
         {

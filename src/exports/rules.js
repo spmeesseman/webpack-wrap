@@ -77,10 +77,10 @@ class WpwRulesExport extends WpwWebpackExport
 	jsdoc = () =>
 	{
 		const app = this.app,
-			  jsdocOptions = WpwBase.getBuildOptions("jsdoc", app);
-		if (jsdocOptions.type === "entry")
+			  jsdocOptions = app.build.options.jsdoc;
+		if (jsdocOptions && jsdocOptions.type === "entry")
 		{
-			const exclude = getExcludes(app, this.app.source.config),
+			const exclude = getExcludes(app, app.source.config),
 				include = this.getIncludes(),
 				jsdocSrcPath= app.getSrcPath();
 
@@ -247,10 +247,10 @@ class WpwRulesExport extends WpwWebpackExport
 	types = () =>
 	{
 		const app = this.app,
-			  typesConfig = WpwBase.getBuildOptions("types", app),
+			  typesConfig = app.build.options.types,
 			  typesSrcPath= app.getSrcPath({ build: app.build.type });
 
-		if (typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
+		if (typesConfig && typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
 		{
 			app.wpc.module.rules.push(
 			{

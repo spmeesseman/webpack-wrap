@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpBuildBaseTsPlugin = require("./tsc");
+const WpwTscPlugin = require("./tsc");
 const typedefs = require("../types/typedefs");
 const { existsSync } = require("fs");
 const { resolve } = require("path");
@@ -17,14 +17,15 @@ const { isString } = require("../utils");
 
 
 /**
- * @extends WpBuildBaseTsPlugin
+ * @extends WpwTscPlugin
  */
-class WpwTsBundlePlugin extends WpBuildBaseTsPlugin
+class WpwTsBundlePlugin extends WpwTscPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
+
 
 	/**
      * @override
@@ -33,11 +34,12 @@ class WpwTsBundlePlugin extends WpBuildBaseTsPlugin
      */
 	static build = (app) =>
 	{
-		const typesOpts = WpwTsBundlePlugin.getBuildOptions("types", app);
-		if (typesOpts.enabled && typesOpts.bundle && typesOpts.mode === "plugin") {
+		const typesOpts = app.build.options.types;
+		if (typesOpts && typesOpts.enabled && typesOpts.bundle && typesOpts.mode === "plugin") {
 			return new WpwTsBundlePlugin({ app });
 		}
 	};
+
 
     /**
      * Called by webpack runtime to initialize this plugin
@@ -75,6 +77,7 @@ class WpwTsBundlePlugin extends WpBuildBaseTsPlugin
 			});
 		}
     }
+
 }
 
 

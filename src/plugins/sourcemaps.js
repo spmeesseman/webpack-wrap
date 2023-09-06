@@ -15,18 +15,13 @@
 
 const WpwPlugin = require("./base");
 const WpBuildApp = require("../core/app");
+const typedefs = require("../types/typedefs");
 // const { Compilation } = require("webpack");
-const { apply, requireResolve, WpwMessage, WpwMessageEnum } = require("../utils");
+const { apply, requireResolve, WpwMessageEnum } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
 // const webpack = require("webpack");
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
-
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WpwBuildOptions} WpwBuildOptions */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
-/** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
 
 
 /**
@@ -34,17 +29,17 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
  */
 class WpBuildSourceMapsPlugin extends WpwPlugin
 {
-    /** @type {Exclude<WpwBuildOptions["sourcemaps"], undefined>} @override */
+    /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} @private */
     buildOptions;
 
-
 	/**
-	 * @param {WpwPluginOptions} options Plugin options to be applied
+	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
-    {
+	{
         super(apply(options, { registerVendorPluginsFirst: true }));
-    }
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} */(this.app.build.options.types);
+	}
 
 
 	/**
@@ -59,7 +54,7 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -77,7 +72,7 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationAssets} assets
      */
     renameMap = (assets) =>
     {
@@ -119,7 +114,7 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
 
 	/**
 	 * @override
-	 * @returns {import("../types").WebpackPluginInstance}
+	 * @returns {typedefs.WebpackPluginInstance}
 	 */
 	getVendorPlugin = () =>
 	{
