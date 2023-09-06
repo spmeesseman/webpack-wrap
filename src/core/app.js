@@ -12,19 +12,19 @@
  *//** */
 
 const { existsSync } = require("fs");
-const WpwSourceCode = require("./sourcecode");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
-const { isAbsolute, relative, sep } = require("path");
 const WpwLogger = require("../utils/console");
+const WpwSourceCode = require("./sourcecode");
+const { isAbsolute, relative, sep } = require("path");
 const {
     apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum, WpwRegex
 } = require("../utils");
-const WpwBuild = require("./build");
 
 
 /**
  * @class WpBuildApp
+ * @implements {typedefs.IDisposable}
  * @implements {typedefs.IWpBuildApp}
  */
 class WpBuildApp
@@ -35,32 +35,12 @@ class WpBuildApp
     disposables;
     /** @type {WpBuildError[]} */
     errors;
-    /** @type {typedefs.WpBuildGlobalEnvironment} */
-    global;
     /** @type {WpBuildError[]} */
     info;
-    /** @type {boolean} */
-    isMain;
-    /** @type {boolean} */
-    isMainProd;
-    /** @type {boolean} */
-    isMainTest;
-    /** @type {boolean} */
-    isTest;
-    /** @type {boolean} */
-    isWeb;
     /** @type {WpwLogger} */
     logger;
-    /** @type {typedefs.WpwWebpackMode} */
-    mode;
     /** @type {typedefs.WpwRc} @private */
     rc;
-    /** @type {WpwSourceCode} */
-    source;
-    /** @type {typedefs.WebpackTarget} */
-    target;
-    /** @type {typedefs.WpwVsCode} */
-    vscode;
     /** @type {WpBuildError[]} */
     warnings;
     /** @type {typedefs.WpwWebpackConfig} */
@@ -74,23 +54,22 @@ class WpBuildApp
 	 */
 	constructor(rc, build)
 	{
-        this.rc = rc;
         this.info = [];
         this.errors = [];
         this.warnings = [];
         this.disposables = [];
-		this.applyAppRc();
+        this.rc = rc;
+        this.build = build;
         this.initLogger();
-        this.build = build; // new WpwBuild(this, rc, build);
-        this.source = new WpwSourceCode(build, this.logger);
-        this.disposables.push(this.source);
 	}
 
 
     get buildCount() { return this.rc.buildCount; }
     get cmdLine() { return this.rc.args; }
     get isOnlyBuild() { return this.rc.isSingleBuild; }
+    get global() { return this.rc.global; }
     get pkgJson() { return this.rc.pkgJson; }
+    get source() { return this.build.source; }
 
 
     dispose = async () =>
@@ -111,7 +90,7 @@ class WpBuildApp
             this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
         }
         if (this.errors.length > 0) {
-            this.logger.warning("REPORTED NON-FATAL ERRORS FOR THIS BUILD:");
+            this.logger.warning("REPORTED ERRORS FOR THIS BUILD:");
             this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
         }
         this.logger.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
@@ -184,32 +163,10 @@ class WpBuildApp
     addWarning = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
 
 
-	/**
-	 * @private
-	 */
-	applyAppRc = () =>
-	{
-        const b = this.build;
-		apply(this,
-		{
-			global: this.rc.global,
-            isTest: b.mode === "test" || b.type === "tests" || b.name.startsWith("test"),
-			isWeb: b.type === "webapp" || b.target.startsWith("web"),
-			isMain: b.type === "module",
-			isMainProd: b.type === "module" && b.mode === "production",
-			isMainTest: b.type === "module" && b.mode === "test",
-            mode: b.mode || this.rc.mode,
-            paths: b.paths,
-            target: b.target,
-            vscode: b.vscode
-		});
-	};
-
-
     /**
      * @returns {typedefs.WpwWebpackConfig}
      */
-    buildApp = () =>
+    buildWrapper = () =>
     {
         const buildOptions = this.build.options;
         this.wpc = this.getDefaultWebpackExports();
@@ -250,16 +207,16 @@ class WpBuildApp
 
     /**
      * @param {string} name
-     * @returns {typedefs.WpBuildApp | undefined}
+     * @returns {typedefs.WpwBuild | undefined}
      */
-    getApp = (name) => this.rc.getApp(name);
+    getBuild = (name) => this.rc.getBuild(name);
 
 
     /**
      * @param {string} name
-     * @returns {typedefs.IWpwBuild | undefined}
+     * @returns {typedefs.WpBuildApp | undefined}
      */
-    getAppBuild = (name) => this.rc.getBuild(name);
+    getBuildWrapper = (name) => this.rc.getBuildWrapper(name);
 
 
     /**
@@ -390,21 +347,19 @@ class WpBuildApp
      */
     initLogger = () =>
     {
-        apply(this.build.log, { envTag1: this.build.name , envTag2: this.target.toString() });
+        apply(this.build.log, { envTag1: this.build.name , envTag2: this.build.target.toString() });
         const l = this.logger = new WpwLogger(this.build.log);
         this.global.buildCount = this.global.buildCount || 0;
         l.value(
             `Start Webpack build ${++this.global.buildCount}`,
-            l.tag(this.build.name) + " " + l.tag(this.target),
+            l.tag(this.build.name) + " " + l.tag(this.build.target),
             undefined, undefined, l.icons.color.start, l.colors.white
         );
     };
 
 
    /**
-    * @function
     * @private
-    * @member logEnvironment
     */
     printBuildProperties = () =>
     {
@@ -434,13 +389,7 @@ class WpBuildApp
         l.value("   name", this.build.name, 1);
         l.value("   type", this.build.type, 1);
         l.value("   target", this.build.target, 1);
-        l.write("   flags", 2);
-        l.value("      is main", this.isMain, 2);
-        l.value("      is main test", this.isMainTest, 2);
-        l.value("      is main production", this.isMainProd, 2);
-        l.value("      is test", this.isTest, 2);
-        l.value("      is web", this.isWeb, 2);
-        l.value("      is vscode extension", this.build.vscode && this.build.vscode.type && this.build.vscode.type !== "none", 2);
+        l.value("   is vscode extension", this.build.vscode && this.build.vscode.type && this.build.vscode.type !== "none", 2);
         l.value("   source code type", this.source.type, 2);
         l.value("   logging level", this.build.log.level, 2);
         l.value("   alias configuration", JSON.stringify(this.build.alias), 3);
@@ -501,7 +450,6 @@ class WpBuildApp
 
     /**
      * @private
-     * @member logEnvironment
      */
      printWpcProperties = () =>
      {

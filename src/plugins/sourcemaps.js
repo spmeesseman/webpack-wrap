@@ -23,6 +23,7 @@ const { apply, requireResolve, WpwMessage, WpwMessageEnum } = require("../utils"
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("../types").WpwBuildOptions} WpwBuildOptions */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 /** @typedef {import("../types").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
@@ -31,15 +32,28 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 /**
  * @extends WpwPlugin
  */
-class WpBuildSourceMapPlugin extends WpwPlugin
+class WpBuildSourceMapsPlugin extends WpwPlugin
 {
+    /** @type {Exclude<WpwBuildOptions["sourcemaps"], undefined>} @override */
+    buildOptions;
+
+
 	/**
 	 * @param {WpwPluginOptions} options Plugin options to be applied
 	 */
 	constructor(options)
     {
-        super(apply(options, { plugins: WpBuildSourceMapPlugin.vendorPlugins(options.app), registerVendorPluginsFirst: true }));
+        super(apply(options, { registerVendorPluginsFirst: true }));
     }
+
+
+	/**
+     * @override
+     * @param {WpBuildApp} app
+	 * @returns {WpBuildSourceMapsPlugin | undefined}
+     */
+	static build = (app) =>
+        app.build.options.sourcemaps ? WpwPlugin.wrap(WpBuildSourceMapsPlugin, app, "sourcemaps") : undefined;
 
 
     /**
@@ -49,18 +63,15 @@ class WpBuildSourceMapPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		if (this.app.isMain)
-		{
-			this.onApply(compiler,
-			{
-				renameSourceMaps: {
-					hook: "compilation",
-					stage: "DEV_TOOLING",
-					hookCompilation: "processAssets",
-					callback: this.renameMap.bind(this)
-				}
-			});
-		}
+        this.onApply(compiler,
+        {
+            renameSourceMaps: {
+                hook: "compilation",
+                stage: "DEV_TOOLING",
+                hookCompilation: "processAssets",
+                callback: this.renameMap.bind(this)
+            }
+        });
     }
 
 
@@ -107,62 +118,43 @@ class WpBuildSourceMapPlugin extends WpwPlugin
 
 
 	/**
-	 * @private
-	 * @param {WpBuildApp} app
-	 * @returns {WpBuildPluginVendorOptions[]}
+	 * @override
+	 * @returns {import("../types").WebpackPluginInstance}
 	 */
-	static vendorPlugins = (app) =>
+	getVendorPlugin = () =>
 	{
-		return [
+		return new webpack.SourceMapDevToolPlugin(
         {
-            ctor: webpack.SourceMapDevToolPlugin,
-            options: {
-                test: /\.(js|jsx)($|\?)/i,
-                exclude: // !app.isTests ?
-                        /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/, // :
-                                       //  /(?:node_modules|(?:vendor|runtime)(?:\.[a-f0-9]{16,})?\.js)/,
-                // filename: "[name].js.map",
-                filename: "[name].[contenthash].js.map",
-                //
-                // The bundled node_modules will produce reference tags within the main entry point
-                // files in the form:
-                //
-                //     external commonjs "vscode"
-                //     external-node commonjs "crypto"
-                //     ...etc...
-                //
-                // This breaks the istanbul reporting library when the tests have completed and the
-                // coverage report is being built (via nyc.report()).  Replace the quote and space
-                // characters in this external reference name with filename firiendly characters.
-                //
-                /** @type {any} */moduleFilenameTemplate: (/** @type {any} */info) =>
-                {
-                    if ((/[\" \|]/).test(info.absoluteResourcePath)) {
-                        return info.absoluteResourcePath.replace(/\"/g, "").replace(/[ \|]/g, "_");
-                    }
-                    return `${info.absoluteResourcePath}`;
-                },
-                fallbackModuleFilenameTemplate: "[absolute-resource-path]?[hash]"
-            }
-        }];
-        // {
-        //     ctor: CopyInMemoryPlugin,
-        //     options: {
-        //         test: /.js.map$/,
-        //         stage: Compilation.PROCESS_ASSETS_STAGE_SUMMARIZE, // Default
-        //         to: (fileName) => fileName.replace(/[a-f0-9]{16,}\./, app.global.runtimeVars.next[fileName.replace(/[a-f0-9]{16,}\.js/, "")] + "."),
-        //         deleteOriginalAssets: true
-        //     }
-        // }];
+            test: /\.(js|jsx)($|\?)/i,
+            exclude: // !app.isTests ?
+                    /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/, // :
+                                    //  /(?:node_modules|(?:vendor|runtime)(?:\.[a-f0-9]{16,})?\.js)/,
+            // filename: "[name].js.map",
+            filename: "[name].[contenthash].js.map",
+            //
+            // The bundled node_modules will produce reference tags within the main entry point
+            // files in the form:
+            //
+            //     external commonjs "vscode"
+            //     external-node commonjs "crypto"
+            //     ...etc...
+            //
+            // This breaks the istanbul reporting library when the tests have completed and the
+            // coverage report is being built (via nyc.report()).  Replace the quote and space
+            // characters in this external reference name with filename firiendly characters.
+            //
+            /** @type {any} */moduleFilenameTemplate: (/** @type {any} */info) =>
+            {
+                if ((/[\" \|]/).test(info.absoluteResourcePath)) {
+                    return info.absoluteResourcePath.replace(/\"/g, "").replace(/[ \|]/g, "_");
+                }
+                return `${info.absoluteResourcePath}`;
+            },
+            fallbackModuleFilenameTemplate: "[absolute-resource-path]?[hash]"
+        });
     };
 
 }
 
-/**
- * @param {WpBuildApp} app
- * @returns {(WpBuildSourceMapPlugin)[]}
- */
-const sourcemaps = (app) => app.build.options.sourcemaps &&  app.isMain ?  new WpBuildSourceMapPlugin({ app }).getPlugins() : [];
 
-
-module.exports = sourcemaps;
+module.exports = WpBuildSourceMapsPlugin.build;

@@ -70,32 +70,24 @@ declare interface IWpwSourceCodeApp extends IWpwSourceCode
 declare interface IWpBuildApp extends IDisposable
 {
     build: IWpwBuild;
-    buildCount: number;
     disposables: IDisposable[];
-    cmdLine: WpBuildCombinedRuntimeArgs;
     errors: ClsWpBuildError[];
-    global: WpBuildGlobalEnvironment; // Accessible by all parallel builds
     info: ClsWpBuildError[];
-    isOnlyBuild: boolean;
-    isMain: boolean;
-    isMainProd: boolean;
-    isMainTest: boolean;
-    isTest: boolean;
-    isWeb: boolean;
     logger: IWpwLogger;
-    mode: WpwWebpackMode;
-    pkgJson: WpwPackageJson;
-    target: WebpackTarget;
-    vscode: WpwVsCode;
     warnings: ClsWpBuildError[];
     wpc: WpwWebpackConfig;
+    readonly buildCount: number;
+    readonly cmdLine: WpBuildCombinedRuntimeArgs;
+    readonly global: WpBuildGlobalEnvironment;
+    readonly isOnlyBuild: boolean;
+    readonly pkgJson: WpwPackageJson;
     addError(e: WpwErrorCode, c?: WebpackCompilation, d?: string, pad?: string): void;
     addInfo(i: WpwInfoCode, d?: string, pad?: string): void;
     addWarning(w: WpwWarningCode, c?: WebpackCompilation, d?: string, pad?: string): void;
-    buildApp(): WpwWebpackConfig;
+    buildWrapper(): WpwWebpackConfig;
     dispose(): Promise<void>;
-    getApp(name: string): IWpBuildApp | undefined;
-    getAppBuild(name: string): WpwBuild | undefined;
+    getBuildWrapper(name: string): IWpBuildApp | undefined;
+    getBuild(name: string): WpwBuild | undefined;
     getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
     getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
     getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;

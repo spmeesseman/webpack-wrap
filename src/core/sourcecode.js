@@ -29,8 +29,6 @@ class WpwSourceCode
 {
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
-    /** @type {typedefs.IWpwBuild} */
-    build;
     /** @type {typedefs.WpwSourceCodeConfig} */
     config;
     /** @type {typedefs.WpwSourceCodeExtension} */
@@ -44,19 +42,18 @@ class WpwSourceCode
 
 
     /**
+     * @param {typedefs.IWpwSourceCode} sourceConfig
 	 * @param {typedefs.IWpwBuild} build
 	 * @param {WpwLogger} logger
      */
-    constructor(build, logger)
+    constructor(sourceConfig, build, logger)
     {
-        const sourceConfig = build.source,
-              jtsconfigFileInfo = this.getJsTsConfigFileInfo(build),
+        const jtsconfigFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
               defaultConfig = this.getDefaultConfig(sourceConfig.config),
               compilerOptions = merge({}, sourceConfig.config.options?.compilerOptions);
         this.logger = logger;
         this.config = merge(defaultConfig, jtsconfigFileInfo || {});
         apply(this, {
-            build,
             type: sourceConfig.type,
             ext: sourceConfig.type === "typescript" ? "ts" : "js"
         });
@@ -66,6 +63,7 @@ class WpwSourceCode
             WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         }
     };
+
 
     dispose = () => this.cleanupProgram();
 
@@ -172,13 +170,13 @@ class WpwSourceCode
 
     /**
      * @private
+     * @param {typedefs.IWpwSourceCode} sourceConfig
      * @param {typedefs.IWpwBuild} build
      * @returns {string | undefined}
      */
-    findJsTsConfig = (build) =>
+    findJsTsConfig = (sourceConfig, build) =>
     {
-        const sourceConfig = build.source,
-              cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
+        const cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
         /**
          * @param {string | undefined} base
          * @returns {string | undefined}
@@ -251,10 +249,11 @@ class WpwSourceCode
 
     /**
      * @private
+     * @param {typedefs.IWpwSourceCode} sourceConfig
      * @param {typedefs.IWpwBuild} build
      * @returns {typedefs.WpwSourceCodeConfig | undefined}
      */
-    getJsTsConfigFileInfo = (build) =>
+    getJsTsConfigFileInfo = (sourceConfig, build) =>
     {
         const _getData= (/** @type {string} */ file, /** @type {string} */ dir) =>
         {
@@ -266,7 +265,7 @@ class WpwSourceCode
             return { raw, json: /** @type {typedefs.WpwSourceCodeConfigOptions} */(JSON5.parse(raw)) };
         };
 
-        const path = this.findJsTsConfig(build);
+        const path = this.findJsTsConfig(sourceConfig, build);
         if (path)
         {
             const exclude = [], include = [],

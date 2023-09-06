@@ -23,13 +23,17 @@ const { existsAsync, WpBuildError, apply, pushIfNotExists, WpwMessage, WpwMessag
  */
 class WpBuildTypesPlugin extends WpBuildBaseTsPlugin
 {
+    /** @type {Exclude<typedefs.WpwBuildOptions["types"], undefined>} @override */
+    buildOptions;
+
+
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
 		super(options);
-		this.buildOptions = /** @type {Exclude<typedefs.WpwBuildOptions["types"], undefined>} */(this.buildOptions);
+        this.buildOptions  = this.getBuildOptions("types");
 	}
 
 

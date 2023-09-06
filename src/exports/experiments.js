@@ -19,7 +19,7 @@ const experiments = (app) =>
 {
 	if (app.build.options.experiments)
 	{
-		app.wpc.experiments = { layers: app.isMain };
+		app.wpc.experiments = { layers: app.build.type === "module"};
 	}
 };
 

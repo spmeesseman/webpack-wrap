@@ -83,7 +83,7 @@ class WpwPlugin extends WpwBase
         this.plugins = [];
         this.validatePluginOptions(options);
         this.options = applyIf(this.options, options);
-        this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.mode, this.baseName));
+        this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.build.mode, this.baseName));
         if (!this.options.wrapPlugin)
         {
             mergeIf(this.options, { plugins: [] });

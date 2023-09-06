@@ -193,7 +193,7 @@ class WpBuildCopyPlugin extends WpwPlugin
 					plugin = new CopyPlugin({ patterns });
 				}
 			}
-			else if (app.isMain && app.wpc.mode === "production")
+			else if (app.build.type === "module" && app.wpc.mode === "production")
 			{   //
 				// Copy resources to public info` sub-project during compilation
 				//

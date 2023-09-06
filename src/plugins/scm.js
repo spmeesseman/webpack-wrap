@@ -91,7 +91,7 @@ class WpBuildScmPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildScmPlugin | undefined}
  */
-const scm = (app) => app.build.options.scm && app.isMainProd ? new WpBuildScmPlugin({ app }) : undefined;
+const scm = (app) => app.build.options.scm ? new WpBuildScmPlugin({ app }) : undefined;
 
 
 module.exports = scm;

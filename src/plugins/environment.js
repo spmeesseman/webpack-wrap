@@ -53,7 +53,7 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
 	 */
 	setVersion = () =>
 	{
-		if (this.app.isMain && this.app.mode === "production")
+		if (this.app.build.type === "module" && this.app.mode === "production")
 		{
 			// let version = app.pkgJson.version;
 		}

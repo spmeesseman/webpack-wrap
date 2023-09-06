@@ -23,7 +23,7 @@ const optimization = (app) =>
 	if (app.build.options.optimization)
 	{
 		apply(app.wpc, { parallelism: 1 + app.buildCount });
-		if (app.isMain)
+		if (app.build.type === "module")
 		{
 			app.wpc.optimization =
 			{

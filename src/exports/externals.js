@@ -28,7 +28,7 @@ const externals = (app) =>
 {
 	if (app.build.options.externals || app.vscode)
 	{
-		if (app.isWeb) {
+		if (app.build.target.startsWith("web")) {
 			app.wpc.externalsPresets = { web: true };
 		}
 		else {

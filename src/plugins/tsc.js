@@ -27,7 +27,10 @@ class WpBuildBaseTsPlugin extends WpwPlugin
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+	}
 
 
 	/**

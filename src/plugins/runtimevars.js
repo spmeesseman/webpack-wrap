@@ -295,7 +295,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
  * @param {WpBuildApp} app
  * @returns {WpBuildRuntimeVarsPlugin | undefined}
  */
-const runtimevars = (app) => app.build.options.runtimevars && app.isMain ? new WpBuildRuntimeVarsPlugin({ app }) : undefined;
+const runtimevars = (app) => app.build.options.runtimevars ? new WpBuildRuntimeVarsPlugin({ app }) : undefined;
 
 
 module.exports = runtimevars;

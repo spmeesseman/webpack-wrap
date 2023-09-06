@@ -20,7 +20,7 @@ const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/
 const { isWpwWebpackMode, WpwPackageJsonProps } = require("../types/constants");
 const {
     WpBuildError, apply, pick, isString, merge, isArray, resolvePath, asArray, findFilesSync,
-    relativePath, isObject, WpwLogger, typedefs, isPromise, clone, mergeIf
+    relativePath, isObject, WpwLogger, typedefs, isPromise, clone
 } = require("../utils");
 const WpwBuild = require("./build");
 
@@ -38,8 +38,6 @@ class WpwRc
     args;
     /** @type {typedefs.WpwBuild[]} */
     builds;
-    /** @type {typedefs.IWpwBuild[]} */
-    buildConfigs;
     /** @type {typedefs.WpwBuildModeConfig} */
     development;
     /** @type {Array<typedefs.IDisposable>} */
@@ -107,9 +105,7 @@ class WpwRc
         this.logger = new WpwLogger({ envTag1: "rc", envTag2: "init", ...this.log });
 		this.applyModeArgument(argv, arge);
         this.printBanner(arge, argv);
-        if (this.logger.level >= 4) {
-            validateSchema(rcDefaults.data, this.logger);
-        }
+        if (this.logger.level >= 4) { validateSchema(rcDefaults.data, this.logger); }
         validateSchema(rcProject.data, this.logger);
         this.applyVersions();
         this.configureBuilds();
@@ -123,7 +119,7 @@ class WpwRc
             const result = d.dispose();
             if (isPromise(result)) { await result; }
         }
-        this.logger.write("dispose main wrapper instance", 3);
+        this.logger.write("dispose main rc wrapper instance", 3);
         this.logger.dispose();
     };
 
@@ -221,40 +217,19 @@ class WpwRc
 	 */
     configureBuilds = () =>
     {
-        //
-        // Merge the base rc config into the build
-        //
         this.logger.write("configure defined builds", 1);
-
-        const baseRc = {
-            options: this.options,
-            paths: this.paths,
-            log: this.log,
-            alias: this.alias
-        };
-
-        this.buildConfigs = clone(this.builds);
+        const buildConfigs = clone(this.builds || []);
         this.builds = [];
-        // this.buildConfigs.forEach((buildConfig) => { mergeIf(buildConfig, baseRc); });
-
         const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this[this.mode]);
-        asArray(modeRc?.builds).forEach((modeBuildRc) =>
+        asArray(modeRc?.builds).filter(mc => !buildConfigs.find(bc => mc.name === bc.name)).forEach((modeBuildRc) =>
         {
-            // const baseBuild = this.buildConfigs.find(base => base.name === modeBuild.name);
-            // if (baseBuild) {
-            //     merge(baseBuild, modeBuild);
-            // }
-            // else {
-            //     this.buildConfigs.push(mergeIf(merge({}, modeBuild), baseRc));
-            // }
-            this.buildConfigs.push(merge({}, modeBuildRc));
+            buildConfigs.push(merge({}, modeBuildRc));
         });
-
-        this.buildConfigs.forEach((config) =>
+        buildConfigs.forEach((config) =>
         {
             this.builds.push(new WpwBuild(config, this, this.logger));
         });
-
+        this.disposables.push(...this.builds);
         this.logger.write("build configuration complete", 2);
     };
 
@@ -263,7 +238,6 @@ class WpwRc
      * Base entry function to initialize build configurations and provide the webpack
      * configuration export(s) to webpack.config.js.
      *
-     * @see example {@link file:///./../examples/webpack.config.js}
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
      * @returns {typedefs.WpwWebpackConfig[]} arge
@@ -286,7 +260,7 @@ class WpwRc
                         const waitConfig = WpwPlugin.getBuildOptions("wait", a);
                         if (asArray(waitConfig.items).find(t => t.target === "types"))
                         {
-                            rc.apps.push(new WpBuildApp(rc, merge({}, typesBuild)));
+                            rc.apps.push(new WpBuildApp(rc, typesBuild));
                             apply(typesBuild, { auto: true });
                             break;
                         }
@@ -304,7 +278,7 @@ class WpwRc
             ...rc.builds.filter(
                 (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.build.type === b.type)
             )
-            .map((b) => new WpBuildApp(rc, merge({}, b)))
+            .map((build) => new WpBuildApp(rc, build))
         );
 
         for (const app of rc.apps)
@@ -315,7 +289,7 @@ class WpwRc
              // Alias paths needed to be initialzed "after" app` instance is created (notably the `app.source` instance)
             //
             rc.resolveAliasPaths(app);
-            wpConfigs.push(app.buildApp());
+            wpConfigs.push(app.buildWrapper());
             apply(app.build, { active: true });
         }
 
@@ -327,14 +301,14 @@ class WpwRc
      * @param {string} nameOrType
      * @returns {typedefs.WpBuildApp | undefined}
      */
-    getApp = (nameOrType) => this.apps.find(a => a.build.type === nameOrType || a.build.name === nameOrType);
+    getBuildWrapper = (nameOrType) => this.apps.find(a => a.build.type === nameOrType || a.build.name === nameOrType);
 
 
     /**
      * @param {string} nameOrType
      * @returns {typedefs.WpwBuild | undefined}
      */
-    getBuild = (nameOrType) => this.getApp(nameOrType)?.build;
+    getBuild = (nameOrType) => this.getBuildWrapper(nameOrType)?.build;
 
 
     /**

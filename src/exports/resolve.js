@@ -51,8 +51,8 @@ const resolve = (app) =>
 		apply(app.wpc.resolve,
 		{
 			modules: [ wpw_node_modules, "node_modules" ],
-			mainFields: app.isWeb ? [ "web", "module", "main" ] : [ "module", "main" ],
-			fallback: app.isWeb ? { path: require.resolve("path-browserify"), os: require.resolve("os-browserify/browser") } : undefined // ,
+			mainFields: app.build.target === "web" ? [ "web", "module", "main" ] : [ "module", "main" ],
+			fallback: app.build.target === "web" ? { path: require.resolve("path-browserify"), os: require.resolve("os-browserify/browser") } : undefined // ,
 			// fileSystem: {
 			// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
 			// 	readlink: (arg0, arg1) => arg1(undefined, ""),
