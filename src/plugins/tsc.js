@@ -76,8 +76,8 @@ class WpwTscPlugin extends WpwPlugin
 
 		// f (!entryFileAbs || !existsSync(entryFileAbs))
 		//
-		// 	const typesOptions = WpwTscPlugin.getBuildOptions("types", this.app);
-		// 	if (typesOptions.enabled && typesOptions.entry)
+		// 	const typesOptions = this.app.build.types;
+		// 	if (typesOptions && typesOptions.enabled && typesOptions.entry)
 		// 	{
 		// 		entryName = this.fileNameStrip(typesOptions.entry, true);
 		// 		entryFile = typesOptions.entry;
@@ -113,7 +113,8 @@ class WpwTscPlugin extends WpwPlugin
 			  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			  outputDirRelBase = relativePath(baseDir, outputDir).replace(/\\/g, "/");
+			  outputDirRelBase = relativePath(baseDir, outputDir).replace(/\\/g, "/"),
+			  dtsBundleBaseDir = relativePath(baseDir, outputDir).replace(/\\/g, "/");
 
 		if (this.logger.level >= 2)
 		{
@@ -130,6 +131,7 @@ class WpwTscPlugin extends WpwPlugin
 			l.value("      relative path (->context)", dtsFilePathRelContext);
 			l.value("      relative path (->base)", dtsFilePathRelBase);
 			l.value("      absolute path", dtsFilePathAbs);
+			l.value("      base output path", outputDir);
 			// l.write("   output bundle entryfile info:");
 			// l.value("      filename", dtsEntryFile);
 			// l.value("      relative path (->dist)", dtsEntryFileRel);
@@ -147,16 +149,28 @@ class WpwTscPlugin extends WpwPlugin
 		/** @type {typedefs.WpBuildDtsBundleOptions} */
 		const bundleCfg =
 		{
-			name: `${this.app.pkgJson.name}-${this.app.build.name}`,
+			name: `${this.app.pkgJson.name}-${this.app.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
 			baseDir: outputDirRelBase,
 			headerPath: "",
 			headerText: "",
-			main: outputDirRelBase + "/**/*.d.ts",
+			main: outputDirRelBase + "/core/rc.d.ts",
 			out: dtsFile,
 			outputAsModuleFolder: true,
 			// removeSource: true,
 			verbose: this.app.build.log.level >= 4
 		};
+
+		if (this.logger.level >= 1)
+		{
+			l.write("   dts-bundle options:");
+			l.value("      name", bundleCfg.name);
+			l.value("      out", bundleCfg.out);
+			l.value("      main", bundleCfg.main);
+			l.value("      base dir", bundleCfg.baseDir);
+			l.value("      header text", bundleCfg.headerText);
+			l.value("      header path", bundleCfg.headerPath);
+			l.value("      output as module folder", bundleCfg.outputAsModuleFolder);
+		}
 			//
 		try // Create bundle - using dts bundling library
 		{	// TODO - Can typescript.program() bundle, using 'out' compilerOption?

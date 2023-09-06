@@ -207,49 +207,12 @@ class WpwBuild
 
         this.logger.write("   trim & validate build options", 2);
         validateBuildOptions(this.options, buildConfig.options);
+        this.mergeDefaultBuildOptions();
 
         this.logger.write("   validate final build configuration", 2);
         validateSchema(this, this.logger, "build");
 
         this.logger.write(`final configuration for build '${this.name}' complete`, 2);
-    };
-
-
-    /**
-     * @template {typedefs.WpwBuildOptionsKey} K
-     * @param {K} key
-     * @returns {NonNullable<typedefs.WpwBuildOptions[K]>}
-     */
-    getBuildOptions = (key) =>
-    {
-        this.readSchema();
-
-        let optionsCfg;
-        const config = this.options[key],
-              definitions = WpwBuild.schema.definitions,
-              emptyConfig = /** @type {typedefs.WpwBuildOptionsType<K>} */({ enabled: false });
-
-        if (!config || !definitions) {
-            return emptyConfig;
-        }
-        else {
-            if (config.enabled === undefined) {
-                config.enabled = true;
-            }
-            optionsCfg = merge({}, emptyConfig, config);
-        }
-
-        const buildOptionSchema = definitions.WpwBuildOptions;
-        if (!buildOptionSchema || isBoolean(buildOptionSchema) || !buildOptionSchema.properties) {
-            return emptyConfig;
-        }
-
-        const buildConfig = getDefinitionSchemaProperties(buildOptionSchema.properties[/** @type {string} */(key)], definitions);
-        if (!buildConfig || !isObject(buildConfig)) {
-            return emptyConfig;
-        }
-
-        return this.mergeOptions(optionsCfg, buildConfig, definitions);
     };
 
 
@@ -288,6 +251,35 @@ class WpwBuild
         }
         return type;
     };
+
+
+    /**
+     * @private
+     */
+    mergeDefaultBuildOptions = () =>
+    {
+        this.readSchema();
+        Object.keys(this.options).forEach(/** @type {typedefs.WpwBuildOptionsKey} */(optionsKey) =>
+        {
+            const config = this.options[optionsKey],
+                  definitions = WpwBuild.schema.definitions;
+            if (config && definitions)
+            {
+                const buildOptionSchema = definitions.WpwBuildOptions;
+                if (buildOptionSchema && !isBoolean(buildOptionSchema) && buildOptionSchema.properties)
+                {
+                    const buildConfig = getDefinitionSchemaProperties(
+                        buildOptionSchema.properties[/** @type {string} */(optionsKey)], definitions
+                    );
+                    if (buildConfig && isObject(buildConfig)) {
+                        this.mergeOptions(config, buildConfig, definitions);
+                    }
+                }
+            }
+        });
+    };
+
+
     /**
      * @private
      * @template T

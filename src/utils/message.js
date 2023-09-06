@@ -73,7 +73,7 @@ class WpBuildError extends WebpackError
         // this.loc = file;
 		this.name = "WpBuildError";
         // Object.setPrototypeOf(this, new.target.prototype);
-        if (isError (details)) {
+        if (isError(details)) {
             this.details = details.message;
         }
         else if (isString(details)) {
@@ -116,6 +116,9 @@ class WpBuildError extends WebpackError
         }
         if (isString(detail)) {
             message += ` | ${detail}`;
+        }
+        else if (isError(detail)) {
+            message += `\nEXCEPTION: ${detail.message.trim()}`;
         }
         const e = new WpBuildError(message, detail ?? undefined);
         return e;

@@ -108,8 +108,8 @@ class WpwEntryExport extends WpwWebpackExport
 	jsdoc = () =>
 	{
 		const app = this.app,
-			  jsdocOptions = WpwBase.getBuildOptions("jsdoc", app);
-		if (jsdocOptions.type === "entry")
+			  jsdocOptions = app.build.options.jsdoc;
+		if (jsdocOptions && jsdocOptions.type === "entry")
 		{
 			const mainBuild = app.getBuild("module"),
 				jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
@@ -223,7 +223,7 @@ class WpwEntryExport extends WpwWebpackExport
 	{
 		const app = this.app,
 			  build = app.build,
-			  typesConfig = WpwBase.getBuildOptions("types", app);
+			  typesConfig = app.build.options.types;
 
 		if (!typesConfig || typesConfig.mode !== "module") {
 			return;

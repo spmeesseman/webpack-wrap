@@ -48,6 +48,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
     /**
      * Called by webpack runtime to initialize this plugin
+	 *
      * @override
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
