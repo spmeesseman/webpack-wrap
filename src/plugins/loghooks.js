@@ -234,9 +234,9 @@ class WpwLogHooksPlugin extends WpwPlugin
 	writeBuildTag(hook)
 	{
 		const key = hook +this.app.wpc.name;
-		if (!this.app.global.logHooks[key])
+		if (!this.globalCache[key])
 		{
-			this.app.global.logHooks[key] = true;
+			this.globalCache[key] = true;
 			this.logger.valuestar("build stage hook", hook);
 		}
 	};

@@ -26,7 +26,7 @@ class WpwLogger
 
     /**
      * @class WpwLogger
-     * @param {Partial<typedefs.WpwLog>} options
+     * @param {typedefs.WpwLoggerOptions} options
      */
     constructor(options)
     {

@@ -91,13 +91,13 @@ const capitalize = (value) =>
 
 /**
  * @param {string} dir
- * @param {"js" | "cjs" | "mjs" | "ts" | ".js" | ".jsx" | ".cjs" | ".mjs" | ".ts" | ".tsx"} ext
- * @returns {*}
+ * @param {typedefs.WpwSourceCodeExtension | typedefs.WpwSourceCodeDotExtensionApp} ext
+ * @returns {typedefs.WpwWebpackEntry}
  */
 const createEntryObjFromDir = (dir, ext) =>
 {
     if (!ext.startsWith(".")) {
-        ext = /** @type {".js" | ".jsx" | ".cjs" | ".mjs" | ".ts" | ".tsx"} */("." + ext);
+        ext = /** @type {typedefs.WpwSourceCodeDotExtensionApp} */("." + ext);
     }
     return glob.sync(
         `*${ext}`, {

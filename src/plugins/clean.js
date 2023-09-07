@@ -126,7 +126,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 				.filter((plugin => !!buildOptions[plugin]))
 				.map(
 					(plugin) => join(
-						this.app.global.cacheDir, WpwPlugin.cacheFilename(this.app.build.mode, plugin)
+						this.global.cacheDir, WpwPlugin.cacheFilename(this.app.build.mode, plugin)
 					)
 				)
 				.filter(path => existsSync(path))

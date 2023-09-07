@@ -27,7 +27,7 @@ class WpwResolveExport extends WpwWebpackExport
 
 
 	/**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwExportOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{

@@ -14,10 +14,8 @@
  */
 
 const { glob } = require("glob");
-const { basename, resolve } = require("path");
-const WpwBase = require("../core/base");
-const WpBuildApp = require("../core/app");
 const WpwWebpackExport = require("./base");
+const { basename, resolve } = require("path");
 const typedefs = require("../types/typedefs");
 const {
 	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction, WpwMessageEnum
@@ -35,7 +33,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 
     /**
-     * @param {typedefs.WpwPluginOptions} options
+     * @param {typedefs.WpwExportOptions} options
      */
 	constructor(options) { super(options); }
 
@@ -116,7 +114,7 @@ class WpwEntryExport extends WpwWebpackExport
 			{
 				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
 				apply(app.wpc.entry, {
-					[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}.js`
+					[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}${app.source.dotext}`
 				});
 			}
 		}
@@ -136,7 +134,7 @@ class WpwEntryExport extends WpwWebpackExport
 		apply(app.wpc.entry,
 		{
 			[app.build.name]: {
-				import: `${srcPath}/${app.build.name}.ts`
+				import: `${srcPath}/${app.build.name}${app.source.dotext}`
 			}
 		});
 		if (app.build.debug)
@@ -147,7 +145,7 @@ class WpwEntryExport extends WpwWebpackExport
 			{
 				[`${app.build.name}.debug`]:
 				{
-					import: `${srcPath}/${app.build.name}.ts`,
+					import: `${srcPath}/${app.build.name}${app.source.dotext}`,
 					layer: "debug"
 				}
 			});
@@ -187,7 +185,7 @@ class WpwEntryExport extends WpwWebpackExport
 		)
 		.reduce((obj, e)=>
 		{
-			obj[e.replace(".ts", "")] = {
+			obj[e.replace(this.app.source.dotext, "")] = {
 				import: `./${e}`
 			};
 			return obj;
@@ -235,7 +233,7 @@ class WpwEntryExport extends WpwWebpackExport
 			{
 				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
 				apply(app.wpc.entry, {
-					[ build.name ]: `${mainSrcPath}/${mainBuild.name}.${app.source.ext}`
+					[ build.name ]: `${mainSrcPath}/${mainBuild.name}${app.source.dotext}`
 				});
 			}
 		}
@@ -268,12 +266,12 @@ class WpwEntryExport extends WpwWebpackExport
 			  appPath = app.getSrcPath();
 		if (isDirectory(appPath))
 		{
-			apply(app.wpc.entry, createEntryObjFromDir(appPath, ".ts"));
+			apply(app.wpc.entry, createEntryObjFromDir(appPath, app.build.source.dotext));
 		}
 		else
 		{
 			const relPath = relativePath(app.getContextPath(), appPath),
-				  chunk = basename(relPath).replace(".ts", "");
+				  chunk = basename(relPath).replace(app.build.source.dotext, "");
 			apply(app.wpc.entry, { [ chunk ]: `./${relPath}` });
 		}
 	}

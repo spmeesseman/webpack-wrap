@@ -15,21 +15,25 @@
  *
  * @description
  *
- * Provides types to interface the base abstract class extended by plugins/exports classes
+ * Definitions to interface the base wpw abstract classes
  *
  *//** */
 
 import { WpwBuildOptionsKey } from "./rc";
-import { IWpwLogger } from "./logger";
+import { WpwLoggerOptions } from "./logger";
 
 
-declare interface IWpwBaseOptions
+declare type WpwAppInstance = InstanceType<typeof import("../core/app")>;
+
+declare type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
+
+declare interface IWpwBaseModuleOptions extends IWpwBaseOptions
 {
-    app: typeof import("../core/app").prototype;
+    app: WpwAppInstance;
     key?: WpwBuildOptionsKey;
     globalCacheProps?: string[];
 };
-declare type WpwBaseOptions = IWpwBaseOptions;
+declare type WpwBaseModuleOptions = IWpwBaseModuleOptions;
 
 // declare type WpwBaseOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
 // {
@@ -38,12 +42,24 @@ declare type WpwBaseOptions = IWpwBaseOptions;
 //     globalCacheProps?: string[];
 // } & (T extends WpwBuildOptionsKey ? WpwBuildOptions[T] : {});
 
-declare interface IWpwBase
+declare interface IWpwBaseModule extends IWpwBase
 {
-    app: typeof import("../core/app").prototype;
-    // key: WpwBuildOptionsKey;
-    logger: IWpwLogger;
+    app: WpwAppInstance;
 }
 
+declare interface IWpwBase
+{
+    readonly name: string;
+    readonly initialConfig: any;
+    logger: WpwLoggerInstance;
+}
 
-export { IWpwBase, IWpwBaseOptions, WpwBaseOptions };
+declare interface IWpwBaseOptions
+{
+    logger?: WpwLoggerOptions | WpwLoggerInstance;
+    [key: string]: any;
+};
+declare type WpwBaseOptions = IWpwBaseOptions;
+
+
+export { IWpwBase, IWpwBaseModule, IWpwBaseOptions, IWpwBaseModuleOptions, WpwBaseOptions, WpwBaseModuleOptions };

@@ -121,7 +121,7 @@ const htmlcsp = (app) =>
     // For vscode extensions -
     // Override the nonce creation so it can be dynamically generated at runtime
     //
-    if (app.build.vscode && app.build.vscode.type !== "none") {
+    if (app.build.vscode) {
         // @ts-ignore
         plugin.createNonce = () => "#{cspNonce}";
     }

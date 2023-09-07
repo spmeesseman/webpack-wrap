@@ -51,36 +51,33 @@ class WpBuildScmPlugin extends WpwPlugin
      */
     async commit()
     {
-        if (this.app.global.scm.callCount === 2 && this.app.global.scm.readyCount > 0)
-        {
-            const logger = this.app.logger,
-                  provider = process.env.WPBUILD_SCM_PROVIDER || "git",
-                  host = process.env.WPBUILD_SCM_HOST,
-                  user = process.env.WPBUILD_SCM_USER; // ,
-                  // /** @type {import("child_process").SpawnSyncOptions} */
-                  // spawnSyncOpts = { cwd: this.app.getRcPath("main", ), encoding: "utf8", shell: true },
-                  // sshAuth = process.env.WPBUILD_SCM_AUTH || "InvalidAuth";
+        const logger = this.app.logger,
+                provider = process.env.WPBUILD_SCM_PROVIDER || "git",
+                host = process.env.WPBUILD_SCM_HOST,
+                user = process.env.WPBUILD_SCM_USER; // ,
+                // /** @type {import("child_process").SpawnSyncOptions} */
+                // spawnSyncOpts = { cwd: this.app.getRcPath("main", ), encoding: "utf8", shell: true },
+                // sshAuth = process.env.WPBUILD_SCM_AUTH || "InvalidAuth";
 
-            const scmArgs = [
-                "ci",    // authenticate
-                // sshAuth,  // auth key
-                // "-q",  // quiet, don't show statistics
-                "-r",     // copy directories recursively
-                `${user}@${host}:${this.app.pkgJson.name}/v${this.app.pkgJson.version}"`
-            ];
-            logger.write(`${logger.icons.color.star } ${logger.withColor(`check in resource files to ${host}`, logger.colors.grey)}`);
-            try {
-                logger.write(`   full scm command      : ${provider} ${scmArgs.map((v, i) => (i !== 3 ? v : "<PWD>")).join(" ")}`);
-                //
-                // TODO - check in any project-info files that were copied
-                //        -*-and-*- package.json if we add content hash to "main" file name???
-                //
-                // spawnSync(provider, scmArgs, spawnSyncOpts);
-                logger.write(`${logger.icons.color.star} ${logger.withColor("successfully checked in resource files", logger.colors.grey)}`);
-            }
-            catch (e) {
-                logger.error(`error checking in resource files: ${e.message}`);
-            }
+        const scmArgs = [
+            "ci",    // authenticate
+            // sshAuth,  // auth key
+            // "-q",  // quiet, don't show statistics
+            "-r",     // copy directories recursively
+            `${user}@${host}:${this.app.pkgJson.name}/v${this.app.pkgJson.version}"`
+        ];
+        logger.write(`${logger.icons.color.star } ${logger.withColor(`check in resource files to ${host}`, logger.colors.grey)}`);
+        try {
+            logger.write(`   full scm command      : ${provider} ${scmArgs.map((v, i) => (i !== 3 ? v : "<PWD>")).join(" ")}`);
+            //
+            // TODO - check in any project-info files that were copied
+            //        -*-and-*- package.json if we add content hash to "main" file name???
+            //
+            // spawnSync(provider, scmArgs, spawnSyncOpts);
+            logger.write(`${logger.icons.color.star} ${logger.withColor("successfully checked in resource files", logger.colors.grey)}`);
+        }
+        catch (e) {
+            logger.error(`error checking in resource files: ${e.message}`);
         }
     };
 

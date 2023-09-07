@@ -37,22 +37,22 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  */
 
-const WpwBase = require("../core/base");
 const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
-const { isFunction, mergeIf, execAsync, isString, WpBuildError, asArray, applyIf, WpwMessageEnum } = require("../utils");
+const WpwBaseModule = require("../core/basemodule");
+const { isFunction, mergeIf, execAsync, WpBuildError, asArray, applyIf, WpwMessageEnum } = require("../utils");
 
 
 /**
  * @abstract
- * @extends {WpwBase}
+ * @extends {WpwBaseModule}
  * @implements {typedefs.IWpBuildPlugin}
  */
-class WpwPlugin extends WpwBase
+class WpwPlugin extends WpwBaseModule
 {
     /** @protected */
     cache;

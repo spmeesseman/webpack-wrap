@@ -1,15 +1,15 @@
 // @ts-check
 
-const WpwBase = require("../core/base");
-const { WpBuildError, WpwMessageEnum } = require("../utils");
 const typedefs = require("../types/typedefs");
+const { WpwMessageEnum } = require("../utils");
+const WpwBaseModule = require("../core/basemodule");
 
 /**
  * @abstract
- * @extends {WpwBase}
+ * @extends {WpwBaseModule}
  * @implements {typedefs.IWpwExport}
  */
-class WpwWebpackExport extends WpwBase
+class WpwWebpackExport extends WpwBaseModule
 {
     /**
      * @param {typedefs.WpwExportOptions} options Plugin options to be applied

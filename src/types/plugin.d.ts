@@ -49,7 +49,7 @@
 import { RequireKeys } from "./generic";
 import { IWpwLogger } from "./logger";
 import { WpwPluginConfigWaitDef } from "./rc";
-import { IWpwBase, WpwBaseOptions } from "./base";
+import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
@@ -66,7 +66,7 @@ declare type WpwPluginOptions =
     registerVendorPluginsFirst?: boolean;
     registerVendorPluginsOnly?: boolean;
     wrapPlugin?: boolean;
-} & WpwBaseOptions;
+} & WpwBaseModuleOptions;
 
 // declare type WpwPluginOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
 // {
@@ -108,7 +108,7 @@ declare interface WpBuildPluginTapOptionsEntry
 };
 declare type WpBuildPluginCompilationOptionsEntry = RequireKeys<WpBuildPluginTapOptionsEntry, "stage" | "hookCompilation">;
 
-declare interface IWpBuildPlugin extends IWpwBase, WebpackPluginInstance
+declare interface IWpBuildPlugin extends IWpwBaseModule, WebpackPluginInstance
 {
     // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;

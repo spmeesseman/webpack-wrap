@@ -10,25 +10,24 @@
  *//** */
 
 const JSON5 = require("json5");
+const WpwBase = require("./base");
 const WpBuildApp = require("./app");
+const WpwBuild = require("./build");
 const WpwSourceCode = require("./sourcecode");
-const WpwPlugin = require("../plugins/base");
-const globalEnv = require("../utils/global");
 const { readFileSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname } = require("path");
 const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
 const { isWpwWebpackMode, WpwPackageJsonProps } = require("../types/constants");
 const {
-    WpBuildError, apply, pick, isString, merge, isArray, resolvePath, asArray, findFilesSync,
-    relativePath, isObject, WpwLogger, typedefs, isPromise, clone
+    WpBuildError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, isPromise, clone
 } = require("../utils");
-const WpwBuild = require("./build");
 
 
 /**
+ * @extends {WpwBase}
  * @implements {typedefs.IWpwRcSchema}
  */
-class WpwRc
+class WpwRc extends WpwBase
 {
     /** @type {typedefs.WpwWebpackAliasConfig} */
     alias;
@@ -42,12 +41,8 @@ class WpwRc
     development;
     /** @type {Array<typedefs.IDisposable>} */
     disposables;
-    /** @type {typedefs.WpBuildGlobalEnvironment} */
-    global;
     /** @type {typedefs.WpwLog} */
     log;
-    /** @type {WpwLogger} @private */
-    logger;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
     /** @type {typedefs.WpwRcPaths} */
@@ -94,11 +89,12 @@ class WpwRc
      */
     constructor(argv, arge)
     {
+        super({});
         this.disposables = [];
         Object.keys(arge).filter(k => isString(arge[k]) && /true|false/i.test(arge[k])).forEach((k) => {
             arge[k] = arge[k].toLowerCase() === "true";
         });
-        apply(this, { apps: [], errors: [], warnings: [], args: apply({}, arge, argv), global: globalEnv, pkgJson: {} });
+        apply(this, { apps: [], errors: [], warnings: [], args: apply({}, arge, argv), pkgJson: {} });
         const rcDefaults = this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", SchemaDirectory);
         const rcProject = this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyPackageJson();
@@ -227,7 +223,7 @@ class WpwRc
         });
         buildConfigs.forEach((config) =>
         {
-            this.builds.push(new WpwBuild(config, this, this.logger));
+            this.builds.push(new WpwBuild(config, this));
         });
         this.disposables.push(...this.builds);
         this.logger.write("build configuration complete", 2);

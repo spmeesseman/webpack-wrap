@@ -9,14 +9,9 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { resolve } = require("path");
-const { readFileSync } = require("fs");
+const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const {
-    lowerCaseFirstChar, merge, isArray, isPrimitive, WpBuildError, isWpwBuildOptionsPluginKey,
-    getDefinitionSchemaProperties, isWpwBuildOptionsExportKey, isWpwBuildOptionsExportKeyInternal,
-    isWpwBuildOptionsPluginKeyInternal, isBoolean, isObject, getDefinitionSchema
-} = require("../utils");
+const { merge, isObject, WpwLogger, apply } = require("../utils");
 
 
 /**
@@ -26,26 +21,16 @@ const {
  */
 class WpwBase
 {
-    /** @type {typedefs.WpBuildApp} */
-    app;
-    /** @type {Record<string, any>} @protected  */
+    /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
-    /** @type {string}  @protected */
-    globalBaseProperty;
-    /** @protected */
-    hashDigestLength;
-    /** @type {typedefs.WpwBuildOptionsKey} @protected */
-    key;
-    /** @type {typedefs.WpwLogger} */
+    /** @type {typedefs.WpwBaseOptions} */
+    initialConfig;
+    /** @type {typedefs.WpwLogger} @abstract */
     logger;
-    /**  @protected */
+    /**  @type {string} */
     name;
-    /** @type {typedefs.WpwBaseOptions} @abstract @protected */
+    /** @type {any} @abstract @protected */
     options;
-    /** @private */
-    pluginsNoOpts = [ "dispose" ];
-    /** @protected */
-    wpc;
 
 
     /**
@@ -53,29 +38,21 @@ class WpwBase
      */
 	constructor(options)
     {
-        options.key = /** @type {typedefs.WpwBuildOptionsKey} */(options.key || this.baseName.toLowerCase());
-        this.validateOptions(options);
-        this.key = options.key;
-        this.app = options.app;
-        this.options = options;
-        this.wpc = this.app.wpc;
-        this.logger = this.app.logger;
-        this.name = this.constructor.name;
-        this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
-        this.initGlobalCache();
-        this.app.disposables.push(this);
-    }
+        apply(this, {
+            global: globalEnv,
+            name: this.constructor.name,
+            initialConfig: merge({}, options)
+        });
 
-
-	/**
-     * @abstract
-     * @param {any[]} _args
-	 * @returns {WpwBase | undefined | never}
-	 * @throws {typedefs.WpBuildError}
-     */
-	static build(..._args)
-    {
-        throw WpBuildError.getAbstractFunction(`[${this.name}[build][static]`);
+        if (isObject(options.logger))
+        {
+            if (options.logger instanceof WpwLogger) {
+                this.logger = options.logger;
+            }
+            else {
+                this.logger = new WpwLogger(options.logger);
+            }
+        }
     }
 
 
@@ -84,72 +61,7 @@ class WpwBase
      */
     dispose() {}
 
-
-    /**
-     * @returns {typedefs.WpwBuildOptionsPluginKey}
-     */
-    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(
-        this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|(?:Webpack)?Export$/g, "")
-    ); }
-
-
-	/**
-	 * @protected
-	 * @param {string} file
-	 * @param {boolean} [rmvExt] Remove file extension
-	 * @returns {string}
-	 */
-    fileNameStrip(file, rmvExt)
-    {
-        let newFile = file.replace(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`), "");
-        if (rmvExt) {
-            newFile = newFile.replace(/\.js(?:\.map)?/, "");
-        }
-        return newFile;
-    }
-
-
-    /**
-     * @private
-     */
-    initGlobalCache()
-    {
-        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.baseName);
-        if (!this.app.global[baseProp]) {
-            this.app.global[baseProp] = {};
-        }
-        this.global = this.app.global[baseProp];
-        this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.global[p]).forEach(
-            (/** @type {string} */p) => { this.global[p] = {}; }
-        );
-    }
-
-
-    /**
-     * @private
-     * @template {string | undefined} K
-     * @param {K} key
-     * @returns {K is typedefs.WpwBuildOptionsKey}
-     */
-    isValidOptionsKey = (key) =>
-        !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsPluginKey(key) || isWpwBuildOptionsExportKey(key) ||
-                  isWpwBuildOptionsExportKeyInternal(key) || isWpwBuildOptionsPluginKeyInternal(key));
-
-    /**
-     * @private
-     * @param {typedefs.WpwBaseOptions} options Plugin options to be applied
-     * @throws {typedefs.WpBuildError}
-     */
-	validateOptions(options)
-    {
-        if (!options.app) {
-            throw WpBuildError.getErrorMissing("app", this.wpc, "invalid option[app]");
-        }
-        if (!this.isValidOptionsKey(options.key)) {
-            throw WpBuildError.getErrorProperty("key", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
-        }
-    }
-
 }
+
 
 module.exports = WpwBase;

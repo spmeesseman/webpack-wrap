@@ -55,6 +55,10 @@ const extFilesCreateEnums = [
     // "message.d.ts"
 ];
 
+const mapValueTypesAllowUndefined = [
+    "WpwWebpackAliasValue", "WpwWebpackEntryValue", "unknown"
+];
+
 /**
  * Types that will be auto populated/nonnullable at runtime, but are optional in json schema
  */
@@ -210,7 +214,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/\/\*\*(?:[^]*?)\*\//g, "")
           .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
           .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
-          .replace(/\[k\: string\]: (.*?);/g, (_, m) => `[k: string]: ${m} | undefined;`)
+          .replace(/\[k\: string\]: (.*?);/g, (v, m) => { if (mapValueTypesAllowUndefined.includes(m)) return`[k: string]: ${m} | undefined;`; return v; })
           .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n/g, "")
           .replace(/WpwDirectoryPath[0-9]/g, "WpwDirectoryPath")
           .replace(/\/\* eslint\-disable \*\/$/gm, "")

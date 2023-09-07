@@ -10,6 +10,7 @@
  *//** */
 
 const os = require("os");
+const WpwBase = require("./base");
 const WpwSourceCode = require("./sourcecode");
 const { mkdirSync, existsSync, readFileSync } = require("fs");
 const { resolve, dirname, sep } = require("path");
@@ -23,15 +24,16 @@ const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
 
 
 /**
+ * @extends {WpwBase}
  * @implements {typedefs.IWpwBuild}
  * @implements {typedefs.IDisposable}
  */
-class WpwBuild
+class WpwBuild extends WpwBase
 {
     /** @type {typedefs.JsonSchema} @private */
     static schema;
 
-    /** @type {string} */
+    /** @type {string} @override */
     name;
     /** @type {boolean | undefined} */
     active;
@@ -45,8 +47,6 @@ class WpwBuild
     entry;
     /** @type {typedefs.WpwLog} */
     log;
-    /** @type {WpwLogger} @private */
-    logger;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
     /** @type {typedefs.WpwBuildOptions} */
@@ -68,19 +68,15 @@ class WpwBuild
     /**
      * @param {typedefs.IWpwBuild} config
      * @param {typedefs.WpwRc} rc
-     * @param {WpwLogger} logger
      */
-    constructor(config, rc, logger)
+    constructor(config, rc)
     {
+        super(config);
         this.rc = rc;
-        this.logger = logger;
+        this.logger = rc.logger;
         this.configure(config);
-        const sourceConfig = merge({}, this.source);
-        this.source = new WpwSourceCode(sourceConfig, this, this.logger);
-        //
-        // Alias paths need to be resolved "after" app` instance is created (notably the `app.source` instance)
-        //
-        this.resolveAliasPaths();
+        this.source = new WpwSourceCode(merge({}, this.source), this);
+        this.resolveAliasPaths(); // Alias paths get resolved "after" instantiating `WpwSourceCode`
     }
 
 
@@ -122,7 +118,7 @@ class WpwBuild
         if (!rc.source)
         {
             rc.source = {
-                type: "javascript", ext: "js",
+                type: "javascript",
                 config: { options: { compilerOptions: {}, files: [] }, excludeAbs: [], includeAbs: [] }
             };
         }
@@ -131,9 +127,6 @@ class WpwBuild
             if (!rc.source.type) {
                 rc.source.type = "javascript";
                 rc.source.type = "js";
-            }
-            else if (!rc.source.ext) {
-                rc.source.ext = rc.source.type === "javascript" ? "js" : "ts";
             }
             if (!rc.source.config) {
                 rc.source.config = {

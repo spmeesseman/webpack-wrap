@@ -19,7 +19,7 @@
  */
 
 
-import { WpwLoggerLevel, WpwLogTrueColor, WpwLogColor } from "./rc";
+import { WpwLoggerLevel, WpwLogTrueColor, WpwLogColor, WpwLog } from "./rc";
 
 declare type WpwLoggerIcon = keyof Omit<WpwLoggerIconSet, "blue" | "color">;
 declare type WpwLoggerBlueIcon = keyof WpwLoggerIconBlueSet;
@@ -76,6 +76,9 @@ declare interface IWpwLogger
     write: (msg: string, level?: WpwLoggerLevel, pad?: string, icon?: WpwLogIconString | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;
     writeMsgTag: (msg: string, tagMsg: string, level?: WpwLoggerLevel, pad?: string, bracketColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
 }
+
+declare type WpwLoggerOptions = Partial<WpwLog>;
+
 
 export {
     IWpwLogger,

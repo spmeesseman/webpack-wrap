@@ -150,6 +150,7 @@
 /** @typedef {import("./constants").isWpwBuildOptionsExportKeyInternal} isWpwBuildOptionsExportKeyInternal */
 /** @typedef {import("./constants").isWpwBuildOptionsPluginKeyInternal} isWpwBuildOptionsPluginKeyInternal */
 /** @typedef {import("./constants").WpwSourceCodeTypescriptBuildMethods} WpwSourceCodeTypescriptBuildMethods */
+/** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptionsPaths} WpwSourceCodeConfigCompilerOptionsPaths */
 /** @typedef {import("./constants").isWpwSourceCodeTypescriptBuildMethod} isWpwSourceCodeTypescriptBuildMethod */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */
@@ -164,7 +165,10 @@
 /** @typedef {import("../core/base")} WpwBase */
 /** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("./base").IWpwBase} IWpwBase */
+/** @typedef {import("./base").IWpwBaseModule} IWpwBaseModule */
 /** @typedef {import("./base").WpwBaseOptions} WpwBaseOptions */
+/** @typedef {import("./base").WpwBaseModuleOptions} WpwBaseModuleOptions */
+/** @typedef {import("./base").IWpwBaseModuleOptions} IWpwBaseModuleOptions */
 
 
 /***********************************************************************************************************************
@@ -192,6 +196,7 @@
 /** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
 /** @typedef {import("./app").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
 /** @typedef {import("./app").WpBuildCombinedRuntimeArgs} WpBuildCombinedRuntimeArgs */
+/** @typedef {import("./app").WpwSourceCodeDotExtensionApp} WpwSourceCodeDotExtensionApp */
 
 
 /***********************************************************************************************************************
@@ -243,11 +248,12 @@
  * LOGGER.D.TS
  ***********************************************************************************************************************/
 
+/** @typedef {import("../utils").WpwLogger} WpwLogger */
 /** @typedef {import("./logger").WpwLoggerIcon} WpwLoggerIcon */
+/** @typedef {import("./logger").WpwLoggerOptions} WpwLoggerOptions */
 /** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
 /** @typedef {import("./logger").WpwLoggerIconSet} WpwLoggerIconSet */
 /** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
-/** @typedef {import("../utils").WpwLogger} WpwLogger */
 /** @typedef {import("./logger").WpwLoggerIconBlueSet} WpwLoggerIconBlueSet */
 /** @typedef {import("./logger").WpwLoggerIconColorSet} WpwLoggerIconColorSet */
 

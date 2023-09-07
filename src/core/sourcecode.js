@@ -31,8 +31,8 @@ class WpwSourceCode
     static typescript;
     /** @type {typedefs.WpwSourceCodeConfig} */
     config;
-    /** @type {typedefs.WpwSourceCodeExtension} */
-    ext;
+    /** @type {typedefs.WpwSourceCodeExtension} @private */
+    exension;
     /** @type {WpwLogger} @private */
     logger;
     /** @type {typedefs.TypeScriptProgram | undefined} @private */
@@ -43,30 +43,35 @@ class WpwSourceCode
 
     /**
      * @param {typedefs.IWpwSourceCode} sourceConfig
-	 * @param {typedefs.IWpwBuild} build
-	 * @param {WpwLogger} logger
+	 * @param {typedefs.WpwBuild} build
      */
-    constructor(sourceConfig, build, logger)
+    constructor(sourceConfig, build)
     {
         const jtsconfigFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
               defaultConfig = this.getDefaultConfig(sourceConfig.config),
-              compilerOptions = merge({}, sourceConfig.config.options?.compilerOptions);
-        this.logger = logger;
-        this.config = merge(defaultConfig, jtsconfigFileInfo || {});
-        apply(this, {
-            type: sourceConfig.type,
-            ext: sourceConfig.type === "typescript" ? "ts" : "js"
-        });
-        merge(this.config.options, { compilerOptions });
-        if (this.type === "typescript" || (build.type === "types" && build.options.types &&
-                                           build.options.types.enabled && build.options.types.method === "program"))
+              compilerOptions = sourceConfig.config.options?.compilerOptions || {};
+
+        apply(this,
         {
-            WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
-        }
+            logger: build.logger,
+            type: sourceConfig.type || "javascript",
+            exension: sourceConfig.type === "typescript" ? "ts" : "js",
+            config: merge(
+                defaultConfig,
+                jtsconfigFileInfo,
+                {
+                    options: /** @type {typedefs.WpwSourceCodeConfigOptions} */({ compilerOptions })
+                }
+            )
+        });
     };
 
 
     dispose = () => this.cleanupProgram();
+
+
+    get dotext() { return /** @type {typedefs.WpwSourceCodeDotExtensionApp} */(`.${this.exension}`); }
+    get ext() { return /** @type {typedefs.WpwSourceCodeExtension} */(this.exension); }
 
 
     cleanupProgram = () =>
@@ -83,13 +88,13 @@ class WpwSourceCode
 	 */
     createProgram = (compilerOptions) =>
     {
-        const ts = WpwSourceCode.typescript;
+        const ts = WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         if (!ts) {
             throw WpBuildError.get("typescript.program is unavailable");
         }
         this.cleanupProgram();
         const programOptions = merge({}, this.config.options.compilerOptions, compilerOptions),
-              options = this.touchCompilerOptions(programOptions, ts);
+              options = this.wpwToTsCompilerOptions(programOptions, ts);
         this.program = ts.createProgram(
         {
             options,
@@ -129,43 +134,45 @@ class WpwSourceCode
      * @param {typedefs.TypeScriptCancellationToken} [cancellationToken]
      * @param {boolean} [emitOnlyDts]
      * @param {typedefs.TypeScriptCustomTransformers} [transformers]
+     * @throws {WpBuildError}
      */
     emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
     {
-        if (this.program)
-        {
-            const logger = this.logger;
-            logger.start("typescript.emit");
-            logger.value("   source file", file, 2);
-            logger.value("   emit types only", emitOnlyDts, 2);
-            logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
-
-            const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
-
-            if (result.emittedFiles)
-            {
-                logger.value(`  emitted ${result.emittedFiles.length} files`, 1);
-            }
-            if (result.emitSkipped)
-            {
-                logger.value("  emit skipped", 1);
-            }
-            if (result.diagnostics)
-            {
-                let dCount = 0;
-                logger.value(`  ${result.diagnostics.length} diagnostic messages exist`, 1);
-                result.diagnostics.forEach((d) =>
-                {
-                    logger.write(`  diagnostic ${++dCount}`, 1, "", logger.icons.color.warning);
-                    logger.write(`     code: ${d.code}`, 1, "", logger.icons.color.warning);
-                    logger.write(`     category: ${d.category}`, 1, "", logger.icons.color.warning);
-                    logger.write(`     message: ${d.messageText}`, 1, "", logger.icons.color.warning);
-                });
-            }
-
-            logger.write("typescript.emit completed");
-            return result;
+        if (!this.program) {
+            throw WpBuildError.get("typescript.program is not initialized");
         }
+
+        const logger = this.logger;
+        logger.start("typescript.emit");
+        logger.value("   source file", file, 2);
+        logger.value("   emit types only", emitOnlyDts, 2);
+        logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
+
+        const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
+
+        if (result.emittedFiles)
+        {
+            logger.value(`  emitted ${result.emittedFiles.length} files`, 1);
+        }
+        if (result.emitSkipped)
+        {
+            logger.value("  emit skipped", 1);
+        }
+        if (result.diagnostics)
+        {
+            let dCount = 0;
+            logger.value(`  ${result.diagnostics.length} diagnostic messages exist`, 1);
+            result.diagnostics.forEach((d) =>
+            {
+                logger.write(`  diagnostic ${++dCount}`, 1, "", logger.icons.color.warning);
+                logger.write(`     code: ${d.code}`, 1, "", logger.icons.color.warning);
+                logger.write(`     category: ${d.category}`, 1, "", logger.icons.color.warning);
+                logger.write(`     message: ${d.messageText}`, 1, "", logger.icons.color.warning);
+            });
+        }
+
+        logger.write("typescript.emit completed");
+        return result;
     };
 
 
@@ -362,10 +369,12 @@ class WpwSourceCode
      * @param {typedefs.TypeScript} ts
      * @returns {typedefs.TypeScriptCompilerOptions}
      */
-    touchCompilerOptions = (options, ts) =>
+    wpwToTsCompilerOptions = (options, ts) =>
     {
         return mergeIf({
             jsx: ts.JsxEmit[options.jsx || 0],
+            module: options.module ? ts.ModuleKind[options.module] : ts.ModuleKind.CommonJS,
+            target: options.target ? ts.ScriptTarget[options.target] : ts.ScriptTarget.ES2020,
             moduleResolution: (options.moduleResolution ?
                 ts.ModuleResolutionKind[options.moduleResolution] : null) || ts.ModuleResolutionKind.NodeJs
         }, options);

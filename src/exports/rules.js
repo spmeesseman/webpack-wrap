@@ -29,7 +29,7 @@ const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isFunct
 class WpwRulesExport extends WpwWebpackExport
 {
 	/**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwExportOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
@@ -253,7 +253,11 @@ class WpwRulesExport extends WpwWebpackExport
 			app.wpc.module.rules.push(
 			{
 				// test: new RegExp(`\\.${app.source.ext}x?$`),
-				test: /index\.js$/
+				test: /index\.js$/,
+				loader: resolve(__dirname, "../loaders/dts.js"),
+				options: {
+					test: "index.js"
+				}
 				// type: "asset/resource",
 				// generator: {
 				// 	emit: false

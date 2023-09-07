@@ -11,23 +11,23 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const WpwBase = require("./base");
 const { existsSync } = require("fs");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
-const WpwSourceCode = require("./sourcecode");
 const { isAbsolute, relative, sep } = require("path");
 const {
-    apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum, WpwRegex
+    apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum
 } = require("../utils");
 
 
 /**
- * @class WpBuildApp
+ * @extends {WpwBase}
  * @implements {typedefs.IDisposable}
  * @implements {typedefs.IWpBuildApp}
  */
-class WpBuildApp
+class WpBuildApp extends WpwBase
 {
     /** @type {typedefs.WpwBuild} */
     build;
@@ -37,8 +37,6 @@ class WpBuildApp
     errors;
     /** @type {WpBuildError[]} */
     info;
-    /** @type {WpwLogger} */
-    logger;
     /** @type {typedefs.WpwRc} @private */
     rc;
     /** @type {WpBuildError[]} */
@@ -54,6 +52,7 @@ class WpBuildApp
 	 */
 	constructor(rc, build)
 	{
+        super({});
         this.info = [];
         this.errors = [];
         this.warnings = [];
@@ -67,7 +66,6 @@ class WpBuildApp
     get buildCount() { return this.rc.buildCount; }
     get cmdLine() { return this.rc.args; }
     get isOnlyBuild() { return this.rc.isSingleBuild; }
-    get global() { return this.rc.global; }
     get pkgJson() { return this.rc.pkgJson; }
     get source() { return this.build.source; }
 
@@ -389,8 +387,8 @@ class WpBuildApp
         l.value("   name", this.build.name, 1);
         l.value("   type", this.build.type, 1);
         l.value("   target", this.build.target, 1);
-        l.value("   is vscode extension", this.build.vscode && this.build.vscode.type && this.build.vscode.type !== "none", 2);
         l.value("   source code type", this.source.type, 2);
+        l.value("   is vscode extension", !!this.build.vscode && !!this.build.vscode.type, 2);
         l.value("   logging level", this.build.log.level, 2);
         l.value("   alias configuration", JSON.stringify(this.build.alias), 3);
         l.value("   log configuration", JSON.stringify(this.build.log), 3);

@@ -48,13 +48,13 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  *//** */
 
-import { IWpwBase, WpwBaseOptions } from "./base";
+import { IWpwModuleBase, WpwBaseModuleOptions } from "./base";
 
 
-declare type WpwExportOptions = { build?: string } & WpwBaseOptions;
+declare type WpwExportOptions = { build?: string } & WpwBaseModuleOptions;
 
 
-declare interface IWpwExport extends IWpwBase
+declare interface IWpwExport extends IWpwModuleBase
 {
     // app: ClsWpBuildApp;
     // compilation?: WebpackCompilation;

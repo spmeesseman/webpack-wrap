@@ -107,7 +107,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
     logAssetInfo = (rotated) =>
     {
         const logger = this.app.logger,
-              hashInfo = this.app.global.runtimeVars,
+              hashInfo = this.globalCache,
               labelLength = this.app.build.log.pad.value || 45;
         logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.app.build.mode, logger.colors.italic)}`, 1);
         logger.write("   previous:", 2);
@@ -151,7 +151,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
     {
         const app = this.app,
               logger = app.logger,
-              hashCurrent = app.global.runtimeVars.current;
+              hashCurrent = this.globalCache.current;
         this.readAssetState();
         logger.write("validate cached hashes for all entry assets", 2);
         Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
@@ -188,11 +188,11 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
     {
         const app = this.app,
               cache = this.cache.get();
-        // apply(app.global.runtimeVars, cache);
-        merge(app.global.runtimeVars, cache);
-        merge(app.global.runtimeVars.previous, { ...app.global.runtimeVars.current });
-        merge(app.global.runtimeVars.current, { ...app.global.runtimeVars.next });
-        app.global.runtimeVars.next = {};
+        // apply(this.globalCache, cache);
+        merge(this.globalCache, cache);
+        merge(this.globalCache.previous, { ...this.globalCache.current });
+        merge(this.globalCache.current, { ...this.globalCache.next });
+        this.globalCache.next = {};
         this.logAssetInfo(true);
     };
 
@@ -203,7 +203,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     runtimeVars(assets)
     {
-        const hashMap = this.app.global.runtimeVars.next,
+        const hashMap = this.globalCache.next,
               updates = /** @type {string[]} */([]);
         this.logger.write("replace runtime placeholder variables", 1);
 		Object.entries(assets).forEach(([ file ]) =>
@@ -232,7 +232,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     saveAssetState()
     {
-        this.cache.set(this.app.global.runtimeVars);
+        this.cache.set(this.globalCache);
         this.cache.save();
         this.logAssetInfo();
     }
@@ -277,7 +277,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     sourceUpdateHashVars(sourceCode)
     {
-        Object.entries(this.app.global.runtimeVars.next).forEach(([ chunkName, hash ]) =>
+        Object.entries(this.globalCache.next).forEach(([ chunkName, hash ]) =>
         {
             const regex = new RegExp(`(?:interface_[0-9]+\\.)?__WPBUILD__\\.contentHash(?:\\.|\\[")${chunkName}(?:"\\])? *(,|\r|\n)`, "gm");
             sourceCode = sourceCode.replace(regex, (_v, g) =>`"${hash}"${g}`);

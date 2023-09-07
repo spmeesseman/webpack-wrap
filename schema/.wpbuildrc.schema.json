@@ -2253,6 +2253,9 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "all": {
+                    "type": "boolean"
+                },
                 "clean_plugin": {
                     "type": "boolean",
                     "description": "modification to initialize the existing 'stale' assets at runtime, before first build"
@@ -2272,6 +2275,11 @@
             },
             "examples": [{
                 "enabled": true,
+                "all": true
+            },
+            {
+                "enabled": true,
+                "all": false,
                 "clean_plugin": true,
                 "dts_bundle": true,
                 "source_map_plugin": false,
@@ -2279,11 +2287,17 @@
             }],
             "if": {
                 "properties": {
-                    "enabled": false
+                    "enabled": {
+                        "const": true
+                    }
                 }
             },
             "then": {
                 "anyOf": [{
+                    "required": [
+                        "all"
+                    ]
+                },{
                     "required": [
                         "clean_plugin"
                     ]
@@ -2743,7 +2757,7 @@
                     "type": "string"
                 }, 
                 "paths": {
-                    "$ref": "#/definitions/WpwWebpackAliasConfig"
+                    "$ref": "#/definitions/WpwSourceCodeConfigCompilerOptionsPaths"
                 }, 
                 "removeComments": {
                     "type": "boolean"
@@ -2808,6 +2822,21 @@
                         "type": "string"
                     }
                 }
+            }
+        },
+        "WpwSourceCodeConfigCompilerOptionsPaths": {
+            "$id": "#/WpwSourceCodeConfigCompilerOptionsPaths",
+            "type": "object",
+            "patternProperties": {
+                "^[a-zA-Z:@][\\w:@]+$": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DirectoryPathGlob"
+                    }
+                }
+            },
+            "propertyNames": {
+                "maxLength": 50
             }
         },
         "WpwSourceCodeTypescriptBuildMethod": {

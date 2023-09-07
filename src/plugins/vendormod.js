@@ -60,16 +60,16 @@ class WpBuildVendorModPlugin extends WpwPlugin
 	{
 		if (!WpBuildVendorModPlugin.ranOnce && this.buildOptions.enabled)
 		{
-			if (this.buildOptions.clean_plugin) {
+			if (this.buildOptions.all || this.buildOptions.clean_plugin) {
 				this.cleanPlugin();
 			}
-			if (this.buildOptions.dts_bundle) {
+			if (this.buildOptions.all || this.buildOptions.dts_bundle) {
 				this.dtsBundle();
 			}
-			if (this.buildOptions.source_map_plugin) {
+			if (this.buildOptions.all || this.buildOptions.source_map_plugin) {
 				this.sourceMapPlugin();
 			}
-			if (this.buildOptions.ts_loader) {
+			if (this.buildOptions.all || this.buildOptions.ts_loader) {
 				this.tsLoader();
 			}
 		}

@@ -34,7 +34,7 @@ import {
 } from "./webpack";
 import {
     WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, IWpwBuild, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode
+    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode, WpwSourceCodeExtension
 } from "./rc";
 
 
@@ -62,8 +62,12 @@ declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
 declare type WpBuildCombinedRuntimeArgs =
     WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
 
+declare type WpwSourceCodeDotExtensionApp = `.${WpwSourceCodeExtension}`;
+
 declare interface IWpwSourceCodeApp extends IWpwSourceCode
 {
+    readonly dotext: WpwSourceCodeDotExtension;
+    readonly ext: WpwSourceCodeExtension;
     emit: (file?: SourceFile, writeFileCb?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDts?: boolean, transformers?: CustomTransformers) => EmitResult | undefined;
 }
 
@@ -126,6 +130,7 @@ export {
     WpBuildAppGetPathOptions,
     WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
+    WpwSourceCodeDotExtensionApp,
     WpwWebpackConfig,
     __WPBUILD__
 };
