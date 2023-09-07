@@ -29,7 +29,7 @@ class WpwTscPlugin extends WpwPlugin
 	 * @param {string} statsProperty
 	 * @param {string | undefined} [outputDir] full path
 	 */
-	bundleDts = async (statsProperty, outputDir) =>
+	async bundleDts(statsProperty, outputDir)
 	{
 		const l = this.app.logger;
 		l.write("start bundle dts", 1);
@@ -153,7 +153,7 @@ class WpwTscPlugin extends WpwPlugin
 			baseDir: outputDirRelBase,
 			headerPath: "",
 			headerText: "",
-			main: outputDirRelBase + "/core/rc.d.ts",
+			main: outputDirRelBase + "/**/*.d.ts",
 			out: dtsFile,
 			outputAsModuleFolder: true,
 			// removeSource: true,
@@ -201,7 +201,7 @@ class WpwTscPlugin extends WpwPlugin
 		catch (e) {
 			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, e);
 		}
-	};
+	}
 
 
 	/**
@@ -214,7 +214,7 @@ class WpwTscPlugin extends WpwPlugin
 	 * @param {boolean} [alias] Write alias paths with ``
 	 * @throws {typedefs.WpBuildError}
 	 */
-	execTsBuild = async (sourceCodeConfig, args, identifier, outputDir, alias) =>
+	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)
 	{
 		if (!sourceCodeConfig || !sourceCodeConfig.path) {
 			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "invalid source code configured path");
@@ -395,7 +395,7 @@ logger.value("   process types output file", filePathRel, 1);
 		}
 
 		logger.write("   finished execution of tsc command", 3);
-	};
+	}
 
 }
 

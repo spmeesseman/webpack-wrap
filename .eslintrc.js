@@ -13,13 +13,14 @@ module.exports = {
         createDefaultProgram: true
     },
     ignorePatterns: [
-        "**/test-fixture/**/*.js",
+        "test-fixture/**",
         "*.json",
-        "**/node_modules/**",
-        "**/.eslint*",
+        "node_modules/**",
+        "node_modules/**",
+        ".eslint*",
         "dist/**",
-        "**/examples/**",
-        "**/.vscode-test/**"
+        "examples/**",
+        ".vscode-test/**"
     ],
     settings: {
       jsdoc: {
@@ -343,6 +344,6 @@ module.exports = {
             }
         ],
         "@typescript-eslint/type-annotation-spacing": "warn",
-        "@typescript-eslint/unified-signatures": "warn",
+        "@typescript-eslint/unified-signatures": "warn"
     }
 };

@@ -26,7 +26,7 @@ const nodeExternals = require("webpack-node-externals");
  */
 const externals = (app) =>
 {
-	if (app.build.options.externals || app.vscode)
+	if (app.build.options.externals || app.build.vscode)
 	{
 		if (app.build.target.startsWith("web")) {
 			app.wpc.externalsPresets = { web: true };
@@ -35,7 +35,7 @@ const externals = (app) =>
 			app.wpc.externalsPresets = { node: true };
 		}
 	}
-	if (app.vscode)
+	if (app.build.vscode)
 	{
 		if (app.build.type === "module" || app.build.type === "webapp")
 		{

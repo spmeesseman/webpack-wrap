@@ -270,22 +270,6 @@ class WpwPlugin extends WpwBase
 
 	/**
 	 * @protected
-	 * @param {string} file
-	 * @param {boolean} [rmvExt] Remove file extension
-	 * @returns {string}
-	 */
-    fileNameStrip(file, rmvExt)
-    {
-        let newFile = file.replace(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`), "");
-        if (rmvExt) {
-            newFile = newFile.replace(/\.js(?:\.map)?/, "");
-        }
-        return newFile;
-    }
-
-
-	/**
-	 * @protected
 	 * @returns {RegExp}
 	 */
     fileNameHashRegex = () => new RegExp(`\\.[a-z0-9]{${this.hashDigestLength},}`);

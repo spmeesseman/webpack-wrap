@@ -20,7 +20,7 @@ const WpBuildApp = require("../core/app");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const {
-	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
+	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction, WpwMessageEnum
 } = require("../utils");
 const { existsSync } = require("fs");
 
@@ -44,7 +44,7 @@ class WpwEntryExport extends WpwWebpackExport
      * @override
      * @param {typedefs.WpBuildApp} app
      */
-	static build = (app) => { const e = new this({ app }); e.build(); return e; };
+	static build(app) { const e = new this({ app }); e.build(); return e; };
 
 
 	/**
@@ -52,7 +52,7 @@ class WpwEntryExport extends WpwWebpackExport
      * @protected
 	 * @throws {WpBuildError}
 	 */
-	build = () =>
+	build()
 	{
 		const app = this.app;
 		app.logger.start("create entry points", 1);
@@ -98,14 +98,13 @@ class WpwEntryExport extends WpwWebpackExport
 		else {
 			app.logger.write("entry points created, but with warnings", 2, "", app.logger.icons.color.warning);
 		}
-	};
+	}
 
 
 	/**
-	 * @private
-	 * @throws {WpBuildError}
+	 * @override
 	 */
-	jsdoc = () =>
+	jsdoc()
 	{
 		const app = this.app,
 			  jsdocOptions = app.build.options.jsdoc;
@@ -122,15 +121,15 @@ class WpwEntryExport extends WpwWebpackExport
 			}
 		}
 		else {
-			throw WpBuildError.getErrorProperty("entry", app.wpc, "build not configured for jsdoc 'entry' type");
+			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[jsdoc]");
 		}
-	};
+	}
 
 
 	/**
-	 * @private
+	 * @override
 	 */
-	module = () =>
+	module()
 	{
 		const app = this.app,
 			  srcPath = app.getSrcPath({ build: app.build.name, rel: true, ctx: true, dot: true, psx: true });
@@ -157,10 +156,10 @@ class WpwEntryExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 * @throws {WpBuildError}
 	 */
-	tests = () =>
+	tests()
 	{
 		const app = this.app,
 			  testsPath = app.getSrcPath({ build: app.build.name, stat: true });
@@ -171,7 +170,7 @@ class WpwEntryExport extends WpwWebpackExport
 				...this.testSuite(testsPath)
 			});
 		}
-	};
+	}
 
 
 	/**
@@ -179,7 +178,7 @@ class WpwEntryExport extends WpwWebpackExport
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
-	testRunner = (testsPathAbs) =>
+	testRunner(testsPathAbs)
 	{
 		return glob.sync(
 			"**/*.ts", {
@@ -193,7 +192,7 @@ class WpwEntryExport extends WpwWebpackExport
 			};
 			return obj;
 		}, {});
-	};
+	}
 
 
 	/**
@@ -201,7 +200,7 @@ class WpwEntryExport extends WpwWebpackExport
 	 * @param {string} testsPathAbs
 	 * @returns {typedefs.WpwWebpackEntry}
 	 */
-	testSuite = (testsPathAbs) =>
+	testSuite(testsPathAbs)
 	{
 		return glob.sync(
 			this.globTestSuiteFiles, {
@@ -213,13 +212,13 @@ class WpwEntryExport extends WpwWebpackExport
 			obj[e.replace(".ts", "")] = { import: `./${e}`, dependOn: "runTest" };
 			return obj;
 		}, {});
-	};
+	}
 
 
 	/**
-	 * @private
+	 * @override
 	 */
-	types = () =>
+	types()
 	{
 		const app = this.app,
 			  build = app.build,
@@ -247,25 +246,23 @@ class WpwEntryExport extends WpwWebpackExport
 				[ build.name ]: `${typesPath}/index.${app.source.ext}`
 			});
 		}
-		// else if (typesConfig.entry && existsSync(resolve(this.app.getContextPath(), typesConfig.entry)))
-		// {
-		// 	apply(app.wpc.entry, {
-		// 		[ build.name ]: typesConfig.entry
-		// 	});
-		// }
-		else
+		else if (typesConfig.entry && existsSync(resolve(this.app.getContextPath(), typesConfig.entry)))
 		{
+			const chunk = this.fileNameStrip(typesConfig.entry, true).replace(/\\/g, "/").replace(/^.\//, "");
 			apply(app.wpc.entry, {
-				[ build.name ]: `${app.build.paths.temp}/index.${app.source.ext}`
+				[ build.name ]: `./${chunk}.${app.source.ext}`
 			});
 		}
-	};
+		else {
+			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[types]");
+		}
+	}
 
 
 	/**
-	 * @private
+	 * @override
 	 */
-	webapp = () =>
+	webapp()
 	{
 		const app = this.app,
 			  appPath = app.getSrcPath();
@@ -276,51 +273,11 @@ class WpwEntryExport extends WpwWebpackExport
 		else
 		{
 			const relPath = relativePath(app.getContextPath(), appPath),
-				chunk = basename(relPath).replace(".ts", "");
+				  chunk = basename(relPath).replace(".ts", "");
 			apply(app.wpc.entry, { [ chunk ]: `./${relPath}` });
 		}
-	};
+	}
 
-
-	// /**
-	//  * @function
-	//  * @private
-	//  * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
-	//  * @param {string} file
-	//  * @param {Partial<typedefs.EntryObject|typedefs.WpwWebpackEntry>} xOpts
-	//  * @throws {WpBuildError}
-	//  */
-	// const addEntry = (app, file, xOpts) =>
-	// {
-	// 	const ext = extname(file),
-	// 		  chunkName = basename(file).replace(new RegExp(`${ext}$`), "");
-	//
-	// 	let relPath = (!isAbsolute(file) ? file : relative(app.wpc.context, file)).replace(/\\/g, "/");
-	// 	if (!relPath.startsWith("./")) {
-	// 		relPath = "./" + relPath;
-	// 	}
-	//
-	// 	apply(app.wpc.entry,
-	// 	{
-	// 		[chunkName]: {
-	// 			import: `${relPath}/${chunkName}.${ext}`
-	// 		}
-	// 	});
-	//
-	// 	if (app.build.debug)
-	// 	{
-	// 		/** @type {typedefs.WpwWebpackEntryObject} */
-	// 		(app.wpc.entry[chunkName]).layer = "release";
-	// 		apply(app.wpc.entry,
-	// 		{
-	// 			[`${chunkName}.debug`]:
-	// 			{
-	// 				import: `${relPath}/${chunkName}.${ext}`,
-	// 				layer: "debug"
-	// 			}
-	// 		});
-	// 	}
-	// };
 }
 
 

@@ -63,6 +63,9 @@ class WpBuildVendorModPlugin extends WpwPlugin
 			if (this.buildOptions.clean_plugin) {
 				this.cleanPlugin();
 			}
+			if (this.buildOptions.dts_bundle) {
+				this.dtsBundle();
+			}
 			if (this.buildOptions.source_map_plugin) {
 				this.sourceMapPlugin();
 			}
@@ -94,6 +97,27 @@ class WpBuildVendorModPlugin extends WpwPlugin
 				content = content.replace("currentAssets = []", `currentAssets = [ ${distFiles} ]`);
 			}
 			writeFileSync(cleanPlugin, content);
+		}
+	};
+
+
+	/**
+	 * @private
+	 */
+	dtsBundle = () =>
+	{   //
+		// DTS-BUNDLE
+		// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+		// Bug fix on line 29
+		//
+		const dtsBundle = join(this.app.getRcPath("base"), "node_modules", "dts-bundle", "lib", "index.js");
+		if (existsSync(dtsBundle))
+		{
+			const content = readFileSync(dtsBundle, "utf8").replace(
+				/ {8}if \(allFiles\) \{/,
+				"        if (allFiles && !options.baseDir) {"
+			);
+			writeFileSync(dtsBundle, content);
 		}
 	};
 

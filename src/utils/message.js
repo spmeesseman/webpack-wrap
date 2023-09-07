@@ -17,18 +17,6 @@ const WpwRegex = require("./regex");
 
 
 /**
- * @type {(keyof typedefs.WpwMessageType)[]}
- */
-const WpwMessageProps = [ "WPW650", "WPW899", "WPW050" ];
-
-/**
- * @param {any} v Variable to check type on
- * @returns {v is (keyof typedefs.WpwMessageType)}
- */
-const isWpwMessageProp = (v) => !!v && WpwMessageProps.includes(v);
-
-
-/**
  * @type {typedefs.IWpwMessage}
  */
 const WpwMessage =
@@ -36,7 +24,11 @@ const WpwMessage =
     WPW025: "build skipped (non-fatal)",
     WPW075: "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false",
     WPW450: "did not modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
+    WPW500: "invalid configuration",
+    WPW501: "invalid exports configuration",
+    WPW502: "invalid plugins configuration",
     WPW605: "build failed - output directory does not exist",
+    WPW630: "type definitions build failed",
     WPW660: "type definitions build failed",
     WPW661: "type definitions build failed - output directory does not exist",
     WPW662: "type definitions build failed - invalid build method",
@@ -49,6 +41,7 @@ const WpwMessage =
  */
 const WpwMessageEnum =
 {
+    ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW630"),
     ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW700"),
     ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
@@ -57,6 +50,9 @@ const WpwMessageEnum =
     ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899"),
     INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
     INFO_SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW075"),
+    WARNING_CONFIG_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW500"),
+    WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW501"),
+    WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW502"),
     WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450")
 };
 
@@ -70,10 +66,10 @@ class WpBuildError extends WebpackError
     constructor(message, details)
     {
         super(message);
-        // this.loc = file;
+        const isErrorDetail = isError(details);
 		this.name = "WpBuildError";
         // Object.setPrototypeOf(this, new.target.prototype);
-        if (isError(details)) {
+        if (isErrorDetail) {
             this.details = details.message;
         }
         else if (isString(details)) {
@@ -84,16 +80,19 @@ class WpBuildError extends WebpackError
         {
             const lines = this.stack?.split("\n") || [],
                   line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [])[1]),
-                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [])[1];
+                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [])[1],
+                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1],
+                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [])[1];
             this.file = this.file || (lines[3].match(WpwRegex.StackTraceCurrentFile) || [])[1];
+            this.details = (this.details ? this.details + "\n" : "") + cleanUp(this.stack, this.message);
             this.loc = {
-                end: { line, column },
-                start: {line, column },
-                name: (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1]
+                end: { line: line + 1, column },
+                start: {line, column: 0 },
+                name: `${method} (${fileAbs}:${line}:${column})`
             };
-            if (!this.details) {
-		        this.details = cleanUp(this.stack, this.message);
-            }
+        }
+        if (isErrorDetail && details.stack) {
+            this.details = (this.details ? this.details + "\n" : "") + details.stack.trim();
         }
     }
 
@@ -158,5 +157,5 @@ class WpBuildError extends WebpackError
 
 
 module.exports = {
-     WpwMessage, WpwMessageEnum, WpwMessageProps, isWpwMessageProp, WpBuildError
+     WpwMessage, WpwMessageEnum, WpBuildError
 };

@@ -1,7 +1,7 @@
 // @ts-check
 
 const WpwBase = require("../core/base");
-const { WpBuildError } = require("../utils");
+const { WpBuildError, WpwMessageEnum } = require("../utils");
 const typedefs = require("../types/typedefs");
 
 /**
@@ -22,10 +22,57 @@ class WpwWebpackExport extends WpwBase
 	 * @returns {void}
 	 * @throws {typedefs.WpBuildError}
      */
-    build = () =>
+    build()
     {
-        throw WpBuildError.getAbstractFunction("build", this.wpc, `name[${this.name}]`);
-    };
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build]`);
+    }
+
+    /**
+     * @abstract
+     * @protected
+     */
+    jsdoc()
+    {
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][jsdoc]`);
+    }
+
+    /**
+     * @abstract
+     * @protected
+     */
+    module()
+    {
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][module]`);
+    }
+
+    /**
+     * @abstract
+     * @protected
+     */
+    tests()
+    {
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][tests]`);
+    }
+
+    /**
+     * @abstract
+     * @protected
+     */
+    types()
+    {
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][types]`);
+    }
+
+    /**
+     * @abstract
+     * @protected
+     */
+    webapp()
+    {
+        this.app.addError(WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][webapp]`);
+    }
+
 }
+
 
 module.exports = WpwWebpackExport;

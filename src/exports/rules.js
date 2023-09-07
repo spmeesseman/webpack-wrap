@@ -16,8 +16,6 @@
 
 const esbuild = require("esbuild");
 const { existsSync } = require("fs");
-const WpwBase = require("../core/base");
-const WpBuildApp = require("../core/app");
 const { resolve, join } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
@@ -71,7 +69,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 * @throws {WpBuildError}
 	 */
 	jsdoc = () =>
@@ -115,7 +113,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 */
 	module = () =>
 	{
@@ -200,7 +198,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 */
 	tests = () =>
 	{
@@ -231,7 +229,7 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			app.wpc.module.rules.push(
 			{
-				test: app.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
+				test: /\.tsx?$/,
 				include: this.getIncludes(),
 				use: this.getSourceLoader("babel"),
 				exclude: getExcludes(app, this.app.source.config, true)
@@ -241,7 +239,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 * @throws {WpBuildError}
 	 */
 	types = () =>
@@ -254,7 +252,8 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			app.wpc.module.rules.push(
 			{
-				test: new RegExp(`\\.${app.source.ext}$`),
+				// test: new RegExp(`\\.${app.source.ext}x?$`),
+				test: /index\.js$/,
 				// type: "asset/resource",
 				generator: {
 					emit: false
@@ -268,7 +267,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
-	 * @private
+	 * @override
 	 */
 	webapp = () =>
 	{

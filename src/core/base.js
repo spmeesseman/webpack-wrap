@@ -73,10 +73,10 @@ class WpwBase
 	 * @returns {WpwBase | undefined | never}
 	 * @throws {typedefs.WpBuildError}
      */
-	static build = (..._args) =>
+	static build(..._args)
     {
-        throw WpBuildError.getAbstractFunction("build[static]", undefined, `this.name[${this.name}]`);
-    };
+        throw WpBuildError.getAbstractFunction(`[${this.name}[build][static]`);
+    }
 
 
     /**
@@ -93,6 +93,22 @@ class WpwBase
     ); }
 
 
+	/**
+	 * @protected
+	 * @param {string} file
+	 * @param {boolean} [rmvExt] Remove file extension
+	 * @returns {string}
+	 */
+    fileNameStrip(file, rmvExt)
+    {
+        let newFile = file.replace(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`), "");
+        if (rmvExt) {
+            newFile = newFile.replace(/\.js(?:\.map)?/, "");
+        }
+        return newFile;
+    }
+
+
     /**
      * @private
      */
@@ -107,6 +123,7 @@ class WpwBase
             (/** @type {string} */p) => { this.global[p] = {}; }
         );
     }
+
 
     /**
      * @private

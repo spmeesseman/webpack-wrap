@@ -2035,24 +2035,21 @@
                     }]
                 },
                 "entry": {
-                    "type": "string",
                     "default": "main",
                     "oneOf": [{
-                        "$ref": "#/definitions/WpwWebpackEntryValue"
+                        "$ref": "#/definitions/FilePathRelativeLeadingDot"
                     },
                     {
-                        "oneOf": [{
-                            "const": "config",
-                            "description": "use the first file listed in the ts/jsconfig file's `include` array as the entry point"
-                        },
-                        {
-                            "const": "main",
-                            "description": "use the main build's entry point"
-                        },
-                        {
-                            "const": "index",
-                            "description": "use the index file in the defined 'types' build source directory as the entry point"
-                        }]
+                        "const": "config",
+                        "description": "use the first file listed in the ts/jsconfig file's `include` array as the entry point"
+                    },
+                    {
+                        "const": "main",
+                        "description": "use the main build's entry point"
+                    },
+                    {
+                        "const": "index",
+                        "description": "use the index file in the defined 'types' build source directory as the entry point"
                     }]
                 }
             },
@@ -2190,6 +2187,10 @@
                     "type": "boolean",
                     "description": "modification to initialize the existing 'stale' assets at runtime, before first build"
                 },
+                "dts_bundle": {
+                    "type": "boolean",
+                    "description": "modification to fix bug when using **/*.d.ts in dts-bundle's config.main"
+                },
                 "source_map_plugin": {
                     "type": "boolean",
                     "description": "modification that disables ... TODO"
@@ -2202,6 +2203,7 @@
             "examples": [{
                 "enabled": true,
                 "clean_plugin": true,
+                "dts_bundle": true,
                 "source_map_plugin": false,
                 "ts_loader": false
             }],
@@ -2216,6 +2218,10 @@
                 "anyOf": [{
                     "required": [
                         "clean_plugin"
+                    ]
+                }, {
+                    "required": [
+                        "dts_bundle"
                     ]
                 }, {
                     "required": [

@@ -11,11 +11,11 @@
  *//** */
 
 const { resolve } = require("path");
-const { existsSync } = require("fs");
+const { existsSync, readFile, stat } = require("fs");
 const WpwTscPlugin = require("./tsc");
 const { unlink } = require("fs/promises");
 const typedefs = require("../types/typedefs");
-const { existsAsync, apply, WpwMessageEnum } = require("../utils");
+const { existsAsync, apply, WpwMessageEnum, findFiles } = require("../utils");
 
 
 /**
@@ -42,8 +42,10 @@ class WpBuildTypesPlugin extends WpwTscPlugin
      * @param {typedefs.WpBuildApp} app
 	 * @returns {WpBuildTypesPlugin | undefined}
      */
-	static build = (app) =>
-		app.build.options.types?.enabled ? new WpBuildTypesPlugin({ app }) : undefined;
+	static build(app)
+	{
+		return app.build.options.types?.enabled ? new WpBuildTypesPlugin({ app }) : undefined;
+	}
 
 
     /**
@@ -73,6 +75,11 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
         this.onApply(compiler,
         {
+			cleanTempFiles: {
+				async: true,
+				hook: "done",
+				callback: this.cleanTempFiles.bind(this)
+			},
 			buildTypes: {
 				async: true,
                 hook: "compilation",
@@ -80,12 +87,31 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				statsProperty: "types",
                 callback: this.types.bind(this)
             },
+			setVirtualFilesystem: {
+				async: true,
+				hook: "beforeRun",
+				callback: this.setVirtualFilesystem.bind(this)
+			},
 			resolveFakeModule: {
 				hook: "contextModuleFactory",
-				callback: this.resolve.bind(this)
+				callback: this.resolveFakeModule.bind(this)
 			}
         });
     }
+
+
+	/**
+	 * @private
+	 * @param {typedefs.WebpackStats} _stats
+	 */
+	async cleanTempFiles(_stats)
+	{
+		const tmpFiles = await findFiles("**/dts-bundle.tmp.*", { cwd: this.app.getBasePath(), absolute: true });
+		for (const file of tmpFiles)
+		{
+			await unlink(file);
+		}
+	};
 
 
 	/**
@@ -191,6 +217,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
 
 	/**
+	 * @private
 	 * @param {string | undefined} tsBuildInfoFile
 	 * @param {string} outputDir
 	 */
@@ -212,7 +239,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	 * @private
 	 * @param {typedefs.WebpackNormalModuleFactory} factory
 	 */
-	resolve(factory)
+	resolveFakeModule(factory)
 	{
 		// factory.hooks.beforeResolve.tap(this.name, () => false);
 		// factory.fs = {
@@ -222,6 +249,24 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
 		// 	stat: (arg1, arg2) => stat(arg1, arg2)
 		// };
+	}
+
+
+	/**
+	 * @private
+	 * @param {typedefs.WebpackCompiler} compiler
+	 */
+	setVirtualFilesystem(compiler)
+	{
+		compiler.inputFileSystem = {
+			readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+			readlink: (arg0, arg1) => arg1(undefined, ""),
+			// @ts-ignore
+			readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+			stat: (arg1, arg2) => stat(arg1, arg2)
+		};
+		// compiler.resolverFactory.get("context").fileSystem = compiler.resolverFactory.get("normal").fileSystem;
+		// compiler.outputFileSystem = fs;
 	}
 
 

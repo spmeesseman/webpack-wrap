@@ -2,7 +2,7 @@
     "compilerOptions": {
       "allowSyntheticDefaultImports": true,
       "alwaysStrict": false,
-      "allowJs": true,
+      // "allowJs": true,
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
       "baseUrl": ".",

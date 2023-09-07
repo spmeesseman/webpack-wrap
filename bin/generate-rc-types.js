@@ -124,18 +124,30 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */exe) =>
                 };
 
 
-const formatRcInterface = (/** @type {any} */ _, /** @type {string} */ m1, /** @type {string} */ m2) =>
+const formatInterface = (/** @type {any} */ _, /** @type {string} */ m1, /** @type {string} */ m2) =>
 {
     pushTypedef("rc", "type", "I" + m1);
     requiredProperties.filter(([ _, t ]) => t === m1 || "I" + t === m1).forEach(([ p, _ ]) => {
         m2 = m2.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
     });
     // return `export declare interface I${m1} ${m2}\n}\nexport declare type ${m1} = I${m1};\n`;
-    return `export declare interface I${m1} ${m2}\n}\n`;
+    const decl = `export declare interface I${m1} ${m2}\n}\n`;
+    // if (!classTypes.includes(m1))
+    // {
+    //     if (isFullType(m1))
+    //     {
+    //         return `\nexport declare type Type${m1} = `;
+    //     }
+    //     else {
+    //         pushTypedef("rc", "type", m1);
+    //         return `\nexport declare type ${m1} = `;
+    //     }
+    // }
+    return decl;
 };
 
 
-const formatRcInterfaceOrType = (/** @type {string} */v, /** @type {string} */m1) =>
+const formatInterfaceToType = (/** @type {string} */v, /** @type {string} */m1) =>
 {
     if (!classTypes.includes(m1))
     {
@@ -155,7 +167,7 @@ const formatRcInterfaceOrType = (/** @type {string} */v, /** @type {string} */m1
 };
 
 
-const formatRcType = (/** @type {string} */ v, /** @type {string} */ m1, /** @type {string} */ m2) =>
+const formatNewTypeFromInterface = (/** @type {string} */ v, /** @type {string} */ m1, /** @type {string} */ m2) =>
 {
     let src = v;
     if (isFullType(m1))
@@ -207,9 +219,9 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/export type WebpackEntry =\s+\|(?:[^]*?)\};/g, (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " "))
           .replace(/(export type (?:.*?)\n)(export type)/g, (_, m1, m2) => `\n${m1}\n${m2}`)
           .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
-          .replace(/\nexport interface (.*?) /g, formatRcInterfaceOrType)
-          .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, formatRcInterface)
-          .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, formatRcType)
+          .replace(/\nexport interface (.*?) /g, formatInterfaceToType)
+          .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, formatInterface)
+          .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, formatNewTypeFromInterface)
           .replace(/\nexport type (.*?) =/g, (v, m) => { pushTypedef("rc", "type", m); return v.replace("export type", "export declare type"); })
           .replace(/([^\|]) \{\n    /g, (_, m) => m + " \n{\n    ")
           .replace(/\n    \| +(["0-9])/g, (_, m) => " | " + m)
