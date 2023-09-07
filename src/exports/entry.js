@@ -44,7 +44,7 @@ class WpwEntryExport extends WpwWebpackExport
      * @override
      * @param {typedefs.WpBuildApp} app
      */
-	static build(app) { const e = new this({ app }); e.build(); return e; };
+	static build = (app) => { const e = new this({ app }); e.build(); return e; };
 
 
 	/**

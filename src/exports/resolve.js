@@ -51,7 +51,7 @@ class WpwResolveExport extends WpwWebpackExport
 	build = () =>
 	{
 		const app = this.app;
-		app.logger.start("create rules", 2);
+		app.logger.start("create resolve configuration", 2);
 		if (isFunction(this[app.build.type]))
 		{
 			app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
@@ -61,7 +61,7 @@ class WpwResolveExport extends WpwWebpackExport
 		else {
 			throw WpBuildError.getErrorProperty("rules", app.wpc);
 		}
-		app.logger.success("create rules", 2);
+		app.logger.success("create resolve configuration", 2);
 	};
 
 
@@ -155,6 +155,7 @@ class WpwResolveExport extends WpwWebpackExport
 		const typesOptions = this.app.build.options.types;
 		if (typesOptions && typesOptions.enabled && typesOptions.mode === "module")
 		{
+			this.app.logger.start("   apply types build `module` resolve config", 2);
 			apply(this.app.wpc.resolve,
 			{
 				fileSystem: {

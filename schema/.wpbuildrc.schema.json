@@ -134,7 +134,7 @@
             "type": "string",
             "minLength": 3,
             "maxLength": 150,
-            "pattern": "^[\\w\\.\\-]+\\.([cm]?jsx?|tsx?)$"
+            "pattern": "^[\\w\\.\\-]+\\.([cm]?jsx?|tsx?|d\\.ts)$"
         },
         "FileOrDirectoryPath": {
             "$id": "#/WpwFileOrDirectoryPath",
@@ -419,6 +419,7 @@
         "WpwBuildOptions": {
             "$id": "#/WpwBuildOptions",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "analyze": {
@@ -606,42 +607,30 @@
                         "if": {
                             "properties": {
                                 "types": {
-                                    "anyOf": [{
-                                        "properties": {
-                                            "enabled": {
+                                    "properties": {
+                                        "enabled": {
+                                            "oneOf": [{
                                                 "const": true
-                                            },
-                                            "mode": {
-                                                "const": "plugin"
-                                            }
+                                            }, false]
+                                        },
+                                        "mode": {
+                                            "const": "plugin"
                                         }
-                                    },
-                                    {
-                                        "properties": {
-                                            "enabled": false,
-                                            "mode": {
-                                                "const": "plugin"
-                                            }
-                                        }
-                                    }]
+                                    }
                                 }
                             }
                         },
                         "then": {
+                            "required": [
+                                "tscheck"
+                            ],
                             "properties": {
                                 "tscheck": {
-                                    "anyOf": [{
-                                        "properties": {
-                                            "enabled": {
-                                                "const": true
-                                            }
+                                    "properties": {
+                                        "enabled": {
+                                            "const": true
                                         }
-                                    },
-                                    {
-                                        "properties": {
-                                            "enabled": false
-                                        }
-                                    }]
+                                    }
                                 }
                             }
                         },
@@ -840,6 +829,47 @@
                                     }
                                 }]
                             }]
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "types": {
+                                    "properties": {
+                                        "enabled": {
+                                            "oneOf": [{
+                                                "const": true
+                                            }, false]
+                                        },
+                                        "mode": {
+                                            "const": "module"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "vendormod"
+                            ],
+                            "properties": {
+                                "vendormod": {
+                                    "anyOf": [{
+                                        "properties": {
+                                            "enabled": {
+                                                "const": true
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "properties": {
+                                            "dts_bundle": {
+                                                "const": true
+                                            }
+                                        }
+                                    }]
+                                }
+                            }
                         }
                     }]
                 }
@@ -1449,6 +1479,7 @@
         "WpwPluginConfigBanner": {
             "$id": "#/WpwPluginConfigBanner",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1475,6 +1506,7 @@
         "WpwPluginConfigCopy": {
             "$id": "#/WpwPluginConfigCopy",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1597,6 +1629,7 @@
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1706,6 +1739,7 @@
         "WpwPluginConfigLogHooks": {
             "$id": "#/WpwPluginConfigLogHooks",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -1754,6 +1788,7 @@
         "WpwPluginConfigLogHooksCompilation": {
             "$id": "#/WpwPluginConfigLogHooksCompilation",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "all": {
@@ -1847,6 +1882,7 @@
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
             "type": "object",
+            "minProperties": 1,
             "additionalItems": false,
             "properties": {
                 "enabled": {
@@ -1961,6 +1997,7 @@
         "WpwPluginConfigRunScriptsItemDef": {
             "$id": "#/WpwPluginConfigRunScriptsItemDef",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "required": [
                 "path"
@@ -2004,6 +2041,7 @@
         "WpwPluginConfigTypes": {
             "$id": "#/WpwPluginConfigTypes",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2027,11 +2065,11 @@
                     "default": "entry",
                     "oneOf": [{
                         "const": "module",
-                        "description": "perform 'types' build as s standard module build that emits only the dts files"
+                        "description": "perform 'types' build as s standard module build"
                     },
                     {
                         "const": "plugin",
-                        "description": "perform 'types' build using built in dts plugin"
+                        "description": "perform 'types' build using internal plugin and fork-ts-checker-plugin"
                     }]
                 },
                 "entry": {
@@ -2078,6 +2116,7 @@
         "WpwPluginConfigTypesBundle": {
             "$id": "#/WpwPluginConfigTypesBundle",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2085,12 +2124,42 @@
                 },
                 "removeSource": {
                     "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "bundler": {
+                    "$ref": "#/definitions/WpwPluginConfigTypesBundler"
+                },
+                "headerPath": {
+                    "$ref": "#/definitions/FilePath"
+                },
+                "headerText": {
+                    "type": "string",
+                    "maxLength": 256
+                },
+                "outputFile": {
+                    "$ref": "#/definitions/FileName"
                 }
-            }
+            },
+            "examples": [{
+                "enabled": true,
+                "removeSource": false,
+                "bundler": "dts-bundle",
+                "outputFile": "types.d.ts"
+            }]
+        },
+        "WpwPluginConfigTypesBundler": {
+            "$id": "#/WpwPluginConfigTypesBundler",
+            "default": "dts-bundle",
+            "oneOf": [{
+                "const": "dts-bundle"
+            },
+            {
+                "const": "tsc"
+            }]
         },
         "WpwPluginConfigUpload": {
             "$id": "#/WpwPluginConfigUpload",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2178,6 +2247,7 @@
         "WpwPluginConfigVendorMod": {
             "$id": "#/WpwPluginConfigVendorMod",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2209,9 +2279,7 @@
             }],
             "if": {
                 "properties": {
-                    "enabled": {
-                        "const": true
-                    }
+                    "enabled": false
                 }
             },
             "then": {
@@ -2235,7 +2303,7 @@
             }
         },
         "WpwPluginConfigWaitEvent": {
-            "default": "afterEmit",
+            "default": "done",
             "oneOf": [{
                 "const": "start"
             },
@@ -2258,6 +2326,7 @@
         "WpwPluginConfigWait": {
             "$id": "#/WpwPluginConfigWait",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2374,6 +2443,7 @@
         "WpwPluginConfigWeb": {
             "$id": "#/WpwPluginConfigWeb",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "enabled": {
@@ -2410,6 +2480,7 @@
             "$id": "#/WpwPluginConfigWebFilename",
             "$comment": "Filename transforms",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "camelToDash": {
@@ -2465,6 +2536,7 @@
         "WpwSourceCodeConfig": {
             "$id": "#/WpwSourceCodeConfig",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "dir": {
@@ -2509,6 +2581,7 @@
         "WpwSourceCodeConfigOptions": {
             "$id": "#/WpwSourceCodeConfigOptions",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "compilerOptions": {
@@ -2549,6 +2622,7 @@
         "WpwSourceCodeConfigCompilerOptions": {
             "$id": "#/WpwSourceCodeConfigCompilerOptions",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {                      
                 "allowJs": {
@@ -2737,6 +2811,7 @@
             }
         },
         "WpwSourceCodeTypescriptBuildMethod": {
+            "$id": "#/WpwSourceCodeTypescriptBuildMethod",
             "default": "program",
             "oneOf": [{
                 "const": "program"
@@ -2746,7 +2821,9 @@
             }]
         },
         "WpwSourceCodeTypescriptOptions": {
+            "$id": "#/WpwSourceCodeTypescriptOptions",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "loader": {
@@ -2770,7 +2847,6 @@
         },
         "WpwSourceCodeNodeJsModule": {
             "$id": "#/WpwSourceCodeNodeJsModule",
-            "type": "string",
             "default": "commonjs",
             "enum": [
                 "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "system", "umd"
@@ -2795,6 +2871,7 @@
         },
         "WpwSourceCodeExtension": {
             "$id": "#/WpwSourceCodeExtension",
+            "default": "js",
             "readOnly": true,
             "oneOf": [{
                 "const": "js"
@@ -2817,11 +2894,8 @@
             "additionalProperties": false,
             "properties": {
                 "type": {
-                    "default": false,
+                    "default": "extension",
                     "oneOf": [{
-                        "const": false
-                    },
-                    {
                         "const": "extension"
                     },
                     {
@@ -2829,9 +2903,6 @@
                     },
                     {
                         "const": "languageserver"
-                    },
-                    {
-                        "const": "none"
                     },
                     {
                         "const": "tests"
@@ -2870,7 +2941,7 @@
         "WpwWebpackAliasConfig": {
             "$id": "#/WpwWebpackAliasConfig",
             "type": "object",
-            "minProperties": 0,
+            "minProperties": 1,
             "patternProperties": {
                 "^[a-zA-Z:@][\\w:@]+$": {
                     "$ref": "#/definitions/WpwWebpackAliasValue"

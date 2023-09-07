@@ -107,6 +107,7 @@
 /** @typedef {import("./rc").WpwSourceCodeConfigOptions} WpwSourceCodeConfigOptions */
 /** @typedef {import("./constants").WpwSourceCodeExtensions} WpwSourceCodeExtensions */
 /** @typedef {import("./constants").WpwWebpackCompilerHooks} WpwWebpackCompilerHooks */
+/** @typedef {import("./rc").WpwPluginConfigTypesBundler} WpwPluginConfigTypesBundler */
 /** @typedef {import("./constants").isWpwSourceCodeExtension} isWpwSourceCodeExtension */
 /** @typedef {import("./constants").isWpwWebpackCompilerHook} isWpwWebpackCompilerHook */
 /** @typedef {import("./rc").DefinitionsDirectoryPathGlob} DefinitionsDirectoryPathGlob */
@@ -129,9 +130,11 @@
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModule} isWpwSourceCodeNodeJsModule */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsTarget} isWpwSourceCodeNodeJsTarget */
 /** @typedef {import("./constants").isWpwWebpackCompilationHook} isWpwWebpackCompilationHook */
+/** @typedef {import("./constants").WpwPluginConfigTypesBundlers} WpwPluginConfigTypesBundlers */
 /** @typedef {import("./rc").WpwBuildOptionsExportKeyInternal} WpwBuildOptionsExportKeyInternal */
 /** @typedef {import("./rc").WpwBuildOptionsPluginKeyInternal} WpwBuildOptionsPluginKeyInternal */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
+/** @typedef {import("./constants").isWpwPluginConfigTypesBundler} isWpwPluginConfigTypesBundler */
 /** @typedef {import("./constants").WpwPluginConfigRunScriptsProps} WpwPluginConfigRunScriptsProps */
 /** @typedef {import("./constants").WpwSourceCodeTypescriptLoaders} WpwSourceCodeTypescriptLoaders */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */

@@ -30,8 +30,14 @@
         "options": {
             "types": {
                 "mode": "module",
-                "entry": "./src/core/rc.js",
+                "entry": "index",
                 "bundle": true
+            },
+            "vendormod":{
+                "clean_plugin": true,
+                "dts_bundle": true,
+                "source_map_plugin": false,
+                "ts_loader": false
             }
         },
         "paths": {

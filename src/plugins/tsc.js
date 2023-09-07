@@ -44,8 +44,9 @@ class WpwTscPlugin extends WpwPlugin
 		if (!outputDir)
 		{
 			const compilerOptions = this.app.source.config.options.compilerOptions;
-			outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
-			outputDir = resolvePath(baseDir, outputDir);
+			outputDir = resolvePath(
+				baseDir, compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true })
+			);
 			if (!(await existsAsync(outputDir)))
 			{
 				this.app.addError(WpwMessageEnum.ERROR_NO_OUTPUT_DIR, this.compilation, "dts bundling failed");
@@ -113,32 +114,7 @@ class WpwTscPlugin extends WpwPlugin
 			  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			  outputDirRelBase = relativePath(baseDir, outputDir).replace(/\\/g, "/"),
-			  dtsBundleBaseDir = relativePath(baseDir, outputDir).replace(/\\/g, "/");
-
-		if (this.logger.level >= 2)
-		{
-			// l.write("   entry file info:");
-			// l.value("      name", entryName);
-			// l.value("      filename", entryFile);
-			// l.value("      relative path (->dist)", entryFileRel);
-			// l.value("      relative path (->context)", entryFileRelContext);
-			// l.value("      relative path (->base)", entryFileRelBase);
-			// l.value("      absolute path", entryFileAbs);
-			l.write("   output bundle info:");
-			l.value("      dist dir relative path (->base)", outputDirRelBase);
-			l.value("      relative path (->dist)", dtsFilePathRel);
-			l.value("      relative path (->context)", dtsFilePathRelContext);
-			l.value("      relative path (->base)", dtsFilePathRelBase);
-			l.value("      absolute path", dtsFilePathAbs);
-			l.value("      base output path", outputDir);
-			// l.write("   output bundle entryfile info:");
-			// l.value("      filename", dtsEntryFile);
-			// l.value("      relative path (->dist)", dtsEntryFileRel);
-			// l.value("      relative path (->context)", dtsEntryFileRelContext);
-			// l.value("      relative path (->base)", dtsEntryFileRelBase);
-			// l.value("      absolute path", dtsEntryFileAbs);
-		}
+			  dtsBundleBaseDir = relativePath(baseDir, outputDir).replace(/\\/g, "/").replace(/\/$/, "");
 
 		if (existsSync(dtsFilePathAbs))
 		{
@@ -150,18 +126,24 @@ class WpwTscPlugin extends WpwPlugin
 		const bundleCfg =
 		{
 			name: `${this.app.pkgJson.name}-${this.app.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
-			baseDir: outputDirRelBase,
+			baseDir: dtsBundleBaseDir,
 			headerPath: "",
 			headerText: "",
-			main: outputDirRelBase + "/**/*.d.ts",
+			main: dtsBundleBaseDir + "/**/*.d.ts",
 			out: dtsFile,
 			outputAsModuleFolder: true,
 			// removeSource: true,
 			verbose: this.app.build.log.level >= 4
 		};
 
-		if (this.logger.level >= 1)
+		if (this.logger.level >= 2)
 		{
+			l.write("   output bundle path info:");
+			l.value("      relative path (->dist)", dtsFilePathRel);
+			l.value("      relative path (->context)", dtsFilePathRelContext);
+			l.value("      relative path (->base)", dtsFilePathRelBase);
+			l.value("      absolute path", dtsFilePathAbs);
+			l.value("      base output path", outputDir);
 			l.write("   dts-bundle options:");
 			l.value("      name", bundleCfg.name);
 			l.value("      out", bundleCfg.out);

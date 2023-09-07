@@ -253,11 +253,11 @@ class WpwRulesExport extends WpwWebpackExport
 			app.wpc.module.rules.push(
 			{
 				// test: new RegExp(`\\.${app.source.ext}x?$`),
-				test: /index\.js$/,
+				test: /index\.js$/
 				// type: "asset/resource",
-				generator: {
-					emit: false
-				}
+				// generator: {
+				// 	emit: false
+				// }
 			});
 		}
 		else {
