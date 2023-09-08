@@ -366,12 +366,47 @@
                             }
                         },
                         "then": {
-                            "$comment": "test comment tag",
                             "properties": {
                                 "options": {
                                     "required": [
                                         "types"
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "if": {
+                            "properties": {
+                                "type": { 
+                                    "const": "tests"
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "options": {
+                                    "required": [
+                                        "vendormod"
+                                    ],
+                                    "properties": {
+                                        "vendormod": {
+                                            "anyOf": [{
+                                                "properties": {
+                                                    "all": {
+                                                        "const": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "properties": {
+                                                    "nyc": {
+                                                        "const": true
+                                                    }
+                                                }
+                                            }]
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -453,7 +488,7 @@
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
                 "istanbul": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwPluginConfigIstanbul"
                 },
                 "jsdoc": {
                     "$ref": "#/definitions/WpwPluginConfigJsDoc"
@@ -466,6 +501,9 @@
                 },
                 "minification": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
+                },
+                "mocha": {
+                    "$ref": "#/definitions/WpwPluginConfigMocha"
                 },
                 "optimization": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
@@ -948,6 +986,9 @@
             },
             {
                 "const": "loghooks"
+            },
+            {
+                "const": "mocha"
             },
             {
                 "const": "optimization"
@@ -1452,6 +1493,9 @@
                 "analyzer": true,
                 "circular": true,
                 "visualizer": false
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -1493,14 +1537,14 @@
                 }
             },
             "examples": [{
-                "enabled": false
-            },
-            {
                 "enabled": true
             },
             {
                 "enabled": true,
                 "text": "Copyright #{DATE_STAMP_YEAR} [--My Name or Co.--], All RIghts Reserved"
+            },
+            {
+                "enabled": false
             }]
         },
         "WpwPluginConfigCopy": {
@@ -1528,9 +1572,6 @@
                 }
             },
             "examples": [{
-                "enabled": false
-            },
-            {
                 "enabled": true,
                 "defaults": true
             },
@@ -1540,6 +1581,9 @@
                     "to": "relative/or/absolute/path/to",
                     "from": "relative/or/absolute/path/from/or/**/glob/**/env"
                 }]
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -1624,7 +1668,35 @@
                     "type": "boolean",
                     "default": false
                 }
-            }
+            },
+            "examples": [{
+                "enabled": true
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwPluginConfigIstanbul": {
+            "$id": "#/WpwPluginConfigIstanbul",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "protectRequires": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                }
+            },
+            "examples": [
+            {
+                "enabled": true,
+                "protectRequires": true
+            },
+            {
+                "enabled": false
+            }]
         },
         "WpwPluginConfigJsDoc": {
             "$id": "#/WpwPluginConfigJsDoc",
@@ -1753,9 +1825,6 @@
                 }
             },
             "examples": [{
-                "enabled": false
-            },
-            {
                 "enabled": true,
                 "compiler": true,
                 "compilation": {
@@ -1771,6 +1840,9 @@
                     "optimization": false,
                     "processAssets": true
                 }
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -1879,6 +1951,68 @@
                 }
             }
         },
+        "WpwPluginConfigMocha": {
+            "$id": "#/WpwPluginConfigMocha",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "slow": {
+                    "type": "number",
+                    "minimum": 1000
+                },
+                "colors": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "baseDir": {
+                    "$ref": "#/definitions/DirectoryPath"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/FilePath"
+                    }
+                }
+            },
+            "dependencies": {
+                "baseDir": {
+                    "if": {
+                        "properties": {
+                            "baseDir": true
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "files": false
+                        }
+                    }
+                },
+                "files": {
+                    "if": {
+                        "properties": {
+                            "files": true
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "baseDir": false
+                        }
+                    }
+                }
+            },
+            "examples": [
+            {
+                "enabled": true,
+                "slow": 2500,
+                "colors": true
+            },
+            {
+                "enabled": false
+            }]
+        },
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
             "type": "object",
@@ -1904,6 +2038,29 @@
                     "$ref": "#/definitions/WpwPluginConfigRunScriptsItem"
                 }
             },
+            "examples": [
+            {
+                "enabled": true,
+                "done": {
+                    "mode": "synchronous",
+                    "scripts": [
+                        "bin/done/path/to/script.js",
+                        "script/done/path/to/script.sh",
+                        "script/done/path/to/script.ps1"
+                    ]
+                },
+                "start": {
+                    "mode": "parallel",
+                    "scripts": [
+                        "bin/start/path/to/script.js",
+                        "script/done/path/to/script.sh",
+                        "script/start/path/to/script.ps1"
+                    ]
+                }
+            },
+            {
+                "enabled": false
+            }],
             "dependencies": {
                 "comilation": {
                     "if": {
@@ -1960,12 +2117,12 @@
                     "$ref": "#/definitions/WpwWebhookCompilationHookStage"
                 },
                 "mode": {
-                    "default": "succession",
+                    "default": "synchronous",
                     "oneOf": [{
                         "const": "parallel"
                     },
                     {
-                        "const": "succession"
+                        "const": "synchronous"
                     }]
                 },
                 "scripts": {
@@ -2093,12 +2250,12 @@
             },
             "examples": [
             {
-                "enabled": false
-            },
-            {
                 "enabled": true,
                 "entry": "main",
                 "mode": "plugin"
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -2230,6 +2387,9 @@
                     "key": "${REPLACED_ENVVAR_SCP_KEY}",
                     "user": "${REPLACED_ENVVAR_SCP_USER}"
                 }
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -2264,6 +2424,10 @@
                     "type": "boolean",
                     "description": "modification to fix bug when using **/*.d.ts in dts-bundle's config.main"
                 },
+                "nyc": {
+                    "type": "boolean",
+                    "description": "modification to remove un-resolvable testing function "
+                },
                 "source_map_plugin": {
                     "type": "boolean",
                     "description": "modification that disables ... TODO"
@@ -2284,6 +2448,9 @@
                 "dts_bundle": true,
                 "source_map_plugin": false,
                 "ts_loader": false
+            },
+            {
+                "enabled": false
             }],
             "if": {
                 "properties": {
@@ -2304,6 +2471,10 @@
                 }, {
                     "required": [
                         "dts_bundle"
+                    ]
+                },{
+                    "required": [
+                        "nyc"
                     ]
                 }, {
                     "required": [
@@ -2354,9 +2525,6 @@
                 }
             },
             "examples": [{
-                "enabled": false
-            },
-            {
                 "enabled": true,
                 "items": [{
                     "type": "event",
@@ -2370,6 +2538,9 @@
                     "type": "file",
                     "name": "dist/somefilename.js"
                 }]
+            },
+            {
+                "enabled": false
             }]
         },
         "WpwPluginConfigWaitItem": {
@@ -2470,6 +2641,15 @@
                     "$ref": "#/definitions/WpwPluginConfigWebFilename"
                 }
             },
+            "examples": [
+            {
+                "enabled": true,
+                "filename": "./${WEB_FILENAME_VAR}",
+                "publicPath": "./${WEB_PUBLIC_PATH_VAR}"
+            },
+            {
+                "enabled": false
+            }],
             "if": {
                 "properties": {
                     "enabled": {

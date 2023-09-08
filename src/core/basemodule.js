@@ -12,7 +12,7 @@
  const WpwBase = require("./base");
 const typedefs = require("../types/typedefs");
 const {
-    lowerCaseFirstChar, WpBuildError, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey,
+    lowerCaseFirstChar, WpwError, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey,
     isWpwBuildOptionsExportKeyInternal, isWpwBuildOptionsPluginKeyInternal
 } = require("../utils");
 
@@ -66,11 +66,11 @@ class WpwBaseModule extends WpwBase
      * @abstract
      * @param {any[]} _args
 	 * @returns {WpwBase | undefined | never}
-	 * @throws {typedefs.WpBuildError}
+	 * @throws {typedefs.WpwError}
      */
 	static build(..._args)
     {
-        throw WpBuildError.getAbstractFunction(`[${this.name}[build][static]`);
+        throw WpwError.getAbstractFunction(`[${this.name}[build][static]`);
     }
 
 
@@ -133,15 +133,15 @@ class WpwBaseModule extends WpwBase
     /**
      * @private
      * @param {typedefs.WpwBaseModuleOptions} options Plugin options to be applied
-     * @throws {typedefs.WpBuildError}
+     * @throws {typedefs.WpwError}
      */
 	validateOptions(options)
     {
         if (!options.app) {
-            throw WpBuildError.getErrorMissing("app", this.wpc, "invalid option[app]");
+            throw WpwError.getErrorMissing("app", this.wpc, "invalid option[app]");
         }
         if (!this.isValidOptionsKey(options.key)) {
-            throw WpBuildError.getErrorProperty("key", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
+            throw WpwError.getErrorProperty("key", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
         }
     }
 

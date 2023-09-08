@@ -20,19 +20,50 @@ const WpwRegex = require("./regex");
  * @type {typedefs.IWpwMessage}
  */
 const WpwMessage =
-{
+{   //
+    // INFO (000 - 099)
+    //
+    WPW000: "general info issued",
     WPW025: "build skipped (non-fatal)",
     WPW075: "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false",
+    WPW085: "enable the 'vendormod.all' or other vendormod options if issues occur",
+    WPW086: "enable the 'vendormod.all' or 'vendormod.nyc' option if using nyc",
+    //
+    // INFO (100- 199)
+    //
+    WPW100: "unknown state",
+    //
+    // WARNINGS (300-499)
+    //
+    WPW300: "general warning issued",
+    //
+    // WARNINGS (400-499)
+    //
     WPW450: "did not modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
-    WPW500: "invalid configuration",
-    WPW501: "invalid exports configuration",
-    WPW502: "invalid plugins configuration",
+    //
+    // WARNINGS (500-599)
+    //
+    WPW530: "invalid configuration",
+    WPW531: "invalid exports configuration",
+    WPW532: "invalid plugins configuration",
+    //
+    // ERRORS (600 - 699)
+    //
+    WPW600: "an error has occurred",
     WPW605: "build failed - output directory does not exist",
     WPW630: "type definitions build failed",
     WPW660: "type definitions build failed",
     WPW661: "type definitions build failed - output directory does not exist",
     WPW662: "type definitions build failed - invalid build method",
-    WPW700: "an error has occurred",
+    //
+    // ERRORS (700 - 799)
+    //
+    WPW730: "invalid configuration",
+    WPW731: "invalid exports configuration",
+    WPW732: "invalid plugins configuration",
+    //
+    // ERRORS (800 - 899)
+    //
     WPW899: "an unknown error has occurred"
 };
 
@@ -40,25 +71,62 @@ const WpwMessage =
  * @enum {typedefs.WpwMessageCode}
  */
 const WpwMessageEnum =
-{
+{   //
+    // INFO (000 - 099)
+    //
+    INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
+    INFO_SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW075"),
+    INFO_SHOULD_ENABLE_VENDORMOD: /** @type {typedefs.WpwInfoCode} */("WPW085"),
+    INFO_SHOULD_ENABLE_VENDORMOD_NYC: /** @type {typedefs.WpwInfoCode} */("WPW086"),
+    //
+    // INFO (100 - 199)
+    //
+    INFO_UNKNOWN_PROPERTY: /** @type {typedefs.WpwInfoCode} */("WPW100"),
+    //
+    // WARNINGS (300 - 399)
+    //
+    WARNING_GENERAL: /** @type {typedefs.WpwWarningCode} */("WPW300"),
+    //
+    // WARNINGS (400 - 499)
+    //
+    WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450"),
+    //
+    // WARNING (500 - 599)
+    //
+    WARNING_CONFIG_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW530"),
+    WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW531"),
+    WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW532"),
+    //
+    // ERROR (600 - 699)
+    //
+    ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW600"),
     ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW630"),
-    ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW700"),
     ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
     ERROR_TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
     ERROR_TYPES_FAILED_INVALID_METHOD: /** @type {typedefs.WpwErrorCode} */("WPW662"),
-    ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899"),
-    INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
-    INFO_SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW075"),
-    WARNING_CONFIG_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW500"),
-    WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW501"),
-    WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW502"),
-    WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450")
+    //
+    // ERROR (700 - 799)
+    //
+    ERROR_CONFIG_INVALID: /** @type {typedefs.WpwErrorCode} */("WPW730"),
+    ERROR_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwErrorCode} */("WPW731"),
+    ERROR_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwErrorCode} */("WPW732"),
+    //
+    // ERROR (800 - 899)
+    //
+    ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
 };
 
 
-class WpBuildError extends WebpackError
+/**
+ * @implements {typedefs.IWpwError}
+ */
+class WpwError extends WebpackError
 {
+    static Msg = WpwMessageEnum;
+    static Msgs = WpwMessage;
+
+
     /**
      * @param {string} message
      * @param {string | Error} [details]
@@ -67,7 +135,7 @@ class WpBuildError extends WebpackError
     {
         super(message);
         const isErrorDetail = isError(details);
-		this.name = "WpBuildError";
+		this.name = "WpwError";
         // Object.setPrototypeOf(this, new.target.prototype);
         if (isErrorDetail) {
             this.details = details.message;
@@ -75,7 +143,7 @@ class WpBuildError extends WebpackError
         else if (isString(details)) {
             this.details = details;
         }
-        WpBuildError.captureStackTrace(this, this.constructor);
+        WpwError.captureStackTrace(this, this.constructor);
         if (this.stack)
         {
             const lines = this.stack?.split("\n") || [],
@@ -101,7 +169,7 @@ class WpBuildError extends WebpackError
      * @param {string} message
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {Error | string | undefined | null} [detail]
-     * @returns {WpBuildError}
+     * @returns {WpwError}
      */
     static get(message, wpc, detail)
     {
@@ -119,7 +187,7 @@ class WpBuildError extends WebpackError
         else if (isError(detail)) {
             message += `\nEXCEPTION: ${detail.message.trim()}`;
         }
-        const e = new WpBuildError(message, detail ?? undefined);
+        const e = new WpwError(message, detail ?? undefined);
         return e;
     }
 
@@ -128,7 +196,7 @@ class WpBuildError extends WebpackError
      * @param {string} property
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
+     * @returns {WpwError}
      */
     static getErrorMissing = (property, wpc, detail) =>
         this.get(`Could not locate wpw resource '${property}'`, wpc, detail);
@@ -138,7 +206,7 @@ class WpBuildError extends WebpackError
      * @param {string} property
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
+     * @returns {WpwError}
      */
     static getErrorProperty = (property, wpc, detail) =>
         this.get(`Invalid wpw configuration @ property '${property}'`, wpc, detail);
@@ -148,7 +216,7 @@ class WpBuildError extends WebpackError
      * @param {string} fnName
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
-     * @returns {WpBuildError}
+     * @returns {WpwError}
      */
     static getAbstractFunction = (fnName, wpc, detail) =>
         this.get(`abstract method '${fnName}' must be overridden`, wpc, detail);
@@ -156,6 +224,4 @@ class WpBuildError extends WebpackError
 }
 
 
-module.exports = {
-     WpwMessage, WpwMessageEnum, WpBuildError
-};
+module.exports = WpwError;

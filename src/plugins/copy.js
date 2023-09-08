@@ -155,7 +155,7 @@ class WpBuildCopyPlugin extends WpwPlugin
 	{
 		let plugin;
 		const app = this.app,
-			  psxBuildPath = app.getRcPath("base", { rel: true, psx: true, dot: false, ctx: false }),
+			  psxBuildPath = app.getBasePath({ rel: true, psx: true, dot: false, ctx: false }),
 			  psxBasePath = app.getContextPath({ rel: true, psx: true, dot: false, ctx: true }),
 			  psxBaseCtxPath = posix.join(psxBasePath, "res");
 

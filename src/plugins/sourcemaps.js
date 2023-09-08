@@ -15,9 +15,10 @@
 
 const WpwPlugin = require("./base");
 const WpBuildApp = require("../core/app");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 // const { Compilation } = require("webpack");
-const { apply, requireResolve, WpwMessageEnum } = require("../utils");
+const { apply, requireResolve } = require("../utils");
 // const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
 // const webpack = require("webpack");
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -107,7 +108,7 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
             });
         }
         else {
-            this.app.addWarning(WpwMessageEnum.WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET);
+            this.app.addWarning(WpwError.Msg.WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET);
         }
     };
 

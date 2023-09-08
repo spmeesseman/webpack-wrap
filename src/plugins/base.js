@@ -39,12 +39,13 @@
 
 const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
-const { isFunction, mergeIf, execAsync, WpBuildError, asArray, applyIf, WpwMessageEnum } = require("../utils");
+const { isFunction, mergeIf, execAsync, asArray, applyIf } = require("../utils");
 
 
 /**
@@ -322,13 +323,13 @@ class WpwPlugin extends WpwBaseModule
 	/**
 	 * @private
 	 * @param {string} message
-	 * @param {WpBuildError | WebpackError | Error | undefined} [error]
-	 * @throws {WpBuildError}
+	 * @param {WpwError | WebpackError | Error | undefined} [error]
+	 * @throws {WpwError}
 	 */
 	handleError(message, error)
 	{
-        const err = error ?? new WpBuildError(message, error);
-        this.app.addError(WpwMessageEnum.ERROR_GENERAL, this.compilation, err);
+        const err = error ?? new WpwError(message, error);
+        this.app.addError(WpwError.Msg.ERROR_GENERAL, this.compilation, err);
         if (!this.compilation) {
             throw err;
         }
@@ -571,7 +572,7 @@ class WpwPlugin extends WpwBaseModule
      * @private
      * @param {typedefs.WebpackCompiler} compiler
      * @param {typedefs.WpBuildPluginTapOptions} options
-     * @throws {WpBuildError}
+     * @throws {WpwError}
      */
 	validateApplyOptions(compiler, options)
     {
@@ -596,7 +597,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @private
      * @param {typedefs.WpwPluginOptions} _options Plugin options to be applied
-     * @throws {typedefs.WpBuildError}
+     * @throws {typedefs.WpwError}
      */
 	validatePluginOptions(_options)
     {

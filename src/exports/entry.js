@@ -14,13 +14,13 @@
  */
 
 const { glob } = require("glob");
+const { existsSync } = require("fs");
 const WpwWebpackExport = require("./base");
 const { basename, resolve } = require("path");
 const typedefs = require("../types/typedefs");
 const {
-	apply, WpBuildError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction, WpwMessageEnum
+	apply, WpwError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
 } = require("../utils");
-const { existsSync } = require("fs");
 
 
 /**
@@ -48,7 +48,7 @@ class WpwEntryExport extends WpwWebpackExport
 	/**
 	 * @override
      * @protected
-	 * @throws {WpBuildError}
+	 * @throws {WpwError}
 	 */
 	build()
 	{
@@ -69,7 +69,7 @@ class WpwEntryExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			throw WpBuildError.getErrorProperty("entry", app.wpc);
+			throw WpwError.getErrorProperty("entry", app.wpc);
 		}
 
 		//
@@ -79,7 +79,7 @@ class WpwEntryExport extends WpwWebpackExport
 		{
 			if (!e || (!isString(e) && !e.import))
 			{
-				throw WpBuildError.getErrorProperty("entry", app.wpc, "entry target is invalid");
+				throw WpwError.getErrorProperty("entry", app.wpc, "entry target is invalid");
 			}
 			const ep = isString(e) ? e : e.import;
 			if (!ep.startsWith("./"))
@@ -119,7 +119,7 @@ class WpwEntryExport extends WpwWebpackExport
 			}
 		}
 		else {
-			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[jsdoc]");
+			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[jsdoc]");
 		}
 	}
 
@@ -155,7 +155,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 	/**
 	 * @override
-	 * @throws {WpBuildError}
+	 * @throws {WpwError}
 	 */
 	tests()
 	{
@@ -252,7 +252,7 @@ class WpwEntryExport extends WpwWebpackExport
 			});
 		}
 		else {
-			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[types]");
+			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[types]");
 		}
 	}
 

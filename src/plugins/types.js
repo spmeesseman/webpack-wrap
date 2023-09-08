@@ -11,11 +11,12 @@
  *//** */
 
 const { resolve } = require("path");
-const { existsSync, readFile, stat } = require("fs");
 const WpwTscPlugin = require("./tsc");
 const { unlink } = require("fs/promises");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { existsAsync, apply, WpwMessageEnum, findFiles } = require("../utils");
+const { existsSync, readFile, stat } = require("fs");
+const { existsAsync, apply, findFiles } = require("../utils");
 
 
 /**
@@ -125,7 +126,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	{
 		const sourceCode = this.app.source,
 			  configuredOptions = this.app.source.config.options.compilerOptions,
-			  basePath = /** @type {string} */(this.app.getRcPath("base")),
+			  basePath = this.app.getBasePath(),
 			  //
 			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
 			  //        if separate, use buildinfofile specified in config file
@@ -285,9 +286,9 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
 		const sourceCode = this.app.source,
 			  logger = this.logger,
+			  basePath = this.app.getBasePath(),
 			  method = this.buildOptions.method,
 			  compilerOptions = sourceCode.config.options.compilerOptions,
-			  basePath = /** @type {string} */(this.app.getRcPath("base")),
 			  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
 
 		logger.write("start types build", 1);
@@ -306,7 +307,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			const result = this.app.source.emit(undefined, undefined, undefined, true);
 			if (!result)
 			{
-				this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation);
+				this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation);
 				return;
 			}
 		}
@@ -319,7 +320,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		}
 		else {
 			this.app.addError(
-				WpwMessageEnum.ERROR_TYPES_FAILED_INVALID_METHOD, this.compilation,
+				WpwError.Msg.ERROR_TYPES_FAILED_INVALID_METHOD, this.compilation,
 				`configured build method is '${method}'`
 			);
 		}
@@ -333,7 +334,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			logger.write("type definitions created successfully @ " + outputDir, 1);
 		}
 		else {
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
 		}
 
 		//

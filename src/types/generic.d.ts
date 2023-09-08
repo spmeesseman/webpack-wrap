@@ -46,10 +46,10 @@ declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>
 // }
 
 
-declare class ClsWpBuildError extends WebpackError {
-    static get(message: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null): ClsWpBuildError;
-    static getErrorMissing: (property: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpBuildError;
-    static getErrorProperty: (property: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpBuildError;
+declare class ClsWpwError extends WebpackError {
+    static get(message: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null): ClsWpwError;
+    static getErrorMissing: (property: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpwError;
+    static getErrorProperty: (property: string, wpc?: Partial<WpwWebpackConfig> | undefined | null, detail?: string | undefined | null) => ClsWpwError;
     constructor(message: string, details?: string, capture?: boolean);
     details: string | undefined;
     file: string | undefined;
@@ -77,5 +77,5 @@ export {
     PartialSome,
     PickByType,
     RequireKeys,
-    ClsWpBuildError
+    ClsWpwError
 };

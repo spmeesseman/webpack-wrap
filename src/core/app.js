@@ -11,15 +11,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBase = require("./base");
+const WpwBase = require("./base");
 const { existsSync } = require("fs");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
-const {
-    apply, WpBuildError, isPromise, resolvePath, pickNot, WpwMessage, WpwMessageEnum
-} = require("../utils");
+const { apply, WpwError, isPromise, resolvePath, pickNot } = require("../utils");
 
 
 /**
@@ -33,13 +31,13 @@ class WpBuildApp extends WpwBase
     build;
     /** @type {Array<typedefs.IDisposable>} */
     disposables;
-    /** @type {WpBuildError[]} */
+    /** @type {WpwError[]} */
     errors;
-    /** @type {WpBuildError[]} */
+    /** @type {WpwError[]} */
     info;
     /** @type {typedefs.WpwRc} @private */
     rc;
-    /** @type {WpBuildError[]} */
+    /** @type {WpwError[]} */
     warnings;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
@@ -60,6 +58,7 @@ class WpBuildApp extends WpwBase
         this.rc = rc;
         this.build = build;
         this.initLogger();
+        this.addSuggestions();
 	}
 
 
@@ -125,20 +124,20 @@ class WpBuildApp extends WpwBase
         const icons = this.logger.icons;
         if (/WPW[0-2][0-9][0-9]/.test(code))
         {
-            const i = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            const i = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
             this.logger.write(i.message, 1, pad, icons.blue.info);
             this.info.push(i);
         }
         else if (/WPW[3-5][0-9][0-9]/.test(code))
         {
-            const w = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            const w = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
             this.logger.write(w.message, undefined, pad, icons.color.warning);
             this.warnings.push(w);
             compilation?.warnings.push(w);
         }
         else if (/WPW[6-8][0-9][0-9]/.test(code))
         {
-            const e = WpBuildError.get(WpwMessage[code], this.wpc, detail);
+            const e = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
             this.logger.write(e.message, undefined, pad, icons.color.error);
             this.errors.push(e);
             compilation?.errors.push(e);
@@ -148,6 +147,26 @@ class WpBuildApp extends WpwBase
         }
         else {
             this.logger.warning("unknown message type", pad);
+        }
+    };
+
+
+    /**
+     * @private
+     */
+    addSuggestions = () =>
+    {
+        const buildOptions = this.build.options;
+        if (this.source.type === "typescript")
+        {
+            if (!buildOptions.tscheck && this.build.type !== "types")
+            {
+                this.addInfo(WpwError.Msg.INFO_SHOULD_ENABLE_TSCHECK);
+            }
+        }
+        if (this.build.type === "tests" && (!this.build.options.vendormod || !this.build.options.vendormod.nyc))
+        {
+            this.addInfo(WpwError.Msg.INFO_SHOULD_ENABLE_VENDORMOD_NYC);
         }
     };
 
@@ -166,12 +185,7 @@ class WpBuildApp extends WpwBase
      */
     buildWrapper = () =>
     {
-        const buildOptions = this.build.options;
         this.wpc = this.getDefaultWebpackExports();
-        if (this.source.type === "typescript" && (!buildOptions.tscheck || buildOptions.tscheck?.enabled === false))
-        {
-            this.addInfo(WpwMessageEnum.INFO_SHOULD_ENABLE_TSCHECK);
-        }
         try
         {   wpexports.cache(this);          // Asset cache
             wpexports.experiments(this);    // Set any experimental flags that will be used
@@ -267,6 +281,7 @@ class WpBuildApp extends WpwBase
 
 
     /**
+     * @private
      * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {typedefs.WpwRcPathsKey} pathKey
@@ -430,7 +445,7 @@ class WpBuildApp extends WpwBase
 
     /**
      * @private
-     * @param {WpBuildError} e
+     * @param {WpwError} e
      * @param {Function} fn
      * @param {string} [icon]
      */

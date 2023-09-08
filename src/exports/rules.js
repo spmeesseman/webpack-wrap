@@ -15,12 +15,12 @@
  *//** */
 
 const esbuild = require("esbuild");
-const { existsSync } = require("fs");
+const { existsSync, readdirSync } = require("fs");
 const { resolve, join } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpBuildError, uniq, merge, apply, getExcludes, isJsTsConfigPath, isFunction } = require("../utils");
+const { WpwError, uniq, apply, getExcludes, isJsTsConfigPath, isFunction, findFilesSync, isArray } = require("../utils");
 
 
 /**
@@ -48,31 +48,198 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+	 * @private
+	 * @param {string | RegExp} test
+	 * @param {string} include
+	 * @param {[string | RegExp, string ][]} searchReplaceArr
+	 */
+	addVendorReplaceRule(test, include, searchReplaceArr)
+	{
+		const basePath = this.app.getBasePath();
+		const options = {
+			multiple: searchReplaceArr.map(o => ({ search: o[0], replace: o[1] }))
+		};
+
+		this.app.wpc.module.rules.push(
+		{
+			options,
+			test: test || /index\.js$/,
+			loader: "string-replace-loader",
+			include: join(basePath, "node_modules", ...include.split("/"))
+		},
+		{
+			options,
+			test: test || /index\.js$/,
+			loader: "string-replace-loader",
+			include: join(basePath, "@spmeesseman", "webpack-wrap", "node_modules", ...include.split("/"))
+		});
+	}
+
+
+	/**
+	 * @private
+	 * @param {boolean | undefined} [processFirst] @default false
+	 * `true` for rules that are processed first,
+	 * i.e. pushed at the end of the rules array. *Note that rules are processed from last->first*
+	 */
+	base(processFirst)
+	{
+		const app = this.app;
+
+		if (processFirst)
+		{
+			const modOptions = app.build.options.vendormod;
+			if (modOptions)
+			{
+				if (modOptions.clean_plugin)
+				{   //
+					// Make a lil change to the copy-plugin to initialize the current assets array to
+					// the existing contents of the dist directory.  By default it's current assets list
+					// is empty, and thus will not work across IDE restarts
+					//
+					const distPath = app.getDistPath();
+					if (existsSync(distPath))
+					{
+						const distFiles = `"${findFilesSync(distPath, { cwd: distPath, absolute: false }).join("\", \"")}"`;
+						this.addVendorReplaceRule(
+							/index\.js$/,
+							"clean-webpack-plugin/dist",
+							[[ "currentAssets = []", `currentAssets = [ ${distFiles} ]` ]]
+						);
+					}
+				}
+				if (modOptions.dts_bundle)
+				{   //
+					// DTS-BUNDLE
+					// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+					// Bug fix on line 29
+					//
+					this.addVendorReplaceRule(
+						/index\.js$/,
+						"dts-bundle/lib",
+						[[ / {8}if \(allFiles\) \{/, "        if (allFiles && !options.baseDir) {" ]]
+					);
+				}
+				if (modOptions.source_map_plugin)
+				{   //
+					// WEBPACK.SOURCEMAPPLUGIN
+					// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js
+					//
+					// A hck to remove a check added in Webpack 5 using 'instanceof' to check the compilation parameter.
+					// If multiple webpack installs are present, the follwoing error occurs, regardlkess if Wp versions are the same:
+					//
+					// TypeError: The 'compilation' argument must be an instance of Compilation
+					//    at Function.getCompilationHooks (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js:164:10)
+					//    at SourceMapDevToolModuleOptionsPlugin.apply (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolModuleOptionsPlugin.js:54:27)
+					//    at C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolPlugin.js:184:53
+					//    at Hook.eval [as call] (eval at create (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
+					//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\Hook.js:14:14)
+					//	  ....
+					//
+					// Seeing it's a module resolution issue, this was patched for this plugin using 'require.resolve'
+					// in the cwd when importing this plugin in plugins/sourcemaps.js.
+					//
+					// This is a "in the worst case" fix, where we can "kind if" safley remove this check, and
+					// consider it patched if redundant testing yields no side effects,
+					//
+					this.addVendorReplaceRule(
+						/JavascriptModulesPlugin\.js$/,
+						"webpack/lib/javascript",
+						[[ /if \(\!\(compilation instanceof Compilation\)\)/, "if (false)" ]]
+					);
+				}
+				if (modOptions.nyc)
+				{
+					this.addVendorReplaceRule(
+						/index\.js$/,
+						"nyc",
+						[[ "selfCoverageHelper = require('../self-coverage-helper')", "selfCoverageHelper = { onExit () {} }" ]]
+					);
+				}
+				if (modOptions.ts_loader)
+				{   //
+					// TS-LOADER
+					// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+					//
+					// A hck to allow just a straight up types 'declarations only' build.
+					//
+					this.addVendorReplaceRule(
+						/index\.js$/,
+						"ts-loader/dist",
+						[[
+							/if \(outputText === null \|\| outputText === undefined\)/,
+							"callback(null, output, sourceMap);"
+						],
+						[
+							"if ((outputText === null || outputText === undefined) && (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly))",
+							"callback(null, (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly ? output : \"\"), sourceMap);"
+						]]
+					);
+				}
+			}
+		}
+	}
+
+
+	/**
 	 * @override
      * @protected
-	 * @throws {WpBuildError}
+	 * @throws {WpwError}
 	 */
-	build = () =>
+	build()
 	{
 		const app = this.app;
 		app.logger.start("create rules", 2);
 		if (isFunction(this[app.build.type]))
 		{
 			app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+			this.base();
 			this[app.build.type]();
+			// this.base(true);
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules", app.wpc);
+			throw WpwError.getErrorProperty("rules", app.wpc);
 		}
 		app.logger.success("create rules", 2);
+	}
+
+
+	/**
+	 * @private
+	 * @returns {string[]}
+	 */
+	getIncludes = () => uniq([ this.app.getSrcPath(), ...this.app.source.config.includeAbs ]);
+
+
+	/**
+	 * @private
+	 * @param {"esbuild" | "babel" | "ts"} [loader]
+	 * @returns {typedefs.WebpackRuleSetUseItem}
+	 */
+	getSourceLoader = (loader) =>
+	{
+		const app = this.app;
+		if (app.cmdLine.esbuild || loader === "esbuild")
+		{
+			return this.sourceLoaders.esbuild();
+		}
+		if (app.source.type === "typescript")
+		{
+			if (app.cmdLine.babel || loader === "babel")
+			{
+				return this.sourceLoaders.babel();
+			}
+			return this.sourceLoaders.ts();
+		}
+		return this.sourceLoaders.babel();
 	};
 
 
 	/**
 	 * @override
-	 * @throws {WpBuildError}
+	 * @throws {WpwError}
 	 */
-	jsdoc = () =>
+	jsdoc()
 	{
 		const app = this.app,
 			  jsdocOptions = app.build.options.jsdoc;
@@ -103,19 +270,19 @@ class WpwRulesExport extends WpwWebpackExport
 				});
 			}
 			else {
-				throw WpBuildError.get("jsdoc source path does not exist", app.wpc);
+				app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "rules[jsdoc]");
 			}
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules", app.wpc, "build not configured for jsdoc 'entry' type");
+			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[jsdoc]");
 		}
-	};
+	}
 
 
 	/**
 	 * @override
 	 */
-	module = () =>
+	module()
 	{
 		const app = this.app,
 			  exclude = getExcludes(app, this.app.source.config),
@@ -127,7 +294,7 @@ class WpwRulesExport extends WpwWebpackExport
 			{
 				include,
 				exclude,
-				test: new RegExp(`\\.${app.source.ext}$`),
+				test: new RegExp(`${app.source.dotext}$`),
 				issuerLayer: "release",
 				// include(resourcePath, issuer) {
 				// 	console.log(`  context: ${app.wpc.context} (from ${issuer})`);
@@ -141,7 +308,7 @@ class WpwRulesExport extends WpwWebpackExport
 			{
 				include,
 				exclude,
-				test: app.source.ext !== "ts" ?  /wrapper\.js$/ : /wrapper\.ts$/,
+				test: new RegExp(`wrapper${app.source.dotext}$`),
 				issuerLayer: "release",
 				loader: "string-replace-loader",
 				options: {
@@ -194,161 +361,7 @@ class WpwRulesExport extends WpwWebpackExport
 				exclude: getExcludes(app, this.app.source.config, false, true, true)
 			});
 		}
-	};
-
-
-	/**
-	 * @override
-	 */
-	tests = () =>
-	{
-		const app = this.app,
-			  buildPath = app.getRcPath("base");
-
-		app.wpc.module.rules.push(
-		{
-			test: /index\.js$/,
-			include: join(buildPath, "node_modules", "nyc"),
-			loader: "string-replace-loader",
-			options: {
-				search: "selfCoverageHelper = require('../self-coverage-helper')",
-				replace: "selfCoverageHelper = { onExit () {} }"
-			}
-		},
-		{
-			test: /index\.js$/,
-			include: join(buildPath, "node_modules", "nyc"),
-			loader: "string-replace-loader",
-			options: {
-				search: "selfCoverageHelper = require('../self-coverage-helper')",
-				replace: "selfCoverageHelper = { onExit () {} }"
-			}
-		});
-
-		if (app.source.type === "typescript")
-		{
-			app.wpc.module.rules.push(
-			{
-				test: /\.tsx?$/,
-				include: this.getIncludes(),
-				use: this.getSourceLoader("babel"),
-				exclude: getExcludes(app, this.app.source.config, true)
-			});
-		}
-	};
-
-
-	/**
-	 * @override
-	 * @throws {WpBuildError}
-	 */
-	types = () =>
-	{
-		const app = this.app,
-			  typesConfig = app.build.options.types,
-			  typesSrcPath= app.getSrcPath({ build: app.build.type });
-
-		if (typesConfig && typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
-		{
-			app.wpc.module.rules.push(
-			{
-				// test: new RegExp(`\\.${app.source.ext}x?$`),
-				test: /index\.js$/,
-				loader: resolve(__dirname, "../loaders/dts.js"),
-				options: {
-					test: "index.js"
-				}
-				// type: "asset/resource",
-				// generator: {
-				// 	emit: false
-				// }
-			});
-		}
-		else {
-			throw WpBuildError.getErrorProperty("rules[types]", app.wpc);
-		}
-	};
-
-
-	/**
-	 * @override
-	 */
-	webapp = () =>
-	{
-		const app = this.app,
-			  exclude = getExcludes(app, this.app.source.config);
-
-		app.wpc.module.rules.push(
-		{
-			exclude,
-			test: /\.m?js/,
-			resolve: { fullySpecified: false }
-		});
-
-		if (app.source.type === "typescript")
-		{
-			app.wpc.module.rules.push(
-			{
-				exclude,
-				test: /\.tsx?$/,
-				include: this.getIncludes(),
-				use: this.getSourceLoader()
-			});
-		}
-
-		app.wpc.module.rules.push(
-		{
-			exclude,
-			test: /\.s?css$/,
-			use: [{
-				loader: MiniCssExtractPlugin.loader
-			},
-			{
-				loader: "css-loader",
-				options: {
-					sourceMap: app.wpc.mode !== "production",
-					url: false
-				}
-			},
-			{
-				loader: "sass-loader",
-				options: {
-					sourceMap: app.wpc.mode !== "production"
-				}
-			}]
-		});
-	};
-
-
-	/**
-	 * @private
-	 * @returns {string[]}
-	 */
-	getIncludes = () => uniq([ this.app.getSrcPath(), ...this.app.source.config.includeAbs ]);
-
-
-	/**
-	 * @private
-	 * @param {"esbuild" | "babel" | "ts"} [loader]
-	 * @returns {typedefs.WebpackRuleSetUseItem}
-	 */
-	getSourceLoader = (loader) =>
-	{
-		const app = this.app;
-		if (app.cmdLine.esbuild || loader === "esbuild")
-		{
-			return this.sourceLoaders.esbuild();
-		}
-		if (app.source.type === "typescript")
-		{
-			if (app.cmdLine.babel || loader === "babel")
-			{
-				return this.sourceLoaders.babel();
-			}
-			return this.sourceLoaders.ts();
-		}
-		return this.sourceLoaders.babel();
-	};
+	}
 
 
 	/**
@@ -462,6 +475,124 @@ class WpwRulesExport extends WpwWebpackExport
 			replace: "w.emptyFn]"
 		}]
 	});
+
+
+	/**
+	 * @override
+	 */
+	tests()
+	{
+		const app = this.app,
+			  buildPath = app.getBasePath(),
+			  nycPath = join(buildPath, "node_modules", "nyc");
+
+		if (app.source.type === "typescript")
+		{
+			app.wpc.module.rules.push(
+			{
+				test: /\.tsx?$/,
+				include: this.getIncludes(),
+				use: this.getSourceLoader("babel"),
+				exclude: getExcludes(app, this.app.source.config, true)
+			});
+		}
+
+		if (existsSync(nycPath) && !app.build.options.vendormod?.nyc) // if enabled in options, base() will add
+		{
+			app.wpc.module.rules.push(
+			{
+				test: /index\.js$/,
+				include: join(buildPath, "node_modules", "nyc"),
+				loader: "string-replace-loader",
+				options: {
+					search: "selfCoverageHelper = require('../self-coverage-helper')",
+					replace: "selfCoverageHelper = { onExit () {} }"
+				}
+			});
+		}
+	}
+
+
+	/**
+	 * @override
+	 * @throws {WpwError}
+	 */
+	types()
+	{
+		const app = this.app,
+			  typesConfig = app.build.options.types,
+			  typesSrcPath= app.getSrcPath({ build: app.build.type });
+
+		if (typesConfig && typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
+		{
+			app.wpc.module.rules.push(
+			{
+				// test: new RegExp(`\\.${app.source.ext}x?$`),
+				test: /index\.js$/,
+				loader: resolve(__dirname, "../loaders/dts.js"),
+				options: {
+					test: "index.js"
+				}
+				// type: "asset/resource",
+				// generator: {
+				// 	emit: false
+				// }
+			});
+		}
+		else {
+			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[types]");
+		}
+	}
+
+
+	/**
+	 * @override
+	 */
+	webapp()
+	{
+		const app = this.app,
+			  exclude = getExcludes(app, this.app.source.config);
+
+		app.wpc.module.rules.push(
+		{
+			exclude,
+			test: /\.m?js/,
+			resolve: { fullySpecified: false }
+		});
+
+		if (app.source.type === "typescript")
+		{
+			app.wpc.module.rules.push(
+			{
+				exclude,
+				test: /\.tsx?$/,
+				include: this.getIncludes(),
+				use: this.getSourceLoader()
+			});
+		}
+
+		app.wpc.module.rules.push(
+		{
+			exclude,
+			test: /\.s?css$/,
+			use: [{
+				loader: MiniCssExtractPlugin.loader
+			},
+			{
+				loader: "css-loader",
+				options: {
+					sourceMap: app.wpc.mode !== "production",
+					url: false
+				}
+			},
+			{
+				loader: "sass-loader",
+				options: {
+					sourceMap: app.wpc.mode !== "production"
+				}
+			}]
+		});
+	};
 
 };
 

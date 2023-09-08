@@ -24,3 +24,11 @@ export declare interface IWpwMessageEnum
 {
     [ key: string ]: WpwMessageCode;
 }
+
+export declare abstract class ClsWpwError
+{
+    static Msg: IWpwMessageEnum;
+    static Msgs: IWpwMessage;
+}
+
+export declare interface IWpwError extends ClsWpwError {}

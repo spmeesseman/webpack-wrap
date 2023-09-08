@@ -39,7 +39,7 @@
 
 const WpwPlugin = require("./base");
 const WpBuildApp = require("../core/app");
-const { isString, apply, isObjectEmpty, merge, WpBuildError } = require("../utils");
+const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
 
 /** @typedef {import("../types").WebpackSource} WebpackSource */
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
@@ -172,7 +172,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
                 }
                 else {
                     this.compilation.warnings.push(
-                        new WpBuildError("Non-string content hash not supported yet: " + asset.name)
+                        new WpwError("Non-string content hash not supported yet: " + asset.name)
                     );
                 }
             }

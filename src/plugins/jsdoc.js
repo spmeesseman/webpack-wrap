@@ -222,7 +222,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
 //         if (code !== 0)
 //         {
-//             this.compilation.errors.push(new WpBuildError("jsdoc build failed with exit code " + code, "plugins/jsdoc.js"));
+//             this.compilation.errors.push(new WpwError("jsdoc build failed with exit code " + code, "plugins/jsdoc.js"));
 //             return;
 //         }
 //

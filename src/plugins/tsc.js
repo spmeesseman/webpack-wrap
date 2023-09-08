@@ -11,11 +11,12 @@
 
 const { join } = require("path");
 const dts = require("dts-bundle");
-const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
+const { existsSync } = require("fs");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { access, unlink, readFile } = require("fs/promises");
-const { findFiles, relativePath, resolvePath, WpwMessageEnum, existsAsync } = require("../utils");
+const { findFiles, relativePath, resolvePath, existsAsync } = require("../utils");
 
 
 /**
@@ -36,7 +37,7 @@ class WpwTscPlugin extends WpwPlugin
 		l.value("   types output directory", outputDir, 2);
 
 		if (this.global.typesBundled) {
-			this.app.addInfo(WpwMessageEnum.INFO_BUILD_SKIPPED_NON_FATAL, "dts bundling already completed");
+			this.app.addInfo(WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, "dts bundling already completed");
 			return;
 		}
 
@@ -49,7 +50,7 @@ class WpwTscPlugin extends WpwPlugin
 			);
 			if (!(await existsAsync(outputDir)))
 			{
-				this.app.addError(WpwMessageEnum.ERROR_NO_OUTPUT_DIR, this.compilation, "dts bundling failed");
+				this.app.addError(WpwError.Msg.ERROR_NO_OUTPUT_DIR, this.compilation, "dts bundling failed");
 				return;
 			}
 		}
@@ -90,7 +91,7 @@ class WpwTscPlugin extends WpwPlugin
 
 		// if (!entryFileRel || !entryFileRelBase || !entryFileAbs || !entryFileRelContext)
 		// {
-		// 	this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "could not determine entry file");
+		// 	this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, "could not determine entry file");
 		// 	return;
 		// }
 
@@ -181,7 +182,7 @@ class WpwTscPlugin extends WpwPlugin
 			l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
 		}
 		catch (e) {
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, e);
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, e);
 		}
 	}
 
@@ -194,12 +195,12 @@ class WpwTscPlugin extends WpwPlugin
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
-	 * @throws {typedefs.WpBuildError}
+	 * @throws {typedefs.WpwError}
 	 */
 	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)
 	{
 		if (!sourceCodeConfig || !sourceCodeConfig.path) {
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "invalid source code configured path");
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, "invalid source code configured path");
 			return;
 		}
 		// const babel = [
@@ -216,7 +217,7 @@ class WpwTscPlugin extends WpwPlugin
 		let code = await this.exec(command, "tsc");
 		if (code !== 0)
 		{
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "tsc returned error code " + code);
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, "tsc returned error code " + code);
 			return;
 		}
 		//
@@ -226,7 +227,7 @@ class WpwTscPlugin extends WpwPlugin
 			await access(outputDir);
 		}
 		catch (e) {
-			this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
 			return;
 		}
 		//
@@ -240,7 +241,7 @@ class WpwTscPlugin extends WpwPlugin
 			code = await this.exec(command, "typescript path aliasing");
 			if (code !== 0)
 			{
-				this.app.addError(WpwMessageEnum.ERROR_TYPES_FAILED, this.compilation, "typescript path aliasing failed");
+				this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, "typescript path aliasing failed");
 				return;
 			}
 		}

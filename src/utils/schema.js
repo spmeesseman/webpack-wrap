@@ -10,11 +10,11 @@
 
 const JSON5 = require("json5");
 const WpwRegex = require("./regex");
+const WpwError = require("./message");
 const { readFileSync } = require("fs");
 const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
-const { WpBuildError } = require("./message");
 const { isBoolean, isString, isObject, isObjectEmpty, isEmpty } = require("@spmeesseman/type-utils");
 
 
@@ -83,7 +83,7 @@ const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
 /**
  * @param {typedefs.WpwBuildOptions} options
  * @param {typedefs.WpwBuildOptions} initialOptions
- * @throws {WpBuildError}
+ * @throws {WpwError}
  */
 const validateBuildOptions = (options, initialOptions) =>
 {
@@ -111,7 +111,7 @@ const validateBuildOptions = (options, initialOptions) =>
             }
         }
         else {
-            throw WpBuildError.get("invalid build options schema");
+            throw WpwError.get("invalid build options schema");
         }
     });
 };
@@ -121,7 +121,7 @@ const validateBuildOptions = (options, initialOptions) =>
  * @param {*} options
  * @param {any} logger
  * @param {string} [subschema]
- * @throws {WpBuildError}
+ * @throws {WpwError}
  */
 const validateSchema = (options, logger, subschema) =>
 {
@@ -137,7 +137,7 @@ const validateSchema = (options, logger, subschema) =>
         l.success("   schema validation successful", 1);
     }
     catch (e) {
-        const err = WpBuildError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
+        const err = WpwError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
         l.error(err);
         throw err;
     }

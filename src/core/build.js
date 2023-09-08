@@ -17,7 +17,7 @@ const { resolve, dirname, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
     apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isArray,
-    relativePath, findFilesSync, validateSchema, validateBuildOptions, isBoolean, getDefinitionSchemaProperties, isObject, getDefinitionSchema, isPrimitive, WpBuildError
+    relativePath, findFilesSync, validateSchema, validateBuildOptions, isBoolean, getDefinitionSchemaProperties, isObject, getDefinitionSchema, isPrimitive, WpwError
 } = require("../utils");
 
 const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
@@ -180,8 +180,8 @@ class WpwBuild extends WpwBase
             return dst;
         };
 
-        this.logger.write(`configure build '${this.name}'`, 1);
         merge(this, buildConfig);
+        this.logger.write(`configure build '${this.name}'`, 1);
 
         this.logger.write("   apply base configuration", 2);
         apply(this, { mode: this.mode || this.rc.mode, target: this.getTarget(), type: this.getType() });
@@ -281,7 +281,7 @@ class WpwBuild extends WpwBase
      * @param {any} definitions
      * @param {string} [baseKey]
      * @returns {T}
-     * @throws {WpBuildError}
+     * @throws {WpwError}
      */
     mergeOptions = (optionsCfg, schemaObject, definitions, baseKey) =>
     {
@@ -301,10 +301,10 @@ class WpwBuild extends WpwBase
                     }
                 }
                 // else if (isBoolean(def)) {
-                //     throw WpBuildError.getErrorProperty("schema.definition." + key);
+                //     throw WpwError.getErrorProperty("schema.definition." + key);
                 // }
                 else if (isPrimitive(def) || isArray(def)) {
-                    throw WpBuildError.getErrorProperty("schema.definition." + key);
+                    throw WpwError.getErrorProperty("schema.definition." + key);
                 }
                 else if (def.default) {
                     // if (isPrimitive(def.default)) {

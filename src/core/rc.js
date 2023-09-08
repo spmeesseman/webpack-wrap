@@ -19,7 +19,7 @@ const { resolve, basename, join, dirname } = require("path");
 const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
 const { isWpwWebpackMode, WpwPackageJsonProps } = require("../types/constants");
 const {
-    WpBuildError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, isPromise, clone
+    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, isPromise, clone
 } = require("../utils");
 
 
@@ -134,7 +134,7 @@ class WpwRc extends WpwBase
      * @param {string} [dirPath]
      * @param {string[]} properties
      * @returns {{ path: string; data: T; }}
-     * @throws {WpBuildError}
+     * @throws {WpwError}
      */
     applyJsonFromFile = (thisArg, file, dirPath = resolve(), ...properties) =>
     {
@@ -150,7 +150,7 @@ class WpwRc extends WpwBase
         catch
         {   const parentDir = dirname(dirPath);
             if (parentDir === dirPath) {
-                throw new WpBuildError(`Could not locate or parse '${basename(file)}', check existence or syntax`);
+                throw new WpwError(`Could not locate or parse '${basename(file)}', check existence or syntax`);
             }
             return this.applyJsonFromFile(thisArg, file, parentDir);
         }
@@ -166,7 +166,7 @@ class WpwRc extends WpwBase
     {
         apply(this, { mode: this.getMode(arge, argv, true) });
         if (!isWpwWebpackMode(this.mode)) {
-            throw WpBuildError.getErrorMissing("mode");
+            throw WpwError.getErrorMissing("mode");
         }
         // if (argv.mode && !isWebpackMode(this.mode))
         // {
@@ -279,7 +279,7 @@ class WpwRc extends WpwBase
         for (const app of rc.apps)
         {
             if (!app.build.mode || !app.build.target || !app.build.type) {
-                throw WpBuildError.getErrorProperty("type");
+                throw WpwError.getErrorProperty("type");
             }
             wpConfigs.push(app.buildWrapper());
             apply(app.build, { active: true });

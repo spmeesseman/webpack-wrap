@@ -146,8 +146,9 @@ class WpwLogger
     /**
      * @param {any} msg
      * @param {string} [pad]
+     * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    error = (msg, pad) =>
+    error = (msg, pad, color) =>
     {
         let sMsg = msg;
         if (msg)
@@ -178,7 +179,7 @@ class WpwLogger
             {
                 sMsg = msg.toString();
             }
-            this.write(sMsg, undefined, pad, this.icons.color.error);
+            this.write(sMsg, undefined, pad, this.icons.color.error, color);
         }
     };
 
@@ -521,8 +522,9 @@ class WpwLogger
     /**
      * @param {any} msg
      * @param {string} [pad]
+     * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    warning = (msg, pad) => this.write(msg, undefined, pad, this.icons.color.warning);
+    warning = (msg, pad, color) => this.write(msg, undefined, pad, this.icons.color.warning, color);
 
     /**
      * @param {string | undefined} msg
@@ -547,7 +549,7 @@ class WpwLogger
      * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
-     * @param {typedefs.WpwLogColorMapping | null} [color]
+     * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
     write = (msg, level, pad = "", icon, color) =>
     {

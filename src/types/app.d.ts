@@ -23,7 +23,7 @@
 
 import { IWpwLogger } from "./logger";
 import { WpwErrorCode, WpwInfoCode, WpwWarningCode } from "./message";
-import { IDisposable, ClsWpBuildError } from "./generic";
+import { IDisposable, ClsWpwError } from "./generic";
 import {
     EmitResult, CustomTransformers, CancellationToken, CompilerOptions, WriteFileCallback, SourceFile
 } from "typescript";
@@ -75,10 +75,10 @@ declare interface IWpBuildApp extends IDisposable
 {
     build: IWpwBuild;
     disposables: IDisposable[];
-    errors: ClsWpBuildError[];
-    info: ClsWpBuildError[];
+    errors: ClsWpwError[];
+    info: ClsWpwError[];
     logger: IWpwLogger;
-    warnings: ClsWpBuildError[];
+    warnings: ClsWpwError[];
     wpc: WpwWebpackConfig;
     readonly buildCount: number;
     readonly cmdLine: WpBuildCombinedRuntimeArgs;
@@ -95,7 +95,6 @@ declare interface IWpBuildApp extends IDisposable
     getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
     getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
     getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
-    getRcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(key: WpwRcPathsKey, arg: P): R;
     getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
 }
 

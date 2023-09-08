@@ -12,31 +12,39 @@
 const WpwPlugin = require("./base");
 const { apply } = require("../utils");
 const WpBuildApp = require("../core/app");
-
-/** @typedef {import("../types").WebpackAsset} WebpackAsset */
-/** @typedef {import("../types").WebpackChunk} WebpackChunk */
-/** @typedef {import("../types").WebpackSource} WebpackSource */
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
+const typedefs = require("../types/typedefs");
 
 
 /**
  * @extends WpwPlugin
  */
-class WpBuildIstanbulPlugin extends WpwPlugin
+class WpwIstanbulPlugin extends WpwPlugin
 {
+    /** @type {typedefs.WpwBuildOptionsConfig<"istanbul">} @private */
+    buildOptions;
+
+
     /**
-     * @param {WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
+
+
+	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+	 * @returns {WpwIstanbulPlugin | undefined}
+     */
+	static build(app)
+	{
+		return app.build.options.istanbul ? new WpwIstanbulPlugin({ app }) : undefined;
+	}
 
 
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -54,7 +62,7 @@ class WpBuildIstanbulPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationAssets} assets
      */
     istanbulTags(assets)
     {
@@ -72,8 +80,8 @@ class WpBuildIstanbulPlugin extends WpwPlugin
     /**
      * @private
      * @param {string} file
-     * @param {WebpackSource} sourceInfo
-     * @returns {WebpackSource}
+     * @param {typedefs.WebpackSource} sourceInfo
+     * @returns {typedefs.WebpackSource}
      */
     tagSource(file, sourceInfo)
     {
@@ -194,12 +202,5 @@ class WpBuildIstanbulPlugin extends WpwPlugin
     // };
 }
 
-/**
- * @param {WpBuildApp} app
- * @returns {WpBuildIstanbulPlugin | undefined}
- */
-const istanbul = (app) =>
-    (app.build.options.istanbul ? new WpBuildIstanbulPlugin({ app }) : undefined);
 
-
-module.exports = istanbul;
+module.exports = WpwIstanbulPlugin.build;

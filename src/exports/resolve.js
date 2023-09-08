@@ -8,13 +8,11 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { join } = require("path");
-const { apply, isFunction, WpBuildError, WpwMessageEnum } = require("../utils");
 const { stat, readFile } = require("fs");
-const WpBuildApp = require("../core/app");
+const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
-const resolvePath = require("path").resolve;
 const typedefs = require("../types/typedefs");
+const { apply, isFunction, WpwError} = require("../utils");
 
 
 /**
@@ -32,7 +30,7 @@ class WpwResolveExport extends WpwWebpackExport
 	constructor(options)
 	{
 		super(options);
-		this.nodeModulesPath = resolvePath(__dirname, "../../node_modules");
+		this.nodeModulesPath = resolve(__dirname, "../../node_modules");
 	}
 
 
@@ -46,7 +44,7 @@ class WpwResolveExport extends WpwWebpackExport
 	/**
 	 * @override
      * @protected
-	 * @throws {WpBuildError}
+	 * @throws {WpwError}
 	 */
 	build = () =>
 	{
@@ -59,7 +57,7 @@ class WpwResolveExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			throw WpBuildError.getErrorProperty("rules", app.wpc);
+			throw WpwError.getErrorProperty("rules", app.wpc);
 		}
 		app.logger.success("create resolve configuration", 2);
 	};
@@ -88,7 +86,7 @@ class WpwResolveExport extends WpwWebpackExport
 					"@babel": join(this.nodeModulesPath, "@babel")
 				},
 				modules: [
-					resolvePath(__dirname, "../loaders"),
+					resolve(__dirname, "../loaders"),
 					this.nodeModulesPath,
 					"node_modules"
 				]
@@ -105,7 +103,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.jsdoc");
+			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.jsdoc");
 		}
 	}
 
@@ -145,7 +143,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.tests");
+			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.tests");
 		}
 	}
 
@@ -158,14 +156,14 @@ class WpwResolveExport extends WpwWebpackExport
 			this.app.logger.start("   apply types build `module` resolve config", 2);
 			apply(this.app.wpc.resolve,
 			{
-				fileSystem: {
-					readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-					readlink: (arg0, arg1) => arg1(undefined, ""),
-					// @ts-ignore
-					readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-					// @ts-ignore
-					stat: (arg1, arg2) => stat(arg1, () => arg2(undefined, { isFile: () => true }))
-				}
+				// fileSystem: {
+				// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
+				// 	readlink: (arg0, arg1) => arg1(undefined, ""),
+				// 	// @ts-ignore
+				// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+				// 	// @ts-ignore
+				// 	stat: (arg1, arg2) => stat(arg1, () => arg2(undefined, { isFile: () => true }))
+				// }
 				// resolver: {
 				// 	fileSystem: {
 				// 		readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
@@ -189,7 +187,7 @@ class WpwResolveExport extends WpwWebpackExport
 			});
 		}
 		else {
-			this.app.addWarning(WpwMessageEnum.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.types");
+			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.types");
 		}
 	}
 

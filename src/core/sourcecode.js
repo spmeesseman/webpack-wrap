@@ -16,7 +16,7 @@ const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
     isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
-    typedefs, mergeIf, apply, WpBuildError
+    typedefs, mergeIf, apply, WpwError
 } = require("../utils");
 
 
@@ -90,7 +90,7 @@ class WpwSourceCode
     {
         const ts = WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         if (!ts) {
-            throw WpBuildError.get("typescript.program is unavailable");
+            throw WpwError.get("typescript.program is unavailable");
         }
         this.cleanupProgram();
         const programOptions = merge({}, this.config.options.compilerOptions, compilerOptions),
@@ -112,7 +112,7 @@ class WpwSourceCode
 	 * @private
      * @param {typedefs.TypeScriptCompilerOptions} options typescript compiler options
      * @param {typedefs.TypeScript} ts
-     * @throws {WpBuildError}
+     * @throws {WpwError}
      */
     createCompilerHost = (options, ts) =>
     {
@@ -134,12 +134,12 @@ class WpwSourceCode
      * @param {typedefs.TypeScriptCancellationToken} [cancellationToken]
      * @param {boolean} [emitOnlyDts]
      * @param {typedefs.TypeScriptCustomTransformers} [transformers]
-     * @throws {WpBuildError}
+     * @throws {WpwError}
      */
     emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
     {
         if (!this.program) {
-            throw WpBuildError.get("typescript.program is not initialized");
+            throw WpwError.get("typescript.program is not initialized");
         }
 
         const logger = this.logger;

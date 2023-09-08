@@ -10,12 +10,9 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const typedefs = require("../types/typedefs");
 const { isString, requireResolve } = require("../utils");
-
-/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
-const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
-/*  // const webpack = require("webpack"); */
-/*  // const webpack = require("webpack"); */
+const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 /** @typedef {import("../core/app")} WpBuildApp */
 /** @typedef {import("webpack").BannerPlugin} BannerPlugin */
 

@@ -23,7 +23,7 @@ const cache = (app) =>
 {
 	if (app.build.options.cache)
 	{
-        const basePath = app.getRcPath("base");
+        const basePath = app.getBasePath();
 		apply(app.wpc.cache, {
             type: "filesystem",
             cacheDirectory: join(app.global.cacheDir, "webpack"),

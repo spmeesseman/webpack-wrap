@@ -64,6 +64,7 @@
 /** @typedef {import("./rc").WpwOptionsConfigBase} WpwOptionsConfigBase */
 /** @typedef {import("./rc").WpwPackageJsonAuthor} WpwPackageJsonAuthor */
 /** @typedef {import("./rc").WpwPluginConfigJsDoc} WpwPluginConfigJsDoc */
+/** @typedef {import("./rc").WpwPluginConfigMocha} WpwPluginConfigMocha */
 /** @typedef {import("./rc").WpwPluginConfigTypes} WpwPluginConfigTypes */
 /** @typedef {import("./rc").WpwWebpackAliasValue} WpwWebpackAliasValue */
 /** @typedef {import("./rc").WpwWebpackEntryValue} WpwWebpackEntryValue */
@@ -85,6 +86,7 @@
 /** @typedef {import("./constants").WpwPackageJsonProps} WpwPackageJsonProps */
 /** @typedef {import("./rc").TypeWpwSourceCodeConfig} TypeWpwSourceCodeConfig */
 /** @typedef {import("./rc").WpwPluginConfigCopyItem} WpwPluginConfigCopyItem */
+/** @typedef {import("./rc").WpwPluginConfigIstanbul} WpwPluginConfigIstanbul */
 /** @typedef {import("./rc").WpwPluginConfigLogHooks} WpwPluginConfigLogHooks */
 /** @typedef {import("./rc").WpwPluginConfigWaitItem} WpwPluginConfigWaitItem */
 /** @typedef {import("./constants").isWebpackLibraryType} isWebpackLibraryType */
@@ -262,6 +264,9 @@
  * MESSAGE.D.TS
  ***********************************************************************************************************************/
 
+/** @typedef {import("../utils/message")} WpwError */
+/** @typedef {import("./message").IWpwError} IWpwError */
+/** @typedef {import("./message").ClsWpwError} ClsWpwError */
 /** @typedef {import("./message").IWpwMessage} IWpwMessage */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */

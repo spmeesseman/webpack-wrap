@@ -15,17 +15,14 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const { WpwRegex, WpwMessageEnum } = require("../utils");
 const { existsSync } = require("fs");
+const { WpwRegex } = require("../utils");
 const WpBuildApp = require("../core/app");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
+const WpwError = require("../utils/message");
+const typedefs = require("../types/typedefs");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
-
-/** @typedef {import("../types").WebpackStats} WebpackStats */
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
@@ -34,7 +31,7 @@ const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 class WpBuildUploadPlugin extends WpwPlugin
 {
     /**
-     * @param {WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
     {
@@ -47,7 +44,7 @@ class WpBuildUploadPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -69,7 +66,7 @@ class WpBuildUploadPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackStats} _stats
+     * @param {typedefs.WebpackStats} _stats
      * @throws {WebpackError}
      */
     async cleanup(_stats)
@@ -86,14 +83,14 @@ class WpBuildUploadPlugin extends WpwPlugin
                 this.app.logger.write("upload plugin cleanup completed");
         }   }
         catch (e) {
-			this.app.addError(WpwMessageEnum.ERROR_GENERAL, this.compilation, e);
+			this.app.addError(WpwError.Msg.ERROR_GENERAL, this.compilation, e);
         }
     };
 
 
     /**
      * @private
-     * @param {WebpackCompilation} compilation
+     * @param {typedefs.WebpackCompilation} compilation
      * @throws {WebpackError}
      */
     async debugSupportFiles(compilation)
@@ -194,7 +191,7 @@ class WpBuildUploadPlugin extends WpwPlugin
             `${user}@${host}:"${rBasePath}/${name}/v${app.pkgJson.version}"` // uploaded, and created if not exists
         ];
 
-        await copyFile(join(this.app.getRcPath("base"), "node_modules", "source-map", "lib", "mappings.wasm"), join(toUploadPath, "mappings.wasm"));
+        await copyFile(join(this.app.getBasePath(), "node_modules", "source-map", "lib", "mappings.wasm"), join(toUploadPath, "mappings.wasm"));
 
         logger.write(`   upload resource files to ${host}`, 1, "");
         try

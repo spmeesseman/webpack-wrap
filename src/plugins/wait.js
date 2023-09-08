@@ -12,7 +12,7 @@
 const { existsSync } = require("fs");
 const { EventEmitter } = require("events");
 const typedefs = require("../types/typedefs");
-const { WpBuildError, merge, isPromise, pushIfNotExists } = require("../utils");
+const { WpwError, merge, isPromise, pushIfNotExists } = require("../utils");
 
 
 class WpwPluginWaitManager
@@ -87,7 +87,7 @@ class WpwPluginWaitManager
             }
             else if (Date.now() - start > options.timeout)
             {
-                reject(new WpBuildError(`Wait operation times out at ${options.timeout} ms`));
+                reject(new WpwError(`Wait operation times out at ${options.timeout} ms`));
             }
             else {
                 setTimeout(_poll, options.interval, resolve, reject);

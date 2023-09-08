@@ -11,7 +11,7 @@
 
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const { merge, isObject, WpwLogger, apply } = require("../utils");
+const { merge, isObject, WpwLogger, apply, pickNot } = require("../utils");
 
 
 /**
@@ -41,7 +41,7 @@ class WpwBase
         apply(this, {
             global: globalEnv,
             name: this.constructor.name,
-            initialConfig: merge({}, options)
+            initialConfig: merge({}, pickNot(options, "app"))
         });
 
         if (isObject(options.logger))

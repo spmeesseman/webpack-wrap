@@ -10,7 +10,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { getExcludes, WpBuildError } = require("../../utils");
+const { getExcludes, WpwError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 
@@ -30,7 +30,7 @@ const circular = (app) =>
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                compilation.warnings.push(new WpBuildError(paths.join(" -> ")));
+                compilation.warnings.push(new WpwError(paths.join(" -> ")));
             }
         });
     }
