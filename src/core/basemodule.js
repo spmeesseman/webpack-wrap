@@ -9,12 +9,9 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBase = require("./base");
+const WpwBase = require("./base");
 const typedefs = require("../types/typedefs");
-const {
-    lowerCaseFirstChar, WpwError, isWpwBuildOptionsPluginKey, isWpwBuildOptionsExportKey,
-    isWpwBuildOptionsExportKeyInternal, isWpwBuildOptionsPluginKeyInternal
-} = require("../utils");
+const { lowerCaseFirstChar, WpwError, isWpwBuildOptionsKey } = require("../utils");
 
 
 /**
@@ -81,9 +78,9 @@ class WpwBaseModule extends WpwBase
 
 
     /**
-     * @returns {typedefs.WpwBuildOptionsPluginKey}
+     * @returns {typedefs.WpwBuildOptionsKey}
      */
-    get baseName() { return /** @type {typedefs.WpwBuildOptionsPluginKey} */(
+    get baseName() { return /** @type {typedefs.WpwBuildOptionsKey} */(
         this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|(?:Webpack)?Export$/g, "")
     ); }
 
@@ -127,8 +124,7 @@ class WpwBaseModule extends WpwBase
      * @returns {K is typedefs.WpwBuildOptionsKey}
      */
     isValidOptionsKey = (key) =>
-        !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsPluginKey(key) || isWpwBuildOptionsExportKey(key) ||
-                  isWpwBuildOptionsExportKeyInternal(key) || isWpwBuildOptionsPluginKeyInternal(key));
+        !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsKey(key));
 
     /**
      * @private

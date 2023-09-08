@@ -11,7 +11,7 @@
 
 const WpwPlugin = require("./base");
 const { join, posix } = require("path");
-const { existsAsync, WpwBuildOptionsPluginKeys, apply, resolvePath } = require("../utils");
+const { existsAsync, WpwBuildOptionsKeys, apply, resolvePath } = require("../utils");
 const typedefs = require("../types/typedefs");
 const { readdir, unlink, rmdir } = require("fs/promises");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
@@ -122,7 +122,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 		{
 			const buildOptions = this.app.build.options;
 			await Promise.all([
-				WpwBuildOptionsPluginKeys
+				WpwBuildOptionsKeys
 				.filter((plugin => !!buildOptions[plugin]))
 				.map(
 					(plugin) => join(

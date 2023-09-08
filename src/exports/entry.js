@@ -139,7 +139,7 @@ class WpwEntryExport extends WpwWebpackExport
 		});
 		if (app.build.debug)
 		{
-			/** @type {typedefs.WpwWebpackEntryObject} */
+			/** @type {typedefs.IWpwWebpackEntryObject} */
 			(app.wpc.entry[app.build.name]).layer = "release";
 			apply(app.wpc.entry,
 			{
@@ -174,7 +174,7 @@ class WpwEntryExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.WpwWebpackEntry}
+	 * @returns {typedefs.IWpwWebpackEntry}
 	 */
 	testRunner(testsPathAbs)
 	{
@@ -196,7 +196,7 @@ class WpwEntryExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.WpwWebpackEntry}
+	 * @returns {typedefs.IWpwWebpackEntry}
 	 */
 	testSuite(testsPathAbs)
 	{

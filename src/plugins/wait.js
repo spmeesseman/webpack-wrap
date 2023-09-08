@@ -17,9 +17,9 @@ const { WpwError, merge, isPromise, pushIfNotExists } = require("../utils");
 
 class WpwPluginWaitManager
 {
-    /** @type {typedefs.WpwBuildOptionsPluginKey[]} @private */
+    /** @type {typedefs.WpwBuildOptionsKey[]} @private */
     done;
-    /** @type {typedefs.WpwBuildOptionsPluginKey[]} @private */
+    /** @type {typedefs.WpwBuildOptionsKey[]} @private */
     waiting;
     /** @type {EventEmitter} @private */
     onPluginEvent;

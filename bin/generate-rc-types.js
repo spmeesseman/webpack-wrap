@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable import/no-extraneous-dependencies */
-
+// @ts-nocheck
 
 /**
  * @file utils/environment.js
@@ -17,6 +17,7 @@ const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
 const WpBuildConsoleLogger = require("../src/utils/console");
 
+const RUN_VALIDATION = true;
 
 const description = "Provides types macthing the .wpbuildrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
@@ -29,18 +30,7 @@ const excludeTypedefs = [
     "WpwBooleanReadOnly", "WpwBooleanDefaultFalse", "WpwBooleanDefaultTrue", "WpwBuildOptionsPluginKeyReadOnly"
 ];
 
-const exclueConstants = [
-    "WpwBuildOptionsPluginKeyReadOnly"
-];
-
-/**
- * Types that will have constant defs placed into constants.js, and object keys enumerated into separate type
- */
-const fullTypes = [
-    "WpwLog", "WpwLogPad", "WpwRcPaths", "WpwVsCodeConfig", "WpwBuild", "WpwLogTrueColor", "WpwLogColors",
-    "WpwLogColor", "WpwSourceCode", "WpwSourceCodeConfig", "WpwSourceCodeConfigOptions", "WpwBuildOptions",
-    "WpwBuildOptionsPlugins", "WpwBuildOptionsCustom", "WpwBuildOptionsExports", "WpwPackageJson" // , "WpwMessage"
-];
+const exclueConstants = [];
 
 const generateEnums = [
     // "WpwMessage"
@@ -48,7 +38,7 @@ const generateEnums = [
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts" // , "WpwMessage"
+    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts", "WpwBuildOptions"
 ];
 
 const extFilesCreateEnums = [
@@ -56,7 +46,7 @@ const extFilesCreateEnums = [
 ];
 
 const mapValueTypesAllowUndefined = [
-    "WpwWebpackAliasValue", "WpwWebpackEntryValue", "unknown"
+    "WpwWebpackAliasValue", "WpwWebpackEntryValue"
 ];
 
 /**
@@ -113,10 +103,12 @@ const typedefs = [];
 /** @type {WpBuildConsoleLogger} */
 let logger;
 
-
-//
-// Run from script directtory so we work regardless of where cwd is set
-//
+// @ts-ignore
+// String.prototype.wpwreplace = (/** @type {string} */ fn, /** @type {string} */ data) => replace[fn](data);
+Object.defineProperty(String.prototype, "wpwreplace",
+{   // eslint-disable-next-line object-shorthand
+    value: function(/** @type {string} */ fn) { return wpwreplace[fn](this); }
+});
 
 
 //
@@ -127,48 +119,6 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */exe) =>
                     exe(argv).catch(e => { try { (logger || console).error(e); } catch {} process.exit(1); });
                 };
 
-
-Object.defineProperty(String.prototype, "wpwreplace",
-{
-    value: (/** @type {string} */ fn, /** @type {string} */ data) => replace[fn](data)
-});
-
-// @ts-ignore
-String.prototype.wpwreplace = (/** @type {string} */ fn, /** @type {string} */ data) => replace[fn](data);
-
-
-const replace =
-{
-    trailingSpaces: (/** @type {string} */data) => data.replace(/ +\n/g, "\n")
-};
-
-
-const formatInterface = (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
-{
-    let src = `\nexport declare interface I${m1} ${m2}\n}\n`;
-    pushTypedef("rc", "type", `I${m1}`);
-    if (isFullType(m1))
-    {
-        src = `export declare type ${m1} = I${m1};\n` +
-              `export declare type ${m1}Key = keyof ${m1};\n`;
-              // `export declare type Type${m1} = Required<${m1}>;\n`;
-        logger.log(`      added interface I${m1} and related types`);
-        pushTypedef("rc", "type", m1, `${m1}Key`);
-        pushEnum(m1, "type", m2);
-    }
-    requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
-        src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
-    });
-    return src;
-};
-
-
-/**
- * @returns {boolean}
- */
-const isFullType = (/** @type {string} */type) => fullTypes.includes(type);
-
-
 /**
  * @returns {Promise<string>}
  */
@@ -178,39 +128,28 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
 
     data = data
           .replace(/\r\n/g, "\n").replace(new RegExp(EOL,"g"), "\n")
-          .replace(/\/\*\*(?:[^]*?)\*\//g, "")
-          .replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
-          .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
-          .replace(/\[k\: string\]: (.*?);/g, (v, m) => { if (mapValueTypesAllowUndefined.includes(m)) return`[k: string]: ${m} | undefined;`; return v; })
-          .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n/g, "")
-          .replace(/WpwDirectoryPath[0-9]/g, "WpwDirectoryPath")
-          .replace(/\/\* eslint\-disable \*\/$/gm, "")
-          .replace(/\n\}\nexport /g, "\n}\n\nexport ")
-          .replace(/author\?\:[^]*?(?:\}|\));/, "author?: string | { name: string; email?: string };")
-          .replace(/export type WebpackEntry =\s+\|(?:[^]*?)\};/g, (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " "))
-          .replace(/(export type (?:.*?)\n)(export type)/g, (_, m1, m2) => `\n${m1}\n${m2}`)
-          .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
-          .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, formatInterface)
-          .replace(/\nexport type (.*?) =/g, (v, m) => { pushTypedef("rc", "type", m); return v.replace("export type", "export declare type"); })
-          .replace(/([^\|]) \{\n    /g, (_, m) => m + " \n{\n    ")
+          .wpwreplace("removeComments")
+          .wpwreplace("removeOrFormatNumberedDupTypes")
+          .wpwreplace("formatPackageJsonAuthor")
+          .wpwreplace("formatWebpackEntry")
+          .wpwreplace("formatInterface")
+          .wpwreplace("formatType")
+          .replace(/([^\|]) \{\n    /g, (_, m) => m + "\n{\n    ")
           .replace(/\n    \| +(["0-9])/g, (_, m) => " | " + m)
           .replace(/(?:\n){3,}/g, "\n\n")
           .replace(/[a-z] = +\| +"[a-z]/g, (v) => v.replace("= |", "="))
           .replace(/[\w] ;/g, (v) => v.replace(" ;", ";"))
-          .replace(/;\n\s+;\n/g, ";\n\n")
           .replace(/\n\};?\n/g, "\n}\n")
-          .replace(/[^]+?$/, replaceBooleanTypedefs)
-          .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
-          .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n")
+          .wpwreplace("replaceBooleanTypedefs")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
-          .replace(/    ([a-z?]+?): +\n\{/g, (_, m) => "    " + m + ":\n    {")
-          .replace(/([a-z?]): +\n/g, (_, m) => m + ":\n")
           .replace(/ = \{ "= /g, "")
           .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
-          .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
-          .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
+          .wpwreplace("justifyInnerObjects")
           .replace(/"\}/g, "\"\n}")
-          .wpwreplace(/ +& +\n/g, " &\n")
+          .replace(/( +)\}\n( +)\{\n/g, (v, m1, m2) => `${m1}},\n${m2}\n}`)
+          .wpwreplace("mappedTypeToAnyOrUndef")
+          .wpwreplace("trailingSemiColons")
+          .wpwreplace("trailingSpaces")
           .replace(/\n/g, EOL);
 
     await writeFile(outputDtsPath, `${EOL}${hdr}${EOL}${EOL}${EOL}${data.trim()}${EOL}`);
@@ -336,14 +275,90 @@ const pushTypedef = (/** @type {string} */source, /** @type {"enum" | "type"} */
 };
 
 
-const replaceBooleanTypedefs = (data) =>
+/**
+ * @type {Record<string, (data: string) => string>}
+ */
+const wpwreplace =
 {
-    return data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
+    formatInterface: (data) =>
+    {
+        return data.replace(
+            /\nexport interface (.*?) ([^]*?)\n\}/g,
+            (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
+            {
+                logger.log(`      added interface I${m1} and related types`);
+                let src = `\nexport declare interface I${m1} ${m2}\n}\n`;
+                pushTypedef("rc", "type", `I${m1}`);
+                pushEnum(m1, "type", m2);
+                if (!classTypes.includes(m1))
+                {
+                    src += `export declare type ${m1} = I${m1};\n` +
+                        `export declare type ${m1}Key = keyof ${m1};\n`;
+                        // `export declare type Type${m1} = Required<${m1}>;\n`;
+                    pushTypedef("rc", "type", m1, `${m1}Key`);
+                    pushEnum(m1, "type", m2);
+                }
+                requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
+                    src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
+                });
+                return src;
+            }
+        );
+    },
+    formatPackageJsonAuthor: (data) =>
+    {
+        return data.replace(/author\?\:[^]*?(?:\}|\));/, "author?: string | { name: string; email?: string };");
+    },
+    formatType: (data) =>
+    {
+        return data.replace(
+            /\nexport type (.*?) =/g, (v, m) =>
+            {
+                pushTypedef("rc", "type", m);
+                return v.replace("export type", "export declare type");
+            }
+        );
+    },
+    formatWebpackEntry: (data) =>
+    {
+        return data.replace(
+            /export type WebpackEntry =\s+\|(?:[^]*?)\};/g,
+            (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " ")
+        );
+    },
+    justifyInnerObjects: (data) =>
+    {
+        return data.replace(/    ([a-z?]+?): +\n\{/g, (_, m) => "    " + m + ":\n    {")
+                   .replace(/([a-z?]): +\n/g, (_, m) => m + ":\n")
+                   .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
+                   .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "));
+    },
+    mappedTypeToAnyOrUndef: (data) =>
+    {
+        return data.replace(/\[k\: string\]: (.*?);/g, (v, m) =>
+        {
+            if (mapValueTypesAllowUndefined.includes(m)) return`[k: string]: ${m} | undefined;`; return v;
+        })
+        .replace(/\]\: unknown;/g, "]: any;");
+    },
+    removeComments: (data) => data.replace(/\/\*\*(?:[^]*?)\*\//g, "").replace(/\/\* eslint\-disable \*\/$/gm, ""),
+    removeOrFormatNumberedDupTypes: (data) =>
+    {
+        return data.replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
+                   .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
+                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n/g, "");
+    },
+    replaceBooleanTypedefs: (data) =>
+    {
+        return data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
                .replace(/    (.*?)\?\: WpwBuildOptionsPluginKeyReadOnly;/g, (_, m) => `    readonly ${m}?: WpwBuildOptionsPluginKey;`)
                .replace(/    (.*?)\?\: WpwBooleanDefaultTrue;/g, (v, m) => `    ${m}?: boolean;`)
                .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`)
                .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
                .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
+    },
+    trailingSemiColons: (data) => data.replace(/; *\};/g, " };"),
+    trailingSpaces: (data) => data.replace(/ +\n/g, "\n")
 };
 
 
@@ -355,8 +370,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
     const _proc = (data, baseSrc) =>
     {
         const rgxPropEnum = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
-              rgxType = new RegExp(`export declare type (${constantObjectKeyProperties.join("|")}) = *${EOL}\\{\\s*([^]*?)${EOL}\\};${EOL}`, "g"),
-              rgxEnum = new RegExp(`export declare enum (${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?),?${EOL}\\}${EOL}`, "g");
+              rgxType = new RegExp(`export declare interface I(${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?)${EOL}\\}${EOL}`, "g");
 
         while ((match = rgxPropEnum.exec(data)) !== null)
         {
@@ -377,22 +391,11 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
             {
                 pushTypedef(baseSrc, "type", match[1]);
-                const propFmt = match[1].replace("Type", ""),
-                      valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
+                const valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
                                               .replace(/(?:, ""|"", )/g, "");
-                pushTypedef("constants", "type", ...pushExport(propFmt, "Props", valuesFmt, `(keyof typedefs.${propFmt})`));
+                pushTypedef("constants", "type", ...pushExport(match[1], "Keys", valuesFmt, `(keyof typedefs.${match[1]})`));
                 pushEnum(match[1], "enum", match[2]);
             }
-        }
-
-        while ((match = rgxEnum.exec(data)) !== null)
-        {
-            const valuesFmt = `"${match[2].replace(new RegExp(` *= *(.*?)(?:,${EOL}    |,${EOL}}|$)`, "g"), "\", \"")}"`
-                                          .replace(/(?:, ""|"", )/gm, "");
-            pushTypedef(baseSrc, "type", match[1]);
-            pushTypedef(baseSrc, "enum", match[1] + "Type");
-            pushTypedef("constants", "type", ...pushExport(match[1], "Props", valuesFmt, `(keyof typedefs.${match[1] + "Type"})`));
-            pushEnum(match[1], "object", match[2]);
         }
 
         const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
@@ -459,20 +462,26 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
         await writeTypedefsJs();
 
-        logger.write(`      validating ${constantsFile}`);
-        const code = await execAsync({
-            logger,
-            logPad: "      ",
-            program: "tsc",
-            execOptions: { cwd: outputDtsDir },
-            command: `npx tsc --moduleResolution node --target es2020 --noEmit --skipLibCheck --allowJs ./${constantsFile}`
-        });
+        if (RUN_VALIDATION !== false)
+        {
+            logger.write(`      validating ${constantsFile}`);
+            const code = await execAsync({
+                logger,
+                logPad: "      ",
+                program: "tsc",
+                execOptions: { cwd: outputDtsDir },
+                command: `npx tsc --moduleResolution node --target es2020 --noEmit --skipLibCheck --allowJs ./${constantsFile}`
+            });
 
-        if (code === 0) {
-            logger.success(`   created ${constantsFile} (${constantsPath})`);
+            if (code === 0) {
+                logger.success(`   created ${constantsFile} (${constantsPath}) [tsc validated]`);
+            }
+            else {
+                await promptForRestore(constantsPath, constantsData);
+            }
         }
         else {
-            await promptForRestore(constantsPath, constantsData);
+            logger.success(`   created ${constantsFile} (${constantsPath}) [no tsc validation]`);
         }
     }
 };
@@ -556,20 +565,23 @@ cliWrap(async () =>
         throw new Error(`Output file '${outputDtsFile}' does not exist`);
     }
 
-    logger.write(`   validating ${outputDtsFile}`);
-    code = await execAsync({
-        logger,
-        logPad: "   ",
-        program: "tsc",
-        execOptions: { cwd: outputDtsDir },
-        command: `npx tsc --target es2020 --noEmit --skipLibCheck ./${outputDtsFile}`
-    });
+    if (RUN_VALIDATION !== false)
+    {
+        logger.write(`   validating ${outputDtsFile}`);
+        code = await execAsync({
+            logger,
+            logPad: "   ",
+            program: "tsc",
+            execOptions: { cwd: outputDtsDir },
+            command: `npx tsc --target es2020 --noEmit --skipLibCheck ./${outputDtsFile}`
+        });
 
-    if (code === 0) {
-        logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
-    }
-    else {
-        code = await promptForRestore(outputDtsPath, data);
+        if (code === 0) {
+            logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
+        }
+        else {
+            code = await promptForRestore(outputDtsPath, data);
+        }
     }
 
     if (code === 0)
@@ -581,7 +593,8 @@ cliWrap(async () =>
     }
 
     logger.blank(undefined, logger.icons.color.success);
-    logger.success("types and typings created successfully", undefined, "", true);
+    const msg = RUN_VALIDATION !== false ? " [tsc validated]" : " [no tsc validation]";
+    logger.success("types and typings created successfully" + msg, undefined, "", true);
     logger.blank(undefined, logger.icons.color.success);
 
 })();

@@ -17,7 +17,7 @@ const WpwSourceCode = require("./sourcecode");
 const { readFileSync, existsSync } = require("fs");
 const { resolve, basename, join, dirname } = require("path");
 const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
-const { isWpwWebpackMode, WpwPackageJsonProps } = require("../types/constants");
+const { isWpwWebpackMode, WpwPackageJsonKeys } = require("../types/constants");
 const {
     WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, isPromise, clone
 } = require("../utils");
@@ -183,7 +183,7 @@ class WpwRc extends WpwBase
      */
     applyPackageJson = () =>
     {
-        const pkgJson = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonProps);
+        const pkgJson = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonKeys);
         this.pkgJsonPath = pkgJson.path;
         const nameData = pkgJson.data.name.split("/");
         apply(this.pkgJson, {
@@ -253,7 +253,7 @@ class WpwRc extends WpwBase
                     const dependsOnTypes = (isObject(a.build.entry) && a.build.entry.dependOn === "types");
                     if (!rc.isSingleBuild || dependsOnTypes)
                     {
-                        if (asArray(a.build.options.wait?.items).find(t => t.target === "types"))
+                        if (asArray(a.build.options.wait?.items).find(t => t.name === "types"))
                         {
                             rc.apps.push(new WpBuildApp(rc, typesBuild));
                             apply(typesBuild, { auto: true });

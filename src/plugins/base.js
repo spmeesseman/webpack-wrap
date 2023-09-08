@@ -661,8 +661,8 @@ class WpwPlugin extends WpwBaseModule
                 cb = () => {
                     eMgr.register({
                         type: "event",
-                        source: /** @type {typedefs.WpwBuildOptionsPluginKey} */(this.key),
-                        target: /** @type {typedefs.WpwBuildOptionsPluginKey} */(waitPlugin),
+                        source: /** @type {typedefs.WpwBuildOptionsKey} */(this.key),
+                        target: this.app.build.name,
                         name: `${waitPlugin}_done`,
                         callback: () => delayedCb.call(this, message, options)
                     });

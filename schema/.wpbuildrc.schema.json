@@ -475,11 +475,20 @@
                 "devtool": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
+                "entry": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
+                "environment": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
                 "experiments": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
                 "externals": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
+                },
+                "html": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
                 },
                 "ignore": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
@@ -508,7 +517,25 @@
                 "optimization": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
+                "output": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
+                "plugins": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
                 "progress": {
+                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                },
+                "resolve": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
+                "rules": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
+                "runscripts": {
+                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
+                },
+                "runtimevars": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
                 "scm": {
@@ -517,26 +544,26 @@
                 "sourcemaps": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
-                "upload": {
-                    "$ref": "#/definitions/WpwPluginConfigUpload"
-                },
-                "vendormod": {
-                    "$ref": "#/definitions/WpwPluginConfigVendorMod"
-                },
-                "runscripts": {
-                    "$ref": "#/definitions/WpwPluginConfigRunScripts"
-                },
-                "runtimevars": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
-                },
                 "testsuite": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
+                },
+                "tsbundle": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                },
+                "tsc": {
+                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
                 },
                 "tscheck": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
                 "types": {
                     "$ref": "#/definitions/WpwPluginConfigTypes"
+                },
+                "upload": {
+                    "$ref": "#/definitions/WpwPluginConfigUpload"
+                },
+                "vendormod": {
+                    "$ref": "#/definitions/WpwPluginConfigVendorMod"
                 },
                 "wait": {
                     "$ref": "#/definitions/WpwPluginConfigWait"
@@ -912,140 +939,6 @@
                     }]
                 }
             }
-        },
-        "WpwBuildOptionsExportKey": {
-            "$id": "#/WpwBuildOptionsExportKey",
-            "oneOf": [{
-                "const": "optimization"
-            },
-            {
-                "const": "cache"
-            },
-            {
-                "const": "devtool"
-            },
-            {
-                "const": "experiments"
-            },
-            {
-                "const": "externals"
-            },
-            {
-                "const": "ignorewarnings"
-            },
-            {
-                "const": "minification"
-            },
-            {
-                "const": "watch"
-            }]
-        },
-        "WpwBuildOptionsExportKeyInternal": {
-            "$id": "#/WpwBuildOptionsExportKeyInternal",
-            "oneOf": [{
-                "const": "entry"
-            },
-            {
-                "const": "output"
-            },
-            {
-                "const": "plugins"
-            },
-            {
-                "const": "resolve"
-            },
-            {
-                "const": "rules"
-            }]
-        },
-        "WpwBuildOptionsPluginKey": {
-            "$id": "#/WpwBuildOptionsPluginKey",
-            "oneOf": [{
-                "const": "analyze"
-            },
-            {
-                "const": "banner"
-            },
-            {
-                "const": "clean"
-            },
-            {
-                "const": "copy"
-            },
-            {
-                "const": "ignore"
-            },
-            {
-                "const": "istanbul"
-            },
-            {
-                "const": "jsdoc"
-            },
-            {
-                "const": "licensefiles"
-            },
-            {
-                "const": "loghooks"
-            },
-            {
-                "const": "mocha"
-            },
-            {
-                "const": "optimization"
-            },
-            {
-                "const": "progress"
-            },
-            {
-                "const": "runscripts"
-            },
-            {
-                "const": "runtimevars"
-            },
-            {
-                "const": "scm"
-            },
-            {
-                "const": "sourcemaps"
-            },
-            {
-                "const": "testsuite"
-            },
-            {
-                "const": "tscheck"
-            },
-            {
-                "const": "types"
-            },
-            {
-                "const": "upload"
-            },
-            {
-                "const": "vendormod"
-            }]
-        },
-        "WpwBuildOptionsPluginKeyInternal": {
-            "$id": "#/WpwBuildOptionsPluginKeyInternal",
-            "oneOf": [{
-                "const": "tsbundle"
-            },
-            {
-                "const": "environment"
-            },
-            {
-                "const": "html"
-            },
-            {
-                "const": "tsc"
-            },
-            {
-                "const": "wait"
-            }]
-        },
-        "WpwBuildOptionsPluginKeyReadOnly": {
-            "$id": "#/WpwBuildOptionsPluginKeyReadOnly",
-            "$ref": "#/definitions/WpwBuildOptionsPluginKey",
-            "readOnly": true
         },
         "WpwBuildType": {
             "$id": "#/WpwBuildType",
@@ -1675,6 +1568,22 @@
             {
                 "enabled": false
             }]
+        },
+        "WpwOptionsConfigBaseInternal": {
+            "$id": "#/WpwOptionsConfigBaseInternal",
+            "type": "object",
+            "additionalProperties": false,
+            "maxProperties": 0,
+            "minProperties": 0,
+            "readOnly": true,
+            "required": [ "enabled" ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "readOnly": true
+                }
+            }
         },
         "WpwPluginConfigIstanbul": {
             "$id": "#/WpwPluginConfigIstanbul",
@@ -2487,27 +2396,6 @@
                 }]
             }
         },
-        "WpwPluginConfigWaitEvent": {
-            "default": "done",
-            "oneOf": [{
-                "const": "start"
-            },
-            {
-                "const": "beforeCompile"
-            },
-            {
-                "const": "afterCompile"
-            },
-            {
-                "const": "emit"
-            },
-            {
-                "const": "afterEmit"
-            },
-            {
-                "const": "done"
-            }]
-        },
         "WpwPluginConfigWait": {
             "$id": "#/WpwPluginConfigWait",
             "type": "object",
@@ -2519,6 +2407,7 @@
                 },
                 "items": {
                     "type": "array",
+                    "minItems": 1,
                     "items": {
                         "$ref": "#/definitions/WpwPluginConfigWaitItem"
                     }
@@ -2548,32 +2437,28 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-                "type", "target", "name"
+                "mode", "target", "name"
             ],
             "properties": {
-                "type": {
+                "mode": {
                     "enum": [ "file", "event" ]
                 },
                 "source": {
-                    "$ref": "#/definitions/WpwBuildOptionsPluginKeyReadOnly"
-                },
-                "target": {
-                    "$ref": "#/definitions/WpwBuildOptionsPluginKey"
+                    "type": "string",
+                    "maxLength": 0,
+                    "readOnly": true
                 },
                 "name": {
-                    "oneOf": [
-                    {
-                        "$ref": "#/definitions/WpwPluginConfigWaitEvent"
-                    },
-                    {
-                        "$ref": "#/definitions/FilePath"
-                    }]
+                    "type": "string",
+                    "description": "path to file (`file` mode, absolute or relative) or build name (`event` mode)"
                 },
                 "interval": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "for `file` mode, # of milliseconds between each check (ignored in `event` mode)"
                 },
                 "timeout": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "for `file` mode, # of max seconds to wait before failing (ignored in `event` mode)"
                 }
             },
             "examples": [{
@@ -2600,27 +2485,6 @@
                                 "maxLength": 0
                             }
                         }
-                    }
-                }
-            },
-            "if": {
-                "properties": {
-                    "type": {
-                        "const": "event"
-                    }
-                }
-            },
-            "then": {
-                "properties": {
-                    "name": {
-                        "$ref": "#/definitions/WpwPluginConfigWaitEvent"
-                    }
-                }
-            },
-            "else": {
-                "properties": {
-                    "name": {
-                        "$ref": "#/definitions/FilePath"
                     }
                 }
             }
@@ -2817,7 +2681,7 @@
             "$id": "#/WpwSourceCodeConfigCompilerOptions",
             "type": "object",
             "minProperties": 1,
-            "additionalProperties": false,
+            "additionalProperties": true,
             "properties": {                      
                 "allowJs": {
                     "type": "boolean"
