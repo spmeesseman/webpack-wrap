@@ -182,7 +182,7 @@ class WpwTscPlugin extends WpwPlugin
 			l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
 		}
 		catch (e) {
-			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation, e);
+			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED_BUNDLE, this.compilation, e);
 		}
 	}
 

@@ -50,29 +50,28 @@ class WpwRulesExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {string | RegExp} test
-	 * @param {string} include
+	 * @param {string} includePath
 	 * @param {[string | RegExp, string ][]} searchReplaceArr
 	 */
-	addVendorReplaceRule(test, include, searchReplaceArr)
+	addVendorReplaceRule(test, includePath, searchReplaceArr)
 	{
-		const basePath = this.app.getBasePath();
-		const options = {
-			multiple: searchReplaceArr.map(o => ({ search: o[0], replace: o[1] }))
-		};
+		const loader = "string-replace-loader",
+			  basePath = this.app.getBasePath(),
+		      options = {
+			      multiple: searchReplaceArr.map(o => ({ search: o[0], replace: o[1] }))
+			  };
 
-		this.app.wpc.module.rules.push(
+		let include = join(basePath, "node_modules", ...includePath.split("/"));
+		if (existsSync(include))
 		{
-			options,
-			test: test || /index\.js$/,
-			loader: "string-replace-loader",
-			include: join(basePath, "node_modules", ...include.split("/"))
-		},
+			this.app.wpc.module.rules.push({ include, test, options, loader });
+		}
+
+		include = join(basePath, "@spmeesseman", "webpack-wrap", "node_modules", ...include.split("/"));
+		if (existsSync(include))
 		{
-			options,
-			test: test || /index\.js$/,
-			loader: "string-replace-loader",
-			include: join(basePath, "@spmeesseman", "webpack-wrap", "node_modules", ...include.split("/"))
-		});
+			this.app.wpc.module.rules.push({ include, test, options, loader });
+		}
 	}
 
 
@@ -88,94 +87,88 @@ class WpwRulesExport extends WpwWebpackExport
 
 		if (processFirst)
 		{
-			const modOptions = app.build.options.vendormod;
-			if (modOptions)
-			{
-				if (modOptions.clean_plugin)
-				{   //
-					// Make a lil change to the copy-plugin to initialize the current assets array to
-					// the existing contents of the dist directory.  By default it's current assets list
-					// is empty, and thus will not work across IDE restarts
-					//
-					const distPath = app.getDistPath();
-					if (existsSync(distPath))
-					{
-						const distFiles = `"${findFilesSync(distPath, { cwd: distPath, absolute: false }).join("\", \"")}"`;
-						this.addVendorReplaceRule(
-							/index\.js$/,
-							"clean-webpack-plugin/dist",
-							[[ "currentAssets = []", `currentAssets = [ ${distFiles} ]` ]]
-						);
-					}
-				}
-				if (modOptions.dts_bundle)
-				{   //
-					// DTS-BUNDLE
-					// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
-					// Bug fix on line 29
-					//
-					this.addVendorReplaceRule(
-						/index\.js$/,
-						"dts-bundle/lib",
-						[[ / {8}if \(allFiles\) \{/, "        if (allFiles && !options.baseDir) {" ]]
-					);
-				}
-				if (modOptions.source_map_plugin)
-				{   //
-					// WEBPACK.SOURCEMAPPLUGIN
-					// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js
-					//
-					// A hck to remove a check added in Webpack 5 using 'instanceof' to check the compilation parameter.
-					// If multiple webpack installs are present, the follwoing error occurs, regardlkess if Wp versions are the same:
-					//
-					// TypeError: The 'compilation' argument must be an instance of Compilation
-					//    at Function.getCompilationHooks (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js:164:10)
-					//    at SourceMapDevToolModuleOptionsPlugin.apply (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolModuleOptionsPlugin.js:54:27)
-					//    at C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolPlugin.js:184:53
-					//    at Hook.eval [as call] (eval at create (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
-					//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\Hook.js:14:14)
-					//	  ....
-					//
-					// Seeing it's a module resolution issue, this was patched for this plugin using 'require.resolve'
-					// in the cwd when importing this plugin in plugins/sourcemaps.js.
-					//
-					// This is a "in the worst case" fix, where we can "kind if" safley remove this check, and
-					// consider it patched if redundant testing yields no side effects,
-					//
-					this.addVendorReplaceRule(
-						/JavascriptModulesPlugin\.js$/,
-						"webpack/lib/javascript",
-						[[ /if \(\!\(compilation instanceof Compilation\)\)/, "if (false)" ]]
-					);
-				}
-				if (modOptions.nyc)
+			const modOptions = app.build.options.vendormod || {};
+
+			if (modOptions.clean_plugin || modOptions.all)
+			{   //
+				// Make a lil change to the copy-plugin to initialize the current assets array to
+				// the existing contents of the dist directory.  By default it's current assets list
+				// is empty, and thus will not work across IDE restarts
+				//
+				const distPath = app.getDistPath();
+				if (existsSync(distPath))
 				{
+					const distFiles = `"${findFilesSync(distPath, { cwd: distPath, absolute: false }).join("\", \"")}"`;
 					this.addVendorReplaceRule(
-						/index\.js$/,
-						"nyc",
-						[[ "selfCoverageHelper = require('../self-coverage-helper')", "selfCoverageHelper = { onExit () {} }" ]]
+						/index\.js$/, "clean-webpack-plugin/dist",
+						[[ "currentAssets = []", `currentAssets = [ ${distFiles} ]` ]]
 					);
 				}
-				if (modOptions.ts_loader)
-				{   //
-					// TS-LOADER
-					// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
-					//
-					// A hck to allow just a straight up types 'declarations only' build.
-					//
-					this.addVendorReplaceRule(
-						/index\.js$/,
-						"ts-loader/dist",
-						[[
-							/if \(outputText === null \|\| outputText === undefined\)/,
-							"callback(null, output, sourceMap);"
-						],
-						[
-							"if ((outputText === null || outputText === undefined) && (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly))",
-							"callback(null, (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly ? output : \"\"), sourceMap);"
-						]]
-					);
-				}
+			}
+
+			if (modOptions.dts_bundle || modOptions.all)
+			{   //
+				// DTS-BUNDLE
+				// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+				// Bug fix on line 29
+				//
+				this.addVendorReplaceRule(
+					/index\.js$/, "dts-bundle/lib",
+					[[ / {8}if \(allFiles\) \{/, "        if (allFiles && !options.baseDir) {" ]]
+				);
+			}
+
+			if (modOptions.source_map_plugin || modOptions.all)
+			{   //
+				// WEBPACK.SOURCEMAPPLUGIN
+				// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js
+				//
+				// A hck to remove a check added in Webpack 5 using 'instanceof' to check the compilation parameter.
+				// If multiple webpack installs are present, the follwoing error occurs, regardlkess if Wp versions are the same:
+				//
+				// TypeError: The 'compilation' argument must be an instance of Compilation
+				//    at Function.getCompilationHooks (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js:164:10)
+				//    at SourceMapDevToolModuleOptionsPlugin.apply (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolModuleOptionsPlugin.js:54:27)
+				//    at C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolPlugin.js:184:53
+				//    at Hook.eval [as call] (eval at create (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
+				//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\Hook.js:14:14)
+				//	  ....
+				//
+				// Seeing it's a module resolution issue, this was patched for this plugin using 'require.resolve'
+				// in the cwd when importing this plugin in plugins/sourcemaps.js.
+				//
+				// This is a "in the worst case" fix, where we can "kind if" safley remove this check, and
+				// consider it patched if redundant testing yields no side effects,
+				//
+				this.addVendorReplaceRule(
+					/JavascriptModulesPlugin\.js$/, "webpack/lib/javascript",
+					[[ /if \(\!\(compilation instanceof Compilation\)\)/, "if (false)" ]]
+				);
+			}
+
+			if (this.app.build.type === "tests" || modOptions.nyc || modOptions.all)
+			{
+				this.addVendorReplaceRule(
+					/index\.js$/, "nyc",
+					[[ "selfCoverageHelper = require('../self-coverage-helper')", "selfCoverageHelper = { onExit () {} }" ]]
+				);
+			}
+
+			if (modOptions.ts_loader || modOptions.all)
+			{   //
+				// TS-LOADER
+				// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+				//
+				// A hck to allow just a straight up types 'declarations only' build.
+				//
+				this.addVendorReplaceRule(
+					/index\.js$/, "ts-loader/dist",
+					[
+						[ /if \(outputText === null \|\| outputText === undefined\)/, "callback(null, output, sourceMap);" ],
+						[ "if ((outputText === null || outputText === undefined) && (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly))",
+					      "callback(null, (!instance.loaderOptions.compilerOptions || !instance.loaderOptions.compilerOptions.emitDeclarationsOnly ? output : \"\"), sourceMap);" ]
+					]
+				);
 			}
 		}
 	}
@@ -195,10 +188,10 @@ class WpwRulesExport extends WpwWebpackExport
 			app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
 			this.base();
 			this[app.build.type]();
-			// this.base(true);
+			this.base(true);
 		}
 		else {
-			throw WpwError.getErrorProperty("rules", app.wpc);
+			this.app.addError(WpwError.Msg.ERROR_SHITTY_PROGRAMMER, undefined, `exports.rules.build[${app.build.type}]`);
 		}
 		app.logger.success("create rules", 2);
 	}
@@ -482,10 +475,7 @@ class WpwRulesExport extends WpwWebpackExport
 	 */
 	tests()
 	{
-		const app = this.app,
-			  buildPath = app.getBasePath(),
-			  nycPath = join(buildPath, "node_modules", "nyc");
-
+		const app = this.app;
 		if (app.source.type === "typescript")
 		{
 			app.wpc.module.rules.push(
@@ -497,19 +487,10 @@ class WpwRulesExport extends WpwWebpackExport
 			});
 		}
 
-		if (existsSync(nycPath) && !app.build.options.vendormod?.nyc) // if enabled in options, base() will add
-		{
-			app.wpc.module.rules.push(
-			{
-				test: /index\.js$/,
-				include: join(buildPath, "node_modules", "nyc"),
-				loader: "string-replace-loader",
-				options: {
-					search: "selfCoverageHelper = require('../self-coverage-helper')",
-					replace: "selfCoverageHelper = { onExit () {} }"
-				}
-			});
-		}
+		this.addVendorReplaceRule(
+			/index\.js$/, "nyc",
+			[[ "selfCoverageHelper = require('../self-coverage-helper')", "selfCoverageHelper = { onExit () {} }" ]]
+		);
 	}
 
 

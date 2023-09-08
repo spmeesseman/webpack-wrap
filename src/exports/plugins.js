@@ -14,8 +14,8 @@
 const { createEntryObjFromDir /* , asArray, isFunction, isObject  */} = require("../utils");
 const {
 	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, optimization,
-	progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, wait, cssextract, htmlcsp,
-	imageminimizer, htmlinlinechunks, testsuite, tsbundle, types, vendormod, webviewapps, scm
+	progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, cssextract, htmlcsp,
+	imageminimizer, htmlinlinechunks, testsuite, tsbundle, types, webviewapps, scm
 } = require("../plugins");
 
 /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
@@ -45,7 +45,6 @@ const plugins = (app) =>
 	app.wpc.plugins.push(
 		loghooks(app),           // n/a - logs all compiler.hooks.* when they run
 		environment(app),        // compiler.hooks.environment
-		vendormod(app),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
 		progress(app),           // n/a - reports progress from webpack engine
 		clean(app),              // compiler.hooks.emit, compiler.hooks.done
 		types(app),              // compiler.hooks.beforeCompile - build tests / test suite

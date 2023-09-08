@@ -78,20 +78,21 @@ class WpBuildApp extends WpwBase
                 await result;
             }
         }
+        const l = this.logger;
         if (this.info.length > 0) {
-            this.logger.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
-            this.info.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.warning));
+            l.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
+            this.info.splice(0).forEach(e => this.printNonFatalIssue(e, l.warning));
         }
         if (this.warnings.length > 0) {
-            this.logger.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
-            this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, this.logger.warning));
+            l.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
+            this.warnings.splice(0).forEach(w => this.printNonFatalIssue(w, l.warning));
         }
         if (this.errors.length > 0) {
-            this.logger.warning("REPORTED ERRORS FOR THIS BUILD:");
-            this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, this.logger.error));
+            l.warning("REPORTED ERRORS FOR THIS BUILD:");
+            this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, l.error));
         }
-        this.logger.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
-        this.logger.dispose();
+        l.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
+        l.dispose();
     };
 
 
@@ -121,32 +122,33 @@ class WpBuildApp extends WpwBase
      */
     addMessage = (code, compilation, detail, pad) =>
     {
-        const icons = this.logger.icons;
+        const l = this.logger,
+              icons = this.logger.icons;
         if (/WPW[0-2][0-9][0-9]/.test(code))
         {
             const i = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
-            this.logger.write(i.message, 1, pad, icons.blue.info);
+            l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
             this.info.push(i);
         }
         else if (/WPW[3-5][0-9][0-9]/.test(code))
         {
             const w = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
-            this.logger.write(w.message, undefined, pad, icons.color.warning);
+            l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
             compilation?.warnings.push(w);
         }
         else if (/WPW[6-8][0-9][0-9]/.test(code))
         {
             const e = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
-            this.logger.write(e.message, undefined, pad, icons.color.error);
+            l.write(e.message, undefined, pad, icons.color.error, l.colors.red);
             this.errors.push(e);
             compilation?.errors.push(e);
         }
         else if (/WPW9[0-9][0-9]/.test(code)) {
-            this.logger.write("reserved message type", undefined, pad, icons.color.warning);
+            l.write("reserved message type", undefined, pad, icons.color.warning);
         }
         else {
-            this.logger.warning("unknown message type", pad);
+            l.warning("unknown message type", pad);
         }
     };
 

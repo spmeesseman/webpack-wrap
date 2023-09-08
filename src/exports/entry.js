@@ -69,7 +69,7 @@ class WpwEntryExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			throw WpwError.getErrorProperty("entry", app.wpc);
+			this.app.addError(WpwError.Msg.ERROR_SHITTY_PROGRAMMER, undefined, `exports.entry.build[${app.build.type}]`);
 		}
 
 		//

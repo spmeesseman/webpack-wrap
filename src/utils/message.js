@@ -51,19 +51,23 @@ const WpwMessage =
     //
     WPW600: "an error has occurred",
     WPW605: "build failed - output directory does not exist",
-    WPW630: "type definitions build failed",
-    WPW660: "type definitions build failed",
-    WPW661: "type definitions build failed - output directory does not exist",
-    WPW662: "type definitions build failed - invalid build method",
+    WPW630: "abstract function must be overridden",
+    WPW660: "types build: general failure",
+    WPW661: "types build: output directory does not exist",
+    WPW662: "types build: invalid build method",
+    WPW670: "types build: failed to create bundle",
     //
     // ERRORS (700 - 799)
     //
-    WPW730: "invalid configuration",
-    WPW731: "invalid exports configuration",
-    WPW732: "invalid plugins configuration",
+    WPW700: "could not locate resource",
+    WPW710: "invalid configuration",
+    WPW711: "invalid configuration property",
+    WPW712: "invalid exports configuration",
+    WPW713: "invalid plugins configuration",
     //
     // ERRORS (800 - 899)
     //
+    WPW895: "an error has occurred due to the programmer writing bad code",
     WPW899: "an unknown error has occurred"
 };
 
@@ -105,15 +109,19 @@ const WpwMessageEnum =
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
     ERROR_TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
     ERROR_TYPES_FAILED_INVALID_METHOD: /** @type {typedefs.WpwErrorCode} */("WPW662"),
+    ERROR_TYPES_FAILED_BUNDLE: /** @type {typedefs.WpwErrorCode} */("WPW665"),
     //
     // ERROR (700 - 799)
     //
-    ERROR_CONFIG_INVALID: /** @type {typedefs.WpwErrorCode} */("WPW730"),
-    ERROR_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwErrorCode} */("WPW731"),
-    ERROR_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwErrorCode} */("WPW732"),
+    ERROR_RESOURCE_MISSING: /** @type {typedefs.WpwErrorCode} */("WPW700"),
+    ERROR_CONFIG_INVALID: /** @type {typedefs.WpwErrorCode} */("WPW710"),
+    ERROR_CONFIG_PROPERTY: /** @type {typedefs.WpwErrorCode} */("WPW711"),
+    ERROR_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwErrorCode} */("WPW712"),
+    ERROR_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwErrorCode} */("WPW713"),
     //
     // ERROR (800 - 899)
     //
+    ERROR_SHITTY_PROGRAMMER: /** @type {typedefs.WpwErrorCode} */("WPW895"),
     ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
 };
 
@@ -128,7 +136,7 @@ class WpwError extends WebpackError
 
 
     /**
-     * @param {string} message
+     * @param {string | WpwMessageEnum} message
      * @param {string | Error} [details]
      */
     constructor(message, details)
@@ -142,6 +150,10 @@ class WpwError extends WebpackError
         }
         else if (isString(details)) {
             this.details = details;
+        }
+        if (message.length === 6 && WpwMessage[message])
+        {
+            message = `[${message}]: ${WpwMessage[message]}`;
         }
         WpwError.captureStackTrace(this, this.constructor);
         if (this.stack)
@@ -166,29 +178,33 @@ class WpwError extends WebpackError
 
 
     /**
-     * @param {string} message
+     * @param {string | WpwMessageEnum} message
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
      * @param {Error | string | undefined | null} [detail]
      * @returns {WpwError}
      */
     static get(message, wpc, detail)
     {
-        if (wpc) {
+        if (message.length === 6 && WpwMessage[message])
+        {
+            message = `[${message}]: ${WpwMessage[message]}`;
+        }
+        if (wpc)
+        {
             if (wpc.mode) {
-                message += ` | mode:[${wpc.mode}]`;
+                message += ` [mode:${wpc.mode}]`;
             }
             if (wpc.target) {
-                message += ` | target:[${wpc.target}]`;
+                message += ` [tgt:${wpc.target}]`;
             }
         }
         if (isString(detail)) {
             message += ` | ${detail}`;
         }
         else if (isError(detail)) {
-            message += `\nEXCEPTION: ${detail.message.trim()}`;
+            message += `\nexception: ${detail.message.trim()}`;
         }
-        const e = new WpwError(message, detail ?? undefined);
-        return e;
+        return new WpwError(message, detail ?? undefined);
     }
 
 
@@ -199,7 +215,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getErrorMissing = (property, wpc, detail) =>
-        this.get(`Could not locate wpw resource '${property}'`, wpc, detail);
+        this.get(this.Msg.ERROR_RESOURCE_MISSING, wpc, `[${property}] ` + (detail || ""));
 
 
     /**
@@ -209,7 +225,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getErrorProperty = (property, wpc, detail) =>
-        this.get(`Invalid wpw configuration @ property '${property}'`, wpc, detail);
+        this.get(this.Msg.ERROR_CONFIG_PROPERTY, wpc, `[${property}] ` + (detail || ""));
 
 
     /**
@@ -219,7 +235,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getAbstractFunction = (fnName, wpc, detail) =>
-        this.get(`abstract method '${fnName}' must be overridden`, wpc, detail);
+        this.get(this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, `[${fnName}] ` + (detail || ""));
 
 }
 
