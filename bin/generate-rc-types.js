@@ -134,19 +134,8 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .wpwreplace("formatWebpackEntry")
           .wpwreplace("formatInterface")
           .wpwreplace("formatType")
-          .replace(/([^\|]) \{\n    /g, (_, m) => m + "\n{\n    ")
-          .replace(/\n    \| +(["0-9])/g, (_, m) => " | " + m)
-          .replace(/(?:\n){3,}/g, "\n\n")
-          .replace(/[a-z] = +\| +"[a-z]/g, (v) => v.replace("= |", "="))
-          .replace(/[\w] ;/g, (v) => v.replace(" ;", ";"))
-          .replace(/\n\};?\n/g, "\n}\n")
           .wpwreplace("replaceBooleanTypedefs")
-          .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
-          .replace(/ = \{ "= /g, "")
-          .replace(/(=|[a-z]) \n\{ *\n/g, (_, m) => m + "\n\{\n")
           .wpwreplace("justifyInnerObjects")
-          .replace(/"\}/g, "\"\n}")
-          .replace(/( +)\}\n( +)\{\n/g, (v, m1, m2) => `${m1}},\n${m2}\n}`)
           .wpwreplace("mappedTypeToAnyOrUndef")
           .wpwreplace("trailingSemiColons")
           .wpwreplace("trailingSpaces")
@@ -286,13 +275,13 @@ const wpwreplace =
             /\nexport interface (.*?) ([^]*?)\n\}/g,
             (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
             {
-                logger.log(`      added interface I${m1} and related types`);
-                let src = `\nexport declare interface I${m1} ${m2}\n}\n`;
+                let src = `\nexport declare interface I${m1} ${m2}\n}`;
+                logger.log(`      added interface I${m1}`);
                 pushTypedef("rc", "type", `I${m1}`);
                 pushEnum(m1, "type", m2);
                 if (!classTypes.includes(m1))
                 {
-                    src += `export declare type ${m1} = I${m1};\n` +
+                    src += `\nexport declare type ${m1} = I${m1};\n` +
                         `export declare type ${m1}Key = keyof ${m1};\n`;
                         // `export declare type Type${m1} = Required<${m1}>;\n`;
                     pushTypedef("rc", "type", m1, `${m1}Key`);
@@ -301,7 +290,7 @@ const wpwreplace =
                 requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
                     src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
                 });
-                return src;
+                return src.replace(/\n\};?\n/g, "\n}\n");
             }
         );
     },
@@ -317,7 +306,11 @@ const wpwreplace =
                 pushTypedef("rc", "type", m);
                 return v.replace("export type", "export declare type");
             }
-        );
+        )
+        .replace(/([^\|]) \{\n    /g, (_, m) => m + "\n{\n    ")
+        .replace(/\n    \| +(["0-9a-z])/g, (_, m) => " | " + m)
+        .replace(/[a-z] = +\| +(?:"?[a-z]|[0-9])/g, (v) => v.replace("= |", "="))
+        .replace("export declare type WpwLoggerLevel", "\nexport declare type WpwLoggerLevel");
     },
     formatWebpackEntry: (data) =>
     {
@@ -328,10 +321,11 @@ const wpwreplace =
     },
     justifyInnerObjects: (data) =>
     {
-        return data.replace(/    ([a-z?]+?): +\n\{/g, (_, m) => "    " + m + ":\n    {")
+        return data.replace(/    ([a-z?]+?): *\n\{/g, (_, m) => "    " + m + ":\n    {")
                    .replace(/([a-z?]): +\n/g, (_, m) => m + ":\n")
-                   .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
-                   .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "));
+                   .replace(/\: *\n\{\n {14}/g, ":\n          {\n              ")
+                   .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
+                   .replace(/( +)\}\n( +)\{\n/g, (v, m1, m2) => `${m1}},\n${m2}\n}`);
     },
     mappedTypeToAnyOrUndef: (data) =>
     {
@@ -344,21 +338,21 @@ const wpwreplace =
     removeComments: (data) => data.replace(/\/\*\*(?:[^]*?)\*\//g, "").replace(/\/\* eslint\-disable \*\/$/gm, ""),
     removeOrFormatNumberedDupTypes: (data) =>
     {
-        return data.replace(/\& (?:[A-Za-z]*?)1;\n/g, ";\n")
-                   .replace(/export type (?:.*?)[0-9] = (?:.*?);$/gm, "")
-                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n/g, "");
+        return data.replace(/\& (?:[A-Za-z]*?)1;\n/g, ";")
+                   .replace(/export type (?:.*?)[0-9] = (?:.*?);\n\n/g, "")
+                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n\n/g, "");
     },
     replaceBooleanTypedefs: (data) =>
     {
         return data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
-               .replace(/    (.*?)\?\: WpwBuildOptionsPluginKeyReadOnly;/g, (_, m) => `    readonly ${m}?: WpwBuildOptionsPluginKey;`)
-               .replace(/    (.*?)\?\: WpwBooleanDefaultTrue;/g, (v, m) => `    ${m}?: boolean;`)
-               .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`)
-               .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
-               .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
+                   .replace(/    (.*?)\?\: WpwBuildOptionsPluginKeyReadOnly;/g, (_, m) => `    readonly ${m}?: WpwBuildOptionsPluginKey;`)
+                   .replace(/    (.*?)\?\: WpwBooleanDefaultTrue;/g, (v, m) => `    ${m}?: boolean;`)
+                   .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`)
+                   .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
+                   .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
     },
-    trailingSemiColons: (data) => data.replace(/; *\};/g, " };"),
-    trailingSpaces: (data) => data.replace(/ +\n/g, "\n")
+    trailingSemiColons: (data) => data.replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2).replace(/; *\};/g, " };"),
+    trailingSpaces: (data) => data.replace(/ +\n/g, "\n").replace(/[\w] ;/g, (v) => v.replace(" ;", ";"))
 };
 
 
