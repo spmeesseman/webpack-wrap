@@ -1019,6 +1019,9 @@
             },
             {
                 "const": "upload"
+            },
+            {
+                "const": "vendormod"
             }]
         },
         "WpwBuildOptionsPluginKeyInternal": {

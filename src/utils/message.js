@@ -159,16 +159,16 @@ class WpwError extends WebpackError
         if (this.stack)
         {
             const lines = this.stack?.split("\n") || [],
-                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [])[1]),
-                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [])[1],
-                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [])[1],
-                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [])[1];
-            this.file = this.file || (lines[3].match(WpwRegex.StackTraceCurrentFile) || [])[1];
+                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "" ])[1]),
+                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "" ])[1],
+                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
+                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
+            this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;
             this.details = (this.details ? this.details + "\n" : "") + cleanUp(this.stack, this.message);
             this.loc = {
-                end: { line: line + 1, column },
-                start: {line, column: 0 },
-                name: `${method} (${fileAbs}:${line}:${column})`
+                end: { line: line + 1, column: 0 },
+                start: {line, column },
+                name: method
             };
         }
         if (isErrorDetail && details.stack) {

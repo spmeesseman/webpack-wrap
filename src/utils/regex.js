@@ -14,7 +14,7 @@ const PathVersion = /\/v([0-9]+\.[0-9]+\.[0-9]+(?:\-(?:pre|alpha|beta)\.[0-9]+)?
 
 const StackTraceCurrentColumn = /at [a-zA-Z0-9_.]+ +\(.*?[\\\/]webpack\-wrap[\\\/]src[\\\/][a-zA-Z0-9_.\\\/]+?:[0-9]+?:([0-9]+?)\) *$/;
 
-const StackTraceCurrentFile = /at [a-zA-Z0-9_.]+ +\(.*?[\\\/]webpack\-wrap[\\\/]src[\\\/]([a-zA-Z0-9_.\\\/]+?):/;
+const StackTraceCurrentFile = /at [a-zA-Z0-9_.]+ +\(.*?[\\\/]webpack\-wrap[\\\/]([a-zA-Z0-9_.\\\/]+?):/;
 
 const StackTraceCurrentFileAbs = /at [a-zA-Z0-9_.]+ +\((.*?[\\\/]webpack\-wrap[\\\/][a-zA-Z0-9_.\\\/]+?):/;
 

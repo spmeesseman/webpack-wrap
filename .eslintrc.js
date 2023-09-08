@@ -54,7 +54,8 @@ module.exports = {
         "@typescript-eslint/tslint"
     ],
     globals: {
-        __WPBUILD__: "readonly"
+        __WPBUILD__: "readonly",
+        wpwreplace: "readonly"
     },
     rules: {
         "@spmeesseman/extjs-array-bracket-newline": 1,

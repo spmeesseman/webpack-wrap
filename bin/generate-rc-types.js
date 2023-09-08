@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable import/no-extraneous-dependencies */
-// @ts-check
+
 
 /**
  * @file utils/environment.js
@@ -128,70 +128,37 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */exe) =>
                 };
 
 
-const formatInterface = (/** @type {any} */ _, /** @type {string} */ m1, /** @type {string} */ m2) =>
+Object.defineProperty(String.prototype, "wpwreplace",
 {
-    pushTypedef("rc", "type", "I" + m1);
-    requiredProperties.filter(([ _, t ]) => t === m1 || "I" + t === m1).forEach(([ p, _ ]) => {
-        m2 = m2.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
-    });
-    // return `export declare interface I${m1} ${m2}\n}\nexport declare type ${m1} = I${m1};\n`;
-    const decl = `export declare interface I${m1} ${m2}\n}\n`;
-    // if (!classTypes.includes(m1))
-    // {
-    //     if (isFullType(m1))
-    //     {
-    //         return `\nexport declare type Type${m1} = `;
-    //     }
-    //     else {
-    //         pushTypedef("rc", "type", m1);
-    //         return `\nexport declare type ${m1} = `;
-    //     }
-    // }
-    return decl;
+    value: (/** @type {string} */ fn, /** @type {string} */ data) => replace[fn](data)
+});
+
+// @ts-ignore
+String.prototype.wpwreplace = (/** @type {string} */ fn, /** @type {string} */ data) => replace[fn](data);
+
+
+const replace =
+{
+    trailingSpaces: (/** @type {string} */data) => data.replace(/ +\n/g, "\n")
 };
 
 
-const formatInterfaceToType = (/** @type {string} */v, /** @type {string} */m1) =>
+const formatInterface = (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
 {
-    if (!classTypes.includes(m1))
-    {
-        if (isFullType(m1))
-        {
-            return `\nexport declare type Type${m1} = `;
-        }
-        else {
-            pushTypedef("rc", "type", m1);
-            return `\nexport declare type ${m1} = `;
-        }
-    }
-    // else {
-    //     pushTypedef("rc", "type", m1);
-    // }
-    return v;
-};
-
-
-const formatNewTypeFromInterface = (/** @type {string} */ v, /** @type {string} */ m1, /** @type {string} */ m2) =>
-{
-    let src = v;
+    let src = `\nexport declare interface I${m1} ${m2}\n}\n`;
+    pushTypedef("rc", "type", `I${m1}`);
     if (isFullType(m1))
     {
-        src = `export declare type ${m1} ${m2}\n};\n` +
-            `export declare type ${m1}Key = keyof ${m1};\n` +
-            `export declare type Type${m1} = Required<${m1}>;\n`;
-        requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
-            src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
-        });
-        logger.log(`      modified type ${m1}`);
-        pushTypedef("rc", "type", m1, `${m1}Key`, `Type${m1}`);
+        src = `export declare type ${m1} = I${m1};\n` +
+              `export declare type ${m1}Key = keyof ${m1};\n`;
+              // `export declare type Type${m1} = Required<${m1}>;\n`;
+        logger.log(`      added interface I${m1} and related types`);
+        pushTypedef("rc", "type", m1, `${m1}Key`);
         pushEnum(m1, "type", m2);
     }
-    else {
-        requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
-            src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
-        });
-        pushTypedef("rc", "type", m1);
-    }
+    requiredProperties.filter(([ _, t ]) => t === m1).forEach(([ p, _ ]) => {
+        src = src.replace(new RegExp(`${p !== "*" ? p : ""}\\?\\: `, "g"), `${p !== "*" ? p : ""}: `);
+    });
     return src;
 };
 
@@ -223,9 +190,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/export type WebpackEntry =\s+\|(?:[^]*?)\};/g, (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " "))
           .replace(/(export type (?:.*?)\n)(export type)/g, (_, m1, m2) => `\n${m1}\n${m2}`)
           .replace(/(";\n)(export (?:type|interface))/g, (_, m1, m2) => `${m1}\n${m2}`)
-          .replace(/\nexport interface (.*?) /g, formatInterfaceToType)
           .replace(/\nexport interface (.*?) ([^]*?)\n\}/g, formatInterface)
-          .replace(/\nexport declare type Type(.*?) ([^]*?)\n\}/g, formatNewTypeFromInterface)
           .replace(/\nexport type (.*?) =/g, (v, m) => { pushTypedef("rc", "type", m); return v.replace("export type", "export declare type"); })
           .replace(/([^\|]) \{\n    /g, (_, m) => m + " \n{\n    ")
           .replace(/\n    \| +(["0-9])/g, (_, m) => " | " + m)
@@ -236,9 +201,8 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/\n\};?\n/g, "\n}\n")
           .replace(/[^]+?$/, replaceBooleanTypedefs)
           .replace(/(export declare type (?:[^]*?)\}\n)/g, v => v.slice(0, v.length - 1) + ";\n")
-          .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n\n")
+          .replace(/(export declare interface (?:[^]*?)\};\n)/g, v => v.slice(0, v.length - 2) + "\n")
           .replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2)
-          .replace(/ +& +\n/g, " &\n")
           .replace(/    ([a-z?]+?): +\n\{/g, (_, m) => "    " + m + ":\n    {")
           .replace(/([a-z?]): +\n/g, (_, m) => m + ":\n")
           .replace(/ = \{ "= /g, "")
@@ -246,6 +210,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .replace(/\: \n\{\n {14}/g, ":\n          {\n              ")
           .replace(/=\n {4,}\| ?[^]*?\n {6}\};\n/g, (v) => v.replace(/\n {2,}/g, " "))
           .replace(/"\}/g, "\"\n}")
+          .wpwreplace(/ +& +\n/g, " &\n")
           .replace(/\n/g, EOL);
 
     await writeFile(outputDtsPath, `${EOL}${hdr}${EOL}${EOL}${EOL}${data.trim()}${EOL}`);
