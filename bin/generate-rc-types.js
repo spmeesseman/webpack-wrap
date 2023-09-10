@@ -23,7 +23,7 @@ const description = "Provides types macthing the .wpbuildrc.json configuration f
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const classTypes = [
-    "WpwRcSchema", "WpwSourceCode", "WpwBuild"
+    "WpwRcSchema", "WpwSourceCode"
 ];
 
 const excludeTypedefs = [
@@ -38,7 +38,7 @@ const generateEnums = [
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts", "WpwBuildOptions"
+    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts", "WpwBuildOptions", "WpwBuildBaseConfig"
 ];
 
 const extFilesCreateEnums = [
@@ -55,18 +55,18 @@ const mapValueTypesAllowUndefined = [
 const requiredProperties = [
     [ "colors", "WpwLog" ],
     [ "*", "WpwMessage" ],
-    [ "mode", "WpwBuild" ],
+    [ "mode", "WpwBuildConfig" ],
     [ "pad", "WpwLog" ],
     [ "default", "WpwLogColoring" ],
     [ "system", "WpwLogColoring" ],
     [ "level", "WpwLog" ],
-    [ "source", "WpwBuild" ],
+    [ "source", "WpwBuildConfig" ],
     [ "config", "WpwSourceCode" ],
-    [ "log", "WpwBuild" ],
-    [ "paths", "WpwBuild" ],
-    [ "options", "WpwBuild" ],
-    [ "target", "WpwBuild" ],
-    [ "type", "WpwBuild" ],
+    [ "log", "WpwBuildConfig" ],
+    [ "paths", "WpwBuildConfig" ],
+    [ "options", "WpwBuildConfig" ],
+    [ "target", "WpwBuildConfig" ],
+    [ "type", "WpwBuildConfig" ],
     [ "base", "WpwRcPaths" ],
     [ "ctx", "WpwRcPaths" ],
     [ "dist", "WpwRcPaths" ],
@@ -129,6 +129,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
     data = data
           .replace(/\r\n/g, "\n").replace(new RegExp(EOL,"g"), "\n")
           .wpwreplace("removeComments")
+          .wpwreplace("removeZeroLengthConstraints")
           .wpwreplace("removeOrFormatNumberedDupTypes")
           .wpwreplace("formatPackageJsonAuthor")
           .wpwreplace("formatWebpackEntry")
@@ -342,6 +343,7 @@ const wpwreplace =
                    .replace(/export type (?:.*?)[0-9] = (?:.*?);\n\n/g, "")
                    .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n\n/g, "");
     },
+    removeZeroLengthConstraints: (data) => data.replace(/: \[\]/g, ": string[]"),
     replaceBooleanTypedefs: (data) =>
     {
         return data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)

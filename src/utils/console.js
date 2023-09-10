@@ -5,7 +5,10 @@
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
-const { isString, isObject, isPrimitive, merge, isArray } = require("@spmeesseman/type-utils");
+const { isString, isObject, isPrimitive, merge, isArray, apply } = require("@spmeesseman/type-utils");
+
+const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
+const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
 
 
 /**
@@ -14,7 +17,9 @@ const { isString, isObject, isPrimitive, merge, isArray } = require("@spmeessema
  */
 class WpwLogger
 {
-    /** @type {typedefs.WpwLog} @private */
+    /** @type {number} @private @static */
+    static envTagLen;
+    /** @type {Required<typedefs.WpwLog>} @private */
     options;
     /** @type {import("../types/typedefs").WpwLogColorMapping} @private */
     defaultColor;
@@ -58,7 +63,7 @@ class WpwLogger
 
     /**
      * @private
-     * @param {Partial<typedefs.WpwLog>} options
+     * @param {typedefs.RequireKeys<typedefs.WpwLog, "pad">} options
      */
     applyOptions = (options) =>
     {
@@ -79,12 +84,15 @@ class WpwLogger
                     envTag: envTagLen
                 }
             },
-            options
+            /** @type {Required<typedefs.WpwLog>} */(options)
         );
 
-        if (!options.pad || !options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
+        if (!options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
             this.options.pad.envTag = envTagLen;
         }
+
+        envTagLen = /** @type {number} */(this.options.pad.envTag);
+        WpwLogger.envTagLen = !WpwLogger.envTagLen || envTagLen > WpwLogger.envTagLen ? envTagLen : WpwLogger.envTagLen;
     };
 
 
@@ -140,7 +148,12 @@ class WpwLogger
     /**
      * @returns {typedefs.WpwLog}
      */
-    static defaultOptions = () => ({ level: 2, valueMaxLineLength: 100, colors: { default: "grey" }, pad: { value: 40, base: 0 }});
+    static defaultOptions = () => (
+    {
+        level: 2, valueMaxLineLength: 100,
+        colors: { default: "grey" },
+        pad: { value: 40, base: 0 }
+    });
 
 
     /**
@@ -190,7 +203,7 @@ class WpwLogger
      * @param {string | undefined} msg
      * @returns {string}
      */
-    format = (msg) =>
+    format(msg)
     {
         if (isString(msg, true))
         {
@@ -201,7 +214,7 @@ class WpwLogger
             return msg;
         }
         return "";
-    };
+    }
 
 
     /**
@@ -209,7 +222,7 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} icon
      * @returns {typedefs.WpwLogColorMapping}
      */
-    getIconcolorMapping = (icon) =>
+    getIconcolorMapping(icon)
     {
         if (icon)
         {
@@ -229,7 +242,8 @@ class WpwLogger
             }
         }
         return this.colors[this.options.colors.infoIcon || this.options.color || "blue"];
-    };
+    }
+
 
     /** @type {typedefs.WpwLoggerIconSet} */
     icons =
@@ -273,46 +287,47 @@ class WpwLogger
     /**
      * @param {string} name
      * @param {string} version
-     * @param {string} subtitle
+     * @param {string} title
      * @param {tinycolor.ColorInput[]} colors
      */
-    printBanner = (name, version, subtitle, ...colors) =>
-        WpwLogger.printBanner(name, version, subtitle, undefined, this);
+    printBanner(name, version, title, ...colors) { WpwLogger.printBanner(name, version, title, null, this, ...colors); }
 
 
     /**
      * @param {string} name
      * @param {string} version
      * @param {string} subtitle
-     * @param {typedefs.WpBuildCallback} [cb]
+     * @param {typedefs.WpBuildCallback | null | undefined} [cb]
      * @param {WpwLogger} [logger]
      * @param {tinycolor.ColorInput[]} colors
      */
-    static printBanner = (name, version, subtitle, cb, logger, ...colors) =>
+    static printBanner(name, version, subtitle, cb, logger, ...colors)
     {
         const instLogger = !!logger;
-        logger = logger || new WpwLogger({
-            envTagDisable: true, colors: { default: "grey" }, level: 5, pad: { value: 100 }
-        });
+        logger = logger || new WpwLogger({ colors: { default: "grey" }, level: 5, pad: { value: 100 }});
+        apply(logger.options, { envTagDisable: true });
         logger.sep();
         // console.log(gradient.rainbow(spmBanner(version), {interpolation: "hsv"}));
         if (colors.length === 0) {
-            colors.push("red", "purple", "cyan", "pink", "green", "purple", "blue");
+            colors.push(...SEP_GRADIENT_COLORS);
         }
         console.log(gradient(...colors).multiline(this.spmBanner(name, version), {interpolation: "hsv"}));
         logger.sep();
         if (subtitle) {
-            logger.write(gradient("purple", "blue", "pink", "green", "purple", "blue").multiline(subtitle));
+            logger.write(gradient(...BANNER_GRADIENT_COLORS).multiline(subtitle));
             logger.sep();
         }
         cb?.(logger);
         if (!instLogger) {
             logger.dispose();
         }
+        else {
+            apply(logger.options, { envTagDisable: false });
+        }
     };
 
 
-    sep = () => this.write("-".padEnd(this.separatorLength, "-"));
+    sep() { this.write("-".padEnd(this.separatorLength, "-")); }
 
 
     /**
@@ -321,7 +336,7 @@ class WpwLogger
      * @param {string} version
      * @returns {string}
      */
-    static spmBanner = (name, version) =>
+    static spmBanner(name, version)
     {
         const vPadStart = 8 - version.length + (version.length % 2 === 0 ? 1 : 0),
               vPadEnd = 8 - version.length,
@@ -340,10 +355,14 @@ class WpwLogger
      * @param {string | undefined} msg
      * @param {typedefs.WpwLoggerLevel} [level]
      */
-    start = (msg, level) =>  this.write(
-        (this.options.color ?
+    start(msg, level) {
+        this.write((this.options.color ?
             this.withColor(this.icons.start, this.colors[this.options.color]) :
-            this.icons.color.start) + (msg ? "  " + msg : ""), level);
+            this.icons.color.start) + (msg ? "  " + msg : ""),
+            level
+        );
+    }
+
 
     /**
      * @param {any} msg
@@ -351,12 +370,15 @@ class WpwLogger
      * @param {string} [pad]
      * @param {boolean} [successIcon]
      */
-    success = (msg, level, pad, successIcon) => this.writeMsgTag(
-        msg, "success", level, pad,
-        this.options.colors.default ? this.colors[this.options.colors.default] : this.colors.white,
-        this.colors.green,
-        successIcon ? this.icons.color.success : null
-    );
+    success(msg, level, pad, successIcon)
+    {
+        this.writeMsgTag(
+            msg, "success", level, pad,
+            this.options.colors.default ? this.colors[this.options.colors.default] : this.colors.white,
+            this.colors.green,
+            successIcon ? this.icons.color.success : null
+        );
+    }
 
 
     /**
@@ -365,14 +387,14 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
      * @returns {string}
      */
-    tag = (tagMsg, bracketColor, msgColor) =>
+    tag(tagMsg, bracketColor, msgColor)
     {
         const bClr = bracketColor ||
                     (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
                     (this.options.color ? this.colors[this.options.color] : null) || this.defaultColor;
         return tagMsg ?
             (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
-    };
+    }
 
 
     /**
@@ -385,112 +407,116 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null} [color]
      */
-    value = (msg, val, level, pad, icon, color) =>
+    value(msg, val, level, pad, icon, color)
     {
-        if (level === undefined || level <= this.options.level)
+        if (level !== undefined && level >= this.options.level)
         {
-            let vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
-            const vPad = this.options.pad.value || 50,
-                  rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
-            while ((match = rgxColorStartEnd.exec(vMsg)) !== null) {
-                colorSpace += match[0].length - match[1].length;
-            }
-            vMsg = vMsg.padEnd(vPad + colorSpace - (pad || "").length);
-            if (val || isPrimitive(val))
+            return;
+        }
+
+        let vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
+        const vPad = this.options.pad.value || 50,
+                rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
+
+        while ((match = rgxColorStartEnd.exec(vMsg)) !== null) {
+            colorSpace += match[0].length - match[1].length;
+        }
+        vMsg = vMsg.padEnd(vPad + colorSpace - (pad || "").length);
+
+        if (val || isPrimitive(val))
+        {
+            const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
+                    maxLine = this.options.valueMaxLineLength || 100;
+            vMsg += (!isString(val) || !rgxColorStart.test(val) ? ": " : "");
+            if (isString(val) && val.replace(rgxColorStart, "").length > maxLine && !val.trim().includes("\n"))
             {
-                const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
-                      maxLine = this.options.valueMaxLineLength || 100;
-                vMsg += (!isString(val) || !rgxColorStart.test(val) ? ": " : "");
-                if (isString(val) && val.replace(rgxColorStart, "").length > maxLine && !val.trim().includes("\n"))
+                let xPad, clrLen,
+                    v = val.substring(0, maxLine),
+                    lV = v.substring(v.length - 6);
+                val = val.substring(maxLine);
+                while ((match = rgxColorStartEnd.exec(v)) !== null)
                 {
-                    let xPad, clrLen,
-                        v = val.substring(0, maxLine),
+                    clrLen = match[0].length - match[1].length;
+                    xPad = clrLen < val.length ? clrLen : val.length;
+                    v += val.substring(0, xPad);
+                    val = val.substring(xPad);
+                    lV = v.substring(v.length - 6);
+                }
+                while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
+                {
+                    v += val.substring(0, 1);
+                    val = val.substring(1);
+                    lV = v.substring(v.length - 6);
+                    if (rgxColorStart.test(lV) && val[0] === "]")
+                    {
+                        v += val.substring(0, 3);
+                        val = val.substring(3);
                         lV = v.substring(v.length - 6);
+                    }
+                }
+                vMsg += v;
+                this.write(vMsg, level, pad, icon, color);
+                while (val.replace(rgxColorStart, "").length > maxLine)
+                {
+                    vMsg = val.substring(0, maxLine);
                     val = val.substring(maxLine);
+                    lV = vMsg.substring(vMsg.length - 6);
                     while ((match = rgxColorStartEnd.exec(v)) !== null)
                     {
                         clrLen = match[0].length - match[1].length;
                         xPad = clrLen < val.length ? clrLen : val.length;
-                        v += val.substring(0, xPad);
+                        xPad = match[0].length - match[1].length < val.length ? match[0].length - match[1].length : val.length;
+                        vMsg += val.substring(0, xPad);
                         val = val.substring(xPad);
-                        lV = v.substring(v.length - 6);
+                        lV = vMsg.substring(vMsg.length - 6);
                     }
                     while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
                     {
-                        v += val.substring(0, 1);
+                        vMsg += val.substring(0, 1);
                         val = val.substring(1);
-                        lV = v.substring(v.length - 6);
-                        if (rgxColorStart.test(lV) && val[0] === "]")
-                        {
-                            v += val.substring(0, 3);
-                            val = val.substring(3);
-                            lV = v.substring(v.length - 6);
-                        }
-                    }
-                    vMsg += v;
-                    this.write(vMsg, level, pad, icon, color);
-                    while (val.replace(rgxColorStart, "").length > maxLine)
-                    {
-                        vMsg = val.substring(0, maxLine);
-                        val = val.substring(maxLine);
                         lV = vMsg.substring(vMsg.length - 6);
-                        while ((match = rgxColorStartEnd.exec(v)) !== null)
-                        {
-                            clrLen = match[0].length - match[1].length;
-                            xPad = clrLen < val.length ? clrLen : val.length;
-                            xPad = match[0].length - match[1].length < val.length ? match[0].length - match[1].length : val.length;
-                            vMsg += val.substring(0, xPad);
-                            val = val.substring(xPad);
-                            lV = vMsg.substring(vMsg.length - 6);
-                        }
-                        while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
-                        {
-                            vMsg += val.substring(0, 1);
-                            val = val.substring(1);
-                            lV = vMsg.substring(vMsg.length - 6);
-                        }
-                        xPad = /\x1B/.test(vMsg) ? 0 : 2;
-                        vMsg = "".padStart(vPad + xPad) + vMsg;
-                        this.write(vMsg, level, pad, icon, color);
                     }
-                    if (val.length > 0) {
-                        xPad = /\x1B/.test(val) ? 0 : 2;
-                        vMsg = "".padStart(vPad + xPad) + val;
-                        this.write(vMsg, level, pad, icon, color);
-                    }
-                    return;
+                    xPad = /\x1B/.test(vMsg) ? 0 : 2;
+                    vMsg = "".padStart(vPad + xPad) + vMsg;
+                    this.write(vMsg, level, pad, icon, color);
                 }
-                else if (isArray(val))
-                {
-                    vMsg += "array[ " + val.join(" | ") + " ]";
+                if (val.length > 0) {
+                    xPad = /\x1B/.test(val) ? 0 : 2;
+                    vMsg = "".padStart(vPad + xPad) + val;
+                    this.write(vMsg, level, pad, icon, color);
                 }
-                else if (isObject(val))
-                {
-                    try {
-                        vMsg += JSON.stringify(val);
-                    }
-                    catch
-                    {   try {
-                            vMsg += val.toString();
-                        }
-                        catch {
-                            vMsg += "object[object]";
-                        }
-                    }
-                }
-                else {
-                    vMsg += val;
-                }
+                return;
             }
-            else if (val === undefined) {
-                vMsg += ": undefined";
+            else if (isArray(val))
+            {
+                vMsg += "array[ " + val.join(" | ") + " ]";
+            }
+            else if (isObject(val))
+            {
+                try {
+                    vMsg += JSON.stringify(val);
+                }
+                catch
+                {   try {
+                        vMsg += val.toString?.();
+                    }
+                    catch {
+                        vMsg += "object[object]";
+                    }
+                }
             }
             else {
-                vMsg += ": null";
+                vMsg += val;
             }
-            this.write(vMsg, level, pad, icon, color);
         }
-    };
+        else if (val === undefined) {
+            vMsg += ": undefined";
+        }
+        else {
+            vMsg += ": null";
+        }
+        this.write(vMsg, level, pad, icon, color);
+    }
 
     /**
      * @param {string} msg
@@ -500,7 +526,7 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | null} [iconColor]
      * @param {typedefs.WpwLogColorMapping | null} [msgColor]
      */
-    valuestar = (msg, dsc, level, pad, iconColor, msgColor) =>
+    valuestar(msg, dsc, level, pad, iconColor, msgColor)
     {
         const icon = this.withColor(
             this.icons.star,
@@ -516,7 +542,7 @@ class WpwLogger
         else {
             this.value(msg, `${icon} ${dsc} ${icon}`, level, pad, undefined, msgColor);
         }
-    };
+    }
 
 
     /**
@@ -524,7 +550,7 @@ class WpwLogger
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    warning = (msg, pad, color) => this.write(msg, undefined, pad, this.icons.color.warning, color);
+    warning(msg, pad, color) { this.write(msg, undefined, pad, this.icons.color.warning, color); }
 
     /**
      * @param {string | undefined} msg
@@ -541,7 +567,10 @@ class WpwLogger
      * @param {string} [msg] message to include in length calculation
      * @returns {number}
      */
-    withColorLength = (color, msg) => (2 + color[0].toString().length + 1 + (msg ? msg.length : 0) + 2 + color[1].toString().length + 1);
+    withColorLength(color, msg)
+    {
+        return (2 + color[0].toString().length + 1 + (msg ? msg.length : 0) + 2 + color[1].toString().length + 1);
+    }
 
 
     /**
@@ -551,7 +580,7 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    write = (msg, level, pad = "", icon, color) =>
+    write(msg, level, pad = "", icon, color)
     {
         if (level === undefined || level <= this.options.level)
         {
@@ -563,11 +592,11 @@ class WpwLogger
                   envMsg = color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
                             this.withColor(this.format(msg), envMsgClr) : this.format(msg),
                   envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                            this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd((opts.pad.envTag || 25) + envTagClrLen) : "",
+                            this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd((WpwLogger.envTagLen || 25) + envTagClrLen) : "",
                   envIcon = !opts.envTagDisable ? (isString(icon) ? icon + " " : this.infoIcon + " ") : "";
             console.log(`${this.options.pad.base || ""}${envIcon}${envTag}${pad}${envMsg.trimEnd()}`);
         }
-    };
+    }
 
 
     /**
@@ -579,7 +608,7 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
      * @param {string | undefined | null | 0 | false} [icon]
      */
-    writeMsgTag = (msg, tagMsg, level, pad, bracketColor, msgColor, icon) =>
+    writeMsgTag(msg, tagMsg, level, pad, bracketColor, msgColor, icon)
     {
         let exPad = "";
         const match = msg.match(/^( +)[\w]/);
@@ -588,7 +617,7 @@ class WpwLogger
             exPad + this.tag(tagMsg, bracketColor, msgColor) + " " +
             this.withColor(msg, this.colors[this.options.colors.default || "grey"]), level, pad, icon
         );
-    };
+    }
 
 
     /**

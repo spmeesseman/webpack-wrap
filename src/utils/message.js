@@ -109,7 +109,7 @@ const WpwMessageEnum =
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
     ERROR_TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
     ERROR_TYPES_FAILED_INVALID_METHOD: /** @type {typedefs.WpwErrorCode} */("WPW662"),
-    ERROR_TYPES_FAILED_BUNDLE: /** @type {typedefs.WpwErrorCode} */("WPW665"),
+    ERROR_TYPES_FAILED_BUNDLE: /** @type {typedefs.WpwErrorCode} */("WPW670"),
     //
     // ERROR (700 - 799)
     //
@@ -132,8 +132,6 @@ const WpwMessageEnum =
 class WpwError extends WebpackError
 {
     static Msg = WpwMessageEnum;
-    static Msgs = WpwMessage;
-
 
     /**
      * @param {string | WpwMessageEnum} message

@@ -81,43 +81,6 @@ const getSchemaVersion = (/** @type {string | undefined} */ schemaKey) =>
 
 
 /**
- * @param {typedefs.WpwBuildOptions} options
- * @param {typedefs.WpwBuildOptions} initialOptions
- * @throws {WpwError}
- */
-const validateBuildOptions = (options, initialOptions) =>
-{
-    Object.keys(options || {}).forEach((k) =>
-    {
-        if (options[k] === true) {
-            options[k] = { enabled: true };
-        }
-        else if (options[k] === false) {
-            delete options[k];
-        }
-        else if (isObject(options[k]))
-        {
-            if (options[k].enabled === false || options[k].enabled !== true)
-            {
-                if (!initialOptions[k] || initialOptions[k].enabled === false) {
-                    delete options[k];
-                }
-                else {
-                    options[k].enabled = true;
-                }
-            }
-            else if (isObjectEmpty(options[k]) || isEmpty(options[k].enabled)) {
-                options[k].enabled = true;
-            }
-        }
-        else {
-            throw WpwError.get("invalid build options schema");
-        }
-    });
-};
-
-
-/**
  * @param {*} options
  * @param {any} logger
  * @param {string} [subschema]

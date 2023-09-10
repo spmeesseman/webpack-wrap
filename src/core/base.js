@@ -11,7 +11,7 @@
 
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const { merge, isObject, WpwLogger, apply, pickNot } = require("../utils");
+const { merge, isObject, WpwLogger, apply, pickNot, isPromise } = require("../utils");
 
 
 /**
@@ -21,6 +21,8 @@ const { merge, isObject, WpwLogger, apply, pickNot } = require("../utils");
  */
 class WpwBase
 {
+    /** @type {typedefs.IDisposable[]} */
+    disposables;
     /** @type {typedefs.WpBuildGlobalEnvironment} */
     global;
     /** @type {typedefs.WpwBaseOptions} */
@@ -39,6 +41,7 @@ class WpwBase
 	constructor(options)
     {
         apply(this, {
+            disposables: [],
             global: globalEnv,
             name: this.constructor.name,
             initialConfig: merge({}, pickNot(options, "app"))
@@ -56,10 +59,15 @@ class WpwBase
     }
 
 
-    /**
-     * @abstract
-     */
-    dispose() {}
+    async dispose()
+    {
+        for (const d of this.disposables.splice(0))
+        {
+            const result = d.dispose();
+            if (isPromise(result)) { await result; }
+        }
+        this.logger.dispose();
+    };
 
 }
 

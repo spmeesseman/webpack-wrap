@@ -72,12 +72,6 @@ class WpwBaseModule extends WpwBase
 
 
     /**
-     * @abstract
-     */
-    dispose() {}
-
-
-    /**
      * @returns {typedefs.WpwBuildOptionsKey}
      */
     get baseName() { return /** @type {typedefs.WpwBuildOptionsKey} */(

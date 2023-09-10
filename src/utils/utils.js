@@ -33,6 +33,14 @@ const hasSymbols = require("has-symbols/shams"),
  * @param {boolean} [allowEmpStr] If `false`, return empty array if isString(v) and isEmpty(v)
  * @returns {Array<NonNullable<T>>}
  */
+
+/**
+ * @template T
+ * @param {T | T[] | IterableIterator<T> | Set<T> | undefined} v Variable to check to see if it's an array
+ * @param {boolean} [shallow] If `true`, and  `arr` is an array, return a shallow copy
+ * @param {boolean} [allowEmpStr] If `false`, return empty array if isString(v) and isEmpty(v)
+ * @returns {T[]}
+ */
 const asArray = (v, shallow, allowEmpStr) => /** @type {Array} */(
     (v instanceof Set || hasIterator(v) ? Array.from(v): (isArray(v) ? (shallow !== true ? v : v.slice()) : (!isEmpty(v, allowEmpStr) ? [ v ] : [])))
 );

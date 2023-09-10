@@ -16,16 +16,15 @@ const { mkdirSync, existsSync, readFileSync } = require("fs");
 const { resolve, dirname, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
-    apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isArray,
-    relativePath, findFilesSync, validateSchema, validateBuildOptions, isBoolean, getDefinitionSchemaProperties, isObject, getDefinitionSchema, isPrimitive, WpwError
+    apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isArray, relativePath,
+    findFilesSync, validateSchema, validateBuildOptions, isBoolean, isNulled, getDefinitionSchemaProperties,
+    isObject, getDefinitionSchema, isPrimitive, WpwError, isObjectEmpty, isEmpty
 } = require("../utils");
-
-const defaultTempDir = `node_modules${sep}.cache${sep}wpbuild${sep}temp`;
 
 
 /**
  * @extends {WpwBase}
- * @implements {typedefs.IWpwBuild}
+ * @implements {typedefs.IWpwBuildConfig}
  * @implements {typedefs.IDisposable}
  */
 class WpwBuild extends WpwBase
@@ -66,79 +65,57 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @param {typedefs.IWpwBuild} config
+     * @param {typedefs.IWpwBuildConfig} config
      * @param {typedefs.WpwRc} rc
      */
     constructor(config, rc)
     {
+        if (!config.name) {
+            throw WpwError.getErrorMissing("build.name");
+        }
         super(config);
         this.rc = rc;
         this.logger = rc.logger;
         this.configure(config);
-        this.source = new WpwSourceCode(merge({}, this.source), this);
-        this.resolveAliasPaths(); // Alias paths get resolved "after" instantiating `WpwSourceCode`
     }
 
 
-    dispose = () => this.source.dispose();
-
-
     /**
-     * @private
-     * @param {typedefs.WpwBuildModeConfigBase} rc
-     * @returns {typedefs.WpwBuildModeConfigBase}
+     * @param {typedefs.WpwBuildOptions} options
+     * @param {typedefs.WpwBuildOptions} initialOptions
+     * @throws {WpwError}
      */
-    applyDefaultRc = (rc) =>
+    cleanOptions(options, initialOptions)
     {
-        if (!rc.options) { rc.options = {}; }
-        if (!rc.log) {
-            rc.log = WpwLogger.defaultOptions();
-        }
-        else
-        {   if (!rc.log.colors) {
-                rc.log.colors = WpwLogger.defaultOptions().colors;
-            }
-            else if (!rc.log.colors.default) {
-                rc.log.colors.default = WpwLogger.defaultOptions().colors.default;
-            }
-            if (!rc.log.pad) {
-                rc.log.pad = WpwLogger.defaultOptions().pad;
-            }
-        }
-        if (!rc.paths) {
-            rc.paths = { base: ".", src: "src", dist: "dist", ctx: ".", temp: defaultTempDir };
-        }
-        else
-        {   if (!rc.paths.base) { rc.paths.base = "."; }
-            if (!rc.paths.src) { rc.paths.src = "src"; }
-            if (!rc.paths.dist) { rc.paths.dist = "dist"; }
-            if (!rc.paths.ctx) { rc.paths.ctx = "."; }
-            if (!rc.paths.temp) { rc.paths.temp = defaultTempDir; }
-        }
-        if (!rc.source)
+        this.disposables.push(this.source, this.logger);
+        Object.keys(options || {}).forEach((k) =>
         {
-            rc.source = {
-                type: "javascript",
-                config: { options: { compilerOptions: {}, files: [] }, excludeAbs: [], includeAbs: [] }
-            };
-        }
-        else
-        {
-            if (!rc.source.type) {
-                rc.source.type = "javascript";
-                rc.source.type = "js";
+            if (options[k] === true) {
+                options[k] = { enabled: true };
             }
-            if (!rc.source.config) {
-                rc.source.config = {
-                    options: { compilerOptions: {}, files: [] }, excludeAbs: [], includeAbs: []
-                };
+            else if (options[k] === false) {
+                delete options[k];
             }
-            else if (!rc.source.config.options) {
-                rc.source.config.options = { compilerOptions: {}, files: [] };
+            else if (isObject(options[k]))
+            {
+                if (options[k].enabled === false || options[k].enabled !== true)
+                {
+                    if (!initialOptions[k] || initialOptions[k].enabled === false) {
+                        delete options[k];
+                    }
+                    else {
+                        options[k].enabled = true;
+                    }
+                }
+                else if (isObjectEmpty(options[k]) || isEmpty(options[k].enabled)) {
+                    options[k].enabled = true;
+                }
             }
-        }
-        return rc;
-    };
+            else {
+                throw WpwError.get("invalid build options schema");
+            }
+        });
+    }
 
 
 	/**
@@ -146,73 +123,31 @@ class WpwBuild extends WpwBase
 	 * build configuration and update`this.builds` with fully configured build defs
      *
 	 * @private
-     * @param {typedefs.IWpwBuild} buildConfig
+     * @param {typedefs.IWpwBuildConfig} buildConfig
 	 */
-    configure = (buildConfig) =>
+    configure(buildConfig)
     {
-        /**  @template D, S */
-        const _applyProperty = (/** @type {string}  */property, /** @type {D}  */dst, /** @type {S}  */src) =>
-        {
-            if (src[property])
-            {
-                if (!dst[property]) {
-                    dst[property] = merge({}, src[property]);
-                }
-                else {
-                    mergeIf(dst[property], src[property]);
-                }
-            }
-        };
-
-        const _applyRc = (/** @type {typedefs.IWpwBuild}  */dst, /** @type {typedefs.WpwBuildModeConfigBase}  */src) =>
-        {
-            _applyProperty("paths", dst, src);
-            _applyProperty("options", dst, src);
-            _applyProperty("alias", dst, src);
-            _applyProperty("source", dst, src);
-            _applyProperty("vscode", dst, src);
-            _applyProperty("log", dst, src);
-            if (dst.log.color) {
-                const clr = dst.log.color;
-                applyIf(dst.log.colors, { valueStar: clr, buildBracket: clr, tagBracket: clr, infoIcon: clr });
-            }
-            apply(dst, { mode: dst.mode });
-            return dst;
-        };
-
         merge(this, buildConfig);
-        this.logger.write(`configure build '${this.name}'`, 1);
-
-        this.logger.write("   apply base configuration", 2);
-        apply(this, { mode: this.mode || this.rc.mode, target: this.getTarget(), type: this.getType() });
-        _applyRc(this, this.applyDefaultRc(this.rc));
-
-        const modeRc = /** @type {Partial<typedefs.WpwBuildModeConfig>} */(this.rc[this.rc.mode]);
-        const modeBuildRc = asArray(modeRc?.builds).find(b => b.name === this.name);
-        if (modeBuildRc) {
-            this.logger.write("   apply mode configuration", 2);
-            _applyRc(this, modeBuildRc);
-        }
-
-        this.logger.write("   resolve build paths", 2);
-        this.applyDefaultRc(this);
-        this.resolvePaths();
-
-        this.logger.write("   trim & validate build options", 2);
-        validateBuildOptions(this.options, buildConfig.options);
-        this.mergeDefaultBuildOptions();
-
-        this.logger.write("   validate final build configuration", 2);
-        validateSchema(this, this.logger, "build");
-
-        this.logger.write(`final configuration for build '${this.name}' complete`, 2);
-    };
+        //
+        // A build config could specify a different mode and/or target than the main build, e.g. a
+        // build that is configured with only a dev and prod config could specify 'development' for
+        // the 'test' envirnoment.
+        //
+        apply(this, {
+            mode: this.mode || this.rc.mode,
+            target: this.getTarget(),
+            type: this.getType(),
+            log: { envTag1: this.name , envTag2: this.target }
+        });
+        merge(this.log, { envTag1: this.name , envTag2: this.target });
+        this.validate();
+    }
 
 
     /**
      * @private
      */
-    getTarget = () =>
+    getTarget()
     {
         let target = this.target;
         if (!isWebpackTarget(target))
@@ -224,13 +159,13 @@ class WpwBuild extends WpwBase
             else if ((/module|node/).test(this.name) || this.type === "module") { target = "node"; }
         }
         return target;
-    };
+    }
 
 
     /**
      * @private
      */
-    getType = () =>
+    getType()
     {
         let type = this.type;
         if (!type)
@@ -243,13 +178,13 @@ class WpwBuild extends WpwBase
             else if (this.target === "webworker") { type = "webapp"; }
         }
         return type;
-    };
+    }
 
 
     /**
      * @private
      */
-    mergeDefaultBuildOptions = () =>
+    mergeDefaultBuildOptions()
     {
         this.readSchema();
         Object.keys(this.options).forEach(/** @type {typedefs.WpwBuildOptionsKey} */(optionsKey) =>
@@ -270,7 +205,7 @@ class WpwBuild extends WpwBase
                 }
             }
         });
-    };
+    }
 
 
     /**
@@ -283,7 +218,7 @@ class WpwBuild extends WpwBase
      * @returns {T}
      * @throws {WpwError}
      */
-    mergeOptions = (optionsCfg, schemaObject, definitions, baseKey) =>
+    mergeOptions(optionsCfg, schemaObject, definitions, baseKey)
     {
         for (const [ k, def ] of Object.entries(schemaObject))
         {
@@ -335,84 +270,30 @@ class WpwBuild extends WpwBase
             }
         }
         return optionsCfg;
-    };
+    }
 
 
     /**
      * @private
      */
-    readSchema = () =>
+    readSchema()
     {
         WpwBuild.schema = WpwBuild.schema ||
             JSON.parse(readFileSync(resolve(__dirname, "../../schema/.wpbuildrc.schema.json"), "utf8"));
-    };
+    }
 
 
     /**
      * @private
      */
-    resolveAliasPaths = () =>
+    validate()
     {
-        if (!this.alias) { return; }
-
-        const alias = this.alias,
-              jstsConfig = this.source.config,
-              jstsDir = jstsConfig.dir,
-              jstsPaths = jstsConfig.options.compilerOptions.paths;
-
-        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
-        {
-            const value = alias[key];
-            if (isArray(value))
-            {
-                if (!value.includes(path)) {
-                    value.push(path);
-                }
-            }
-            else { alias[key] = [ path ]; }
-        };
-
-        if (jstsDir && jstsPaths)
-        {
-            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
-            {
-                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
-            });
-        }
-
-        if (!alias[":env"])
-        {
-            const basePath = this.paths.base,
-                  srcPath = relativePath(basePath, this.paths.src),
-                  envGlob = `**/${srcPath}/**/{env,environment,target}/${this.target}/`,
-                  envDirs = findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
-            envDirs.forEach((path) => _pushAlias(":env", path), this);
-        }
-    };
-
-
-	/**
-	 * @private
-	 */
-	resolvePaths = () =>
-	{
-        const paths = this.paths,
-              base = dirname(this.rc.pkgJsonPath),
-              // @ts-ignore
-              ostemp = os.tmpdir ? os.tmpdir() : os.tmpDir(),
-			  temp = resolve(
-                  ostemp ? `${ostemp}${sep}${this.rc.pkgJson.scopedName.name}` : defaultTempDir,
-                  `${this.target}${sep}${this.mode}`
-              );
-		if (!existsSync(temp)) {
-			mkdirSync(temp, { recursive: true });
-		}
-        paths.base = base;
-        paths.temp = paths.temp && paths.temp !== defaultTempDir ? paths.temp : temp;
-        paths.ctx = paths.ctx ? resolvePath(base, paths.ctx) : base;
-        paths.src = resolvePath(base, paths.src || "src");
-        paths.dist = resolvePath(base, paths.dist || "dist");
-	};
+        this.logger.write(`validate ${this.name} build configuration`, 1);
+        this.mergeDefaultBuildOptions();
+        this.cleanOptions(this.options, this.initialConfig.options);
+        validateSchema(this, this.logger, "build");
+        this.logger.write(`final configuration for build '${this.name}' validated`, 2);
+    }
 
 }
 

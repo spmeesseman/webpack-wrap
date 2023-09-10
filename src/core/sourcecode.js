@@ -179,7 +179,7 @@ class WpwSourceCode
     /**
      * @private
      * @param {typedefs.IWpwSourceCode} sourceConfig
-     * @param {typedefs.IWpwBuild} build
+     * @param {typedefs.IWpwBuildConfig} build
      * @returns {string | undefined}
      */
     findJsTsConfig = (sourceConfig, build) =>
@@ -258,7 +258,7 @@ class WpwSourceCode
     /**
      * @private
      * @param {typedefs.IWpwSourceCode} sourceConfig
-     * @param {typedefs.IWpwBuild} build
+     * @param {typedefs.IWpwBuildConfig} build
      * @returns {typedefs.WpwSourceCodeConfig | undefined}
      */
     getJsTsConfigFileInfo = (sourceConfig, build) =>

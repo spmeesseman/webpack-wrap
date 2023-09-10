@@ -28,6 +28,9 @@
             }
         },
         "options": {
+            "sourcemaps": {
+                "enabled": false
+            },
             "types": {
                 "mode": "module",
                 "entry": "index",
@@ -42,7 +45,7 @@
         },
         "paths": {
             "dist": "dist/types",
-            "src": "src/types"
+            "src": "src"
         }
     }],
     "development": {
@@ -78,10 +81,8 @@
             "options": {
                 "wait": {
                     "items": [{
-                        "type": "event",
-                        "name": "done",
-                        "target": "types",
-                        "timeout": 5000
+                        "mode": "event",
+                        "name": "types"
                     }]
                 }
             },

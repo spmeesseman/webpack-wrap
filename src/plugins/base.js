@@ -653,17 +653,16 @@ class WpwPlugin extends WpwBaseModule
                 eMgr.emit(`${this.name}_start`, options.hook);
             };
         }
-        if (wait)
+        if (wait?.items)
         {
-            Object.keys(wait).forEach(waitPlugin =>
+            wait.items.forEach((waitConfig) =>
             {
                 const delayedCb = cb;
                 cb = () => {
                     eMgr.register({
-                        type: "event",
-                        source: /** @type {typedefs.WpwBuildOptionsKey} */(this.key),
-                        target: this.app.build.name,
-                        name: `${waitPlugin}_done`,
+                        type: waitConfig.mode,
+                        source: this.key,
+                        name: waitConfig.name,
                         callback: () => delayedCb.call(this, message, options)
                     });
                 };

@@ -29,15 +29,13 @@ class WpBuildApp extends WpwBase
 {
     /** @type {typedefs.WpwBuild} */
     build;
-    /** @type {Array<typedefs.IDisposable>} */
-    disposables;
-    /** @type {WpwError[]} */
+    /** @type {WpwError[]} @private */
     errors;
-    /** @type {WpwError[]} */
+    /** @type {WpwError[]} @private */
     info;
     /** @type {typedefs.WpwRc} @private */
     rc;
-    /** @type {WpwError[]} */
+    /** @type {WpwError[]} @private */
     warnings;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
@@ -51,33 +49,17 @@ class WpBuildApp extends WpwBase
 	constructor(rc, build)
 	{
         super({});
-        this.info = [];
-        this.errors = [];
-        this.warnings = [];
-        this.disposables = [];
-        this.rc = rc;
-        this.build = build;
-        this.initLogger();
+        apply(this, { rc, build, info: [], errors: [], warnings: [], logger: build.logger });
         this.addSuggestions();
+        this.disposables.push(build);
 	}
 
 
-    get buildCount() { return this.rc.buildCount; }
-    get cmdLine() { return this.rc.args; }
-    get isOnlyBuild() { return this.rc.isSingleBuild; }
-    get pkgJson() { return this.rc.pkgJson; }
-    get source() { return this.build.source; }
-
-
+    /**
+     * @override
+     */
     dispose = async () =>
     {
-        for (const d of this.disposables.splice(0))
-        {
-            const result = d.dispose();
-            if (isPromise(result)) {
-                await result;
-            }
-        }
         const l = this.logger;
         if (this.info.length > 0) {
             l.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
@@ -91,9 +73,21 @@ class WpBuildApp extends WpwBase
             l.warning("REPORTED ERRORS FOR THIS BUILD:");
             this.errors.splice(0).forEach(e => this.printNonFatalIssue(e, l.error));
         }
-        l.write(`dispose app wrapper instance for build '${this.build.name}'`, 3);
-        l.dispose();
+        for (const d of this.disposables.splice(0))
+        {
+            const result = d.dispose();
+            if (isPromise(result)) {
+                await result;
+            }
+        }
     };
+
+
+    get buildCount() { return this.rc.buildCount; }
+    get cmdLine() { return this.rc.args; }
+    get isOnlyBuild() { return this.rc.isSingleBuild; }
+    get pkgJson() { return this.rc.pkgJson; }
+    get source() { return this.build.source; }
 
 
     /**
@@ -126,23 +120,27 @@ class WpBuildApp extends WpwBase
               icons = this.logger.icons;
         if (/WPW[0-2][0-9][0-9]/.test(code))
         {
-            const i = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
+            const i = WpwError.get(code, this.wpc, detail);
             l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
             this.info.push(i);
         }
         else if (/WPW[3-5][0-9][0-9]/.test(code))
         {
-            const w = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
+            const w = WpwError.get(code, this.wpc, detail);
             l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
             compilation?.warnings.push(w);
         }
         else if (/WPW[6-8][0-9][0-9]/.test(code))
         {
-            const e = WpwError.get(WpwError.Msgs[code], this.wpc, detail);
+            const e = WpwError.get(code, this.wpc, detail);
             l.write(e.message, undefined, pad, icons.color.error, l.colors.red);
-            this.errors.push(e);
-            compilation?.errors.push(e);
+            if (compilation)
+            {
+                this.errors.push(e);
+                compilation.errors.push(e);
+            }
+            else { throw e; }
         }
         else if (/WPW9[0-9][0-9]/.test(code)) {
             l.write("reserved message type", undefined, pad, icons.color.warning);
@@ -188,6 +186,8 @@ class WpBuildApp extends WpwBase
     buildWrapper = () =>
     {
         this.wpc = this.getDefaultWebpackExports();
+        this.global.buildCount = this.global.buildCount || 0;
+        this.printBuildStart();
         try
         {   wpexports.cache(this);          // Asset cache
             wpexports.experiments(this);    // Set any experimental flags that will be used
@@ -357,22 +357,6 @@ class WpBuildApp extends WpwBase
     getSrcPath = (options) => this.getRcPath("src", options);
 
 
-    /**
-     * @private
-     */
-    initLogger = () =>
-    {
-        apply(this.build.log, { envTag1: this.build.name , envTag2: this.build.target.toString() });
-        const l = this.logger = new WpwLogger(this.build.log);
-        this.global.buildCount = this.global.buildCount || 0;
-        l.value(
-            `Start Webpack build ${++this.global.buildCount}`,
-            l.tag(this.build.name) + " " + l.tag(this.build.target),
-            undefined, undefined, l.icons.color.start, l.colors.white
-        );
-    };
-
-
    /**
     * @private
     */
@@ -442,6 +426,16 @@ class WpBuildApp extends WpwBase
         l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);
         l.value("   ts/js configured files", JSON.stringify(this.build.source.config.options.files), 4);
         l.sep();
+    };
+
+
+    printBuildStart = () =>
+    {
+        this.logger.value(
+            `Start Webpack build ${++this.global.buildCount}`,
+            this.logger.tag(this.build.name) + " " + this.logger.tag(this.build.target),
+            undefined, undefined, this.logger.icons.color.start, this.logger.colors.white
+        );
     };
 
 

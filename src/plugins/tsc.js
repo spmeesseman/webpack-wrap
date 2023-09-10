@@ -32,16 +32,17 @@ class WpwTscPlugin extends WpwPlugin
 	 */
 	async bundleDts(statsProperty, outputDir)
 	{
-		const l = this.app.logger;
-		l.write("start bundle dts", 1);
-		l.value("   types output directory", outputDir, 2);
 
 		if (this.global.typesBundled) {
 			this.app.addInfo(WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, "dts bundling already completed");
 			return;
 		}
 
-		const baseDir = this.app.getBasePath();
+		const l = this.app.logger,
+			  baseDir = this.app.getBasePath();
+		l.start("bundle types .d.ts files", 1);
+		l.value("   types output directory", outputDir, 2);
+
 		if (!outputDir)
 		{
 			const compilerOptions = this.app.source.config.options.compilerOptions;

@@ -33,7 +33,7 @@ import {
     WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackCompilation
 } from "./webpack";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, IWpwBuild, WebpackTarget, WpwRcPathsKey,
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, IWpwBuildConfig, WebpackTarget, WpwRcPathsKey,
     WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode, WpwSourceCodeExtension
 } from "./rc";
 
@@ -73,12 +73,8 @@ declare interface IWpwSourceCodeApp extends IWpwSourceCode
 
 declare interface IWpBuildApp extends IDisposable
 {
-    build: IWpwBuild;
-    disposables: IDisposable[];
-    errors: ClsWpwError[];
-    info: ClsWpwError[];
+    build: IWpwBuildConfig;
     logger: IWpwLogger;
-    warnings: ClsWpwError[];
     wpc: WpwWebpackConfig;
     readonly buildCount: number;
     readonly cmdLine: WpBuildCombinedRuntimeArgs;
