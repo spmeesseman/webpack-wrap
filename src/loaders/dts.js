@@ -67,7 +67,7 @@ async function dtsLoader(source, map, meta)
         source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
     }
     //
-    // TODO: do dts generation / transformations to the source...
+    // TODO: [??]: do dts generation / transformations , do a renameAsset of the fakeAssetName / get rid of types plugin
     //
 
     // return source;

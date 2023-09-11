@@ -2127,8 +2127,7 @@
                 },
                 "bundle": {
                     "default": false,
-                    "oneOf": [
-                    {
+                    "oneOf": [{
                         "type": "boolean"
                     },
                     {
@@ -2136,60 +2135,23 @@
                     }]
                 },
                 "method": {
-                    "$ref": "#/definitions/WpwSourceCodeTypescriptBuildMethod"
+                    "$ref": "#/definitions/WpwPluginConfigTypesMethod"
                 },
                 "mode": {
-                    "type": "string",
-                    "default": "entry",
-                    "oneOf": [{
-                        "const": "module",
-                        "description": "perform 'types' build as s standard module build"
-                    },
-                    {
-                        "const": "plugin",
-                        "description": "perform 'types' build using internal plugin and fork-ts-checker-plugin"
-                    }]
+                    "$ref": "#/definitions/WpwPluginConfigTypesMode"
                 },
                 "entry": {
-                    "default": "main",
-                    "oneOf": [{
-                        "$ref": "#/definitions/FilePathRelativeLeadingDot"
-                    },
-                    {
-                        "const": "config",
-                        "description": "use the first file listed in the ts/jsconfig file's `include` array as the entry point"
-                    },
-                    {
-                        "const": "main",
-                        "description": "use the main build's entry point"
-                    },
-                    {
-                        "const": "index",
-                        "description": "use the index file in the defined 'types' build source directory as the entry point"
-                    }]
+                    "$ref": "#/definitions/FilePathRelativeLeadingDot",
+                    "description": "use a virtual file as the entry point, perform build using the types build 'src' path"
                 }
             },
-            "examples": [
-            {
-                "enabled": true,
-                "entry": "main",
-                "mode": "plugin"
+            "examples": [{
+                "method": "program",
+                "mode": "module"
             },
             {
                 "enabled": false
-            }],
-            "if": {
-                "properties": {
-                    "enabled": {
-                        "const": true
-                    }
-                }
-            },
-            "then": {
-                "required": [
-                    "mode", "entry"
-                ]
-            }
+            }]
         },
         "WpwPluginConfigTypesBundle": {
             "$id": "#/WpwPluginConfigTypesBundle",
@@ -2232,6 +2194,32 @@
             },
             {
                 "const": "tsc"
+            }]
+        },
+        "WpwPluginConfigTypesMethod": {
+            "$id": "#/WpwPluginConfigTypesMethod",
+            "default": "program",
+            "oneOf": [{
+                "const": "program"
+            },
+            {
+                "const": "tsc"
+            }]
+        },
+        "WpwPluginConfigTypesMode": {
+            "$id": "#/WpwPluginConfigTypesBuildMode",
+            "default": "module",
+            "oneOf": [{
+                "const": "module",
+                "description": "perform 'types' build as s standard module build and a virtual entry point"
+            },
+            {
+                "const": "tscheck",
+                "description": "perform 'types' build using fork-ts-checker-plugin and ts/jsonconfig.json. use if having issues with 'module' mode"
+            },
+            { 
+                "const": "plugin",
+                "description": "perform 'types' build using internal plugin and ts/jsonconfig.json. use if having issues with 'module'or 'tscheck' mode"
             }]
         },
         "WpwPluginConfigUpload": {
@@ -2906,16 +2894,6 @@
             "propertyNames": {
                 "maxLength": 50
             }
-        },
-        "WpwSourceCodeTypescriptBuildMethod": {
-            "$id": "#/WpwSourceCodeTypescriptBuildMethod",
-            "default": "program",
-            "oneOf": [{
-                "const": "program"
-            },
-            {
-                "const": "tsc"
-            }]
         },
         "WpwSourceCodeTypescriptOptions": {
             "$id": "#/WpwSourceCodeTypescriptOptions",

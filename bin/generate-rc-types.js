@@ -39,7 +39,7 @@ const exclueConstants = [];
 
 const generateEnums = [
     // "WpwMessage"
-    "WpwSourceCodeTypescriptBuildMethod"
+    // "WpwPluginConfigTypesdMethod"
 ];
 
 const constantObjectKeyProperties = [
@@ -363,7 +363,8 @@ const wpwreplace =
     {
         return data.replace(/\& (?:[A-Za-z]*?)1;\n/g, ";")
                    .replace(/export type (?:.*?)[0-9] = (?:.*?);\n\n/g, "")
-                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n\n/g, "");
+                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n\n/g, "")
+                   .replace(/(.*?): Wpw(.*?)[0-9];\n/g, (_, m1, m2) => `${m1}: Wpw${m2};\n`);
     },
     removeZeroLengthConstraints: (data) => data.replace(/: \[\]/g, ": string[]"),
     replaceBooleanTypedefs: (data) =>

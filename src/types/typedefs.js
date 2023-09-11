@@ -157,6 +157,7 @@
 /** @typedef {import("./rc").WpwPluginConfigIstanbulKey} WpwPluginConfigIstanbulKey */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksKey} WpwPluginConfigLogHooksKey */
 /** @typedef {import("./rc").WpwPluginConfigTypesBundle} WpwPluginConfigTypesBundle */
+/** @typedef {import("./rc").WpwPluginConfigTypesMethod} WpwPluginConfigTypesMethod */
 /** @typedef {import("./rc").WpwPluginConfigWaitItemKey} WpwPluginConfigWaitItemKey */
 /** @typedef {import("./rc").WpwPluginConfigWebFilename} WpwPluginConfigWebFilename */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptions} WpwSourceCodeConfigOptions */
@@ -178,6 +179,7 @@
 /** @typedef {import("./rc").IWpwOptionsConfigBaseInternal} IWpwOptionsConfigBaseInternal */
 /** @typedef {import("./rc").WpwFilePathRelativeLeadingDot} WpwFilePathRelativeLeadingDot */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItem} WpwPluginConfigRunScriptsItem */
+/** @typedef {import("./rc").WpwPluginConfigTypesBuildMode} WpwPluginConfigTypesBuildMode */
 /** @typedef {import("./rc").WpwPluginConfigTypesBundleKey} WpwPluginConfigTypesBundleKey */
 /** @typedef {import("./rc").WpwPluginConfigWebFilenameKey} WpwPluginConfigWebFilenameKey */
 /** @typedef {import("./rc").WpwSourceCodeConfigOptionsKey} WpwSourceCodeConfigOptionsKey */
@@ -191,8 +193,10 @@
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModule} isWpwSourceCodeNodeJsModule */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsTarget} isWpwSourceCodeNodeJsTarget */
 /** @typedef {import("./constants").isWpwWebpackCompilationHook} isWpwWebpackCompilationHook */
+/** @typedef {import("./constants").WpwPluginConfigTypesMethods} WpwPluginConfigTypesMethods */
 /** @typedef {import("./rc").IWpwSourceCodeTypescriptOptions} IWpwSourceCodeTypescriptOptions */
 /** @typedef {import("./rc").WpwOptionsConfigBaseInternalKey} WpwOptionsConfigBaseInternalKey */
+/** @typedef {import("./constants").isWpwPluginConfigTypesMethod} isWpwPluginConfigTypesMethod */
 /** @typedef {import("./constants").WpwPluginConfigTypesBundlers} WpwPluginConfigTypesBundlers */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemKey} WpwPluginConfigRunScriptsItemKey */
@@ -201,10 +205,11 @@
 /** @typedef {import("./rc").IWpwPluginConfigRunScriptsItemDef} IWpwPluginConfigRunScriptsItemDef */
 /** @typedef {import("./rc").WpwSourceCodeTypescriptOptionsKey} WpwSourceCodeTypescriptOptionsKey */
 /** @typedef {import("./constants").isWpwPluginConfigRunScriptsKey} isWpwPluginConfigRunScriptsKey */
+/** @typedef {import("./constants").WpwPluginConfigTypesBuildModes} WpwPluginConfigTypesBuildModes */
 /** @typedef {import("./constants").WpwSourceCodeTypescriptLoaders} WpwSourceCodeTypescriptLoaders */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptions} WpwSourceCodeConfigCompilerOptions */
-/** @typedef {import("./rc").WpwSourceCodeTypescriptBuildMethod} WpwSourceCodeTypescriptBuildMethod */
+/** @typedef {import("./constants").isWpwPluginConfigTypesBuildMode} isWpwPluginConfigTypesBuildMode */
 /** @typedef {import("./constants").isWpwSourceCodeTypescriptLoader} isWpwSourceCodeTypescriptLoader */
 /** @typedef {import("./constants").WpwWebhookCompilationHookStages} WpwWebhookCompilationHookStages */
 /** @typedef {import("./rc").IWpwPluginConfigLogHooksCompilation} IWpwPluginConfigLogHooksCompilation */
@@ -214,9 +219,7 @@
 /** @typedef {import("./constants").isWpwWebhookCompilationHookStage} isWpwWebhookCompilationHookStage */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilationKey} WpwPluginConfigLogHooksCompilationKey */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptionsKey} WpwSourceCodeConfigCompilerOptionsKey */
-/** @typedef {import("./constants").WpwSourceCodeTypescriptBuildMethods} WpwSourceCodeTypescriptBuildMethods */
 /** @typedef {import("./rc").WpwSourceCodeConfigCompilerOptionsPaths} WpwSourceCodeConfigCompilerOptionsPaths */
-/** @typedef {import("./constants").isWpwSourceCodeTypescriptBuildMethod} isWpwSourceCodeTypescriptBuildMethod */
 /** @typedef {import("./constants").WpwSourceCodeNodeJsModuleResolutions} WpwSourceCodeNodeJsModuleResolutions */
 /** @typedef {import("./rc").IWpwSourceCodeConfigCompilerOptionsPaths} IWpwSourceCodeConfigCompilerOptionsPaths */
 /** @typedef {import("./constants").isWpwSourceCodeNodeJsModuleResolution} isWpwSourceCodeNodeJsModuleResolution */

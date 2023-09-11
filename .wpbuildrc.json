@@ -30,7 +30,6 @@
         "options": {
             "types": {
                 "mode": "module",
-                "entry": "index",
                 "bundle": true
             },
             "vendormod":{
