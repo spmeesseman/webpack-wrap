@@ -19,6 +19,8 @@ class WpwLogger
 {
     /** @type {number} @private @static */
     static envTagLen;
+    /** @type {number} @private @static */
+    static valuePadLen;
     /** @type {Required<typedefs.IWpwLog>} @private */
     options;
     /** @type {string} @private */
@@ -54,7 +56,7 @@ class WpwLogger
 
 
     get level() { return this.options.level; }
-    get valuePad() { return /** @type {number} */(this.options.pad.value); }
+    get valuePad() { return WpwLogger.valuePadLen; }
 
 
     /**
@@ -63,16 +65,13 @@ class WpwLogger
      */
     applyOptions = (options) =>
     {
-        let envTagLen = options.envTag1 && options.envTag2 ? options.envTag1.length + options.envTag2.length + 6 : 0;
-        if (envTagLen === 0) {
-            envTagLen = options.envTag1 ? options.envTag1.length + 6 : 0;
-        }
-        if (envTagLen === 0) {
-            envTagLen = 22;
-        }
-        WpwLogger.envTagLen = !WpwLogger.envTagLen || envTagLen > WpwLogger.envTagLen ? envTagLen : WpwLogger.envTagLen;
-        const defaults = applySchemaDefaults({ envTag1: "wpbuild", envTag2: "info", pad: {}, color: "cyan" }, "WpwLog");
-        this.options = /** @type {Required<typedefs.IWpwLog>} */(merge(defaults, options));
+        const defaults = applySchemaDefaults(/** @type {Required<typedefs.IWpwLog>} */({}), "WpwLog");
+        const opts = this.options = merge(defaults, options);
+console.log(JSON.stringify(opts, null, 4));
+        let len = opts.envTag1.length + opts.envTag2.length + 6;
+        WpwLogger.envTagLen = !WpwLogger.envTagLen || len > WpwLogger.envTagLen ? len : WpwLogger.envTagLen;
+        len = opts.pad.value;
+        WpwLogger.valuePadLen = !WpwLogger.valuePadLen || len > WpwLogger.valuePadLen ? len : WpwLogger.valuePadLen;
     };
 
 
@@ -383,8 +382,8 @@ class WpwLogger
         }
 
         let vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
-        const vPad = this.options.pad.value || 50,
-                rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
+        const vPad = WpwLogger.valuePadLen,
+              rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
 
         while ((match = rgxColorStartEnd.exec(vMsg)) !== null) {
             colorSpace += match[0].length - match[1].length;

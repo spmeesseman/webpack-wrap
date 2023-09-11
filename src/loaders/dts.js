@@ -16,6 +16,7 @@ let logger;
 /** @type {import("schema-utils/declarations/validate").Schema} */
 const schema = {
     type: "object",
+    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.loader.dts.json",
     properties: {
         test: {
             type: "string"
@@ -28,6 +29,9 @@ const schema = {
                 },
                 inputDir: {
                     type: "string"
+                },
+                typesConfig: {
+                    $ref: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/WpwPluginConfigTypes"
                 }
             }
         }
@@ -80,9 +84,7 @@ async function dtsLoader(source, map, meta)
 function loader(source, map, meta)
 {
     const callback = this.async();
-    logger = logger || new WpwLogger({
-        envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
-    });
+    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "dts", level: 5 });
 	dtsLoader.call(this, source, map, meta)
     .then(
         (args) => callback(null, ...args),

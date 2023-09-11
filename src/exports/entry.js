@@ -219,40 +219,13 @@ class WpwEntryExport extends WpwWebpackExport
 	types()
 	{
 		const app = this.app,
-			  build = app.build,
 			  typesConfig = app.build.options.types;
-
-		if (!typesConfig || typesConfig.mode !== "module") {
-			return;
-		}
-
-		if (typesConfig.entry === "main")
-		{
-			const mainBuild = app.getBuild("module");
-			if (mainBuild)
-			{
-				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-				apply(app.wpc.entry, {
-					[ build.name ]: `${mainSrcPath}/${mainBuild.name}${app.source.dotext}`
-				});
-			}
-		}
-		else if (typesConfig.entry === "index")
+		if (typesConfig && typesConfig.mode === "module")
 		{
 			const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			apply(app.wpc.entry, {
-				[ build.name ]: `${typesPath}/index.${app.source.ext}`
+				[ app.build.name ]: `${typesPath}/index.${app.source.ext}`
 			});
-		}
-		else if (typesConfig.entry && existsSync(resolve(this.app.getContextPath(), typesConfig.entry)))
-		{
-			const chunk = this.fileNameStrip(typesConfig.entry, true).replace(/\\/g, "/").replace(/^.\//, "");
-			apply(app.wpc.entry, {
-				[ build.name ]: `./${chunk}.${app.source.ext}`
-			});
-		}
-		else {
-			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[types]");
 		}
 	}
 

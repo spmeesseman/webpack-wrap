@@ -340,10 +340,13 @@
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
 /** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./message").WpwMessageCode} WpwMessageCode */
+/** @typedef {import("./message").WpwMessageInfo} WpwMessageInfo */
 /** @typedef {import("./message").WpwMessageText} WpwMessageText */
+/** @typedef {import("./message").WpwMessageType} WpwMessageType */
 /** @typedef {import("./message").WpwWarningCode} WpwWarningCode */
 /** @typedef {import("./message").WpwReservedCode} WpwReservedCode */
-/** @typedef {typeof import("./message").WpwMessage} WpwMessageType */
+/** @typedef {import("./message").WpwMessageInfoKey} WpwMessageInfoKey */
+/** @template E @typedef {import("./message").IWpwMessageInfo<E>} IWpwMessageInfo<E> */
 
 
 /***********************************************************************************************************************

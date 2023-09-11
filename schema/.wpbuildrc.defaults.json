@@ -11,6 +11,8 @@
         "builds": []
     },
     "log": {
+        "envTag1": "wpwrap",
+        "envTag2": "info",
         "level": 2,
         "timestamp": "hh:mm:ss",
         "valueMaxLineLength": 100,

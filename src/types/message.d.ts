@@ -1,4 +1,9 @@
 
+import { IWpwWebpackConfig } from "./rc";
+import { WebpackError } from "./webpack";
+
+
+export declare type WpwMessageType = import("../utils/message");
 
 export declare enum WpwMessageCodePrefix { Error = "WPW", Info = "WPW", Reserved = "WPW", Warning = "WPW" }
 
@@ -38,10 +43,21 @@ export declare interface IWpwMessageEnum
     [ key: string ]: WpwMessageCode;
 }
 
+export declare interface IWpwMessageInfo<E extends Error | undefined>
+{
+    code: WpwMessageCode;
+    detail?: string;
+    detailObject?: Record<string, any>;
+    error?: E;
+    message: string;
+    wpc?: IWpwWebpackConfig;
+}
+export declare type WpwMessageInfo = IWpwMessageInfo<WpwMessageType | WebpackError | Error | undefined>;
+export declare type WpwMessageInfoKey = keyof IWpwMessageInfo;
+
 export declare abstract class ClsWpwError
 {
     static Msg: IWpwMessageEnum;
-    static Msgs: IWpwMessage;
 }
 
 export declare interface IWpwError extends ClsWpwError {}

@@ -20,7 +20,7 @@ const { resolve, join } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpwError, uniq, apply, getExcludes, isJsTsConfigPath, isFunction, findFilesSync, isArray } = require("../utils");
+const { WpwError, uniq, apply, getExcludes, isJsTsConfigPath, isFunction, findFilesSync, isArray, merge } = require("../utils");
 
 
 /**
@@ -34,9 +34,6 @@ class WpwRulesExport extends WpwWebpackExport
 	constructor(options)
 	{
 		super(options);
-		if (isJsTsConfigPath(this.app.source.config.path)) {
-			this.app.logger.value("   use js/ts config file", this.app.source.config.path, 2);
-		}
 	}
 
 
@@ -400,28 +397,23 @@ class WpwRulesExport extends WpwWebpackExport
 	types()
 	{
 		const app = this.app,
-			  typesConfig = app.build.options.types,
-			  typesSrcPath= app.getSrcPath({ build: app.build.type });
+			  typesConfig = app.build.options.types;
 
-		if (!app.wpc.entry[this.app.build.name]) {
-			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[types]: wpc.entry must be initialized first");
+		if (!app.wpc.entry[app.build.name]) {
+			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, app.wpc, "rules[types]: wpc.entry must be initialized before wpc.rules");
 			return;
 		}
 
-		if (typesConfig && typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
+		if (typesConfig && typesConfig.mode === "module")
 		{
 			const fakeEntryFile = /** @type {string} */(app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
+			app.logger.write(`   add rule for virtual entry file '${fakeEntryFile}'`, 2);
 			app.wpc.module.rules.push(
 			{
-				test: new RegExp(`${fakeEntryFile}$`),
+				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
 				loader: resolve(__dirname, "../loaders/dts.js"),
-				options: {
-					test: fakeEntryFile
-				}
+				options: merge({}, { typesConfig })
 			});
-		}
-		else {
-			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[types]");
 		}
 	}
 

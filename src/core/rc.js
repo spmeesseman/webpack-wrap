@@ -100,6 +100,7 @@ class WpwRc extends WpwBase
             mode: this.getMode(arge, argv, true),
             arge, argv, apps: [], errors: [], pkgJson: {}, warnings: []
         });
+        // applySchemaDefaults(this, "WpwSchema");
         this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", SchemaDirectory);
         this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyPackageJson();

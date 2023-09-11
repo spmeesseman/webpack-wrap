@@ -57,24 +57,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
      */
     apply(compiler)
     {
-		// compiler.inputFileSystem = {
-		// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-		// 	readlink: (arg0, arg1) => arg1(undefined, ""),
-		// 	// @ts-ignore
-		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-		// 	stat: (arg1, arg2) => stat(arg1, arg2)
-		// };
-		// compiler.resolverFactory.get("normal").fileSystem = {
-		// 	readFile: (arg0, arg1) => arg1(undefined, ""),
-		// 	readlink: (arg0, arg1) => arg1(undefined, ""),
-		// 	// @ts-ignore
-		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-		// 	stat: (arg1, arg2) => stat(arg1, arg2)
-		// };
-		// compiler.resolverFactory.get("context").fileSystem = compiler.resolverFactory.get("normal").fileSystem;
-		// compiler.outputFileSystem = fs;
-
-        this.onApply(compiler,
+		this.onApply(compiler,
         {
 			cleanTempFiles: {
 				async: true,
@@ -232,7 +215,8 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			readFile: (arg1, arg2) =>
 			{
 				logger.value("filesystem interface [read file]", arg1, 3);
-				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
+				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ?
+						setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
 			},
 			stat: (arg1, arg2) =>
 			{
@@ -268,13 +252,6 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	 */
 	async types(assets)
 	{
-		const dummyEntryFile = Object.keys(assets).find(
-			(file) => file.endsWith(`${this.app.build.name}.${this.app.source.ext}`)
-		);
-		if (dummyEntryFile) {
-			this.compilation.deleteAsset(dummyEntryFile);
-		}
-
 		const sourceCode = this.app.source,
 			  logger = this.logger,
 			  basePath = this.app.getBasePath(),
@@ -289,6 +266,12 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		logger.value("   output directory", outputDir, 2);
 		logger.value("   base path", basePath, 3);
 		logger.value("   build options", this.buildOptions, 4);
+
+		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(`${this.app.build.name}.js`));
+		if (virtualEntryFile) {
+			logger.write(`   delete virtual entry asset '${virtualEntryFile}'`, 3);
+			this.compilation.deleteAsset(virtualEntryFile);
+		}
 
 		if (method === "program")
 		{

@@ -55,7 +55,7 @@ const _applySchemaDefaults = (config, schemaKey, schemaObj) =>
             if (isPrimitive(def) || isArray(def)) {
                 throw WpwError.getErrorProperty("schema.definition." + key, null, `[schemakey: ${schemaKey}] [def:${def.toString()}]`);
             }
-            if (def.default) {
+            if (def.default || isPrimitive(def.default)) {
                 config[key] = def.default;
             }
             // else if (isArray(def)) {

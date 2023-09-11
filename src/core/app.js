@@ -17,7 +17,7 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
-const { apply, WpwError, isPromise, resolvePath, pickNot, WpwBuildOptionsKeys } = require("../utils");
+const { apply, WpwError, isPromise, resolvePath, pickNot, WpwBuildOptionsKeys, isClass } = require("../utils");
 const WpwBuild = require("./build");
 
 
@@ -121,7 +121,8 @@ class WpBuildApp extends WpwBase
     addMessage = (code, compilation, detail, pad) =>
     {
         const l = this.logger,
-              icons = this.logger.icons;
+              icons = this.logger.icons,
+              isCompilation = compilation && isClass(compilation);
         if (/WPW[0-2][0-9][0-9]/.test(code))
         {
             const i = WpwError.get(code, this.wpc, detail);
@@ -133,15 +134,16 @@ class WpBuildApp extends WpwBase
             const w = WpwError.get(code, this.wpc, detail);
             l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
-            compilation?.warnings.push(w);
+            if (isCompilation) {
+                compilation.warnings.push(w);
+            }
         }
         else if (/WPW[6-8][0-9][0-9]/.test(code))
         {
             const e = WpwError.get(code, this.wpc, detail);
+            this.errors.push(e);
             l.write(e.message, undefined, pad, icons.color.error, l.colors.red);
-            if (compilation)
-            {
-                this.errors.push(e);
+            if (isCompilation) {
                 compilation.errors.push(e);
             }
             else { throw e; }

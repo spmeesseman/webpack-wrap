@@ -151,41 +151,9 @@ class WpwResolveExport extends WpwWebpackExport
 	types()
 	{
 		const typesOptions = this.app.build.options.types;
-		if (typesOptions && typesOptions.enabled && typesOptions.mode === "module")
+		if (typesOptions && typesOptions.mode === "module" && this.app.wpc.resolve.extensions)
 		{
-			// apply(this.app.wpc.resolve,
-			// {
-			// 	extensions: [
-			// 		".d.ts"
-			// 	],
-			// 	fileSystem: {
-			// 		readFile: (arg0, arg1) => { console.log("############ resolve.fileSystem.readFIle"); return arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1); },
-			// 		readlink: (arg0, arg1) => arg1(undefined, ""),
-			// 		// @ts-ignore
-			// 		readdir: (arg1, arg2) => { console.log("############ resolve.fileSystem.readdir"); return readdir(arg1, "utf8", arg2); },
-			// 		stat: (arg1, arg2) => { console.log("############ resolve.fileSystem.stat"); return stat(arg1, arg2); }
-			// 	}
-			// 	// resolver: {
-			// 	// 	fileSystem: {
-			// 	// 		readFile: (arg0, arg1) => { console.log("!!!!!!!!!!!!!!! resolve.fileSystem.readFIle"); return arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1); },
-			// 	// 		readlink: (arg0, arg1) => arg1(undefined, ""),
-			// 	// 		// @ts-ignore
-			// 	// 		readdir: (arg1, arg2) => { console.log("!!!!!!!!!!!!!!! resolve.resolver.fileSystem.readdir"); return readdir(arg1, "utf8", arg2); },
-			// 	// 		stat: (arg1, arg2) => { console.log("!!!!!!!!!!!!!!! resolve.resolver.fileSystem.stat"); return stat(arg1, arg2); }
-			// 	// 	}
-			// 	// }
-			// 	// resolveLoader: {
-			// 	// 	// ,
-			// 	// 	// fileSystem: {
-			// 	// 	// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-			// 	// 	// 	readlink: (arg0, arg1) => arg1(undefined, ""),
-			// 	// 	// 	// @ts-ignore
-			// 	// 	// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-			// 	// 	// 	// @ts-ignore
-			// 	// 	// 	stat: (arg1, arg2) => stat(arg1, () => arg2(undefined, { isFile: () => true }))
-			// 	// 	// }
-			// 	// }
-			// });
+			this.app.wpc.resolve.extensions.push(".d.ts");
 		}
 		else {
 			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.types");
