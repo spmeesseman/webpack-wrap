@@ -17,7 +17,7 @@ const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
-const { apply, WpwError, isPromise, resolvePath, pickNot } = require("../utils");
+const { apply, WpwError, isPromise, resolvePath, pickNot, WpwBuildOptionsKeys } = require("../utils");
 const WpwBuild = require("./build");
 
 
@@ -297,8 +297,8 @@ class WpBuildApp extends WpwBase
     getRcPath = (pathKey, options) =>
     {
         let path;
-        const opts = /** @type {typedefs.WpBuildAppGetPathOptions} */(apply({}, options)),
-              basePath = (opts.ctx ? this.build.paths.ctx : this.build.paths.base) || process.cwd(),
+        const opts = options || /** @type {typedefs.WpBuildAppGetPathOptions} */({}),
+              basePath = opts.ctx ? this.build.paths.ctx : this.build.paths.base,
               buildName = opts.build || this.build.name,
               build = this.rc.builds.find(b => b.name === buildName || b.type === buildName);
 
@@ -313,9 +313,13 @@ class WpBuildApp extends WpwBase
                         if (opts.stat && !existsSync(path)) {
                             path = undefined;
                         }
-                        else {
+                        else
+                        {
                             path = relative(basePath, path);
-                            if (opts.dot) {
+                            if (path === basePath) {
+                                path = ".";
+                            }
+                            else if (opts.dot) {
                                 path = "." + (opts.psx ? "/" : sep) + path;
                             }
                         }
@@ -400,25 +404,25 @@ class WpBuildApp extends WpwBase
         l.value("   options configuration", JSON.stringify(this.build.options), 3);
         l.value("   paths configuration", JSON.stringify(this.build.paths), 3);
         l.sep();
-        l.write("Build Options:", 2, "", 0, l.colors.white);
-        l.value("   testsuite enabled", !!this.build.options.testsuite, 2);
-        l.value("   types enabled", !!this.build.options.types, 2);
-        l.value("   tsbundle enabled", !!this.build.options.types?.bundle, 2);
-        l.value("   tscheck enabled", !!this.build.options.tscheck, 2);
-        l.value("   upload enabled", !!this.build.options.upload, 2);
-        l.value("   options configuration", JSON.stringify(this.build.options), 3);
-        l.sep();
-        l.write("Build Paths:", 2, "", 0, l.colors.white);
-        l.value("   base/project directory", this.getRcPath("base"), 2);
-        l.value("   context directory", this.getRcPath("ctx", { rel: true }), 2);
-        l.value("   distribution directory", this.getDistPath({ rel: true }), 2);
-        l.value("   distribution tests directory", this.getDistPath({ rel: true, build: "tests" }), 2);
-        l.value("   distribution types directory", this.getDistPath({ rel: true, build: "types" }), 2);
-        l.value("   source directory", this.getSrcPath({ rel: true }), 2);
-        l.value("   source tests directory", this.getSrcPath({ rel: true, build: "tests" }), 2);
-        l.value("   source types directory", this.getSrcPath({ rel: true, build: "types" }), 2);
-        l.value("   temp directory", this.getRcPath("temp"), 2);
-        l.sep();
+        if (l.level >= 2)
+        {
+            l.write("Build Options:", 2, "", 0, l.colors.white);
+            WpwBuildOptionsKeys.forEach((key) => { l.value(`   ${key} enabled`, !!this.build.options[key]); });
+            l.value("   options configuration", JSON.stringify(this.build.options), 3);
+            l.sep();
+            l.write("Build Paths:", 2, "", 0, l.colors.white);
+            l.value("   base/project directory", this.getBasePath());
+            l.value("   context directory", this.getContextPath());
+            l.value("   distribution directory", this.getDistPath());
+            l.value("   source directory", this.getSrcPath());
+            l.value("   temp directory", this.getRcPath("temp"));
+            l.sep();
+            l.write(`Build Paths Relative to [${this.getBasePath()}]:`, 2, "", 0, l.colors.white);
+            l.value("   context directory", this.getContextPath({ rel: true }));
+            l.value("   distribution directory", this.getDistPath({ rel: true }));
+            l.value("   source directory", this.getSrcPath({ rel: true }));
+            l.sep();
+        }
         l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
         l.value("   source code ext", this.source.ext, 1);
         l.value("   source code type", this.source.type, 1);

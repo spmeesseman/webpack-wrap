@@ -17,10 +17,60 @@ const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
 const { WpwKeysEnum } = require("../types/constants");
-const { isBoolean, isString, isObject, isArray, isPrimitive, pick } = require("@spmeesseman/type-utils");
+const { isBoolean, isString, isObject, isArray, isPrimitive, pick, isNulled } = require("@spmeesseman/type-utils");
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
+
+
+// /**
+//  * @template T
+//  * @template {keyof typedefs} K
+//  * @template {typedefs[K]} R
+//  * @param {T | Partial<T>} config
+//  * @param {K} schemaKey
+//  * @param {...string} propertyKeys
+//  * @returns {R}
+//  * @throws {WpwError}
+//  */
+
+/**
+ * @template T
+ * @param {T | Partial<T>} config
+ * @param {typedefs.WpwJsonSchemaKey} schemaKey
+ * @param {NonNullable<typedefs.JsonSchema>} schemaObj
+ * @throws {WpwError}
+ */
+const _applySchemaDefaults = (config, schemaKey, schemaObj) =>
+{
+    for (const [ k, d ] of Object.entries(schemaObj))
+    {
+        let def = d;
+        const key = k;
+        if (def && isNulled(config[key]))
+        {
+            if (def.$ref) {
+                def = getDefinitionSchema(def);
+            }
+            if (isPrimitive(def) || isArray(def)) {
+                throw WpwError.getErrorProperty("schema.definition." + key, null, `[schemakey: ${schemaKey}] [def:${def.toString()}]`);
+            }
+            if (def.default) {
+                config[key] = def.default;
+            }
+            // else if (isArray(def)) {
+            //     config[key] = [];
+            // }
+            else if (def.properties) {
+                config[key] = {};
+                _applySchemaDefaults(config[k], schemaKey, def.properties);
+            }
+            // else {
+            //     config[key] = undefined; // {};
+            // }
+        }
+    }
+};
 
 
 /**
@@ -46,26 +96,7 @@ const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
         }
     });
     schemaObj = getDefinitionSchemaProperties(schemaObj);
-    for (const [ k, d ] of Object.entries(schemaObj))
-    {
-        let def = d;
-        const key = k;
-        if (def && (typeof config[key] === "undefined" || config[key] === undefined))
-        {
-            if (def.$ref) {
-                def = getDefinitionSchema(def);
-            }
-            if (isPrimitive(def) || isArray(def)) {
-                throw WpwError.getErrorProperty("schema.definition." + key);
-            }
-            else if (def.default) {
-                config[key] = def.default;
-            }
-            else {
-                config[key] = undefined; // {};
-            }
-        }
-    }
+    _applySchemaDefaults(config, schemaKey, schemaObj);
     return /** @type {T} */(config);
 };
 
@@ -156,8 +187,8 @@ const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "")
  */
 const validateSchema = (config, key, logger) =>
 {
-    const log = logger || { write: () => {}, withColor: () => {}, colors: { italic: [ 0, 0 ] } },
-          schemaFile = `.wpbuildrc.schema.${key && key !== "WpwSchema" ? `${key}.` : ""}json`;
+    const log = logger || { write: () => {}, withColor: () => "", colors: { italic: [ 0, 0 ] } },
+          schemaFile = getSchemaFile(key);
     log.write("validate schema `" + log.withColor(schemaFile, log.colors.italic) + "`", 1);
     try
     {

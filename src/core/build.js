@@ -11,7 +11,7 @@
 
 const WpwBase = require("./base");
 const WpwSourceCode = require("./sourcecode");
-const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
+const { isWpwBuildType, isWebpackTarget, WpwBuildConfigKeys } = require("../types/constants");
 const {
     utils, objUtils, typedefs, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults
 } = require("../utils");
@@ -69,7 +69,7 @@ class WpwBuild extends WpwBase
         this.logger = new WpwLogger(this.log);
         this.logger.write(`initializing configured build '${this.name}'`, 1);
         this.source = new WpwSourceCode(objUtils.clone(config.source), this);
-        validateSchema(this, "WpwBuild", this.logger);
+        validateSchema(this, "WpwBuildConfig", this.logger);
         this.disposables.push(this.source, this.logger);
         this.logger.write(`successfully initialized build '${this.name}'`, 2);
     }
@@ -85,8 +85,8 @@ class WpwBuild extends WpwBase
     configure(buildConfig)
     {
         objUtils.merge(this, buildConfig);
-        objUtils.apply(this, { target: this.getTarget(), type: this.getType() });
-        objUtils.apply(this.log, { envTag: this.name, envTag2: this.target });
+        objUtils.apply(buildConfig, { target: this.getTarget(), type: this.getType() });
+        objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
         this.mergeDefaultBuildOptions();
         this.resolveAliasPaths();
     }
@@ -142,7 +142,7 @@ class WpwBuild extends WpwBase
               initialOptions = this.initialConfig.options;
         Object.keys(options).forEach((k) =>
         {
-            applySchemaDefaults(this.options[k], "WpwBuildOptions", k);
+            applySchemaDefaults(options[k], "WpwBuildOptions", k);
             if (options[k] === true) {
                 options[k] = { enabled: true };
             }
@@ -225,6 +225,12 @@ class WpwBuild extends WpwBase
         }
         if (!config.type) {
             throw WpwError.getErrorMissing("build[config.type]");
+        }
+        if (!config.mode) {
+            throw WpwError.getErrorMissing("build[config.mode]");
+        }
+        if (!config.target) {
+            throw WpwError.getErrorMissing("build[config.target]");
         }
     }
 

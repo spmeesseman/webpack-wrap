@@ -13,7 +13,6 @@ const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "b
 
 
 /**
- * @class WpwLogger
  * @implements {typedefs.IDisposable}
  */
 class WpwLogger
@@ -29,7 +28,6 @@ class WpwLogger
 
 
     /**
-     * @class WpwLogger
      * @param {typedefs.WpwLoggerOptions} options
      */
     constructor(options)
@@ -73,15 +71,8 @@ class WpwLogger
             envTagLen = 22;
         }
         WpwLogger.envTagLen = !WpwLogger.envTagLen || envTagLen > WpwLogger.envTagLen ? envTagLen : WpwLogger.envTagLen;
-
-        this.options = /** @type {Required<typedefs.IWpwLog>} */(
-            merge(applySchemaDefaults({
-                envTag1: "wpbuild",
-                envTag2: "info",
-                pad: {},
-                color: "cyan"
-            }, "WpwLog"), options)
-        );
+        const defaults = applySchemaDefaults({ envTag1: "wpbuild", envTag2: "info", pad: {}, color: "cyan" }, "WpwLog");
+        this.options = /** @type {Required<typedefs.IWpwLog>} */(merge(defaults, options));
     };
 
 
@@ -387,8 +378,7 @@ class WpwLogger
      */
     value(msg, val, level, pad, icon, color)
     {
-        if (level !== undefined && level >= this.options.level)
-        {
+        if (level !== undefined && level > this.options.level) {
             return;
         }
 

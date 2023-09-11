@@ -232,7 +232,6 @@ class WpwSourceCode
                 return curPath;
             }
         }
-
         const tryPaths = [
             build.paths.src, join(build.paths.ctx, build.name), join(build.paths.base, build.name),
             join(build.paths.ctx, build.type), join(build.paths.base, build.type), build.paths.ctx, build.paths.base

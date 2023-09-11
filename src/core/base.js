@@ -12,7 +12,7 @@
 
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const { merge, isObject, WpwLogger, apply, pickNot, isPromise } = require("../utils");
+const { merge, isObject, WpwLogger, apply, pickNot, isPromise, isNulled, WpwError, isString, WpwKeysEnum } = require("../utils");
 
 
 /**
@@ -99,6 +99,22 @@ class WpwBase
         }
         catch { return ""; }
     }
+
+
+    // /**
+    //  * @protected
+    //  * @param {Record<string, any>} config
+    //  * @param {string} key
+    //  */
+    // validateConfig(config, key)
+    // {
+    //     WpwKeysEnum[key]?.forEach((/** @type {string} */ cKey) =>
+    //     {
+    //         if (isNulled(config[cKey])) {
+    //             throw WpwError.getErrorMissing(`config: ${key} : ${cKey} [${config[cKey]}]`);
+    //         }
+    //     });
+    // }
 
 }
 

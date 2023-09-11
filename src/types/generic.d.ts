@@ -35,6 +35,9 @@ declare type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P e
 
 declare interface IDisposable { dispose: () => Required<void | PromiseLike<void>> }
 
+// declare type ConvertType4<T> = (str: string) => T;
+// declare type Convertors<T, TE> = { [t in TE]: ConvertType4<T> };
+
 // declare enum WpwErrorMessage
 // {
 //     WPW300 = ""

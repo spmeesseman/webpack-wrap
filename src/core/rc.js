@@ -17,10 +17,10 @@ const WpBuildApp = require("./app");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
-const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
+const { validateSchema, SchemaDirectory, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
 const {
     WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, clone,
-    applyIf, resolvePath, pickNot
+    applyIf, resolvePath, pickNot, isObjectEmpty, isEmpty
 } = require("../utils");
 
 
@@ -299,7 +299,7 @@ class WpwRc extends WpwBase
               baseBuildConfigs = clone(this.builds),
               modeConfig = /** @type {typedefs.IWpwBuildBaseConfig} */(this[this.mode]),
               modeBaseConfig = this.getBasePropertyConfig(modeConfig),
-              modeBuildConfigs = modeConfig.builds || [],
+              modeBuildConfigs = modeConfig.builds,
               emptyConfig = () => /** @type {typedefs.IWpwBuildConfig} */({});
 
         this.logger.write("merge all levels of build configurations to root config", 1);
@@ -308,7 +308,9 @@ class WpwRc extends WpwBase
         // in both thw base configuration properties in the root level schema/rc, and then the build
         // configuration itself
         //
-        baseBuildConfigs.forEach((config) => {
+        baseBuildConfigs.forEach((config) =>
+        {
+            this.touchBuildOptionsEnabled(config.options);
             configs.push(merge(emptyConfig(), rootBaseConfig, config, modeBaseConfig));
         });
         //
@@ -321,6 +323,7 @@ class WpwRc extends WpwBase
             let rootBuildConfig = configs.find(bc => bc.name === config.name);
             if (!rootBuildConfig)
             {
+                this.touchBuildOptionsEnabled(modeBaseConfig.options);
                 rootBuildConfig = merge(emptyConfig(), rootBaseConfig, modeBaseConfig);
                 configs.push(rootBuildConfig);
             }
@@ -369,7 +372,7 @@ class WpwRc extends WpwBase
      */
     resolvePaths = (buildConfig) =>
     {
-         const paths = this.paths,
+         const paths = buildConfig.paths,
                base = dirname(this.pkgJsonPath),
                // @ts-ignore
                ostemp = os.tmpdir ? os.tmpdir() : os.tmpDir(),
@@ -387,6 +390,19 @@ class WpwRc extends WpwBase
             mkdirSync(paths.temp, { recursive: true });
         }
     };
+
+
+    /**
+     * @param {typedefs.WpwBuildOptions | undefined} options
+     */
+    touchBuildOptionsEnabled(options)
+    {
+        if (!options) { return; }
+        Object.keys(options).filter(k => isObject(options[k])).forEach((k) =>
+        {
+            options[k].enabled = options[k].enabled !== false ? true : false;
+        });
+    }
 
 }
 
