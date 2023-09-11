@@ -23,7 +23,12 @@ const description = "Provides types macthing the .wpbuildrc.json configuration f
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const classTypes = [
-    "WpwRcSchema", "WpwSourceCode"
+    "WpwSchema", "WpwSourceCode"
+];
+
+const configToClassTypes = [
+    [ "WpwSourceCodeConfig", "WpwSourceCode" ],
+    [ "WpwBuildConfig", "WpwBuild" ]
 ];
 
 const excludeTypedefs = [
@@ -38,7 +43,8 @@ const generateEnums = [
 ];
 
 const constantObjectKeyProperties = [
-    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts", "WpwBuildOptions", "WpwBuildBaseConfig"
+    "WpwPackageJson", "WpwRcPaths", "WpwPluginConfigRunScripts", "WpwBuildOptions", "WpwBuildBaseConfig",
+    "WpwSchema", "WpwBuildConfig"
 ];
 
 const extFilesCreateEnums = [
@@ -53,13 +59,27 @@ const mapValueTypesAllowUndefined = [
  * Types that will be auto populated/nonnullable at runtime, but are optional in json schema
  */
 const requiredProperties = [
-    [ "colors", "WpwLog" ],
+    [ "$schema", "WpwSchema" ],
+    [ "builds", "WpwSchema" ],
+    [ "log", "WpwSchema" ],
+    [ "options", "WpwSchema" ],
+    [ "paths", "WpwSchema" ],
+    [ "production", "WpwSchema" ],
+    [ "schemaVersion", "WpwSchema" ],
+    [ "source", "WpwSchema" ],
+    [ "test", "WpwSchema" ],
+    [ "wpwVersion", "WpwSchema" ],
     [ "*", "WpwMessage" ],
     [ "mode", "WpwBuildConfig" ],
-    [ "pad", "WpwLog" ],
     [ "default", "WpwLogColoring" ],
     [ "system", "WpwLogColoring" ],
+    [ "colors", "WpwLog" ],
     [ "level", "WpwLog" ],
+    [ "pad", "WpwLog" ],
+    [ "valueMaxLineLength", "WpwLog" ],
+    [ "level", "WpwLog" ],
+    [ "base", "WpwLogPad" ],
+    [ "value", "WpwLogPad" ],
     [ "source", "WpwBuildConfig" ],
     [ "config", "WpwSourceCode" ],
     [ "log", "WpwBuildConfig" ],
@@ -67,6 +87,7 @@ const requiredProperties = [
     [ "options", "WpwBuildConfig" ],
     [ "target", "WpwBuildConfig" ],
     [ "type", "WpwBuildConfig" ],
+    [ "builds", "WpwBuildBaseConfig" ],
     [ "base", "WpwRcPaths" ],
     [ "ctx", "WpwRcPaths" ],
     [ "dist", "WpwRcPaths" ],
@@ -220,14 +241,15 @@ const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type" | "o
 const pushExport = (/** @type {string} */property, /** @type {string} */suffix, /** @type {string} */values, /** @type {string} */valueType) =>
 {
     const suffix2 = suffix.substring(0, suffix.length - 1),
-          pName1 = `${property}${suffix}`,
-          pName2 = `${property}${suffix2}`;
+          clsPropertyName = property.startsWith("I") ? property.slice(1) : property,
+          pName1 = `${clsPropertyName}${suffix}`,
+          pName2 = `${clsPropertyName}${suffix2}`;
     exported.push(`    ${pName1}`, `    is${pName2}`);
     lines.push(
         "/**",
         ` * @type {${!valueType ? `typedefs.${property}[]` : `${valueType}[]`}}`,
         " */",
-        `const ${pName1} = [ ${values.replace(/ \| /g, ", ")} ];${EOL}`,
+        `const ${pName1} = [ ${values.replace(/ \| /g, ", ").replace(/readonly /g, "")} ];${EOL}`,
         "/**",
         " * @param {any} v Variable to check type on",
         ` * @returns {v is ${!valueType ? `typedefs.${property}` : `${valueType}`}}`,
@@ -241,11 +263,11 @@ const pushExport = (/** @type {string} */property, /** @type {string} */suffix, 
         exported.push(`    ${property}Enum`);
     }
     else {
-        enumeration = enums.find(e => e.includes(`const ${property} = `));
+        enumeration = enums.find(e => e.includes(`const ${clsPropertyName} = `));
         if (enumeration) {
             lines.push(enumeration);
-            pushTypedef("constants", "type", `${property}`);
-            exported.push(`    ${property}`);
+            pushTypedef("constants", "type", `${clsPropertyName}`);
+            exported.push(`    ${clsPropertyName}`);
         }
     }
     logger.log(`      added runtime constants for type ${property}`);
@@ -372,13 +394,14 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
             {
-                pushTypedef(baseSrc, "type", match[1]);
-                properties.push(match[1]);
+                const propertyName = classTypes.includes(match[1]) ? `I${match[1]}` : match[1];
+                pushTypedef(baseSrc, "type", propertyName);
+                properties.push(propertyName);
                 if (match[2].includes("WpwLogTrueColor")) {
                     match[2] = match[2].replace("WpwLogTrueColor", "...WpwLogTrueColors");
                 }
-                pushTypedef("constants", "type", ...pushExport(match[1], "s", match[2]));
-                pushEnum(match[1], "enum", match[2]);
+                pushTypedef("constants", "type", ...pushExport(propertyName, "s", match[2]));
+                pushEnum(propertyName, "enum", match[2]);
             }
         }
 
@@ -386,11 +409,12 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1]))
             {
-                pushTypedef(baseSrc, "type", match[1]);
+                const propertyName = classTypes.includes(match[1]) ? `I${match[1]}` : match[1];
+                pushTypedef(baseSrc, "type", propertyName);
                 const valuesFmt = `"${match[2].replace(new RegExp(`[\\?]?\\:(.*?);(?:${EOL}    |$)`, "gm"), "\", \"")}"`
                                               .replace(/(?:, ""|"", )/g, "");
-                pushTypedef("constants", "type", ...pushExport(match[1], "Keys", valuesFmt, `(keyof typedefs.${match[1]})`));
-                pushEnum(match[1], "enum", match[2]);
+                pushTypedef("constants", "type", ...pushExport(propertyName, "Keys", valuesFmt, `(keyof typedefs.${propertyName})`));
+                pushEnum(propertyName, "enum", match[2]);
             }
         }
 
@@ -398,7 +422,8 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         while ((match = rgx3.exec(data)) !== null)
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
-                pushTypedef(baseSrc, "type", match[1]);
+                const propertyName = classTypes.includes(match[1]) ? `I${match[1]}` : match[1];
+                pushTypedef(baseSrc, "type", propertyName);
             }
         }
     };
@@ -440,8 +465,18 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
     {
         const constantsFile = "constants.js",
               constantsPath = join(outputDtsDir, constantsFile),
-              constantsData = await readFile(constantsPath, "utf8");
-
+              constantsData = await readFile(constantsPath, "utf8"),
+              enumKeys = exported.filter(e => (/^ +Wpw(?:[a-zA-Z]*?)s$/).test(e))
+                                 .map(e => `${e.replace(/(?:Key)?s$/, "")}: ${e.trimStart()}`);
+        configToClassTypes.forEach(([ cfg, cls ]) =>
+        {
+            const enumStr =enumKeys.find(k => k.includes(cfg + ":"));
+            if (enumStr) {
+                enumKeys.push(enumStr.replace(cfg, cls));
+            }
+        });
+        exported.push("    WpwKeysEnum");
+        enumKeys.sort((a, b) => a.localeCompare(b));
         exported.sort((a, b) => a.localeCompare(b));
         hdr = hdr.replace(`@file types/${outputDtsFile}`, `@file types/${constantsFile}`);
         data = `/* eslint-disable no-unused-labels */${EOL}`;
@@ -450,6 +485,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         data += `${hdr}${EOL}${EOL}`;
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
+        data += `/**${EOL} * @enum {string[]}${EOL} */${EOL}const WpwKeysEnum =${EOL}{${EOL}${enumKeys.join("," + EOL)}${EOL}};${EOL}`;
         data += `${EOL}module.exports = {${EOL}${exported.join("," + EOL)}${EOL}};${EOL}`;
         data = data.replace("'json-to-typescript' utility", `'generate-rc-types' script and${EOL} * 'json-to-typescript' utility${EOL} *`);
         data = data.replace(/ \* the 'json\-to\-typescript' utility(?:[^]+?) \*\//, ` * the 'json-to-typescript' utility${EOL} *${EOL} */`);

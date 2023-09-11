@@ -16,13 +16,13 @@
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
 /** @typedef {import("./rc").WpwVsCode} WpwVsCode */
 /** @typedef {import("./rc").IWpwLogPad} IWpwLogPad */
+/** @typedef {import("./rc").IWpwSchema} IWpwSchema */
 /** @typedef {import("./rc").IWpwVsCode} IWpwVsCode */
 /** @typedef {import("./rc").WpwRcPaths} WpwRcPaths */
 /** @typedef {import("./rc").IWpwRcPaths} IWpwRcPaths */
 /** @typedef {import("./rc").WpwFileName} WpwFileName */
 /** @typedef {import("./rc").WpwFilePath} WpwFilePath */
 /** @typedef {import("./rc").WpwLogColor} WpwLogColor */
-/** @typedef {import("./rc").IWpwRcSchema} IWpwRcSchema */
 /** @typedef {import("./rc").WpwBuildType} WpwBuildType */
 /** @typedef {import("./rc").WpwLogPadKey} WpwLogPadKey */
 /** @typedef {import("./rc").WpwVsCodeKey} WpwVsCodeKey */
@@ -48,11 +48,13 @@
 /** @typedef {import("./rc").WpwVersionString} WpwVersionString */
 /** @typedef {import("./constants").isWpwLogColor} isWpwLogColor */
 /** @typedef {import("./constants").WpwBuildTypes} WpwBuildTypes */
+/** @typedef {import("./constants").WpwSchemaKeys} WpwSchemaKeys */
 /** @typedef {import("./rc").WpwBuildConfigKey} WpwBuildConfigKey */
 /** @typedef {import("./rc").WpwLogColoringKey} WpwLogColoringKey */
 /** @typedef {import("./rc").WpwPackageJsonKey} WpwPackageJsonKey */
 /** @typedef {import("./rc").WpwSourceCodeType} WpwSourceCodeType */
 /** @typedef {import("./constants").isWpwBuildType} isWpwBuildType */
+/** @typedef {import("./constants").isWpwSchemaKey} isWpwSchemaKey */
 /** @typedef {import("./constants").WebpackTargets} WebpackTargets */
 /** @typedef {import("./constants").WpwRcPathsKeys} WpwRcPathsKeys */
 /** @typedef {import("./rc").WebpackLibraryType} WebpackLibraryType */
@@ -94,6 +96,7 @@
 /** @typedef {import("./rc").WpwPluginConfigWebKey} WpwPluginConfigWebKey */
 /** @typedef {import("./rc").WpwWebpackAliasConfig} WpwWebpackAliasConfig */
 /** @typedef {import("./rc").WpwWebpackEntryObject} WpwWebpackEntryObject */
+/** @typedef {import("./constants").WpwBuildConfigKeys} WpwBuildConfigKeys */
 /** @typedef {import("./constants").WpwPackageJsonKeys} WpwPackageJsonKeys */
 /** @typedef {import("./constants").WpwSourceCodeTypes} WpwSourceCodeTypes */
 /** @typedef {import("./rc").IWebpackConfigOverride} IWebpackConfigOverride */
@@ -109,6 +112,7 @@
 /** @typedef {import("./rc").WpwSourceCodeConfigKey} WpwSourceCodeConfigKey */
 /** @typedef {import("./rc").WpwSourceCodeExtension} WpwSourceCodeExtension */
 /** @typedef {import("./rc").WpwWebpackCompilerHook} WpwWebpackCompilerHook */
+/** @typedef {import("./constants").isWpwBuildConfigKey} isWpwBuildConfigKey */
 /** @typedef {import("./constants").isWpwPackageJsonKey} isWpwPackageJsonKey */
 /** @typedef {import("./constants").isWpwSourceCodeType} isWpwSourceCodeType */
 /** @typedef {import("./constants").WebpackLibraryTypes} WebpackLibraryTypes */
@@ -360,20 +364,24 @@
  * SCHEMA
  ***********************************************************************************************************************/
 
-/** @typedef {typeof import("schema-utils")} SchemaUtils */
+/** @typedef {import("./schema")} WpwJsonSchemaKey */
 /** @typedef {import("json-schema").JSONSchema4} JsonSchema4 */
 /** @typedef {import("json-schema").JSONSchema6} JsonSchema6 */
 /** @typedef {import("json-schema").JSONSchema7} JsonSchema7 */
-/** @typedef {import("json-schema").JSONSchema4 | import("json-schema").JSONSchema6 | import("json-schema").JSONSchema7 } JsonSchema*/
+/** @typedef {import("json-schema").JSONSchema4} JsonSchema4Definition */
 /** @typedef {import("json-schema").JSONSchema4Object} JsonSchema4Object */
 /** @typedef {import("json-schema").JSONSchema6Object} JsonSchema6Object */
 /** @typedef {import("json-schema").JSONSchema7Object} JsonSchema7Object */
-/** @typedef {import("json-schema").JSONSchema4} JsonSchema4Definition */
 /** @typedef {import("json-schema").JSONSchema6Definition} JsonSchema6Definition */
 /** @typedef {import("json-schema").JSONSchema7Definition} JsonSchema7Definition */
-/** @typedef {JsonSchema4Object | JsonSchema6Object | JsonSchema7Object} SchemaObject */
-/** @typedef {typedefs.RequireKeys<NonNullable<typedefs.Schema>, "properties">} SchemaWithProperties */
-/** @typedef {JsonSchema4Definition | JsonSchema6Definition | JsonSchema7Definition} SchemaDefinition */
+/** @typedef {RequireKeys<JsonSchema, "properties">} JsonSchemaWithProperties */
+/** @typedef {import("json-schema").JSONSchema4["properties"]} JsonSchema4Properties */
+/** @typedef {import("json-schema").JSONSchema6["properties"]} JsonSchema6Properties */
+/** @typedef {import("json-schema").JSONSchema7["properties"]} JsonSchema7Properties */
+/** @typedef {JsonSchema4Object | JsonSchema6Object | JsonSchema7Object} JsonSchemaObject */
+/** @typedef {JsonSchema4Definition | JsonSchema6Definition | JsonSchema7Definition} JsonSchemaDefinition */
+/** @typedef {JsonSchema4Properties | JsonSchema6Properties | JsonSchema7Properties} JsonSchemaProperties */
+/** @typedef {import("json-schema").JSONSchema4 | import("json-schema").JSONSchema6 | import("json-schema").JSONSchema7 } JsonSchema*/
 
 
 /***********************************************************************************************************************

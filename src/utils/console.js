@@ -6,6 +6,7 @@ const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
 const { isString, isObject, isPrimitive, merge, isArray, apply } = require("@spmeesseman/type-utils");
+const { applySchemaDefaults } = require("./schema");
 
 const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
 const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
@@ -19,10 +20,8 @@ class WpwLogger
 {
     /** @type {number} @private @static */
     static envTagLen;
-    /** @type {Required<typedefs.WpwLog>} @private */
+    /** @type {Required<typedefs.IWpwLog>} @private */
     options;
-    /** @type {import("../types/typedefs").WpwLogColorMapping} @private */
-    defaultColor;
     /** @type {string} @private */
     infoIcon;
     /** @type {number} @private */
@@ -36,8 +35,7 @@ class WpwLogger
     constructor(options)
     {
         this.applyOptions(options);
-        this.separatorLength = 125; // 75 + this.options.pad.envTag + this.options.pad.base + this.options.pad.value;
-        this.defaultColor = this.colors.cyan;
+        this.separatorLength = 125;
         const infoIconClr = this.options.colors.infoIcon || this.options.color || this.options.colors.buildBracket;
         this.infoIcon = infoIconClr ?  this.withColor(this.icons.info, this.colors[infoIconClr]) : this.icons.color.info;
         if (this.options.colors.default)
@@ -63,7 +61,7 @@ class WpwLogger
 
     /**
      * @private
-     * @param {typedefs.RequireKeys<typedefs.WpwLog, "pad">} options
+     * @param {typedefs.IWpwLog} options
      */
     applyOptions = (options) =>
     {
@@ -74,25 +72,16 @@ class WpwLogger
         if (envTagLen === 0) {
             envTagLen = 22;
         }
+        WpwLogger.envTagLen = !WpwLogger.envTagLen || envTagLen > WpwLogger.envTagLen ? envTagLen : WpwLogger.envTagLen;
 
-        this.options = merge(
-            WpwLogger.defaultOptions(),
-            {
+        this.options = /** @type {Required<typedefs.IWpwLog>} */(
+            merge(applySchemaDefaults({
                 envTag1: "wpbuild",
                 envTag2: "info",
-                pad: {
-                    envTag: envTagLen
-                }
-            },
-            /** @type {Required<typedefs.WpwLog>} */(options)
+                pad: {},
+                color: "cyan"
+            }, "WpwLog"), options)
         );
-
-        if (!options.pad.envTag || envTagLen > /** @type {number} */(this.options.pad.envTag)) {
-            this.options.pad.envTag = envTagLen;
-        }
-
-        envTagLen = /** @type {number} */(this.options.pad.envTag);
-        WpwLogger.envTagLen = !WpwLogger.envTagLen || envTagLen > WpwLogger.envTagLen ? envTagLen : WpwLogger.envTagLen;
     };
 
 
@@ -143,17 +132,6 @@ class WpwLogger
         white: [ this.colorMap.white, this.colorMap.system ],
         yellow: [ this.colorMap.yellow, this.colorMap.system ]
     };
-
-
-    /**
-     * @returns {typedefs.WpwLog}
-     */
-    static defaultOptions = () => (
-    {
-        level: 2, valueMaxLineLength: 100,
-        colors: { default: "grey" },
-        pad: { value: 40, base: 0 }
-    });
 
 
     /**
@@ -304,7 +282,7 @@ class WpwLogger
     static printBanner(name, version, subtitle, cb, logger, ...colors)
     {
         const instLogger = !!logger;
-        logger = logger || new WpwLogger({ colors: { default: "grey" }, level: 5, pad: { value: 100 }});
+        logger = logger || new WpwLogger({ color: "cyan", colors: { default: "grey" }, level: 5, pad: { value: 100 }});
         apply(logger.options, { envTagDisable: true });
         logger.sep();
         // console.log(gradient.rainbow(spmBanner(version), {interpolation: "hsv"}));
@@ -391,7 +369,7 @@ class WpwLogger
     {
         const bClr = bracketColor ||
                     (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
-                    (this.options.color ? this.colors[this.options.color] : null) || this.defaultColor;
+                    (this.options.color ? this.colors[this.options.color] : null) || this.colors[this.options.color];
         return tagMsg ?
             (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
     }
@@ -533,7 +511,7 @@ class WpwLogger
             iconColor ||
             (this.options.colors.valueStar ? this.colors[this.options.colors.valueStar] : null) ||
             (this.options.color ? this.colors[this.options.color] : null) ||
-            this.defaultColor
+            this.colors[this.options.color]
         );
         if (this.options.colors.valueStarText && this.options.colors.valueStarText !== "white")
         {

@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/valid-types */
 
 // @ts-check
 
@@ -68,6 +69,36 @@ class WpwBase
         }
         this.logger.dispose();
     };
+
+
+
+    /**
+     * @protected
+     * @template {any} T
+     * @param {string} json
+     * @returns {T | Record<string, unknown>}
+     */
+    jsonParseSafe(json)
+    {
+        try {
+            return JSON.parse(json);
+        }
+        catch { return {}; }
+    }
+
+
+    /**
+     * @protected
+     * @param {any} jso
+     * @returns {string}
+     */
+    jsonStringifySafe(jso)
+    {
+        try {
+            return JSON.stringify(jso);
+        }
+        catch { return ""; }
+    }
 
 }
 

@@ -9,16 +9,11 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const os = require("os");
 const WpwBase = require("./base");
 const WpwSourceCode = require("./sourcecode");
-const { mkdirSync, existsSync, readFileSync } = require("fs");
-const { resolve, dirname, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
-    apply, merge, mergeIf, resolvePath, asArray, WpwLogger, typedefs, applyIf, isArray, relativePath,
-    findFilesSync, validateSchema, validateBuildOptions, isBoolean, isNulled, getDefinitionSchemaProperties,
-    isObject, getDefinitionSchema, isPrimitive, WpwError, isObjectEmpty, isEmpty
+    utils, objUtils, typedefs, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults
 } = require("../utils");
 
 
@@ -29,9 +24,6 @@ const {
  */
 class WpwBuild extends WpwBase
 {
-    /** @type {typedefs.JsonSchema} @private */
-    static schema;
-
     /** @type {string} @override */
     name;
     /** @type {boolean | undefined} */
@@ -52,8 +44,8 @@ class WpwBuild extends WpwBase
     options;
     /** @type {typedefs.WpwRcPaths} */
     paths;
-    /** @type {typedefs.WpwRc}} @private */
-    rc;
+    /** @type {typedefs.WpBuildApp}} @private */
+    wrapper;
     /** @type {typedefs.WpwSourceCode} */
     source;
     /** @type {typedefs.WebpackTarget} */
@@ -66,55 +58,20 @@ class WpwBuild extends WpwBase
 
     /**
      * @param {typedefs.IWpwBuildConfig} config
-     * @param {typedefs.WpwRc} rc
+     * @param {typedefs.WpBuildApp} wrapper
      */
-    constructor(config, rc)
+    constructor(config, wrapper)
     {
-        if (!config.name) {
-            throw WpwError.getErrorMissing("build.name");
-        }
         super(config);
-        this.rc = rc;
-        this.logger = rc.logger;
+        this.wrapper = wrapper;
+        this.validateConfig(config);
         this.configure(config);
-    }
-
-
-    /**
-     * @param {typedefs.WpwBuildOptions} options
-     * @param {typedefs.WpwBuildOptions} initialOptions
-     * @throws {WpwError}
-     */
-    cleanOptions(options, initialOptions)
-    {
+        this.logger = new WpwLogger(this.log);
+        this.logger.write(`initializing configured build '${this.name}'`, 1);
+        this.source = new WpwSourceCode(objUtils.clone(config.source), this);
+        validateSchema(this, "WpwBuild", this.logger);
         this.disposables.push(this.source, this.logger);
-        Object.keys(options || {}).forEach((k) =>
-        {
-            if (options[k] === true) {
-                options[k] = { enabled: true };
-            }
-            else if (options[k] === false) {
-                delete options[k];
-            }
-            else if (isObject(options[k]))
-            {
-                if (options[k].enabled === false || options[k].enabled !== true)
-                {
-                    if (!initialOptions[k] || initialOptions[k].enabled === false) {
-                        delete options[k];
-                    }
-                    else {
-                        options[k].enabled = true;
-                    }
-                }
-                else if (isObjectEmpty(options[k]) || isEmpty(options[k].enabled)) {
-                    options[k].enabled = true;
-                }
-            }
-            else {
-                throw WpwError.get("invalid build options schema");
-            }
-        });
+        this.logger.write(`successfully initialized build '${this.name}'`, 2);
     }
 
 
@@ -127,20 +84,11 @@ class WpwBuild extends WpwBase
 	 */
     configure(buildConfig)
     {
-        merge(this, buildConfig);
-        //
-        // A build config could specify a different mode and/or target than the main build, e.g. a
-        // build that is configured with only a dev and prod config could specify 'development' for
-        // the 'test' envirnoment.
-        //
-        apply(this, {
-            mode: this.mode || this.rc.mode,
-            target: this.getTarget(),
-            type: this.getType(),
-            log: { envTag1: this.name , envTag2: this.target }
-        });
-        merge(this.log, { envTag1: this.name , envTag2: this.target });
-        this.validate();
+        objUtils.merge(this, buildConfig);
+        objUtils.apply(this, { target: this.getTarget(), type: this.getType() });
+        objUtils.apply(this.log, { envTag: this.name, envTag2: this.target });
+        this.mergeDefaultBuildOptions();
+        this.resolveAliasPaths();
     }
 
 
@@ -153,7 +101,7 @@ class WpwBuild extends WpwBase
         if (!isWebpackTarget(target))
         {
             target = "node";
-            if (isWebpackTarget(this.rc.args.target)) { target = this.rc.args.target; }
+            if (isWebpackTarget(this.wrapper.cmdLine.target)) { target = this.wrapper.cmdLine.target; }
             else if ((/web(?:worker|app|view)/).test(this.name) || this.type === "webapp") { target = "webworker"; }
             else if ((/web|browser/).test(this.name)) { target = "web"; }
             else if ((/module|node/).test(this.name) || this.type === "module") { target = "node"; }
@@ -182,27 +130,42 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @private
+     * Applies all default values from schema definitions, and then Removes all options
+     * objects that are defined but not enabled, or sets the 'enabled'  flag on the object
+     * if it is determined to be enabled but the propertty has been omitted in the config file
+     *
+     * @throws {WpwError}
      */
     mergeDefaultBuildOptions()
     {
-        this.readSchema();
-        Object.keys(this.options).forEach(/** @type {typedefs.WpwBuildOptionsKey} */(optionsKey) =>
+        const options = this.options,
+              initialOptions = this.initialConfig.options;
+        Object.keys(options).forEach((k) =>
         {
-            const config = this.options[optionsKey],
-                  definitions = WpwBuild.schema.definitions;
-            if (config && definitions)
+            applySchemaDefaults(this.options[k], "WpwBuildOptions", k);
+            if (options[k] === true) {
+                options[k] = { enabled: true };
+            }
+            else if (options[k] === false) {
+                delete options[k];
+            }
+            else if (typeUtils.isObject(options[k]))
             {
-                const buildOptionSchema = definitions.WpwBuildOptions;
-                if (buildOptionSchema && !isBoolean(buildOptionSchema) && buildOptionSchema.properties)
+                if (options[k].enabled === false || options[k].enabled !== true)
                 {
-                    const buildConfig = getDefinitionSchemaProperties(
-                        buildOptionSchema.properties[/** @type {string} */(optionsKey)], definitions
-                    );
-                    if (buildConfig && isObject(buildConfig)) {
-                        this.mergeOptions(config, buildConfig, definitions);
+                    if (!initialOptions[k] || initialOptions[k].enabled === false) {
+                        delete options[k];
+                    }
+                    else {
+                        options[k].enabled = true;
                     }
                 }
+                else if (typeUtils.isObjectEmpty(options[k]) || typeUtils.isEmpty(options[k].enabled)) {
+                    options[k].enabled = true;
+                }
+            }
+            else {
+                throw WpwError.get("invalid build options schema");
             }
         });
     }
@@ -210,89 +173,59 @@ class WpwBuild extends WpwBase
 
     /**
      * @private
-     * @template T
-     * @param {T} optionsCfg
-     * @param {typedefs.JsonSchema} schemaObject
-     * @param {any} definitions
-     * @param {string} [baseKey]
-     * @returns {T}
-     * @throws {WpwError}
      */
-    mergeOptions(optionsCfg, schemaObject, definitions, baseKey)
+    resolveAliasPaths = () =>
     {
-        for (const [ k, def ] of Object.entries(schemaObject))
+        if (!this.alias) { return; }
+
+        const alias = this.alias,
+              jstsConfig = this.source.config,
+              jstsDir = jstsConfig.dir,
+              jstsPaths = jstsConfig.options.compilerOptions.paths;
+
+        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
         {
-            const key = baseKey || k;
-            if (def && (typeof optionsCfg[key] === "undefined" || optionsCfg[key] === undefined))
+            const value = alias[key];
+            if (typeUtils.isArray(value))
             {
-                if (def.$ref)
-                {
-                    const schema = getDefinitionSchema(def, definitions);
-                    if (schema.properties) {
-                        this.mergeOptions(optionsCfg, schema.properties || schema, definitions, key);
-                    }
-                    else if (schema.default || isPrimitive(schema.default)) {
-                        optionsCfg[key] = schema.default;
-                    }
-                }
-                // else if (isBoolean(def)) {
-                //     throw WpwError.getErrorProperty("schema.definition." + key);
-                // }
-                else if (isPrimitive(def) || isArray(def)) {
-                    throw WpwError.getErrorProperty("schema.definition." + key);
-                }
-                else if (def.default) {
-                    // if (isPrimitive(def.default)) {
-                        optionsCfg[key] = def.default;
-                    // }
-                    // else {
-                    //     optionsCfg[key] = undefined; // ?
-                    // }
-                }
-                // else if (def.type === "string") {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (def.type === "boolean") {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (isArray(def.enum)) {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (isArray(def.oneOf)) {
-                //     optionsCfg[key] = undefined;
-                // }
-                // else if (def.type === "array") {
-                //     optionsCfg[key] = undefined; // [];
-                // }
-                else {
-                    optionsCfg[key] = undefined; // {};
+                if (!value.includes(path)) {
+                    value.push(path);
                 }
             }
+            else { alias[key] = [ path ]; }
+        };
+
+        if (jstsDir && jstsPaths)
+        {
+            Object.entries(jstsPaths).filter(p => typeUtils.isArray(p)).forEach(([ key, paths ]) =>
+            {
+                if (paths) utils.asArray(paths).forEach((p) => _pushAlias(key, utils.resolvePath(jstsDir, p)), this);
+            });
         }
-        return optionsCfg;
-    }
+
+        if (!alias[":env"])
+        {
+            const basePath = this.paths.base,
+                  srcPath = utils.relativePath(basePath, this.paths.src),
+                  envGlob = `**/${srcPath}/**/{env,environment,target}/${this.target}/`,
+                  envDirs = utils.findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
+            envDirs.forEach((path) => _pushAlias(":env", path), this);
+        }
+    };
 
 
     /**
      * @private
+     * @param {typedefs.IWpwBuildConfig} config
      */
-    readSchema()
+    validateConfig(config)
     {
-        WpwBuild.schema = WpwBuild.schema ||
-            JSON.parse(readFileSync(resolve(__dirname, "../../schema/.wpbuildrc.schema.json"), "utf8"));
-    }
-
-
-    /**
-     * @private
-     */
-    validate()
-    {
-        this.logger.write(`validate ${this.name} build configuration`, 1);
-        this.mergeDefaultBuildOptions();
-        this.cleanOptions(this.options, this.initialConfig.options);
-        validateSchema(this, this.logger, "build");
-        this.logger.write(`final configuration for build '${this.name}' validated`, 2);
+        if (!config.name) {
+            throw WpwError.getErrorMissing("build[config.name]");
+        }
+        if (!config.type) {
+            throw WpwError.getErrorMissing("build[config.type]");
+        }
     }
 
 }

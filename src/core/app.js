@@ -18,6 +18,7 @@ const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
 const { apply, WpwError, isPromise, resolvePath, pickNot } = require("../utils");
+const WpwBuild = require("./build");
 
 
 /**
@@ -44,14 +45,17 @@ class WpBuildApp extends WpwBase
 	/**
 	 * @constructs WpBuildApp
 	 * @param {typedefs.WpwRc} rc wpbuild rc configuration
-	 * @param {typedefs.WpwBuild} build
+	 * @param {typedefs.IWpwBuildConfig} buildConfig
 	 */
-	constructor(rc, build)
+	constructor(rc, buildConfig)
 	{
-        super({});
-        apply(this, { rc, build, info: [], errors: [], warnings: [], logger: build.logger });
+        super({ buildConfig });
+        this.rc = rc;
+        this.build = new WpwBuild(buildConfig, this);
+        this.logger = this.build.logger;
+        apply(this, { info: [], errors: [], warnings: [] });
         this.addSuggestions();
-        this.disposables.push(build);
+        this.disposables.push(this.build);
 	}
 
 

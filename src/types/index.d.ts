@@ -58,6 +58,10 @@ export * from "./plugin";
  */
 export * from "./rc";
 /**
+ * Wpw schema helper definitions
+ */
+export * from "./schema";
+/**
  * Base webpack types library
  */
 export * from "./webpack";

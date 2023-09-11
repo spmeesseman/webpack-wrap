@@ -34,7 +34,7 @@ import {
 } from "./webpack";
 import {
     WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, IWpwBuildConfig, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwRcSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode, WpwSourceCodeExtension
+    WpwBuildModeConfig, IWpwSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode, WpwSourceCodeExtension
 } from "./rc";
 
 

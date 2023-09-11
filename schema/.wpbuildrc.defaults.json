@@ -12,12 +12,11 @@
     },
     "log": {
         "level": 2,
+        "timestamp": "hh:mm:ss",
         "valueMaxLineLength": 100,
         "pad": {
             "base": 0,
-            "envTag": 22,
-            "value": 45,
-            "uploadFileName": 50
+            "value": 45
         },
         "colors": {
             "default": "grey",
@@ -31,10 +30,7 @@
             "uploadSymbol": "yellow"
         }
     },
-    "paths": {
-        "dist": "dist",
-        "src": "src"
-    },
+    "paths": {},
     "options": {
         "analyze": {
             "enabled": false
@@ -111,6 +107,17 @@
         },
         "watch": {
             "enabled": false
+        }
+    },
+    "source": {
+        "type": "javascript",
+        "config": {
+        "excludeAbs": [],
+        "includeAbs": [],
+            "options": {
+                "compilerOptions": {},
+                "files": []
+            }
         }
     }
 }

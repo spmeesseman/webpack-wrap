@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
     "description": "Webpack-Wrap configuration file schema",
-    "title": "WpwRcSchema",
+    "title": "WpwSchema",
     "type": "object",
     "additionalProperties": false,
     "required": [
@@ -189,7 +189,6 @@
             "$id": "#/WpwVersionString",
             "type": "string",
             "readOnly": true,
-            "maxLength": 0,
             "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:pre|alpha|beta)\\.[0-9]+)?$",
             "examples": [
                 "1.0.0",
@@ -1089,21 +1088,17 @@
                         },
                         "envTag": {
                             "type": "number",
-                            "default": 22
+                            "readonly": true
                         },
                         "value": {
                             "type": "number",
                             "default": 40
-                        },
-                        "uploadFileName": {
-                            "type": "number",
-                            "default": 50
                         }
                     }
                 },
                 "timestamp": {
                     "type": "string",
-                    "default": "hh:mm:ss:sss",
+                    "default": "hh:mm:ss",
                     "enum": [
                         "mm:ss",
                         "mm:ss:sss",
@@ -1114,7 +1109,7 @@
                 "valueMaxLineLength": {
                     "type": "number",
                     "default": 100,
-                    "minValue": 50,
+                    "minValue": 40,
                     "maxValue": 250
                 }
             }
@@ -1355,7 +1350,6 @@
                 "base": {
                     "$ref": "#/definitions/DirectoryPath",
                     "default": ".",
-                    "maxLength": 0,
                     "description": "path to the base project directory, a full path containing project's package.json"
                 },
                 "ctx": {
@@ -2711,7 +2705,6 @@
         "WpwSourceCodeConfigCompilerOptions": {
             "$id": "#/WpwSourceCodeConfigCompilerOptions",
             "type": "object",
-            "minProperties": 1,
             "additionalProperties": true,
             "properties": {                      
                 "allowJs": {
@@ -2937,7 +2930,7 @@
         },
         "WpwSourceCodeTypescriptLoader": {
             "$id": "#/WpwSourceCodeTypescriptLoader",
-            "default": "babel",
+            "default": "ts-loader",
             "description": "preferred loader for typescript files, defaults to `babel`",
             "oneOf": [{
                 "const": "babel"

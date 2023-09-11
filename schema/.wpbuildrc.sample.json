@@ -107,8 +107,7 @@
         "pad": {
             "base": 0,
             "envTag": 23,
-            "value": 40,
-            "uploadFileName": 50
+            "value": 40
         },
         "colors": {
             "default": "grey"

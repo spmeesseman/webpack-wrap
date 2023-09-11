@@ -28,9 +28,6 @@
             }
         },
         "options": {
-            "sourcemaps": {
-                "enabled": false
-            },
             "types": {
                 "mode": "module",
                 "entry": "index",
@@ -97,10 +94,7 @@
         "level": 3,
         "valueMaxLineLength": 100,
         "pad": {
-            "base": 0,
-            "envTag": 19,
-            "value": 40,
-            "uploadFileName": 50
+            "value": 40
         },
         "colors": {
             "default": "grey"
@@ -118,9 +112,6 @@
             "enabled": true
         },
         "ignorewarnings": {
-            "enabled": true
-        },
-        "sourcemaps": {
             "enabled": true
         }
     }
