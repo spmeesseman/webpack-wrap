@@ -6,7 +6,11 @@ const WpwLogger = require("../utils/console");
 const typedefs = require("../types/typedefs");
 const { urlToRequest } = require("loader-utils");
 // const webpack = require("webpack");
-const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+// const { requireResolve } = require("../utils");
+// const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+
+/** @type {WpwLogger} */
+let logger;
 
 
 /** @type {import("schema-utils/declarations/validate").Schema} */
@@ -30,17 +34,14 @@ const schema = {
     }
 };
 
-const logger = new WpwLogger({
-    envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
-});
-
 
 async function dtsLoader(source, map, meta)
 {
+    logger.value("request path", urlToRequest(this.resourcePath), 3);
+
     const options = this.getOptions();
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
 
-    logger.value("request path", urlToRequest(this.resourcePath), 3);
 
     // const filename = loaderUtils.interpolateName(this, `[name]-page${i}-[contenthash].png`, {content: file});
     // const imageNames = images.map((file, i) => {
@@ -59,9 +60,12 @@ async function dtsLoader(source, map, meta)
 
     // __webpack_public_path__
 
-    // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
-    const dummyCode = "console.log('dummy source');";
-    const dummySource = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+    if (new RegExp(options.test).test(this.resourcePath))
+    {
+        // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
+        const dummyCode = "console.log('dummy source');";
+        source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+    }
     //
     // TODO: do dts generation / transformations to the source...
     //
@@ -69,13 +73,16 @@ async function dtsLoader(source, map, meta)
     // return source;
     // this.callback(null, source, map, meta);
     // this.callback(null, dummySource, null, null);
-    return [ dummySource, map ];
+    return [ source, map, meta ];
 }
 
 
 function loader(source, map, meta)
 {
     const callback = this.async();
+    logger = logger || new WpwLogger({
+        envTag1: "loader", envTag2: "dts", colors: { default: "grey" }, level: 5
+    });
 	dtsLoader.call(this, source, map, meta)
     .then(
         (args) => callback(null, ...args),

@@ -403,20 +403,21 @@ class WpwRulesExport extends WpwWebpackExport
 			  typesConfig = app.build.options.types,
 			  typesSrcPath= app.getSrcPath({ build: app.build.type });
 
+		if (!app.wpc.entry[this.app.build.name]) {
+			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[types]: wpc.entry must be initialized first");
+			return;
+		}
+
 		if (typesConfig && typesConfig.enabled && typesConfig.mode === "module" && typesSrcPath && existsSync(typesSrcPath))
 		{
+			const fakeEntryFile = /** @type {string} */(app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
 			app.wpc.module.rules.push(
 			{
-				// test: new RegExp(`\\.${app.source.ext}x?$`),
-				test: /index\.js$/,
+				test: new RegExp(`${fakeEntryFile}$`),
 				loader: resolve(__dirname, "../loaders/dts.js"),
 				options: {
-					test: "index.js"
+					test: fakeEntryFile
 				}
-				// type: "asset/resource",
-				// generator: {
-				// 	emit: false
-				// }
 			});
 		}
 		else {

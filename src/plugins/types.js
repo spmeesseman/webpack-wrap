@@ -10,12 +10,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { resolve } = require("path");
+const { resolve, join } = require("path");
 const WpwTscPlugin = require("./tsc");
 const { unlink } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { existsSync, readFile, stat } = require("fs");
+const { existsSync, readFile, stat, readdir } = require("fs");
 const { existsAsync, apply, findFiles } = require("../utils");
 
 
@@ -88,14 +88,10 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				statsProperty: "types",
                 callback: this.types.bind(this)
             },
-			setVirtualFilesystem: {
+			injectFilesystemInterface: {
 				async: true,
 				hook: "beforeRun",
-				callback: this.setVirtualFilesystem.bind(this)
-			},
-			resolveFakeModule: {
-				hook: "contextModuleFactory",
-				callback: this.resolveFakeModule.bind(this)
+				callback: this.injectFilesystemInterface.bind(this)
 			}
         });
     }
@@ -219,6 +215,36 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
 	/**
 	 * @private
+	 * @param {typedefs.WebpackCompiler} compiler
+	 */
+	injectFilesystemInterface(compiler)
+	{
+		const logger = this.logger,
+			  compilerOptions = this.app.source.config.options.compilerOptions,
+			  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true }),
+			  outputDirAbs = resolve(this.app.getBasePath(), outputDir),
+			  dtsFile = this.app.build.name + ".d.ts",
+			  dtsFilePathAbs = join(outputDirAbs, dtsFile),
+			  fakeEntryFile = /** @type {string} */(this.app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
+		compiler.inputFileSystem = {
+			readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+			readlink: (_, arg2) => setTimeout((cb) => cb(null, ""), 1, arg2),
+			readFile: (arg1, arg2) =>
+			{
+				logger.value("filesystem interface [read file]", arg1, 3);
+				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
+			},
+			stat: (arg1, arg2) =>
+			{
+				logger.value("filesystem interface [stat]", arg1, 3);
+				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? stat(dtsFilePathAbs, arg2) : stat(arg1, arg2);
+			}
+		};
+	}
+
+
+	/**
+	 * @private
 	 * @param {string | undefined} tsBuildInfoFile
 	 * @param {string} outputDir
 	 */
@@ -233,41 +259,6 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				try { await unlink(tsBuildInfoFile); } catch {}
 			}
 		}
-	}
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WebpackNormalModuleFactory} factory
-	 */
-	resolveFakeModule(factory)
-	{
-		// factory.hooks.beforeResolve.tap(this.name, () => false);
-		// factory.fs = {
-		// 	readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-		// 	readlink: (arg0, arg1) => arg1(undefined, ""),
-		// 	// @ts-ignore
-		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-		// 	stat: (arg1, arg2) => stat(arg1, arg2)
-		// };
-	}
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WebpackCompiler} compiler
-	 */
-	setVirtualFilesystem(compiler)
-	{
-		compiler.inputFileSystem = {
-			readFile: (arg0, arg1) => arg0.includes("index.") ? "// fake file" : readFile(arg0, arg1),
-			readlink: (arg0, arg1) => arg1(undefined, ""),
-			// @ts-ignore
-			readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-			stat: (arg1, arg2) => stat(arg1, arg2)
-		};
-		// compiler.resolverFactory.get("context").fileSystem = compiler.resolverFactory.get("normal").fileSystem;
-		// compiler.outputFileSystem = fs;
 	}
 
 

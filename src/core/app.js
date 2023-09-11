@@ -96,8 +96,8 @@ class WpBuildApp extends WpwBase
 
     /**
      * @param {typedefs.WpwErrorCode} code
-     * @param {typedefs.WebpackCompilation} [compilation]
-     * @param {Error | string} [detail]
+     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation]
+     * @param {Error | string | Record<string, any>} [detail]
      * @param {string} [pad]
      */
     addError = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
@@ -105,7 +105,7 @@ class WpBuildApp extends WpwBase
 
     /**
      * @param {typedefs.WpwInfoCode} code
-     * @param {string} [detail]
+     * @param {string | Record<string, any>} [detail]
      * @param {string} [pad]
      */
     addInfo = (code, detail, pad) => this.addMessage(code, undefined, detail, pad);
@@ -114,8 +114,8 @@ class WpBuildApp extends WpwBase
     /**
      * @private
      * @param {typedefs.WpwMessageCode} code defined error, info, or warning code
-     * @param {typedefs.WebpackCompilation} [compilation] If set, build will bail
-     * @param {Error | string} [detail] additional detail about the error / warning / event
+     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation] If set, build will bail
+     * @param {Error | string | Record<string, any>} [detail] additional detail about the error / warning / event
      * @param {string} [pad]
      */
     addMessage = (code, compilation, detail, pad) =>
@@ -177,8 +177,8 @@ class WpBuildApp extends WpwBase
 
     /**
      * @param {typedefs.WpwWarningCode} code
-     * @param {typedefs.WebpackCompilation} [compilation]
-     * @param {string} [detail]
+     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation]
+     * @param {string | Record<string, any>} [detail]
      * @param {string} [pad]
      */
     addWarning = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);

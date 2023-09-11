@@ -12,7 +12,7 @@
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
-const { isString, isError } = require("@spmeesseman/type-utils");
+const { isString, isError, isObject } = require("@spmeesseman/type-utils");
 const WpwRegex = require("./regex");
 
 
@@ -135,7 +135,7 @@ class WpwError extends WebpackError
 
     /**
      * @param {string | WpwMessageEnum} message
-     * @param {string | Error} [details]
+     * @param {string | Error | Record<string, any>} [details]
      */
     constructor(message, details)
     {
@@ -148,6 +148,9 @@ class WpwError extends WebpackError
         }
         else if (isString(details)) {
             this.details = details;
+        }
+        else if (isObject(details)) {
+            this.details = JSON.stringify(details);
         }
         if (message.length === 6 && WpwMessage[message])
         {
@@ -177,8 +180,8 @@ class WpwError extends WebpackError
 
     /**
      * @param {string | WpwMessageEnum} message
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {Error | string | undefined | null} [detail]
+     * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
+     * @param {Error | Record<string, any> | string | undefined | null} [detail]
      * @returns {WpwError}
      */
     static get(message, wpc, detail)
@@ -209,7 +212,7 @@ class WpwError extends WebpackError
     /**
      * @param {string} property
      * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
+     * @param {string | Record<string, any> | undefined | null} [detail]
      * @returns {WpwError}
      */
     static getErrorMissing = (property, wpc, detail) =>
@@ -218,7 +221,7 @@ class WpwError extends WebpackError
 
     /**
      * @param {string} property
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
+     * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
      * @param {string | undefined | null} [detail]
      * @returns {WpwError}
      */
@@ -228,8 +231,8 @@ class WpwError extends WebpackError
 
     /**
      * @param {string} fnName
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
+     * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
+     * @param {string | Record<string, any> | undefined | null} [detail]
      * @returns {WpwError}
      */
     static getAbstractFunction = (fnName, wpc, detail) =>
