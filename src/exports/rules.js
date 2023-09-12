@@ -87,7 +87,7 @@ class WpwRulesExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			this.app.addError(WpwError.Msg.ERROR_SHITTY_PROGRAMMER, undefined, `exports.rules.build[${app.build.type}]`);
+			this.app.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${app.build.type}]` });
 		}
 		app.logger.success("create rules", 2);
 	}
@@ -150,7 +150,7 @@ class WpwRulesExport extends WpwWebpackExport
 					},
 					use:
 					{
-						loader: resolve(__dirname, "../loaders/jsdoc.js"),
+						loader: "wpw-jsdoc-loader",
 						options: {
 							outDir: app.getDistPath(),
 							rootDir: jsdocSrcPath
@@ -159,11 +159,11 @@ class WpwRulesExport extends WpwWebpackExport
 				});
 			}
 			else {
-				app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "rules[jsdoc]");
+				app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "rules[jsdoc]" });
 			}
 		}
 		else {
-			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, undefined, "rules[jsdoc]");
+			app.addMessage({ code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, message: "rules[jsdoc]" });
 		}
 	}
 
@@ -400,7 +400,10 @@ class WpwRulesExport extends WpwWebpackExport
 			  typesConfig = app.build.options.types;
 
 		if (!app.wpc.entry[app.build.name]) {
-			app.addError(WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, app.wpc, "rules[types]: wpc.entry must be initialized before wpc.rules");
+			app.addMessage({
+				code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
+			});
 			return;
 		}
 
@@ -411,8 +414,9 @@ class WpwRulesExport extends WpwWebpackExport
 			app.wpc.module.rules.push(
 			{
 				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
-				loader: resolve(__dirname, "../loaders/dts.js"),
-				options: merge({}, { typesConfig })
+				// loader: resolve(__dirname, "../loaders/dts.js"),
+				loader: "wpw-types-loader",
+				options: merge({ virtualFile: `${app.global.cacheDir}/${app.build.name}${app.source.dotext}` }, { typesConfig })
 			});
 		}
 	}

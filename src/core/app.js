@@ -54,7 +54,6 @@ class WpBuildApp extends WpwBase
         this.build = new WpwBuild(buildConfig, this);
         this.logger = this.build.logger;
         apply(this, { info: [], errors: [], warnings: [] });
-        this.addSuggestions();
         this.disposables.push(this.build);
 	}
 
@@ -95,95 +94,47 @@ class WpBuildApp extends WpwBase
 
 
     /**
-     * @param {typedefs.WpwErrorCode} code
-     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation]
-     * @param {Error | string | Record<string, any>} [detail]
+     * @param {typedefs.WpwMessageInfo} info
      * @param {string} [pad]
      */
-    addError = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
-
-
-    /**
-     * @param {typedefs.WpwInfoCode} code
-     * @param {string | Record<string, any>} [detail]
-     * @param {string} [pad]
-     */
-    addInfo = (code, detail, pad) => this.addMessage(code, undefined, detail, pad);
-
-
-    /**
-     * @private
-     * @param {typedefs.WpwMessageCode} code defined error, info, or warning code
-     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation] If set, build will bail
-     * @param {Error | string | Record<string, any>} [detail] additional detail about the error / warning / event
-     * @param {string} [pad]
-     */
-    addMessage = (code, compilation, detail, pad) =>
+    addMessage = (info, pad) =>
     {
         const l = this.logger,
               icons = this.logger.icons,
-              isCompilation = compilation && isClass(compilation);
-        if (/WPW[0-2][0-9][0-9]/.test(code))
+              compilation = info.compilation,
+              hasCompilation = compilation && isClass(compilation);
+        if (/WPW[0-2][0-9][0-9]/.test(info.code))
         {
-            const i = WpwError.get(code, this.wpc, detail);
+            const i = WpwError.get(apply({ wpc: this.wpc }, info));
             l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
             this.info.push(i);
         }
-        else if (/WPW[3-5][0-9][0-9]/.test(code))
+        else if (/WPW[3-5][0-9][0-9]/.test(info.code))
         {
-            const w = WpwError.get(code, this.wpc, detail);
+            const w = WpwError.get(apply({ wpc: this.wpc }, info));
             l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
-            if (isCompilation) {
+            if (hasCompilation) {
                 compilation.warnings.push(w);
             }
         }
-        else if (/WPW[6-8][0-9][0-9]/.test(code))
+        else if (/WPW[6-8][0-9][0-9]/.test(info.code))
         {
-            const e = WpwError.get(code, this.wpc, detail);
+            const e = WpwError.get(apply({ wpc: this.wpc }, info));
             this.errors.push(e);
             l.write(e.message, undefined, pad, icons.color.error, l.colors.red);
-            if (isCompilation) {
+            if (hasCompilation) {
                 compilation.errors.push(e);
             }
             else { throw e; }
         }
-        else if (/WPW9[0-9][0-9]/.test(code)) {
+        else if (/WPW9[0-9][0-9]/.test(info.code)) {
             l.write("reserved message type", undefined, pad, icons.color.warning);
         }
         else {
             l.warning("unknown message type", pad);
         }
     };
-
-
-    /**
-     * @private
-     */
-    addSuggestions = () =>
-    {
-        const buildOptions = this.build.options;
-        if (this.source.type === "typescript")
-        {
-            if (!buildOptions.tscheck && this.build.type !== "types")
-            {
-                this.addInfo(WpwError.Msg.INFO_SHOULD_ENABLE_TSCHECK);
-            }
-        }
-        if (this.build.type === "tests" && (!this.build.options.vendormod || !this.build.options.vendormod.nyc))
-        {
-            this.addInfo(WpwError.Msg.INFO_SHOULD_ENABLE_VENDORMOD_NYC);
-        }
-    };
-
-
-    /**
-     * @param {typedefs.WpwWarningCode} code
-     * @param {typedefs.WebpackCompilation | Record<string, any>} [compilation]
-     * @param {string | Record<string, any>} [detail]
-     * @param {string} [pad]
-     */
-    addWarning = (code, compilation, detail, pad) => this.addMessage(code, compilation, detail, pad);
 
 
     /**

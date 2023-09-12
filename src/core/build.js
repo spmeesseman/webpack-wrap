@@ -13,7 +13,7 @@ const WpwBase = require("./base");
 const WpwSourceCode = require("./sourcecode");
 const { isWpwBuildType, isWebpackTarget, WpwBuildConfigKeys } = require("../types/constants");
 const {
-    utils, objUtils, typedefs, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults
+    utils, objUtils, typedefs, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults, merge
 } = require("../utils");
 
 
@@ -85,10 +85,36 @@ class WpwBuild extends WpwBase
     configure(buildConfig)
     {
         objUtils.merge(this, buildConfig);
-        objUtils.apply(buildConfig, { target: this.getTarget(), type: this.getType() });
+        objUtils.apply(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-        this.mergeDefaultBuildOptions();
+        this.mergeDefaultOptions();
+        this.configureOptions();
         this.resolveAliasPaths();
+    }
+
+
+	/**
+	 * @private
+	 */
+    configureOptions()
+    {
+        const optionMessage = (/** @type {string} */ o) =>
+            `the ${o} option was auto-enabled, enable this option for the ${this.name} build in .wpwraprc to bury this message`;
+        if (this.options.sourcemaps && (!this.options.vendormod || !this.options.vendormod.source_map_plugin))
+        {
+            this.options.vendormod = merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
+            this.wrapper.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("vendormod.source_map_plugin") });
+        }
+        if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
+        {
+            this.options.tscheck = { enabled: true };
+            this.wrapper.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("tscheck") });
+        }
+        if (this.type === "tests" && (!this.options.vendormod || !this.options.vendormod.nyc))
+        {
+            this.options.vendormod = merge(this.options.vendormod, { enabled: true, nyc: true });
+            this.wrapper.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("vendormod.nyc") });
+        }
     }
 
 
@@ -136,7 +162,7 @@ class WpwBuild extends WpwBase
      *
      * @throws {WpwError}
      */
-    mergeDefaultBuildOptions()
+    mergeDefaultOptions()
     {
         const options = this.options,
               initialOptions = this.initialConfig.options;
@@ -165,7 +191,7 @@ class WpwBuild extends WpwBase
                 }
             }
             else {
-                throw WpwError.get("invalid build options schema");
+                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA_VALIDATION, message: `build options [${this.name}]` });
             }
         });
     }

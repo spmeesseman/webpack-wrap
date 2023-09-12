@@ -17,6 +17,7 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { existsSync, readFile, stat, readdir } = require("fs");
 const { existsAsync, apply, findFiles } = require("../utils");
+const { writeFile } = require("fs/promises");
 
 
 /**
@@ -26,7 +27,10 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 {
     /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
     buildOptions;
-
+	/** @type {string} @private */
+	virtualFile;
+	/** @type {string} @private */
+	virtualFilePath;
 
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -34,6 +38,8 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	constructor(options)
 	{
 		super(options);
+		this.virtualFile = `${this.app.build.name}${this.app.source.dotext}`;
+		this.virtualFilePath = `${this.app.global.cacheDir}/${this.virtualFile}`;
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.app.build.options.types);
 	}
 
@@ -90,6 +96,9 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		for (const file of tmpFiles)
 		{
 			await unlink(file);
+		}
+		if (await existsAsync(this.virtualFilePath)) {
+			await unlink(this.virtualFilePath);
 		}
 	};
 
@@ -200,30 +209,36 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	 * @private
 	 * @param {typedefs.WebpackCompiler} compiler
 	 */
-	injectFilesystemInterface(compiler)
+	async injectFilesystemInterface(compiler)
 	{
-		const logger = this.logger,
-			  compilerOptions = this.app.source.config.options.compilerOptions,
+		const app = this.app,
+			  logger = this.logger,
+			  compilerOptions = app.source.config.options.compilerOptions,
 			  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true }),
-			  outputDirAbs = resolve(this.app.getBasePath(), outputDir),
+			  outputDirAbs = resolve(app.getBasePath(), outputDir),
 			  dtsFile = this.app.build.name + ".d.ts",
 			  dtsFilePathAbs = join(outputDirAbs, dtsFile),
 			  fakeEntryFile = /** @type {string} */(this.app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
-		compiler.inputFileSystem = {
-			readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-			readlink: (_, arg2) => setTimeout((cb) => cb(null, ""), 1, arg2),
-			readFile: (arg1, arg2) =>
-			{
-				logger.value("filesystem interface [read file]", arg1, 3);
-				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ?
-						setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
-			},
-			stat: (arg1, arg2) =>
-			{
-				logger.value("filesystem interface [stat]", arg1, 3);
-				return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? stat(dtsFilePathAbs, arg2) : stat(arg1, arg2);
-			}
-		};
+
+		const dummyCode = "console.log('dummy source');",
+			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+        await writeFile(this.virtualFilePath, source);
+
+		// compiler.inputFileSystem = {
+		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
+		// 	readlink: (_, arg2) => setTimeout((cb) => cb(null, ""), 1, arg2),
+		// 	readFile: (arg1, arg2) =>
+		// 	{
+		// 		logger.value("filesystem interface [read file]", arg1, 3);
+		// 		return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ?
+		// 				setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
+		// 	},
+		// 	stat: (arg1, arg2) =>
+		// 	{
+		// 		logger.value("filesystem interface [stat]", arg1, 3);
+		// 		return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? stat(dtsFilePathAbs, arg2) : stat(arg1, arg2);
+		// 	}
+		// };
 	}
 
 
@@ -267,7 +282,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		logger.value("   base path", basePath, 3);
 		logger.value("   build options", this.buildOptions, 4);
 
-		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(`${this.app.build.name}.js`));
+		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
 		if (virtualEntryFile) {
 			logger.write(`   delete virtual entry asset '${virtualEntryFile}'`, 3);
 			this.compilation.deleteAsset(virtualEntryFile);
@@ -281,7 +296,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			const result = this.app.source.emit(undefined, undefined, undefined, true);
 			if (!result)
 			{
-				this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED, this.compilation);
+				this.app.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
 				return;
 			}
 		}
@@ -293,10 +308,11 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			await this.execTsBuild(sourceCode.config, tscArgs, 1, outputDir);
 		}
 		else {
-			this.app.addError(
-				WpwError.Msg.ERROR_TYPES_FAILED_INVALID_METHOD, this.compilation,
-				`configured build method is '${method}'`
-			);
+			this.app.addMessage({
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				compilation: this.compilation,
+				message: `configured build method is '${method}'`
+			});
 		}
 
 		const outputDirAbs = resolve(this.app.getBasePath(), outputDir);
@@ -308,7 +324,11 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			logger.write("type definitions created successfully @ " + outputDir, 1);
 		}
 		else {
-			this.app.addError(WpwError.Msg.ERROR_TYPES_FAILED_NO_OUTPUT_DIR, this.compilation);
+			this.app.addMessage({
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				compilation: this.compilation,
+				message: "output directory does not exist"
+			});
 		}
 
 		//

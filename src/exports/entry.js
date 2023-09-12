@@ -14,9 +14,8 @@
  */
 
 const { glob } = require("glob");
-const { existsSync } = require("fs");
+const { basename } = require("path");
 const WpwWebpackExport = require("./base");
-const { basename, resolve } = require("path");
 const typedefs = require("../types/typedefs");
 const {
 	apply, WpwError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
@@ -69,7 +68,7 @@ class WpwEntryExport extends WpwWebpackExport
 			this[app.build.type]();
 		}
 		else {
-			this.app.addError(WpwError.Msg.ERROR_SHITTY_PROGRAMMER, undefined, `exports.entry.build[${app.build.type}]`);
+			this.app.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.entry.build[${app.build.type}]` });
 		}
 
 		//
@@ -119,7 +118,7 @@ class WpwEntryExport extends WpwWebpackExport
 			}
 		}
 		else {
-			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "module entry[jsdoc]");
+			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "module entry[jsdoc]" });
 		}
 	}
 
@@ -222,9 +221,9 @@ class WpwEntryExport extends WpwWebpackExport
 			  typesConfig = app.build.options.types;
 		if (typesConfig && typesConfig.mode === "module")
 		{
-			const typesPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+			const virtualRelPath = relativePath(app.getBasePath(), `${app.global.cacheDir}/${app.build.name}${app.source.dotext}`);
 			apply(app.wpc.entry, {
-				[ app.build.name ]: `${typesPath}/index.${app.source.ext}`
+				[ app.build.name ]: `./${virtualRelPath.replace(/\\/g, "/")}`
 			});
 		}
 	}

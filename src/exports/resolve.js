@@ -46,7 +46,7 @@ class WpwResolveExport extends WpwWebpackExport
      * @protected
 	 * @throws {WpwError}
 	 */
-	build = () =>
+	build()
 	{
 		const app = this.app;
 		if (isFunction(this[app.build.type]))
@@ -58,9 +58,9 @@ class WpwResolveExport extends WpwWebpackExport
 			app.logger.success("create resolve configuration", 2);
 		}
 		else {
-			this.app.addError(WpwError.Msg.ERROR_SHITTY_PROGRAMMER, undefined, `exports.resolve.build[${app.build.type}]`);
+			this.app.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${app.build.type}]` });
 		}
-	};
+	}
 
 
 	/**
@@ -69,7 +69,7 @@ class WpwResolveExport extends WpwWebpackExport
 	base()
 	{
 		apply(this.app.wpc,
-		{
+		/** @type {Partial<typedefs.WpwWebpackConfig>} */({
 			resolve:
 			{
 				alias: this.app.build.alias,
@@ -83,7 +83,8 @@ class WpwResolveExport extends WpwWebpackExport
 			resolveLoader:
 			{
 				alias: {
-					"@babel": join(this.nodeModulesPath, "@babel")
+					"@babel": join(this.nodeModulesPath, "@babel") // ,
+					// "@spmeesseman": join(this.nodeModulesPath, "@spmeesseman")
 				},
 				modules: [
 					resolve(__dirname, "../loaders"),
@@ -91,7 +92,7 @@ class WpwResolveExport extends WpwWebpackExport
 					"node_modules"
 				]
 			}
-		});
+		}));
 	}
 
 
@@ -103,7 +104,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.jsdoc");
+			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}
 
@@ -143,7 +144,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.tests");
+			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
 		}
 	}
 
@@ -156,7 +157,7 @@ class WpwResolveExport extends WpwWebpackExport
 			this.app.wpc.resolve.extensions.push(".d.ts");
 		}
 		else {
-			this.app.addWarning(WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, undefined, "exports.resolve.types");
+			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
 		}
 	}
 

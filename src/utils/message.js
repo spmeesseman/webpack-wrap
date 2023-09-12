@@ -25,9 +25,7 @@ const WpwMessage =
     //
     WPW000: "general info issued",
     WPW025: "build skipped (non-fatal)",
-    WPW075: "typescript build should enable the 'tscheck' build option, or set ts-loader 'transpileOnly' to false",
-    WPW085: "enable the 'vendormod.all' or other vendormod options if issues occur",
-    WPW086: "enable the 'vendormod.all' or 'vendormod.nyc' option if using nyc",
+    WPW075: "suggesstion to enable option",
     //
     // INFO (100- 199)
     //
@@ -50,12 +48,12 @@ const WpwMessage =
     // ERRORS (600 - 699)
     //
     WPW600: "an error has occurred",
+    WPW610: "general schema error",
+    WPW611: "schema validation error",
+    WPW615: "typescript module error",
     WPW605: "build failed - output directory does not exist",
     WPW630: "abstract function must be overridden",
     WPW660: "types build: general failure",
-    WPW661: "types build: output directory does not exist",
-    WPW662: "types build: invalid build method",
-    WPW670: "types build: failed to create bundle",
     //
     // ERRORS (700 - 799)
     //
@@ -79,9 +77,7 @@ const WpwMessageEnum =
     // INFO (000 - 099)
     //
     INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
-    INFO_SHOULD_ENABLE_TSCHECK: /** @type {typedefs.WpwInfoCode} */("WPW075"),
-    INFO_SHOULD_ENABLE_VENDORMOD: /** @type {typedefs.WpwInfoCode} */("WPW085"),
-    INFO_SHOULD_ENABLE_VENDORMOD_NYC: /** @type {typedefs.WpwInfoCode} */("WPW086"),
+    INFO_SHOULD_ENABLE_OPTION: /** @type {typedefs.WpwInfoCode} */("WPW075"),
     //
     // INFO (100 - 199)
     //
@@ -93,7 +89,7 @@ const WpwMessageEnum =
     //
     // WARNINGS (400 - 499)
     //
-    WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET: /** @type {typedefs.WpwWarningCode} */("WPW450"),
+    WARNING_OPTIONS_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW450"),
     //
     // WARNING (500 - 599)
     //
@@ -104,12 +100,12 @@ const WpwMessageEnum =
     // ERROR (600 - 699)
     //
     ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW600"),
+    ERROR_SCHEMA: /** @type {typedefs.WpwErrorCode} */("WPW610"),
+    ERROR_SCHEMA_VALIDATION: /** @type {typedefs.WpwErrorCode} */("WPW611"),
+    ERROR_TYPESCRIPT: /** @type {typedefs.WpwErrorCode} */("WPW615"),
     ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW630"),
     ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
-    ERROR_TYPES_FAILED_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW661"),
-    ERROR_TYPES_FAILED_INVALID_METHOD: /** @type {typedefs.WpwErrorCode} */("WPW662"),
-    ERROR_TYPES_FAILED_BUNDLE: /** @type {typedefs.WpwErrorCode} */("WPW670"),
     //
     // ERROR (700 - 799)
     //
@@ -134,27 +130,27 @@ class WpwError extends WebpackError
     static Msg = WpwMessageEnum;
 
     /**
-     * @param {string | WpwMessageEnum} message
-     * @param {string | Error | Record<string, any>} [details]
+     * @param {typedefs.WpwMessageInfo} info
      */
-    constructor(message, details)
+    constructor(info)
     {
-        super(message);
-        const isErrorDetail = isError(details);
+        super(info.message);
+        const err = info.error,
+              hasErrorDetail = isError(err);
 		this.name = "WpwError";
         // Object.setPrototypeOf(this, new.target.prototype);
-        if (isErrorDetail) {
-            this.details = details.message;
+        if (hasErrorDetail) {
+            this.details = err.message;
         }
-        else if (isString(details)) {
-            this.details = details;
+        if (isString(info.detail)) {
+            this.details = info.detail;
         }
-        else if (isObject(details)) {
-            this.details = JSON.stringify(details);
+        else if (isObject(info.detail)) {
+            this.details = JSON.stringify(info.detail);
         }
-        if (message.length === 6 && WpwMessage[message])
+        if (info.code.length === 6 && WpwMessage[info.code])
         {
-            message = `[${message}]: ${WpwMessage[message]}`;
+            this.details = `[${this.details}]: ${WpwMessage[info.code]}`;
         }
         WpwError.captureStackTrace(this, this.constructor);
         if (this.stack)
@@ -172,41 +168,17 @@ class WpwError extends WebpackError
                 name: method
             };
         }
-        if (isErrorDetail && details.stack) {
-            this.details = (this.details ? this.details + "\n" : "") + details.stack.trim();
+        if (hasErrorDetail && err.stack) {
+            this.details = (this.details ? this.details + "\n" : "") + err.stack.trim();
         }
     }
 
 
     /**
-     * @param {string | WpwMessageEnum} message
-     * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
-     * @param {Error | Record<string, any> | string | undefined | null} [detail]
+     * @param {typedefs.WpwMessageInfo} info
      * @returns {WpwError}
      */
-    static get(message, wpc, detail)
-    {
-        if (message.length === 6 && WpwMessage[message])
-        {
-            message = `[${message}]: ${WpwMessage[message]}`;
-        }
-        if (wpc)
-        {
-            if (wpc.mode) {
-                message += ` [mode:${wpc.mode}]`;
-            }
-            if (wpc.target) {
-                message += ` [tgt:${wpc.target}]`;
-            }
-        }
-        if (isString(detail)) {
-            message += ` | ${detail}`;
-        }
-        else if (isError(detail)) {
-            message += `\nexception: ${detail.message.trim()}`;
-        }
-        return new WpwError(message, detail ?? undefined);
-    }
+    static get(info) {return new WpwError(info); }
 
 
     /**
@@ -216,7 +188,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getErrorMissing = (property, wpc, detail) =>
-        this.get(this.Msg.ERROR_RESOURCE_MISSING, wpc, `[${property}] ` + (detail || ""));
+        this.get({ code: this.Msg.ERROR_RESOURCE_MISSING, wpc, message: `[${property}] ` + (detail || "") });
 
 
     /**
@@ -226,7 +198,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getErrorProperty = (property, wpc, detail) =>
-        this.get(this.Msg.ERROR_CONFIG_PROPERTY, wpc, `[${property}] ` + (detail || ""));
+        this.get({ code: this.Msg.ERROR_CONFIG_PROPERTY, wpc, message: `[${property}] ` + (detail || "") });
 
 
     /**
@@ -236,7 +208,7 @@ class WpwError extends WebpackError
      * @returns {WpwError}
      */
     static getAbstractFunction = (fnName, wpc, detail) =>
-        this.get(this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, `[${fnName}] ` + (detail || ""));
+        this.get({ code: this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || "") });
 
 }
 

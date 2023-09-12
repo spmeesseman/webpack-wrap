@@ -90,7 +90,7 @@ class WpwSourceCode
     {
         const ts = WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         if (!ts) {
-            throw WpwError.get("typescript.program is unavailable");
+            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
         }
         this.cleanupProgram();
         const programOptions = merge({}, this.config.options.compilerOptions, compilerOptions),
@@ -139,7 +139,7 @@ class WpwSourceCode
     emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
     {
         if (!this.program) {
-            throw WpwError.get("typescript.program is not initialized");
+            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is not initialized" });
         }
 
         const logger = this.logger;

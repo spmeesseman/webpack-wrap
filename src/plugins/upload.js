@@ -83,7 +83,12 @@ class WpBuildUploadPlugin extends WpwPlugin
                 this.app.logger.write("upload plugin cleanup completed");
         }   }
         catch (e) {
-			this.app.addError(WpwError.Msg.ERROR_GENERAL, this.compilation, e);
+			this.app.addMessage({
+                code: WpwError.Msg.ERROR_GENERAL,
+                compilation: this.compilation,
+                error: e,
+                message: "exception while cleaning upload-from path"
+            });
         }
     };
 

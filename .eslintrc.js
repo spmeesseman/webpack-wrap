@@ -16,7 +16,6 @@ module.exports = {
         "test-fixture/**",
         "*.json",
         "node_modules/**",
-        "node_modules/**",
         ".eslint*",
         "dist/**",
         "examples/**",

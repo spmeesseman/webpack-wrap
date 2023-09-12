@@ -1,6 +1,6 @@
 
 import { IWpwWebpackConfig } from "./rc";
-import { WebpackError } from "./webpack";
+import { WebpackCompilation, WebpackError } from "./webpack";
 
 
 export declare type WpwMessageType = import("../utils/message");
@@ -46,10 +46,12 @@ export declare interface IWpwMessageEnum
 export declare interface IWpwMessageInfo<E extends Error | undefined>
 {
     code: WpwMessageCode;
+    compilation?: WebpackCompilation;
     detail?: string;
     detailObject?: Record<string, any>;
     error?: E;
     message: string;
+    pad?: string;
     wpc?: IWpwWebpackConfig;
 }
 export declare type WpwMessageInfo = IWpwMessageInfo<WpwMessageType | WebpackError | Error | undefined>;

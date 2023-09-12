@@ -64,7 +64,7 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 		if (!this.app.source.config.options || !this.app.source.config.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
-			this.app.addError(WpwError.Msg.ERROR_GENERAL, this.compilation, eMsg);
+			this.app.addMessage({ code: WpwError.Msg.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
 			this.logger.warning("consider possible solutions:");
 			this.logger.warning("   (1) rename test suite config file according to convention");
 			this.logger.warning("   (2) disable testsuite plugin in italic(.wsbuildrc.plugins.testsuite)");

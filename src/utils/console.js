@@ -67,7 +67,6 @@ class WpwLogger
     {
         const defaults = applySchemaDefaults(/** @type {Required<typedefs.IWpwLog>} */({}), "WpwLog");
         const opts = this.options = merge(defaults, options);
-console.log(JSON.stringify(opts, null, 4));
         let len = opts.envTag1.length + opts.envTag2.length + 6;
         WpwLogger.envTagLen = !WpwLogger.envTagLen || len > WpwLogger.envTagLen ? len : WpwLogger.envTagLen;
         len = opts.pad.value;
@@ -250,6 +249,26 @@ console.log(JSON.stringify(opts, null, 4));
             error: this.withColor("✘", this.colors.red)
         }
     };
+
+
+    /**
+     * @param {string} name
+     * @param {Record<string, any>} obj
+     * @param {typedefs.WpwLoggerLevel} [level]
+     * @param {string} [pad]
+     * @param {boolean} [incHdrLine]
+     * @param {boolean} [incNonPrimValues]
+     */
+    object(name, obj, level, pad, incHdrLine, incNonPrimValues)
+    {
+        if (incHdrLine) {
+            this.write(`${name.toLowerCase()} property values:`, level, pad);
+        }
+        Object.entries(obj).filter(o => incNonPrimValues || isPrimitive(o[1])).forEach(([ key, value ]) =>
+        {
+            this.value(`${name}.${key}`, value, level, !incHdrLine ? pad : pad + "   ");
+        });
+    }
 
 
     /**

@@ -1,13 +1,10 @@
-/* eslint-disable prefer-arrow/prefer-arrow-functions */
-/* eslint-disable import/no-extraneous-dependencies */
+// @ts-check
 
+const { resolve } = require("path");
 const { validate } = require("schema-utils");
-const WpwLogger = require("../utils/console");
-const typedefs = require("../types/typedefs");
+const { writeFile } = require("fs/promises");
 const { urlToRequest } = require("loader-utils");
-// const webpack = require("webpack");
-// const { requireResolve } = require("../utils");
-// const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+const WpwLogger = require("../../../utils/console");
 
 /** @type {WpwLogger} */
 let logger;
@@ -16,18 +13,18 @@ let logger;
 /** @type {import("schema-utils/declarations/validate").Schema} */
 const schema = {
     type: "object",
-    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.loader.dts.json",
+    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.loader.types.json",
     properties: {
         test: {
             type: "string"
         },
         options: {
             type: "object",
+            required: [
+                "virtualFile", "typesConfig"
+            ],
             properties: {
-                outDir: {
-                    type: "string"
-                },
-                inputDir: {
+                virtualFile: {
                     type: "string"
                 },
                 typesConfig: {
@@ -38,14 +35,15 @@ const schema = {
     }
 };
 
-
-async function dtsLoader(source, map, meta)
+async function typesLoader(source, map, meta)
 {
-    logger.value("request path", urlToRequest(this.resourcePath), 3);
+    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "dts", level: 5 });
+    logger.write("process request", 3);
+    logger.value("   path", urlToRequest(this.resourcePath), 3);
 
     const options = this.getOptions();
+    logger.object("options", options, 3, "   ");
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
-
 
     // const filename = loaderUtils.interpolateName(this, `[name]-page${i}-[contenthash].png`, {content: file});
     // const imageNames = images.map((file, i) => {
@@ -64,11 +62,13 @@ async function dtsLoader(source, map, meta)
 
     // __webpack_public_path__
 
+    let newSource = source;
     if (new RegExp(options.test).test(this.resourcePath))
     {
         // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
         const dummyCode = "console.log('dummy source');";
-        source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+        newSource = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+        await writeFile(resolve(options.virtualFile), newSource);
     }
     //
     // TODO: [??]: do dts generation / transformations , do a renameAsset of the fakeAssetName / get rid of types plugin
@@ -77,19 +77,8 @@ async function dtsLoader(source, map, meta)
     // return source;
     // this.callback(null, source, map, meta);
     // this.callback(null, dummySource, null, null);
-    return [ source, map, meta ];
+    return [ newSource, map, meta ];
 }
 
 
-function loader(source, map, meta)
-{
-    const callback = this.async();
-    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "dts", level: 5 });
-	dtsLoader.call(this, source, map, meta)
-    .then(
-        (args) => callback(null, ...args),
-        (err) => callback(err)
-    );
-}
-
-module.exports = loader;
+module.exports = typesLoader;

@@ -78,38 +78,32 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
     renameMap = (assets) =>
     {
         this.logger.write("rename sourcemaps with entry module contenthash", 1);
-        if (this.app.global.runtimeVars)
+        Object.entries(assets).filter(([ file ]) => file.endsWith(".map")).forEach(([ file ]) =>
         {
-            Object.entries(assets).filter(([ file ]) => file.endsWith(".map")).forEach(([ file ]) =>
+            const asset = this.compilation.getAsset(file);
+            if (asset)
             {
-                const asset = this.compilation.getAsset(file);
-                if (asset)
+                const entryHash = this.app.global.runtimeVars.next[this.fileNameStrip(file, true)],
+                    newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
+                this.logger.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
+                this.logger.value("   current filename", file, 3);
+                this.logger.value("   new filename", newFile, 3);
+                this.logger.value("   asset info", JSON.stringify(asset.info), 4);
+                this.compilation.renameAsset(file, newFile);
+                const srcAsset = this.compilation.getAsset(newFile.replace(".map", ""));
+                if (srcAsset && srcAsset.info.related && srcAsset.info.related.sourceMap)
                 {
-                    const entryHash = this.app.global.runtimeVars.next[this.fileNameStrip(file, true)],
-                        newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
-                    this.logger.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
-                    this.logger.value("   current filename", file, 3);
-                    this.logger.value("   new filename", newFile, 3);
-                    this.logger.value("   asset info", JSON.stringify(asset.info), 4);
-                    this.compilation.renameAsset(file, newFile);
-                    const srcAsset = this.compilation.getAsset(newFile.replace(".map", ""));
-                    if (srcAsset && srcAsset.info.related && srcAsset.info.related.sourceMap)
-                    {
-                        const sources = this.compiler.webpack.sources,
-                            { source, map } = srcAsset.source.sourceAndMap(),
-                            newInfo = apply({ ...srcAsset.info }, { related: { ...srcAsset.info.related, sourceMap: newFile }});
-                        let newSource = source;
-                        this.logger.write("   update source entry asset with new sourcemap filename", 2);
-                        this.logger.value("   source entry asset info", JSON.stringify(srcAsset.info), 4);
-                        newSource = source.toString().replace(file, newFile);
-                        this.compilation.updateAsset(srcAsset.name, new sources.SourceMapSource(newSource, srcAsset.name, map), newInfo);
-                    }
+                    const sources = this.compiler.webpack.sources,
+                        { source, map } = srcAsset.source.sourceAndMap(),
+                        newInfo = apply({ ...srcAsset.info }, { related: { ...srcAsset.info.related, sourceMap: newFile }});
+                    let newSource = source;
+                    this.logger.write("   update source entry asset with new sourcemap filename", 2);
+                    this.logger.value("   source entry asset info", JSON.stringify(srcAsset.info), 4);
+                    newSource = source.toString().replace(file, newFile);
+                    this.compilation.updateAsset(srcAsset.name, new sources.SourceMapSource(newSource, srcAsset.name, map), newInfo);
                 }
-            });
-        }
-        else {
-            this.app.addWarning(WpwError.Msg.WARNING_SOURCEMAPS_RUNTIMEVARS_NOT_SET);
-        }
+            }
+        });
     };
 
 

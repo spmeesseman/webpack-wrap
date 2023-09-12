@@ -81,9 +81,7 @@ declare interface IWpBuildApp extends IDisposable
     readonly global: WpBuildGlobalEnvironment;
     readonly isOnlyBuild: boolean;
     readonly pkgJson: WpwPackageJson;
-    addError(e: WpwErrorCode, c?: WebpackCompilation, d?: string, pad?: string): void;
-    addInfo(i: WpwInfoCode, d?: string, pad?: string): void;
-    addWarning(w: WpwWarningCode, c?: WebpackCompilation, d?: string, pad?: string): void;
+    readonly source: WpwSourceCode;
     buildWrapper(): WpwWebpackConfig;
     dispose(): Promise<void>;
     getBuildWrapper(name: string): IWpBuildApp | undefined;

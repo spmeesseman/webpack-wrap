@@ -328,11 +328,7 @@ class WpwPlugin extends WpwBaseModule
 	 */
 	handleError(message, error)
 	{
-        const err = error ?? new WpwError(message, error);
-        this.app.addError(WpwError.Msg.ERROR_GENERAL, this.compilation, err);
-        if (!this.compilation) {
-            throw err;
-        }
+        this.app.addMessage({ code: WpwError.Msg.ERROR_GENERAL, message, compilation: this.compilation, error });
 	}
 
 

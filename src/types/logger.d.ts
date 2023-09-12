@@ -68,6 +68,7 @@ declare interface IWpwLogger
     icons: WpwLoggerIconSet;
     withColor(msg: string | undefined, color: WpwLogColorMapping, sticky?: boolean): string;
     error: (msg: any, pad?: string) => void;
+    object: (name: string, obj: Record<string, any>, level?: WpwLoggerLevel, pad?: string, incHdrLine?: boolean, incNonPrimValues?: boolean) => void;
     start: (msg: string, level?: WpwLoggerLevel) => void;
     tag: (msg: string, bracketColor?: WpwLogColorMapping | null, msgColor?: WpwLogColorMapping | null) => void;
     value: (msg: string, value: any, level?: WpwLoggerLevel, pad?: string, icon?: WpwLogIconString | undefined | null | 0 | false, color?: WpwLogColorMapping | null) => void;

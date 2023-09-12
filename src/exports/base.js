@@ -24,7 +24,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     build()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build]` });
     }
 
     /**
@@ -33,7 +33,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     jsdoc()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][jsdoc]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][jsdoc]` });
     }
 
     /**
@@ -42,7 +42,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     module()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][module]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][module]` });
     }
 
     /**
@@ -51,7 +51,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     tests()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][tests]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][tests]` });
     }
 
     /**
@@ -60,7 +60,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     types()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][types]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][types]` });
     }
 
     /**
@@ -69,7 +69,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     webapp()
     {
-        this.app.addError(WpwError.Msg.ERROR_ABSTRACT_FUNCTION, undefined, `name[${this.name}][build][webapp]`);
+        this.app.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][webapp]` });
     }
 
 }
