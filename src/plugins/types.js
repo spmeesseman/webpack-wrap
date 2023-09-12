@@ -12,11 +12,11 @@
 
 const { resolve, join } = require("path");
 const WpwTscPlugin = require("./tsc");
-const { unlink } = require("fs/promises");
+const { unlink, readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { existsSync, readFile, stat, readdir } = require("fs");
-const { existsAsync, apply, findFiles } = require("../utils");
+const { existsSync } = require("fs");
+const { existsAsync, apply, findFiles, relativePath } = require("../utils");
 const { writeFile } = require("fs/promises");
 
 
@@ -77,10 +77,10 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				statsProperty: "types",
                 callback: this.types.bind(this)
             },
-			injectFilesystemInterface: {
+			injectVirtualFilesystem: {
 				async: true,
 				hook: "beforeRun",
-				callback: this.injectFilesystemInterface.bind(this)
+				callback: this.injectVirtualFilesystem.bind(this)
 			}
         });
     }
@@ -209,21 +209,20 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 	 * @private
 	 * @param {typedefs.WebpackCompiler} compiler
 	 */
-	async injectFilesystemInterface(compiler)
+	async injectVirtualFilesystem(compiler)
 	{
-		const app = this.app,
-			  logger = this.logger,
-			  compilerOptions = app.source.config.options.compilerOptions,
-			  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true }),
-			  outputDirAbs = resolve(app.getBasePath(), outputDir),
-			  dtsFile = this.app.build.name + ".d.ts",
-			  dtsFilePathAbs = join(outputDirAbs, dtsFile),
-			  fakeEntryFile = /** @type {string} */(this.app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
-
 		const dummyCode = "console.log('dummy source');",
 			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
         await writeFile(this.virtualFilePath, source);
-
+		// const app = this.app,
+		// 	  logger = this.logger,
+		// 	  compilerOptions = app.source.config.options.compilerOptions,
+		// 	  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true }),
+		// 	  outputDirAbs = resolve(app.getBasePath(), outputDir),
+		// 	  dtsFile = this.app.build.name + ".d.ts",
+		// 	  dtsFilePathAbs = join(outputDirAbs, dtsFile),
+		// 	  fakeEntryFile = /** @type {string} */(this.app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
+		//
 		// compiler.inputFileSystem = {
 		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
 		// 	readlink: (_, arg2) => setTimeout((cb) => cb(null, ""), 1, arg2),
@@ -316,14 +315,8 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		}
 
 		const outputDirAbs = resolve(this.app.getBasePath(), outputDir);
-		if (await existsAsync(outputDirAbs))
+		if (!(await existsAsync(outputDirAbs)))
 		{
-			if (this.buildOptions.bundle) {
-				await this.bundleDts("types", outputDirAbs);
-			}
-			logger.write("type definitions created successfully @ " + outputDir, 1);
-		}
-		else {
 			this.app.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
@@ -331,16 +324,27 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			});
 		}
 
-		//
-		// Remove js file produced by webpack bundler, by default there's no way to load source
-		// code without specifying an entry point that will in the end produce a js bundle, which,
-		// of course, is what Web[packis for and does.  In the case of building declarations/types
-		// though, it doesnt really fit "module" definition as defined by Webpack.
-		//
-		// entryFile = join(typesDirDist, basename(entryFile).replace(".d.ts", ".js"));
-		// if (entryFileAbs.startsWith(this.app.build.paths.temp) && existsSync(entryFileAbs)) { // // dtscfg.removeSource: true, ???
-		// 	await unlink(entryFileAbs);
-		// }
+		if (this.buildOptions.bundle)
+		{
+			await this.bundleDts("types", outputDirAbs);
+		}
+		else
+		{
+			const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
+			for (const file of files)
+			{
+				const info = /** @type {typedefs.WebpackAssetInfo} */({
+					immutable: false,
+					javascriptModule: false,
+					types: true
+				});
+				const data = await readFile(file),
+					  source = new this.compiler.webpack.sources.RawSource(data);
+				this.compilation.emitAsset(relativePath(basePath, file), source, info);
+			}
+		}
+
+		logger.write("type definitions created successfully @ " + outputDir, 1);
 	}
 }
 

@@ -165,7 +165,7 @@ class WpwTscPlugin extends WpwPlugin
 			// Add .d.ts file as file dependencies
 			//
 			// this.compilation.fileDependencies.clear();
-			const outputFiles = await findFiles("**/*.d.ts", { cwd: outputDir});
+			const outputFiles = await findFiles("**/*.d.ts", { cwd: outputDir, absolute: true });
 			outputFiles.forEach((f) => { this.compilation.fileDependencies.add(f); });
 			//
 			// Emit bundled file as compilation asset

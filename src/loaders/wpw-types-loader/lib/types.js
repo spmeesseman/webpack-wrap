@@ -42,7 +42,7 @@ async function typesLoader(source, map, meta)
     logger.value("   path", urlToRequest(this.resourcePath), 3);
 
     const options = this.getOptions();
-    logger.object("options", options, 3, "   ");
+    logger.object("options", options, 4, "   ");
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
 
     // const filename = loaderUtils.interpolateName(this, `[name]-page${i}-[contenthash].png`, {content: file});
@@ -63,13 +63,13 @@ async function typesLoader(source, map, meta)
     // __webpack_public_path__
 
     let newSource = source;
-    if (new RegExp(options.test).test(this.resourcePath))
-    {
-        // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
-        const dummyCode = "console.log('dummy source');";
-        newSource = `export default () => { ${JSON.stringify(dummyCode)}; }`;
-        await writeFile(resolve(options.virtualFile), newSource);
-    }
+    // if (new RegExp(options.test).test(this.resourcePath))
+    // {
+    //     // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
+    //     const dummyCode = "console.log('dummy source');";
+    //     newSource = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+    //     await writeFile(resolve(options.virtualFile), newSource);
+    // }
     //
     // TODO: [??]: do dts generation / transformations , do a renameAsset of the fakeAssetName / get rid of types plugin
     //
