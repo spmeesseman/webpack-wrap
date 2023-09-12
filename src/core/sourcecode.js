@@ -67,26 +67,27 @@ class WpwSourceCode
     };
 
 
-    dispose = () => this.cleanupProgram();
+    dispose() { this.cleanupProgram(); }
 
 
     get dotext() { return /** @type {typedefs.WpwSourceCodeDotExtensionApp} */(`.${this.exension}`); }
     get ext() { return /** @type {typedefs.WpwSourceCodeExtension} */(this.exension); }
 
 
-    cleanupProgram = () =>
+    cleanupProgram()
     {
         if (this.program)
         {   //
             // TODO - cleanup program ??
         }
-    };
+    }
 
 
     /**
      * @param {typedefs.WpwSourceCodeConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
+     * @param {string[]} [files]
 	 */
-    createProgram = (compilerOptions) =>
+    createProgram(compilerOptions, files)
     {
         const ts = WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
         if (!ts) {
@@ -103,9 +104,9 @@ class WpwSourceCode
             //
             projectReferences: undefined,
             host: this.createCompilerHost(options, ts),
-            rootNames: this.config.options.files
+            rootNames: files || this.config.options.files
         });
-    };
+    }
 
 
     /**
@@ -114,7 +115,7 @@ class WpwSourceCode
      * @param {typedefs.TypeScript} ts
      * @throws {WpwError}
      */
-    createCompilerHost = (options, ts) =>
+    createCompilerHost(options, ts)
     {
         const baseCompilerHost = ts.createCompilerHost(options);
         return merge({}, baseCompilerHost,
@@ -125,7 +126,7 @@ class WpwSourceCode
             directoryExists: fileExistsSync,
             readFile: (f) => readFileSync(f, "utf8")
         });
-    };
+    }
 
 
     /**
@@ -136,7 +137,7 @@ class WpwSourceCode
      * @param {typedefs.TypeScriptCustomTransformers} [transformers]
      * @throws {WpwError}
      */
-    emit = (file, writeFileCb, cancellationToken, emitOnlyDts, transformers) =>
+    emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers)
     {
         if (!this.program) {
             throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is not initialized" });
@@ -173,7 +174,7 @@ class WpwSourceCode
 
         logger.write("typescript.emit completed");
         return result;
-    };
+    }
 
 
     /**
@@ -182,7 +183,7 @@ class WpwSourceCode
      * @param {typedefs.WpwBuild} build
      * @returns {string | undefined}
      */
-    findJsTsConfig = (sourceConfig, build) =>
+    findJsTsConfig(sourceConfig, build)
     {
         const cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
         /**
@@ -260,7 +261,7 @@ class WpwSourceCode
      * @param {typedefs.WpwBuild} build
      * @returns {typedefs.WpwSourceCodeConfig | undefined}
      */
-    getJsTsConfigFileInfo = (sourceConfig, build) =>
+    getJsTsConfigFileInfo(sourceConfig, build)
     {
         const _getData= (/** @type {string} */ file, /** @type {string} */ dir) =>
         {
@@ -329,7 +330,7 @@ class WpwSourceCode
 
             return { dir, file, path, options: json, raw: buildJson.raw, includeAbs: uniq(include), excludeAbs: uniq(exclude) };
         }
-    };
+    }
 
 
     /**
@@ -337,7 +338,7 @@ class WpwSourceCode
      * @param {typedefs.WpwSourceCodeConfig} config
      * @returns {typedefs.WpwSourceCodeConfig}
      */
-    getDefaultConfig = (config) =>
+    getDefaultConfig(config)
     {
         const cfg = merge({}, config);
         if (!cfg.options)
@@ -359,7 +360,7 @@ class WpwSourceCode
             cfg.includeAbs = [];
         }
         return cfg;
-    };
+    }
 
 
     /**
@@ -368,7 +369,7 @@ class WpwSourceCode
      * @param {typedefs.TypeScript} ts
      * @returns {typedefs.TypeScriptCompilerOptions}
      */
-    wpwToTsCompilerOptions = (options, ts) =>
+    wpwToTsCompilerOptions(options, ts)
     {
         return mergeIf({
             jsx: ts.JsxEmit[options.jsx || 0],
@@ -377,7 +378,7 @@ class WpwSourceCode
             moduleResolution: (options.moduleResolution ?
                 ts.ModuleResolutionKind[options.moduleResolution] : null) || ts.ModuleResolutionKind.NodeJs
         }, options);
-    };
+    }
 
 }
 

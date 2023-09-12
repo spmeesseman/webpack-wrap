@@ -9,10 +9,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpwPlugin = require("./base");
-const { merge } = require("../utils");
+const WpwTscPlugin = require("./tsc");
+const { merge, isString } = require("../utils");
 const typedefs = require("../types/typedefs");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const { resolve } = require("path");
+const { existsSync } = require("fs");
 
 /** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
@@ -21,10 +23,26 @@ const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 
 /**
- * @extends WpwPlugin
+ * @extends WpwTscPlugin
  */
-class WpBuildTsCheckPlugin extends WpwPlugin
+class WpBuildTsCheckPlugin extends WpwTscPlugin
 {
+    /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} @private */
+    buildOptions;
+    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
+    typesBuildOptions;
+
+    /**
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     */
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} */(this.app.build.options.tscheck);
+        this.typesBuildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.app.build.options.types);
+	}
+
+
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
@@ -32,7 +50,42 @@ class WpBuildTsCheckPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		this.onApply(compiler);
+		const distPath = this.app.getDistPath({ build: "types" }),
+			  entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index,
+			  entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
+
+		if (this.typesBuildOptions?.bundle)
+		{
+			if (entryFile && existsSync(entryFile) && this.app.isOnlyBuild)
+			{
+				this.onApply(compiler,
+				{
+					bundleDtsFiles: {
+						async: true,
+						hook: "compilation",
+						stage: "DERIVED",
+						statsProperty: "tsbundle",
+						callback: () => this.bundleDts("tsbundle")
+					}
+				});
+			}
+			else
+			{
+				this.onApply(compiler,
+				{
+					bundleDtsFiles: {
+						async: true,
+						hook: "afterEmit",
+						statsProperty: "tsbundle",
+						callback: () => this.bundleDts("tsbundle")
+					}
+				});
+			}
+		}
+		else {
+			this.onApply(compiler);
+		}
+
 		const logLevel = this.app.logger.level;
 		if (logLevel > 1)
 		{
@@ -49,6 +102,14 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 			}
 		}
 	}
+
+
+	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+	 * @returns {WpBuildTsCheckPlugin | undefined}
+     */
+	static build = (app) => WpBuildTsCheckPlugin.wrap(this, app, "tscheck");
 
 
 	/**
@@ -161,11 +222,4 @@ class WpBuildTsCheckPlugin extends WpwPlugin
 }
 
 
-/**
- * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildTsCheckPlugin | undefined}
- */
-const tscheck = (app) => WpwPlugin.wrap(WpBuildTsCheckPlugin, app, "tscheck");
-
-
-module.exports = tscheck;
+module.exports = WpBuildTsCheckPlugin.build;

@@ -611,7 +611,8 @@ class WpwPlugin extends WpwBaseModule
      */
     static wrap(clsType, app, optionsKey)
     {
-        if (app.build.options[optionsKey]?.enabled)
+        const options = app.build.options[optionsKey];
+        if (options && options.enabled !== false)
         {
             const plugin = new clsType({ app, wrapPlugin: true });
             plugin.plugins.push(plugin.getVendorPlugin());

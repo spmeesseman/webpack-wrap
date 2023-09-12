@@ -16,7 +16,7 @@ const { unlink, readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { existsSync } = require("fs");
-const { existsAsync, apply, findFiles, relativePath } = require("../utils");
+const { existsAsync, apply, findFiles, relativePath, resolvePath, isDirectory } = require("../utils");
 const { writeFile } = require("fs/promises");
 
 
@@ -65,11 +65,6 @@ class WpBuildTypesPlugin extends WpwTscPlugin
     {
 		this.onApply(compiler,
         {
-			cleanTempFiles: {
-				async: true,
-				hook: "done",
-				callback: this.cleanTempFiles.bind(this)
-			},
 			buildTypes: {
 				async: true,
                 hook: "compilation",
@@ -77,10 +72,15 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				statsProperty: "types",
                 callback: this.types.bind(this)
             },
-			injectVirtualFilesystem: {
+			cleanTempFiles: {
+				async: true,
+				hook: "done",
+				callback: this.cleanTempFiles.bind(this)
+			},
+			injectVirtualEntryFile: {
 				async: true,
 				hook: "beforeRun",
-				callback: this.injectVirtualFilesystem.bind(this)
+				callback: this.injectVirtualEntryFile.bind(this)
 			}
         });
     }
@@ -207,37 +207,13 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 
 	/**
 	 * @private
-	 * @param {typedefs.WebpackCompiler} compiler
+	 * @param {typedefs.WebpackCompiler} _compiler
 	 */
-	async injectVirtualFilesystem(compiler)
+	async injectVirtualEntryFile(_compiler)
 	{
 		const dummyCode = "console.log('dummy source');",
 			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
         await writeFile(this.virtualFilePath, source);
-		// const app = this.app,
-		// 	  logger = this.logger,
-		// 	  compilerOptions = app.source.config.options.compilerOptions,
-		// 	  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true }),
-		// 	  outputDirAbs = resolve(app.getBasePath(), outputDir),
-		// 	  dtsFile = this.app.build.name + ".d.ts",
-		// 	  dtsFilePathAbs = join(outputDirAbs, dtsFile),
-		// 	  fakeEntryFile = /** @type {string} */(this.app.wpc.entry[this.app.build.name]).replace(/^\.[\/\\]/, "");
-		//
-		// compiler.inputFileSystem = {
-		// 	readdir: (arg1, arg2) => readdir(arg1, "utf8", arg2),
-		// 	readlink: (_, arg2) => setTimeout((cb) => cb(null, ""), 1, arg2),
-		// 	readFile: (arg1, arg2) =>
-		// 	{
-		// 		logger.value("filesystem interface [read file]", arg1, 3);
-		// 		return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ?
-		// 				setTimeout((cb) => cb(null, "// fake file"), 1, arg2) : readFile(arg1, arg2);
-		// 	},
-		// 	stat: (arg1, arg2) =>
-		// 	{
-		// 		logger.value("filesystem interface [stat]", arg1, 3);
-		// 		return arg1.replace(/\\/g, "/").endsWith(fakeEntryFile) ? stat(dtsFilePathAbs, arg2) : stat(arg1, arg2);
-		// 	}
-		// };
 	}
 
 
@@ -270,15 +246,18 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			  logger = this.logger,
 			  basePath = this.app.getBasePath(),
 			  method = this.buildOptions.method,
-			  compilerOptions = sourceCode.config.options.compilerOptions,
+			  tscConfig = sourceCode.config.options,
+			  compilerOptions = tscConfig.compilerOptions,
+			  typesSrcDir = this.app.getSrcPath(),
 			  outputDir = compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true });
 
 		logger.write("start types build", 1);
 		logger.value("   method", method, 2);
 		logger.value("   mode", this.buildOptions.mode, 2);
 		logger.value("   entry", this.buildOptions.entry, 2);
-		logger.value("   output directory", outputDir, 2);
 		logger.value("   base path", basePath, 3);
+		logger.value("   source path", typesSrcDir, 3);
+		logger.value("   output directory", outputDir, 2);
 		logger.value("   build options", this.buildOptions, 4);
 
 		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
@@ -290,8 +269,54 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		if (method === "program")
 		{
 			const options = this.getCompilerOptions(method);
+			const files = this.app.source.config.options.files;
+			// const srcDtsFiles = await findFiles(
+			// 	`${typesSrcDir}/**/*.d.ts`, { cwd: typesSrcDir, ignore: tscConfig.exclude, absolute: true }
+			// );
+			// if (srcDtsFiles.length)
+			// {
+			// 	logger.write(`   adding ${srcDtsFiles.length} .d.ts files found in source directory`, 2);
+			// 	files.push(...srcDtsFiles);
+			// }
+			// if (tscConfig.include && tscConfig.exclude)
+			// {
+			// 	const typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
+			// 	if (typesExcludeIdx !== -1)
+			// 	{
+			// 		logger.write("   types exclude found in tsconfig, modify input files list", 2);
+			// 		const origFiles = files.splice(0);
+			// 		tscConfig.exclude.splice(typesExcludeIdx, 1);
+			// 		for (const incPath of tscConfig.include)
+			// 		{
+			// 			let globPattern;
+			// 			const globMatch = incPath.match(new RegExp(`.*?(\\*\\*?(?:[\\\\\\/]\\*(?:\\*|\\.${this.app.source.ext})))`));
+			// 			if (globMatch) {
+			// 				globPattern = globMatch[1];
+			// 			}
+			// 			const fullPath = resolvePath(this.app.getBasePath(), !globPattern ? incPath : incPath.replace(globPattern, ""));
+			// 			if (globPattern || isDirectory(fullPath))
+			// 			{
+			// 				logger.value("      add files from include path", incPath, 4);
+			// 				const incFiles = await findFiles(
+			// 					// incPath,
+			// 					globPattern ? incPath : `${incPath}/**/*.${this.app.source.ext}`,
+			// 					// `${incPath}/**/*.${this.app.source.ext}`,
+			// 					{ cwd: this.app.getBasePath(), ignore: tscConfig.exclude, absolute: true
+			// 				});
+			// 				files.push(...incFiles);
+			// 			}
+			// 			else {
+			// 				logger.value("      add include file", incPath, 4);
+			// 				files.push(fullPath);
+			// 			}
+			// 		}
+			// 		logger.value("      # of new input files", files.length, 2);
+			// 		logger.value("      # of previous input files", origFiles.length, 2);
+			// 		logger.write("   input files list modification complete", 2);
+			// 	}
+			// }
 			this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDir);
-			this.app.source.createProgram(options);
+			this.app.source.createProgram(options, files);
 			const result = this.app.source.emit(undefined, undefined, undefined, true);
 			if (!result)
 			{

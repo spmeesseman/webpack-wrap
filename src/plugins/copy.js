@@ -66,6 +66,15 @@ class WpBuildCopyPlugin extends WpwPlugin
 
 
 	/**
+     * @override
+	 * @template T
+     * @param {WpBuildApp} app
+	 * @returns {WpBuildCopyPlugin | undefined}
+     */
+	static build = (app) => WpBuildCopyPlugin.wrap(this, app, "copy");
+
+
+	/**
 	 * @private
 	 * @async
 	 * @param {typedefs.WebpackCompilationAssets} assets
@@ -236,11 +245,5 @@ class WpBuildCopyPlugin extends WpwPlugin
 
 }
 
-/**
- * @param {WpBuildApp} app
- * @returns {WpBuildCopyPlugin | undefined}
- */
-const copy = (app) => WpwPlugin.wrap(WpBuildCopyPlugin, app, "copy");
 
-
-module.exports = copy;
+module.exports = WpBuildCopyPlugin.build;

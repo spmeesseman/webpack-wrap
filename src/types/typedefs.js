@@ -346,7 +346,10 @@
 /** @typedef {import("./message").WpwWarningCode} WpwWarningCode */
 /** @typedef {import("./message").WpwReservedCode} WpwReservedCode */
 /** @typedef {import("./message").WpwMessageInfoKey} WpwMessageInfoKey */
-/** @template E @typedef {import("./message").IWpwMessageInfo<E>} IWpwMessageInfo<E> */
+/**
+ * @template E
+ * @typedef {import("./message").IWpwMessageInfo<E>} IWpwMessageInfo<E>
+ */
 
 
 /***********************************************************************************************************************

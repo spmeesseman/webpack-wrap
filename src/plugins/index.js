@@ -23,14 +23,7 @@ const progress = require("./progress");
 const scm = require("./scm");
 const sourcemaps = require("./sourcemaps");
 const testsuite = require("./testsuite");
-const tsbundle = require("./tsbundle");
 const types = require("./types");
-// /**
-//  * @param {typedefs.WpBuildApp} app
-//  * @param {boolean} [force]
-//  * @returns {WpBuildTsBundlePlugin | undefined}
-//  */
-// const tsbundle = (app, force) => force || app.build.plugins.tsbundle ? new WpBuildTsBundlePlugin({ app }) : undefined;
 const tscheck = require("./tscheck");
 const upload = require("./upload");
 const vendormod = require("./vendormod");
@@ -45,5 +38,5 @@ const analyze = { analyzer, circular, visualizer };
 module.exports = {
     analyze, banner, clean, copy, cssextract, dispose, environment, htmlcsp, htmlinlinechunks,
     ignore, imageminimizer, istanbul, licensefiles, loghooks, optimization, progress, runtimevars,
-    scm, sourcemaps, testsuite, tsbundle, tscheck, types, upload, vendormod, webviewapps, wait
+    scm, sourcemaps, testsuite, tscheck, types, upload, vendormod, webviewapps, wait
 };

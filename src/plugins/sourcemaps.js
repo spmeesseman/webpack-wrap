@@ -28,7 +28,7 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 /**
  * @extends WpwPlugin
  */
-class WpBuildSourceMapsPlugin extends WpwPlugin
+class WpwSourceMapsPlugin extends WpwPlugin
 {
     /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} @private */
     buildOptions;
@@ -46,10 +46,9 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
 	/**
      * @override
      * @param {WpBuildApp} app
-	 * @returns {WpBuildSourceMapsPlugin | undefined}
+	 * @returns {WpwSourceMapsPlugin | undefined}
      */
-	static build = (app) =>
-        app.build.options.sourcemaps ? WpwPlugin.wrap(WpBuildSourceMapsPlugin, app, "sourcemaps") : undefined;
+	static build = (app) => WpwSourceMapsPlugin.wrap(this, app, "sourcemaps");
 
 
     /**
@@ -147,4 +146,4 @@ class WpBuildSourceMapsPlugin extends WpwPlugin
 }
 
 
-module.exports = WpBuildSourceMapsPlugin.build;
+module.exports = WpwSourceMapsPlugin.build;

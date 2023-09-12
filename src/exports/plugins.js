@@ -15,7 +15,7 @@ const { createEntryObjFromDir /* , asArray, isFunction, isObject  */} = require(
 const {
 	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, optimization,
 	progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, cssextract, htmlcsp,
-	imageminimizer, htmlinlinechunks, testsuite, tsbundle, types, vendormod, webviewapps, scm
+	imageminimizer, htmlinlinechunks, testsuite, types, vendormod, webviewapps, scm
 } = require("../plugins");
 
 /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
@@ -84,7 +84,6 @@ const nodePlugins = (app) =>
 	if (app.build.type !== "webapp")
 	{
 		plugins.push(
-			tsbundle(app),      // compiler.hooks.afterEnvironment, hooks.afterCompile
 			copy(app)           // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 		);
 	}

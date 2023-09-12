@@ -8,7 +8,6 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { stat, readFile } = require("fs");
 const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");

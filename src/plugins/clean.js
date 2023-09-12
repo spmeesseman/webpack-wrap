@@ -74,6 +74,14 @@ class WpBuildCleanPlugin extends WpwPlugin
 
 
 	/**
+     * @override
+     * @param {typedefs.WpBuildApp} app
+	 * @returns {WpBuildCleanPlugin | undefined}
+     */
+	static build = (app) => WpBuildCleanPlugin.wrap(this, app, "copy");
+
+
+	/**
      * @param {typedefs.WebpackCompilation} compilation the compiler instance
 	 * @returns {Promise<void>}
      */
@@ -225,11 +233,4 @@ class WpBuildCleanPlugin extends WpwPlugin
 }
 
 
-/**
- * @param {typedefs.WpBuildApp} app
- * @returns {WpBuildCleanPlugin | undefined}
- */
-const clean = (app) => WpwPlugin.wrap(WpBuildCleanPlugin, app, "clean");
-
-
-module.exports = clean;
+module.exports = WpBuildCleanPlugin.build;
