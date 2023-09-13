@@ -310,14 +310,14 @@ const findExPathSync = (paths) =>
 
 
   /**
- * @param {typedefs.WpBuildApp} app
+ * @param {typedefs.WpwBuild} build
  * @param {typedefs.WpwSourceCodeConfig} [srcConfig]
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]
  * @param {boolean} [allowDts]
  * @returns {RegExp[]}
  */
-const getExcludes = (app, srcConfig, allowTest, allowTypes, allowDts) =>
+const getExcludes = (build, srcConfig, allowTest, allowTypes, allowDts) =>
 {
     const ex = [ /node_modules/, /\\.vscode[\\\/]/ ];
     if (allowTest !== true) {

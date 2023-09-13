@@ -32,7 +32,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} */(this.app.build.options.vendormod);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} */(this.build.options.vendormod);
 	}
 
 
@@ -86,10 +86,10 @@ class WpBuildVendorModPlugin extends WpwPlugin
 		// the existing contents of the dist directory.  By default it's current assets list
 		// is empty, and thus will not work across IDE restarts
 		//
-		const cleanPlugin = join(this.app.getBasePath(), "node_modules", "clean-webpack-plugin", "dist", "clean-webpack-plugin.js");
+		const cleanPlugin = join(this.build.getBasePath(), "node_modules", "clean-webpack-plugin", "dist", "clean-webpack-plugin.js");
 		if (existsSync(cleanPlugin))
 		{
-			const distPath = this.app.getDistPath();
+			const distPath = this.build.getDistPath();
 			let content = readFileSync(cleanPlugin, "utf8").replace(/currentAssets = \[ "[\w"\., _\-]*" \]/, "currentAssets = []");
 			if (existsSync(distPath))
 			{
@@ -110,7 +110,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 		// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
 		// Bug fix on line 29
 		//
-		const dtsBundle = join(this.app.getBasePath(), "node_modules", "dts-bundle", "lib", "index.js");
+		const dtsBundle = join(this.build.getBasePath(), "node_modules", "dts-bundle", "lib", "index.js");
 		if (existsSync(dtsBundle))
 		{
 			const content = readFileSync(dtsBundle, "utf8").replace(
@@ -154,7 +154,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 		// consider it patched if redundant testing yields no side effects,
 		//
 		const sourceMapPlugin = resolve(
-			this.app.getBasePath(), "..", "@spmeesseman", "webpack-wrap", "node_modules", "webpack", "lib", "javascript", "JavascriptModulesPlugin.js"
+			this.build.getBasePath(), "..", "@spmeesseman", "webpack-wrap", "node_modules", "webpack", "lib", "javascript", "JavascriptModulesPlugin.js"
 		);
 		if (existsSync(sourceMapPlugin))
 		{
@@ -177,7 +177,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 		//
 		// A hck to allow just a straight up types 'declarations only' build.
 		//
-		const tsLoader = join(this.app.getBasePath(), "node_modules", "ts-loader", "dist", "index.js");
+		const tsLoader = join(this.build.getBasePath(), "node_modules", "ts-loader", "dist", "index.js");
 		if (existsSync(tsLoader))
 		{
 			let content = readFileSync(tsLoader, "utf8").replace(
@@ -196,10 +196,10 @@ class WpBuildVendorModPlugin extends WpwPlugin
  * Returns a `WpBuildVendorModPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.vendormod`
  * property to a boolean value of  `true` or `false`
- * @param {typedefs.WpBuildApp} app
+ * @param {typedefs.WpwBuild} build
  * @returns {WpBuildVendorModPlugin | undefined}
  */
-const vendormod = (app) => app.build.options.vendormod?.enabled ? new WpBuildVendorModPlugin({ app }) : undefined;
+const vendormod = (build) => build.options.vendormod?.enabled ? new WpBuildVendorModPlugin({ build }) : undefined;
 
 
 module.exports = vendormod;

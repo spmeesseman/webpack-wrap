@@ -256,7 +256,7 @@
  * APP
  ***********************************************************************************************************************/
 
-/** @typedef {import("../core/app")} WpBuildApp */
+/** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */

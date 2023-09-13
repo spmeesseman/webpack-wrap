@@ -11,7 +11,7 @@
 
 const WpwPlugin = require("./base");
 const { apply } = require("../utils");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 
 
@@ -32,12 +32,12 @@ class WpwIstanbulPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpwIstanbulPlugin | undefined}
      */
-	static build(app)
+	static create(build)
 	{
-		return app.build.options.istanbul ? new WpwIstanbulPlugin({ app }) : undefined;
+		return build.options.istanbul ? new WpwIstanbulPlugin({ build }) : undefined;
 	}
 
 
@@ -88,7 +88,7 @@ class WpwIstanbulPlugin extends WpwPlugin
         const regex = /\n[ \t]*module\.exports \= require\(/gm,
               sourceCode = sourceInfo.source().toString().replace(regex, (v) => "/* istanbul ignore next */" + v),
               { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.app.build.options.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.build.options.sourcemaps) ?
                new this.compiler.webpack.sources.SourceMapSource(sourceCode, file, map, source) :
                new this.compiler.webpack.sources.RawSource(sourceCode);
     }
@@ -112,7 +112,7 @@ class WpwIstanbulPlugin extends WpwPlugin
     //     const { source, map } = osourceInfold.sourceAndMap(),
     //           regex = /\n[ \t]*module\.exports \= require\(/gm,
     //           content = source.toString().replace(regex, (v) => "/* istanbul ignore next */" + v);
-    //     return map && (compiler.options.devtool || this.app.build.plugins.sourcemaps) ?
+    //     return map && (compiler.options.devtool || this.build.plugins.sourcemaps) ?
     //            new compiler.webpack.sources.SourceMapSource(content, file, map) :
     //            new compiler.webpack.sources.RawSource(content);
     // }
@@ -125,14 +125,14 @@ class WpwIstanbulPlugin extends WpwPlugin
     //
     //
     // /**
-    //  * @param {WpBuildApp} app
+    //  * @param {WpwBuild} build
     //  * @returns {WebpackPluginInstance | undefined}
     //  */
-    // const istanbul = (app) =>
+    // const istanbul = (build) =>
     // {
     //     /** @type {WebpackPluginInstance | undefined} */
     //     let plugin;
-    //     // if (app.build.plugins.instrument !== false && app.build === "extension" && app.mode === "test")
+    //     // if (build.plugins.instrument !== false && build === "extension" && build.mode === "test")
     //     // {
     //     //     plugin =
     //     //     {
@@ -203,4 +203,4 @@ class WpwIstanbulPlugin extends WpwPlugin
 }
 
 
-module.exports = WpwIstanbulPlugin.build;
+module.exports = WpwIstanbulPlugin.create;

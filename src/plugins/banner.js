@@ -13,23 +13,23 @@ const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { isString, requireResolve } = require("../utils");
 const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
-/** @typedef {import("../core/app")} WpBuildApp */
+/** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("webpack").BannerPlugin} BannerPlugin */
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {BannerPlugin | undefined}
  */
-const banner = (app) =>
+const banner = (build) =>
 {
-	if (app.build.options.banner)
+	if (build.options.banner)
 	{
-		let banner = isString(app.build.options.banner) ? app.build.options.banner : undefined;
+		let banner = isString(build.options.banner) ? build.options.banner : undefined;
 
 		if (!banner)
 		{
-			const author = isString(app.pkgJson.author) ? app.pkgJson.author : app.pkgJson.author?.name;
+			const author = isString(build.pkgJson.author) ? build.pkgJson.author : build.pkgJson.author?.name;
 			if (author) {
 				banner = "Copyright #{DATE_STAMP_YEAR} " + author;
 			}
@@ -39,7 +39,7 @@ const banner = (app) =>
 		{
 			return new webpack.BannerPlugin({
 				entryOnly: true,
-				test: WpwPlugin.getEntriesRegex(app.wpc, true, true),
+				test: WpwPlugin.getEntriesRegex(build.wpc, true, true),
 				banner: banner.replace(new RegExp("#\\{DATE_STAMP_YEAR\\}"), new Date().getFullYear().toString())
 			});
 		}

@@ -262,7 +262,7 @@
                         {
                             "properties": {
                                 "type": {
-                                    "const": "module"
+                                    "const": "app"
                                 }
                             }
                         },
@@ -293,31 +293,6 @@
                         }]
                     }
                 },
-                "options": {
-                    "properties": {
-                        "types": {
-                            "allOf": [
-                            {
-                                "if": {
-                                    "properties": {
-                                        "dts": { 
-                                            "const": true
-                                        }
-                                    }
-                                },
-                                "then": { 
-                                    "properties": {
-                                        "type": { 
-                                            "enum": [
-                                                "types", "module"
-                                            ]
-                                        }
-                                    }
-                                }
-                            }]
-                        }
-                    }
-                },
                 "target": {
                     "if": {
                         "properties": {
@@ -332,7 +307,7 @@
                         "properties": {
                             "type": { 
                                 "enum": [
-                                    "webapp", "module"
+                                    "webapp", "app"
                                 ]
                             }
                         }
@@ -363,7 +338,7 @@
                             "properties": {
                                 "type": { 
                                     "enum": [
-                                        "types", "module", "tests"
+                                        "types", "app", "tests"
                                     ]
                                 }
                             }
@@ -911,47 +886,6 @@
                                 }]
                             }]
                         }
-                    },
-                    {
-                        "if": {
-                            "properties": {
-                                "types": {
-                                    "properties": {
-                                        "enabled": {
-                                            "oneOf": [{
-                                                "const": true
-                                            }, false]
-                                        },
-                                        "mode": {
-                                            "const": "module"
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "then": {
-                            "required": [
-                                "vendormod"
-                            ],
-                            "properties": {
-                                "vendormod": {
-                                    "anyOf": [{
-                                        "properties": {
-                                            "enabled": {
-                                                "const": true
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "properties": {
-                                            "dts_bundle": {
-                                                "const": true
-                                            }
-                                        }
-                                    }]
-                                }
-                            }
-                        }
                     }]
                 }
             }
@@ -960,12 +894,12 @@
             "$id": "#/WpwBuildType",
             "type": "string",
             "enum": [
-                "ecma", "jsdoc", "module", "tests", "types", "webapp"
+                "ecma", "jsdoc", "app", "tests", "types", "webapp"
             ],
             "examples": [{
                 "builds": [{
                     "name": "webpack-wrap",
-                    "type": "module"
+                    "type": "app"
                 },
                 {
                     "name": "wpw-types",
@@ -2143,7 +2077,7 @@
             },
             "examples": [{
                 "method": "program",
-                "mode": "module"
+                "mode": "plugin"
             },
             {
                 "enabled": false
@@ -2204,22 +2138,18 @@
         },
         "WpwPluginConfigTypesMode": {
             "$id": "#/WpwPluginConfigTypesBuildMode",
-            "default": "module",
+            "default": "plugin",
             "oneOf": [{
-                "const": "module",
+                "const": "plugin",
                 "description": "perform 'types' build as s standard module build and a virtual entry point using internal plugin"
             },
             {
-                "const": "module2",
-                "description": "perform 'types' build as s standard module build and a virtual entry point using internal loader. use if having issues with 'module' mode"
+                "const": "loader",
+                "description": "perform 'types' build as s standard module build and a virtual entry point using internal loader"
             },
             {
                 "const": "tscheck",
-                "description": "perform 'types' build using fork-ts-checker-plugin and ts/jsonconfig.json. use if having issues with 'module' or 'module2' mode"
-            },
-            { 
-                "const": "plugin",
-                "description": "perform 'types' build using internal plugin and ts/jsonconfig.json. use if having issues with 'module', 'module2', or 'tscheck' mode"
+                "description": "perform 'types' build using fork-ts-checker-plugin and ts/jsonconfig.json"
             }]
         },
         "WpwPluginConfigUpload": {

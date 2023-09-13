@@ -14,7 +14,7 @@
  *
  *//** */
 
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const nodeExternals = require("webpack-node-externals");
 
 /** @typedef {import("../types").WebpackExternalItem} WebpackExternalItem */
@@ -22,64 +22,64 @@ const nodeExternals = require("webpack-node-externals");
 
 
 /**
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const externals = (app) =>
+const externals = (build) =>
 {
-	if (app.build.options.externals || app.build.vscode)
+	if (build.options.externals || build.vscode)
 	{
-		if (app.build.target.startsWith("web")) {
-			app.wpc.externalsPresets = { web: true };
+		if (build.target.startsWith("web")) {
+			build.wpc.externalsPresets = { web: true };
 		}
 		else {
-			app.wpc.externalsPresets = { node: true };
+			build.wpc.externalsPresets = { node: true };
 		}
 	}
-	if (app.build.vscode)
+	if (build.vscode)
 	{
-		if (app.build.type === "module" || app.build.type === "webapp")
+		if (build.type === "app" || build.type === "webapp")
 		{
-			// app.wpc.externals = [
+			// build.wpc.externals = [
 			// 	(data, callback) => { logAsset(data, app); callback(undefined, { vscode: "commonjs vscode" }); },
 			// 	(data, callback) => { logAsset(data, app); callback(undefined, !data.contextInfo?.issuerLayer ? nodeExternals() : undefined); }
 			// ];
-			app.wpc.externals = [
+			build.wpc.externals = [
 				{ vscode: "commonjs vscode" }
 			];
 		}
 		else {
-			app.wpc.externals = [
+			build.wpc.externals = [
 				{ vscode: "commonjs vscode" },
 				// { nyc: "commonjs nyc" },
 				/** @type {WebpackExternalItem}*/(nodeExternals())
 			];
 		}
 	}
-	else if (app.build.options.externals && app.build.name !== "module" && app.build.name !== "webapp")
+	else if (build.options.externals && build.name !== "app" && build.name !== "webapp")
 	{
-		app.wpc.externals = /** @type {WebpackExternalItem} */(nodeExternals());
+		build.wpc.externals = /** @type {WebpackExternalItem} */(nodeExternals());
 	}
 };
 
 
 /**
  * @param {Readonly<ExternalItemFunctionData>} data
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const logAsset = (data, app) =>
+const logAsset = (data, build) =>
 {
 	if (data && data.request)
 	{
-		app.logger.write(`set externals for asset italic(${data.request.substring(2)})`, 1);
-		app.logger.value("   context", data.context, 1);
-		app.logger.value("   dependencyType", data.dependencyType, 1);
-		app.logger.value("   request", data.request, 1);
+		build.logger.write(`set externals for asset italic(${data.request.substring(2)})`, 1);
+		build.logger.value("   context", data.context, 1);
+		build.logger.value("   dependencyType", data.dependencyType, 1);
+		build.logger.value("   request", data.request, 1);
 		if (data.contextInfo)
 		{
-			app.logger.value("   issuer", data.contextInfo.issuer, 1);
-			app.logger.value("   issuer layer", data.contextInfo.issuerLayer, 1);
+			build.logger.value("   issuer", data.contextInfo.issuer, 1);
+			build.logger.value("   issuer layer", data.contextInfo.issuerLayer, 1);
 			// `compiler` value isin form `vscode-taskexplorer|undefined|extension|test|node|none`
-			app.logger.value("   compiler / wpconfig exports.name", data.contextInfo.compiler, 1);
+			build.logger.value("   compiler / wpconfig exports.name", data.contextInfo.compiler, 1);
 		}
 	}
 };

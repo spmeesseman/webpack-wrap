@@ -184,7 +184,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
 
 
 /**
- * @returns {Promise<0|1>}
+ * @returns {Promise<{ code: 0|1 }>}
  */
 const promptForRestore = async (/** @type {string} */file, /** @type {string} */previousContent) =>
 {
@@ -206,10 +206,10 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
     {
         await writeFile(file, previousContent);
         logger.warning(`created ${basename(file)} but tsc validation failed, previous content has been restored`, "   ");
-        return 1;
+        return { code: 1 };
     }
     logger.warning(`created ${basename(file)} but tsc validation failed, new content was retained`, "   ");
-    return 0;
+    return { code: 0 };
 };
 
 
@@ -517,15 +517,15 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         if (RUN_VALIDATION !== false)
         {
             logger.write(`      validating ${constantsFile}`);
-            const code = await execAsync({
+            const result = await execAsync({
                 logger,
                 logPad: "      ",
                 program: "tsc",
                 execOptions: { cwd: outputDtsDir },
-                command: `npx tsc --moduleResolution node --target es2020 --noEmit --skipLibCheck --allowJs ./${constantsFile}`
+                command: `npx tsc --moduleResolution node --target es2020 --noEmit --allowSyntheticDefaultImports --skipLibCheck --allowJs ./${constantsFile}`
             });
 
-            if (code === 0) {
+            if (result.code === 0) {
                 logger.success(`   created ${constantsFile} (${constantsPath}) [tsc validated]`);
             }
             else {
@@ -603,14 +603,14 @@ cliWrap(async () =>
     logger.log("creating rc configuration file types and typings from schema");
     logger.log("   executing json2ts");
 
-    let code = await execAsync({
+    let result = await execAsync({
         logger,
         logPad: "   ",
         execOptions: { cwd: resolve(__dirname, "..", "schema") },
         command: `json2ts ${jsontotsFlags} -i ${inputFile} -o ${outputDtsPath} --cwd "${schemaDir}"`
     });
 
-    if (code !== 0) {
+    if (result.code !== 0) {
         throw new Error("   json2ts exited with failure code");
     }
     else if (!existsSync(outputDtsPath)) {
@@ -620,7 +620,7 @@ cliWrap(async () =>
     if (RUN_VALIDATION !== false)
     {
         logger.write(`   validating ${outputDtsFile}`);
-        code = await execAsync({
+        result = await execAsync({
             logger,
             logPad: "   ",
             program: "tsc",
@@ -628,15 +628,15 @@ cliWrap(async () =>
             command: `npx tsc --target es2020 --noEmit --skipLibCheck ./${outputDtsFile}`
         });
 
-        if (code === 0) {
+        if (result.code === 0) {
             logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
         }
         else {
-            code = await promptForRestore(outputDtsPath, data);
+            result = await promptForRestore(outputDtsPath, data);
         }
     }
 
-    if (code === 0)
+    if (result.code === 0)
     {
         data = await readFile(outputDtsPath, "utf8");
         data = await parseTypesDts(hdr, data);

@@ -14,7 +14,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 // const { Compilation } = require("webpack");
@@ -39,16 +39,16 @@ class WpwSourceMapsPlugin extends WpwPlugin
 	constructor(options)
 	{
         super(apply(options, { registerVendorPluginsFirst: true }));
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} */(this.app.build.options.types);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} */(this.build.options.types);
 	}
 
 
 	/**
      * @override
-     * @param {WpBuildApp} app
+     * @param {WpwBuild} build
 	 * @returns {WpwSourceMapsPlugin | undefined}
      */
-	static build = (app) => WpwSourceMapsPlugin.wrap(this, app, "sourcemaps");
+	static create = (build) => WpwSourceMapsPlugin.wrap(this, build, "sourcemaps");
 
 
     /**
@@ -82,7 +82,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
             const asset = this.compilation.getAsset(file);
             if (asset)
             {
-                const entryHash = this.app.global.runtimeVars.next[this.fileNameStrip(file, true)],
+                const entryHash = this.build.global.runtimeVars.next[this.fileNameStrip(file, true)],
                     newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
                 this.logger.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
                 this.logger.value("   current filename", file, 3);
@@ -115,7 +115,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
 		return new webpack.SourceMapDevToolPlugin(
         {
             test: /\.(js|jsx)($|\?)/i,
-            exclude: // !app.isTests ?
+            exclude: // !build.isTests ?
                     /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/, // :
                                     //  /(?:node_modules|(?:vendor|runtime)(?:\.[a-f0-9]{16,})?\.js)/,
             // filename: "[name].js.map",
@@ -146,4 +146,4 @@ class WpwSourceMapsPlugin extends WpwPlugin
 }
 
 
-module.exports = WpwSourceMapsPlugin.build;
+module.exports = WpwSourceMapsPlugin.create;

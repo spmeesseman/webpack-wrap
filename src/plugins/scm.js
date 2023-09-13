@@ -10,7 +10,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
@@ -51,12 +51,12 @@ class WpBuildScmPlugin extends WpwPlugin
      */
     async commit()
     {
-        const logger = this.app.logger,
+        const logger = this.build.logger,
                 provider = process.env.WPBUILD_SCM_PROVIDER || "git",
                 host = process.env.WPBUILD_SCM_HOST,
                 user = process.env.WPBUILD_SCM_USER; // ,
                 // /** @type {import("child_process").SpawnSyncOptions} */
-                // spawnSyncOpts = { cwd: app.getBasePath(, encoding: "utf8", shell: true },
+                // spawnSyncOpts = { cwd: build.getBasePath(, encoding: "utf8", shell: true },
                 // sshAuth = process.env.WPBUILD_SCM_AUTH || "InvalidAuth";
 
         const scmArgs = [
@@ -64,7 +64,7 @@ class WpBuildScmPlugin extends WpwPlugin
             // sshAuth,  // auth key
             // "-q",  // quiet, don't show statistics
             "-r",     // copy directories recursively
-            `${user}@${host}:${this.app.pkgJson.name}/v${this.app.pkgJson.version}"`
+            `${user}@${host}:${this.build.pkgJson.name}/v${this.build.pkgJson.version}"`
         ];
         logger.write(`${logger.icons.color.star } ${logger.withColor(`check in resource files to ${host}`, logger.colors.grey)}`);
         try {
@@ -85,10 +85,10 @@ class WpBuildScmPlugin extends WpwPlugin
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildScmPlugin | undefined}
  */
-const scm = (app) => app.build.options.scm ? new WpBuildScmPlugin({ app }) : undefined;
+const scm = (build) => build.options.scm ? new WpBuildScmPlugin({ build }) : undefined;
 
 
 module.exports = scm;

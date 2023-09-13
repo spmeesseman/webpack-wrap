@@ -1,7 +1,7 @@
 // @ts-check
 
 const { apply } = require("../utils");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 
 /**
  * @file exports/optimization.js
@@ -16,23 +16,23 @@ const WpBuildApp = require("../core/app");
 
 
 /**
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const optimization = (app) =>
+const optimization = (build) =>
 {
-	if (app.build.options.optimization)
+	if (build.options.optimization)
 	{
-		apply(app.wpc, { parallelism: 1 + app.buildCount });
-		if (app.build.type === "module")
+		apply(build.wpc, { parallelism: 1 + build.buildCount });
+		if (build.type === "app")
 		{
-			app.wpc.optimization =
+			build.wpc.optimization =
 			{
 				runtimeChunk: "single",
 				splitChunks: false
 			};
-			if (app.build.target !== "web"|| app.build.type === "module")
+			if (build.target !== "web"|| build.type === "app")
 			{
-				app.wpc.optimization.splitChunks =
+				build.wpc.optimization.splitChunks =
 				{
 					cacheGroups: {
 						vendor: {
@@ -42,9 +42,9 @@ const optimization = (app) =>
 						}
 					}
 				};
-				if (app.build.mode === "production")
+				if (build.mode === "production")
 				{
-					app.wpc.optimization.chunkIds = "deterministic";
+					build.wpc.optimization.chunkIds = "deterministic";
 				}
 			}
 		}

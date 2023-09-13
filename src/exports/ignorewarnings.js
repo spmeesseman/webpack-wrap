@@ -13,20 +13,20 @@
  *
  */
 
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 
 
 /**
  * @see {@link https://webpack.js.org/configuration/other-options/#ignorewarnings webpack.js.org/ignorewarnings}
  *
  * @function ignorewarnings
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const ignorewarnings = (app) =>
+const ignorewarnings = (build) =>
 {
-   if (app.build.options.ignorewarnings && (!app.cmdLine.verbosity || app.cmdLine.verbosity !== "none"))
+   if (build.options.ignorewarnings && (!build.cmdLine.verbosity || build.cmdLine.verbosity !== "none"))
    {
-		app.wpc.ignoreWarnings = [
+		build.wpc.ignoreWarnings = [
 			/Critical dependency\: the request of a dependency is an expression/,
 			/Critical dependency\: require function is used in a way in which dependencies cannot be statically extracted/
 			// {

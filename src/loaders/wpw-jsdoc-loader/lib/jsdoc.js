@@ -205,7 +205,7 @@ async function jsdocLoader(source, map, meta)
     // this.compilation.compilationDependencies.add();
     // this.compilation.contextDependencies.add();
 
-    // const cache = this.compiler.getCache(`${this.app.build.name}_${this.app.build.type}_${this.app.wpc.target}`.toLowerCase());
+    // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
 
     // this.compilation.emitAsset(resourcePathRel, source, info);
 

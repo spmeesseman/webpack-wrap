@@ -38,16 +38,16 @@ class WpBuildDisposePlugin extends WpwPlugin
     dispose()
     {
         this.logger.write("cleanup: call all registered disposables", 2);
-        return this.app.dispose();
+        return this.build.dispose();
     }
 }
 
 
 /**
- * @param {typedefs.WpBuildApp} app
+ * @param {typedefs.WpwBuild} build
  * @returns {WpBuildDisposePlugin}
  */
-const dispose = (app) => new WpBuildDisposePlugin({ app });
+const dispose = (build) => new WpBuildDisposePlugin({ build });
 
 
 module.exports = dispose;

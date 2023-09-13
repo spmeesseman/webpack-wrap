@@ -9,19 +9,19 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 
 
 /**
  * @function target
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const watch = (app) =>
+const watch = (build) =>
 {
-	app.wpc.watch = !!app.cmdLine.watch || !!app.cmdLine.WEBPACK_WATCH;
-	if (app.cmdLine.watch && app.build.options.watch)
+	build.wpc.watch = !!build.cmdLine.watch || !!build.cmdLine.WEBPACK_WATCH;
+	if (build.cmdLine.watch && build.options.watch)
 	{
-		app.wpc.watchOptions =
+		build.wpc.watchOptions =
 		{
 			poll: true,
 			stdin: true,

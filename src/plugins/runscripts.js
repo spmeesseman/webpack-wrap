@@ -30,7 +30,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} */(this.app.build.options.runscripts);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} */(this.build.options.runscripts);
 	}
 
 
@@ -97,7 +97,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
      */
     runScripts = async (stage) =>
     {
-        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.app.build.options.runscripts);
+        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.build.options.runscripts);
         if (options[stage])
         {
             const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
@@ -130,10 +130,10 @@ class WpwRunScriptsPlugin extends WpwPlugin
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
  * property to a boolean value of  `true` or `false`
  *
- * @param {typedefs.WpBuildApp} app
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwRunScriptsPlugin | undefined}
  */
-const runscripts = (app) => app.build.options.runscripts ? new WpwRunScriptsPlugin({ app }) : undefined;
+const runscripts = (build) => build.options.runscripts ? new WpwRunScriptsPlugin({ build }) : undefined;
 
 
 module.exports = runscripts;

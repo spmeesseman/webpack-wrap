@@ -12,7 +12,7 @@
 const { join } = require("path");
 const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const { rename, unlink, readdir } = require("fs/promises");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
@@ -68,11 +68,11 @@ class WpBuildLicenseFilePlugin extends WpwPlugin
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildLicenseFilePlugin | undefined}
  */
-const licensefiles = (app) =>
-    (app.build.options.licensefiles ? new WpBuildLicenseFilePlugin({ app }) : undefined);
+const licensefiles = (build) =>
+    (build.options.licensefiles ? new WpBuildLicenseFilePlugin({ build }) : undefined);
 
 
 module.exports = licensefiles;

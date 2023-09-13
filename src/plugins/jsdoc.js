@@ -30,7 +30,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.app.build.options.jsdoc);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.build.options.jsdoc);
 	}
 
 
@@ -66,12 +66,12 @@ class WpwJsDocPlugin extends WpBuilPlugin
               entryNames = asArray(compilation.entrypoints.keys()),
               // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
               // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
-              logger = this.app.logger,
-              options = this.app.build.options.jsdoc,
+              logger = this.build.logger,
+              options = this.build.options.jsdoc,
               currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
-              outDir = isBoolean(options) ? join(this.app.build.paths.dist, "doc") :
+              outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
                             this.buildOptions.destination ||
-                            join(this.app.build.paths.dist, "doc") ;
+                            join(this.build.paths.dist, "doc") ;
 
 		logger.write("create jsdoc documentation", 1);
 		logger.value("   output directory", outDir, 1);
@@ -194,7 +194,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //         previousEmittedAssets.push({ name: replacedFilename.path, html });
 //         return replacedFilename.path;
 //
-// 		logger.write(`   finished execution of jsdoc build @ italic(${relative(this.app.build.paths.base, outDir)})`, 3);
+// 		logger.write(`   finished execution of jsdoc build @ italic(${relative(this.build.paths.base, outDir)})`, 3);
 // 	};
 //
 //
@@ -212,12 +212,12 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //               // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
 //               // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
 //               identifier = this.name,
-//               logger = this.app.logger,
-//               options = this.app.build.options.jsdoc,
-//               srcDir = this.app.getSrcPath({ build: "module", rel: true, psx: true, dot: true}),
-//               outDir = isBoolean(options) ? join(this.app.build.paths.dist, "doc") :
+//               logger = this.build.logger,
+//               options = this.build.options.jsdoc,
+//               srcDir = this.build.getSrcPath({ build: "app", rel: true, psx: true, dot: true}),
+//               outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
 //                             /** @type {typedefs.WpwBuildOptionsJsDocItem} */(options).destination ||
-//                             join(this.app.build.paths.dist, "doc") ;
+//                             join(this.build.paths.dist, "doc") ;
 //
 //         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
 //         if (code !== 0)
@@ -369,7 +369,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 //
 //             assets[filePathRel] = source;
 //
-//             // const cache = this.compiler.getCache(`${this.app.build.name}_${this.app.build.type}_${this.app.wpc.target}`.toLowerCase());
+//             // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
 //
 //             // this.compilation.emitAsset(filePathRel, source, info);
 //
@@ -402,13 +402,13 @@ class WpwJsDocPlugin extends WpBuilPlugin
 
 
 /**
- * @param { typedefs.WpBuildApp} app The current build's rc wrapper @see {@link typedefs.WpBuildApp WpBuildApp}
+ * @param { typedefs.WpwBuild} build The current build's rc wrapper @see {@link typedefs.WpwBuild WpwBuild}
  * @returns {WpwJsDocPlugin | undefined}
  */
-const jsdoc = (app) =>
-    app.build.options.jsdoc &&
-    app.build.options.jsdoc.enabled !== false &&
-    app.build.options.jsdoc.type === "plugin" ? new WpwJsDocPlugin({ app }) : undefined;
+const jsdoc = (build) =>
+    build.options.jsdoc &&
+    build.options.jsdoc.enabled !== false &&
+    build.options.jsdoc.type === "plugin" ? new WpwJsDocPlugin({ build }) : undefined;
 
 
 module.exports = jsdoc;

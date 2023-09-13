@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const {  writeFile } = require("fs/promises");
 const { resolve, isAbsolute } = require("path");
 const { merge, clone } = require("@spmeesseman/type-utils");
@@ -33,9 +33,9 @@ class WpBuildCache
     /**
      * @member
      * @private
-     * @type {WpBuildApp}
+     * @type {WpwBuild}
      */
-    app;
+    build;
     /**
      * @member
      * @private
@@ -46,14 +46,14 @@ class WpBuildCache
 
     /**
      * @class WpBuildApplication
-     * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+     * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
      * @param {string} file Filename to read/write cache to
      */
-    constructor(app, file)
+    constructor(build, file)
     {
-        this.app = app;
+        this.build = build;
         if (!isAbsolute(file)) {
-            this.file = resolve(this.app.global.cacheDir, file);
+            this.file = resolve(this.build.global.cacheDir, file);
         }
         this.cache = this.read();
     }

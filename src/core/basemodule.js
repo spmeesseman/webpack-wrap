@@ -23,8 +23,8 @@ const { isWpwBuildOptionsKey } = require("../types/constants");
  */
 class WpwBaseModule extends WpwBase
 {
-    /** @type {typedefs.WpBuildApp} */
-    app;
+    /** @type {typedefs.WpwBuild} */
+    build;
     /** @type {Record<string, any>} */
     globalCache;
     /** @type {string}  @protected */
@@ -50,13 +50,13 @@ class WpwBaseModule extends WpwBase
         options.key = /** @type {typedefs.WpwBuildOptionsKey} */(options.key || this.baseName.toLowerCase());
         this.validateOptions(options);
         this.key = options.key;
-        this.app = options.app;
+        this.build = options.build;
         this.options = options;
-        this.wpc = this.app.wpc;
-        this.logger = this.app.logger;
+        this.wpc = this.build.wpc;
+        this.logger = this.build.logger;
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
-        this.app.disposables.push(this);
+        this.build.disposables.push(this);
     }
 
 
@@ -66,9 +66,9 @@ class WpwBaseModule extends WpwBase
 	 * @returns {WpwBase | undefined | never}
 	 * @throws {typedefs.WpwError}
      */
-	static build(..._args)
+	static create(..._args)
     {
-        throw WpwError.getAbstractFunction(`[${this.name}[build][static]`);
+        throw WpwError.getAbstractFunction(`[${this.name}[create][static]`);
     }
 
 

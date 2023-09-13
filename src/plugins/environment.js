@@ -10,7 +10,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 
 /** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
 /** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
@@ -53,9 +53,9 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
 	 */
 	setVersion = () =>
 	{
-		if (this.app.build.type === "module" && this.app.build.mode === "production")
+		if (this.build.type === "app" && this.build.mode === "production")
 		{
-			// let version = app.pkgJson.version;
+			// let version = build.pkgJson.version;
 		}
 	};
 
@@ -63,10 +63,10 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildEnvironmentPlugin | undefined}
  */
-const environment = (app) => app.build.mode === "production" ? new WpBuildEnvironmentPlugin({ app }) : undefined;
+const environment = (build) => build.mode === "production" ? new WpBuildEnvironmentPlugin({ build }) : undefined;
 
 
 module.exports = environment;

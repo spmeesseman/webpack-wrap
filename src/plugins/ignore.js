@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -19,14 +19,14 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {IgnorePlugin | undefined}
  */
-const ignore = (app) =>
+const ignore = (build) =>
 {
     /** @type {IgnorePlugin | undefined} */
     let plugin;
-    if (app.build.options.ignore) //  && app.build.mode === "production")
+    if (build.options.ignore) //  && build.mode === "production")
     {
         plugin = new webpack.IgnorePlugin(
         {

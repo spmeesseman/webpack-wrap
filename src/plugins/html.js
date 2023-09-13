@@ -10,7 +10,7 @@
  *//** */
 
 const { posix } = require("path");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const HtmlPlugin = require("html-webpack-plugin");
 const CspHtmlPlugin = require("csp-html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -21,25 +21,25 @@ const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 /**
  * @param { string } name
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {HtmlPlugin | undefined}
  */
-const html = (name, app) =>
+const html = (name, build) =>
 {
     let plugin;
-    if (app.build.type === "webapp")
+    if (build.type === "webapp")
     {
         const wwwName = name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
 		plugin = new HtmlPlugin(
 		{
 			chunks: [ name, wwwName ],
-			filename: posix.join(app.getDistPath(), "page", `${wwwName}.html`),
+			filename: posix.join(build.getDistPath(), "page", `${wwwName}.html`),
 			inject: true,
-			inlineSource: app.wpc.mode === "production" ? ".css$" : undefined,
+			inlineSource: build.wpc.mode === "production" ? ".css$" : undefined,
 			// inlineSource: undefined,
 			scriptLoading: "module",
 			template: posix.join(name, `${wwwName}.html`),
-			minify: app.wpc.mode !== "production" ? false :
+			minify: build.wpc.mode !== "production" ? false :
 			{
 				removeComments: true,
 				collapseWhitespace: true,
@@ -57,10 +57,10 @@ const html = (name, app) =>
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {MiniCssExtractPlugin}
  */
-const cssextract = (app) =>
+const cssextract = (build) =>
 {
     return new MiniCssExtractPlugin(
     {
@@ -77,30 +77,30 @@ const cssextract = (app) =>
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {CspHtmlPlugin}
  */
-const htmlcsp = (app) =>
+const htmlcsp = (build) =>
 {
     const plugin = new CspHtmlPlugin(
     {
         // "connect-src":
-        // app.wpc.mode !== 'production'
+        // build.wpc.mode !== 'production'
         // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
         // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
         "default-src": "'none'",
         "font-src": [ "#{cspSource}" ],
         // "frame-src":
-        // app.wpc.mode !== 'production'
+        // build.wpc.mode !== 'production'
         // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
         // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
         "img-src": [ "#{cspSource}", "https:", "data:" ],
         "script-src":
-        app.wpc.mode !== "production"
+        build.wpc.mode !== "production"
                 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-eval'" ]
                 : [ "#{cspSource}", "'nonce-#{cspNonce}'" ],
         "style-src":
-        app.wpc.mode === "production"
+        build.wpc.mode === "production"
                 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-hashes'" ]
                 : [ "#{cspSource}", "'unsafe-hashes'", "'unsafe-inline'" ]
     },
@@ -109,11 +109,11 @@ const htmlcsp = (app) =>
         hashingMethod: "sha256",
         hashEnabled: {
             "script-src": true,
-            "style-src": app.wpc.mode === "production"
+            "style-src": build.wpc.mode === "production"
         },
         nonceEnabled: {
             "script-src": true,
-            "style-src": app.wpc.mode === "production"
+            "style-src": build.wpc.mode === "production"
         }
     });
 
@@ -121,7 +121,7 @@ const htmlcsp = (app) =>
     // For vscode extensions -
     // Override the nonce creation so it can be dynamically generated at runtime
     //
-    if (app.build.vscode) {
+    if (build.vscode) {
         // @ts-ignore
         plugin.createNonce = () => "#{cspNonce}";
     }
@@ -131,15 +131,15 @@ const htmlcsp = (app) =>
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {InlineChunkHtmlPlugin | undefined}
  */
-const htmlinlinechunks = (app) =>
+const htmlinlinechunks = (build) =>
 {
     let plugin;
-    if (app.build.type === "webapp")
+    if (build.type === "webapp")
     {
-        // plugin = new InlineChunkHtmlPlugin(HtmlPlugin, app.wpc.mode === "production" ? ["\\.css$"] : []);
+        // plugin = new InlineChunkHtmlPlugin(HtmlPlugin, build.wpc.mode === "production" ? ["\\.css$"] : []);
         plugin = new InlineChunkHtmlPlugin(HtmlPlugin, []);
     }
     return plugin;
@@ -147,13 +147,13 @@ const htmlinlinechunks = (app) =>
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {ImageMinimizerPlugin | undefined}
  */
-const imageminimizer = (app) =>
+const imageminimizer = (build) =>
 {
     let plugin;
-    if (app.build.type === "webapp" && app.wpc.mode !== "production")
+    if (build.type === "webapp" && build.wpc.mode !== "production")
     {
         // plugin = new ImageMinimizerPlugin({
         // 	deleteOriginalAssets: true,
@@ -166,15 +166,15 @@ const imageminimizer = (app) =>
 
 /**
  * @param {string[]} apps
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {HtmlPlugin[]}
  */
-const webviewapps = (apps, app) =>
+const webviewapps = (apps, build) =>
 {
     const plugins = [];
-    if (app.build.type === "webapp")
+    if (build.type === "webapp")
     {
-        apps.forEach(k => plugins.push(html(k, app)));
+        apps.forEach(k => plugins.push(html(k, build)));
     }
     return plugins;
 };
@@ -233,7 +233,7 @@ class InlineChunkHtmlPlugin
 
 
 // /**
-//  * @param {WpBuildApp} app
+//  * @param {WpwBuild} build
 //  * @param {WebpackConfig} wpConfig Webpack config object
 //  * @returns { ImageMinimizerPlugin.Generator<any> }
 //  */
@@ -263,7 +263,7 @@ class InlineChunkHtmlPlugin
 // 					lossless: true,
 // 					nearLossless: 0,
 // 					quality: 100,
-// 					method: app.wpc.mode === "production" ? 4 : 0,
+// 					method: build.wpc.mode === "production" ? 4 : 0,
 // 				}
 // 			]]
 // 		}

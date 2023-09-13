@@ -12,18 +12,18 @@
 
 const VisualizerPlugin = require("webpack-visualizer-plugin2");
 
-/** @typedef {import("../../types/typedefs").WpBuildApp} WpBuildApp */
+/** @typedef {import("../../types/typedefs").WpwBuild} WpwBuild */
 /** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WebpackPluginInstance | undefined}
  */
-const visualizer = (app) =>
+const visualizer = (build) =>
 {
 	let plugin;
-	if (app.cmdLine.analyze && app.build.options.analyze) {
+	if (build.cmdLine.analyze && build.options.analyze) {
 		plugin = new VisualizerPlugin({ filename: "../.coverage/visualizer.html" });
 	}
 	// @ts-ignore

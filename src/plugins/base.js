@@ -84,7 +84,7 @@ class WpwPlugin extends WpwBaseModule
         this.plugins = [];
         this.validatePluginOptions(options);
         this.options = applyIf(this.options, options);
-        this.cache = new WpBuildCache(this.app, WpwPlugin.cacheFilename(this.app.build.mode, this.baseName));
+        this.cache = new WpBuildCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
         if (!this.options.wrapPlugin)
         {
             mergeIf(this.options, { plugins: [] });
@@ -268,7 +268,7 @@ class WpwPlugin extends WpwBaseModule
 	exec = async (command, program, ignoreOut) =>
     {
         const result = await execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
-        result.errors.forEach(e => this.app.addMessage({ code: WpwError.Msg.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
+        result.errors.forEach(e => this.build.addMessage({ code: WpwError.Msg.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
         return result.code;
     };
 
@@ -332,7 +332,7 @@ class WpwPlugin extends WpwBaseModule
 	 */
 	handleError(message, error)
 	{
-        this.app.addMessage({ code: WpwError.Msg.ERROR_GENERAL, message, compilation: this.compilation, error });
+        this.build.addMessage({ code: WpwError.Msg.ERROR_GENERAL, message, compilation: this.compilation, error });
 	}
 
 
@@ -371,7 +371,7 @@ class WpwPlugin extends WpwBaseModule
         this.compiler = compiler;
         this.wpCache = compiler.getCache(this.name);
         this.wpLogger = compiler.getInfrastructureLogger(this.name);
-        this.hashDigestLength = compiler.options.output.hashDigestLength || this.app.wpc.output.hashDigestLength || 20;
+        this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
 
         if (options)
         {
@@ -518,7 +518,7 @@ class WpwPlugin extends WpwBaseModule
         {
             if (stageEnum && options.hookCompilation === "processAssets")
             {
-                const logMsg = this.breakProp(optionName).padEnd(this.app.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
+                const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
                 if (!options.async) {
                     hook.tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options).bind(this));
                 }
@@ -559,7 +559,7 @@ class WpwPlugin extends WpwBaseModule
             this.compilation.hooks.statsPrinter.tap(name, (stats) =>
             {
                 const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) => {
-                      const statsColor = context[this.app.build.log.color || "green"];
+                      const statsColor = context[this.build.log.color || "green"];
                       return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
                 };
                 stats.hooks.print.for(`asset.info.${property}`).tap(name, printFn);
@@ -609,16 +609,16 @@ class WpwPlugin extends WpwBaseModule
      * is done via the constructor's call to  the {@link WpwPlugin.getOptions getOptions()} override
      * @template {WpwPlugin} T
      * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type
-     * @param {typedefs.WpBuildApp} app current build wrapper
+     * @param {typedefs.WpwBuild} build current build wrapper
      * @param {typedefs.WpwBuildOptionsKey} optionsKey
      * @returns {T | undefined}
      */
-    static wrap(clsType, app, optionsKey)
+    static wrap(clsType, build, optionsKey)
     {
-        const options = app.build.options[optionsKey];
+        const options = build.options[optionsKey];
         if (options && options.enabled !== false)
         {
-            const plugin = new clsType({ app, wrapPlugin: true });
+            const plugin = new clsType({ build, wrapPlugin: true });
             plugin.plugins.push(plugin.getVendorPlugin());
             return plugin;
         }
@@ -638,7 +638,7 @@ class WpwPlugin extends WpwBaseModule
               callback = options.callback,
               logMsg = this.breakProp(message),
               eMgr= WpwPlugin.eventManager,
-              wait = this.app.build.options.wait;
+              wait = this.build.options.wait;
 
         if (!options.async) {
             cb = (/** @type {any} */arg) => {

@@ -38,7 +38,7 @@
  */
 
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
 
 /** @typedef {import("../types").WebpackSource} WebpackSource */
@@ -106,10 +106,10 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     logAssetInfo = (rotated) =>
     {
-        const logger = this.app.logger,
+        const logger = this.build.logger,
               hashInfo = this.globalCache,
-              labelLength = this.app.build.log.pad.value || 45;
-        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.app.build.mode, logger.colors.italic)}`, 1);
+              labelLength = this.build.log.pad.value || 45;
+        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.build.mode, logger.colors.italic)}`, 1);
         logger.write("   previous:", 2);
         if (!isObjectEmpty(hashInfo.current))
         {
@@ -149,8 +149,8 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     preprocess = (assets) =>
     {
-        const app = this.app,
-              logger = app.logger,
+        const build = this.build,
+              logger = build.logger,
               hashCurrent = this.globalCache.current;
         this.readAssetState();
         logger.write("validate cached hashes for all entry assets", 2);
@@ -186,7 +186,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
      */
     readAssetState()
     {
-        const app = this.app,
+        const build = this.build,
               cache = this.cache.get();
         // apply(this.globalCache, cache);
         merge(this.globalCache, cache);
@@ -263,7 +263,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
     sourceObj(file, content, sourceInfo)
     {
         const { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.app.build.options.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.build.options.sourcemaps) ?
                new this.compiler.webpack.sources.SourceMapSource(content, file, map, source) :
                new this.compiler.webpack.sources.RawSource(content);
     }
@@ -292,10 +292,10 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
  * Returns a `WpBuildRuntimeVarsPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.runtimevars`
  * property to a boolean value of  `true` or `false`
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildRuntimeVarsPlugin | undefined}
  */
-const runtimevars = (app) => app.build.options.runtimevars ? new WpBuildRuntimeVarsPlugin({ app }) : undefined;
+const runtimevars = (build) => build.options.runtimevars ? new WpBuildRuntimeVarsPlugin({ build }) : undefined;
 
 
 module.exports = runtimevars;

@@ -34,40 +34,40 @@ class WpwTscPlugin extends WpwPlugin
 	{
 
 		if (this.global.typesBundled) {
-			this.app.addMessage({ code: WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, message: "dts bundling already completed" });
+			this.build.addMessage({ code: WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, message: "dts bundling already completed" });
 			return;
 		}
 
-		const l = this.app.logger,
-			  baseDir = this.app.getBasePath();
+		const l = this.build.logger,
+			  baseDir = this.build.getBasePath();
 		l.start("bundle types .d.ts files", 1);
 		l.value("   types output directory", outputDir, 2);
 
 		if (!outputDir)
 		{
-			const compilerOptions = this.app.source.config.options.compilerOptions;
+			const compilerOptions = this.build.source.config.options.compilerOptions;
 			outputDir = resolvePath(
-				baseDir, compilerOptions.declarationDir ?? this.app.getDistPath({ rel: true, psx: true })
+				baseDir, compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true })
 			);
 			if (!(await existsAsync(outputDir)))
 			{
-				this.app.addMessage({ code: WpwError.Msg.ERROR_NO_OUTPUT_DIR, compilation: this.compilation, message: "dts bundling failed" });
+				this.build.addMessage({ code: WpwError.Msg.ERROR_NO_OUTPUT_DIR, compilation: this.compilation, message: "dts bundling failed" });
 				return;
 			}
 		}
 
-		// const baseDir = this.app.getBasePath(),
-		// 	  dtsFile = this.app.build.name + ".d.ts",
+		// const baseDir = this.build.getBasePath(),
+		// 	  dtsFile = this.build.name + ".d.ts",
 		// 	  dtsFilePathAbs = join(outputDir, dtsFile),
 		// 	  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
 		// 	  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
 		// 	  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
 		// 	  outputDirRelBase = relativePath(baseDir, outputDir),
-		// 	  entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.app.build.name)?.options);
-		// 		// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.app.build.name)?.options);
+		// 	  entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.build.name)?.options);
+		// 		// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.build.name)?.options);
 		// let entryName = /** @type {string} */(entryOptions.name),
 		// 	entryFile = /** @type {string} */(this.compilation.getAsset(entryName)?.name),
-		// 	entryFileAbs, entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.app.source.ext,
+		// 	entryFileAbs, entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.build.source.ext,
 
 		// if (entryFile)
 		// {
@@ -79,7 +79,7 @@ class WpwTscPlugin extends WpwPlugin
 
 		// f (!entryFileAbs || !existsSync(entryFileAbs))
 		//
-		// 	const typesOptions = this.app.build.types;
+		// 	const typesOptions = this.build.types;
 		// 	if (typesOptions && typesOptions.enabled && typesOptions.entry)
 		// 	{
 		// 		entryName = this.fileNameStrip(typesOptions.entry, true);
@@ -92,7 +92,7 @@ class WpwTscPlugin extends WpwPlugin
 
 		// if (!entryFileRel || !entryFileRelBase || !entryFileAbs || !entryFileRelContext)
 		// {
-		// 	this.app.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "could not determine entry file" });
+		// 	this.build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "could not determine entry file" });
 		// 	return;
 		// }
 
@@ -101,8 +101,8 @@ class WpwTscPlugin extends WpwPlugin
 		// entryFileRelBase = entryFileRelBase.replace(/\\/g, "/");
 		// entryFileRelContext = entryFileRelBase.replace(/\\/g, "/");
 
-		// let dtsEntryFile = entryFile.replace(this.app.source.ext, "d.ts");
-		// const rootDir = this.app.source.config.options.compilerOptions.rootDir;
+		// let dtsEntryFile = entryFile.replace(this.build.source.ext, "d.ts");
+		// const rootDir = this.build.source.config.options.compilerOptions.rootDir;
 		// if (rootDir && rootDir !== ".") {
 		// 	dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
 		// }
@@ -111,7 +111,7 @@ class WpwTscPlugin extends WpwPlugin
 		// 	  dtsEntryFileRelContext = relativePath(this.compiler.context, dtsEntryFileAbs),
 		// 	  dtsEntryFileRelBase = relativePath(baseDir, dtsEntryFileAbs);
 
-		const dtsFile = this.app.build.name + ".d.ts",
+		const dtsFile = this.build.name + ".d.ts",
 			  dtsFilePathAbs = join(outputDir, dtsFile),
 			  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
 			  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
@@ -127,7 +127,7 @@ class WpwTscPlugin extends WpwPlugin
 		/** @type {typedefs.WpBuildDtsBundleOptions} */
 		const bundleCfg =
 		{
-			name: `${this.app.pkgJson.name}-${this.app.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
+			name: `${this.build.pkgJson.name}-${this.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
 			baseDir: dtsBundleBaseDir,
 			headerPath: "",
 			headerText: "",
@@ -135,7 +135,7 @@ class WpwTscPlugin extends WpwPlugin
 			out: dtsFile,
 			outputAsModuleFolder: true,
 			// removeSource: true,
-			verbose: this.app.build.log.level >= 4
+			verbose: this.build.log.level >= 4
 		};
 
 		if (this.logger.level >= 2)
@@ -183,7 +183,7 @@ class WpwTscPlugin extends WpwPlugin
 			l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
 		}
 		catch (e) {
-			this.app.addMessage({
+			this.build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				error: e,
@@ -207,7 +207,7 @@ class WpwTscPlugin extends WpwPlugin
 	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)
 	{
 		if (!sourceCodeConfig || !sourceCodeConfig.path) {
-			this.app.addMessage({
+			this.build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "invalid source code configured path"
@@ -218,8 +218,8 @@ class WpwTscPlugin extends WpwPlugin
 		// 	"npx", "babel", tsConfig, "--out-dir", outputDir, "--extensions", ".ts",
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
-		const logger = this.app.logger,
-			  relativeOutputPath = relativePath(this.app.build.paths.base, sourceCodeConfig.path);
+		const logger = this.build.logger,
+			  relativeOutputPath = relativePath(this.build.paths.base, sourceCodeConfig.path);
 
 		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
 		logger.write(`   execute tsc command using config file @ [${sourceCodeConfig.path}]`, 1);
@@ -228,7 +228,7 @@ class WpwTscPlugin extends WpwPlugin
 		let result = await this.exec(command, "tsc");
 		if (result !== 0)
 		{
-			this.app.addMessage({
+			this.build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "tsc returned error code " + result
@@ -242,7 +242,7 @@ class WpwTscPlugin extends WpwPlugin
 			await access(outputDir);
 		}
 		catch (e) {
-			this.app.addMessage({
+			this.build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "output directory does not exist"
@@ -260,7 +260,7 @@ class WpwTscPlugin extends WpwPlugin
 			result = await this.exec(command, "typescript path aliasing");
 			if (result !== 0)
 			{
-				this.app.addMessage({
+				this.build.addMessage({
 					code: WpwError.Msg.ERROR_TYPES_FAILED,
 					compilation: this.compilation,
 					message: "typescript path aliasing failed, returned exit code " + result
@@ -374,7 +374,7 @@ class WpwTscPlugin extends WpwPlugin
 		// this.compilation.compilationDependencies.add();this.compilation.
 		// this.compilation.contextDependencies.add();
 
-		// const cache = this.compiler.getCache(`${this.app.build.name}_${this.app.build.type}_${this.app.wpc.target}`.toLowerCase());
+		// const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
 
 		// this.compilation.emitAsset(filePathRel, source, info);
 

@@ -11,7 +11,6 @@
  * WEBPACK TYPES  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
  * COMPILER       : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
  * TAPABLE        : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
- * RC DEFAULTS    : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  *
  * @description
  *
@@ -22,13 +21,13 @@
 import { WpwBuildOptionsKey } from "./rc";
 
 
-type WpwAppInstance = InstanceType<typeof import("../core/app")>;
+type WpwBuildInstance = InstanceType<typeof import("../core/build")>;
 
 type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
 
 interface IWpwBaseModuleOptions extends IWpwBaseOptions
 {
-    app: WpwAppInstance;
+    build: WpwBuildInstance;
     key?: WpwBuildOptionsKey;
     globalCacheProps?: string[];
 };
@@ -43,7 +42,7 @@ type WpwBaseModuleOptions = IWpwBaseModuleOptions;
 
 interface IWpwBaseModule extends IWpwBase
 {
-    app: WpwAppInstance;
+    build: WpwBuildInstance;
 }
 
 interface IWpwBase

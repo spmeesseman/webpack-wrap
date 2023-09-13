@@ -13,7 +13,7 @@
 const os = require("os");
 const JSON5 = require("json5");
 const WpwBase = require("./base");
-const WpBuildApp = require("./app");
+const WpwBuild = require("./build");
 const typedefs = require("../types/typedefs");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
@@ -32,7 +32,7 @@ class WpwRc extends WpwBase
 {
     /** @type {typedefs.WpwWebpackAliasConfig} */
     alias;
-    /** @type {WpBuildApp[]} */
+    /** @type {WpwBuild[]} */
     apps;
     /** @type {typedefs.WpBuildRuntimeEnvArgs} */
     arge;
@@ -83,7 +83,7 @@ class WpwRc extends WpwBase
      * the current mode/environement e.g. `production`) into each defined build config.
      *
      * @see {@link WpwRc.create WpwRc.create()} for wbbuild initiantiation process
-     * @see {@link WpBuildApp} for build lvel wrapper defintion.  Stupidly named `app` (???).
+     * @see {@link WpwBuild} for build lvel wrapper defintion.  Stupidly named `app` (???).
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpBuildRuntimeEnvArgs} arge
@@ -207,36 +207,31 @@ class WpwRc extends WpwBase
             ...rc.builds.filter(
                 (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.build.type === b.type)
             )
-            .map((build) => new WpBuildApp(rc, build))
+            .map((build) => new WpwBuild(build, rc))
         );
         //
         // Call app.buildWrapper() on each 'app' instance to create the webpack configuration
         // for each active build, and return the array of resulting configurtaions.  These are
         // exported to the webpack process in the caller module and the compilation begins.
         //
-        return rc.apps.map((app) =>
+        return rc.apps.map((build) =>
         {
-            if (!app.build.mode || !app.build.target || !app.build.type) {
+            if (!build.mode || !build.target || !build.type) {
                 throw WpwError.getErrorProperty("type");
             }
-            app.build.active = true;
-            return app.buildWrapper();
+            build.active = true;
+            return build.buildWrapper();
         });
     }
 
 
     /**
      * @param {string} nameOrType
-     * @returns {typedefs.WpBuildApp | undefined}
-     */
-    getBuildWrapper(nameOrType) { return this.apps.find(a => a.build.type === nameOrType || a.build.name === nameOrType); }
-
-
-    /**
-     * @param {string} nameOrType
      * @returns {typedefs.WpwBuild | undefined}
      */
-    getBuild(nameOrType) {return this.getBuildWrapper(nameOrType)?.build; }
+    getBuild(nameOrType) { return this.apps.find(a => a.build.type === nameOrType || a.build.name === nameOrType); }
+
+
 
 
     /**
@@ -279,7 +274,7 @@ class WpwRc extends WpwBase
                     {
                         if (asArray(a.build.options.wait?.items).find(t => t.name === "types"))
                         {
-                            this.apps.push(new WpBuildApp(this, apply(typesBuild, { auto: true })));
+                            this.apps.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
                             break;
                         }
                     }

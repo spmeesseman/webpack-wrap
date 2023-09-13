@@ -12,7 +12,7 @@
 const { existsSync } = require("fs");
 const WpwTscPlugin = require("./tsc");
 const { unlink } = require("fs/promises");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { join, dirname, isAbsolute, resolve, relative } = require("path");
@@ -56,48 +56,48 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 	 */
 	async testsuite(compilation)
 	{
-		this.app.logger.write("build test suite", 1);
+		this.build.logger.write("build test suite", 1);
 		this.onCompilation(compilation);
 
-		const testsDir = join(this.app.getDistPath(), "test");
+		const testsDir = join(this.build.getDistPath(), "test");
 
-		if (!this.app.source.config.options || !this.app.source.config.path)
+		if (!this.build.source.config.options || !this.build.source.config.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
-			this.app.addMessage({ code: WpwError.Msg.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
+			this.build.addMessage({ code: WpwError.Msg.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
 			this.logger.warning("consider possible solutions:");
 			this.logger.warning("   (1) rename test suite config file according to convention");
 			this.logger.warning("   (2) disable testsuite plugin in italic(.wsbuildrc.plugins.testsuite)");
 			return;
 		}
 
-		this.app.logger.value("   using tsconfig file", this.app.source.config.path, 2);
+		this.build.logger.value("   using tsconfig file", this.build.source.config.path, 2);
 
-		if (!existsSync(testsDir) && this.app.source.config.dir)
+		if (!existsSync(testsDir) && this.build.source.config.dir)
 		{
-			this.app.logger.write("   checking for tsbuildinfo file path", 3);
-			let buildInfoFile = this.app.source.config.options.compilerOptions.tsBuildInfoFile || join(dirname(this.app.source.config.dir), "tsconfig.tsbuildinfo");
+			this.build.logger.write("   checking for tsbuildinfo file path", 3);
+			let buildInfoFile = this.build.source.config.options.compilerOptions.tsBuildInfoFile || join(dirname(this.build.source.config.dir), "tsconfig.tsbuildinfo");
 			if (!isAbsolute(buildInfoFile)) {
-				buildInfoFile = resolve(this.app.source.config.dir, buildInfoFile);
+				buildInfoFile = resolve(this.build.source.config.dir, buildInfoFile);
 			}
-			this.app.logger.value("   delete tsbuildinfo file", buildInfoFile, 3);
+			this.build.logger.value("   delete tsbuildinfo file", buildInfoFile, 3);
 			try {
 				await unlink(buildInfoFile);
 			} catch {}
 		}
 
-		const relTsConfigPath = relative(this.app.getBasePath(), this.app.source.config.path);
-		await this.execTsBuild(this.app.source.config, [ "-p", relTsConfigPath ], 2, testsDir);
+		const relTsConfigPath = relative(this.build.getBasePath(), this.build.source.config.path);
+		await this.execTsBuild(this.build.source.config, [ "-p", relTsConfigPath ], 2, testsDir);
 	}
 
 }
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildTestSuitePlugin | undefined}
  */
-const testsuite = (app) => app.build.options.testsuite ? new WpBuildTestSuitePlugin({ app }) : undefined;
+const testsuite = (build) => build.options.testsuite ? new WpBuildTestSuitePlugin({ build }) : undefined;
 
 
 module.exports = testsuite;

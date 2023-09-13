@@ -11,7 +11,6 @@
  * WEBPACK TYPES  : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\types.d.ts
  * COMPILER       : file:///c:\Projects\vscode-taskexplorer\node_modules\webpack\lib\Compiler.js
  * TAPABLE        : file:///c:\Projects\vscode-taskexplorer\node_modules\tapable\tapable.d.ts
- * RC DEFAULTS    : file:///c:\Projects\vscode-taskexplorer\webpack\utils\app.js
  *
  * @description
  *

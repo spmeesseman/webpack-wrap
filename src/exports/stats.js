@@ -10,7 +10,7 @@ const { isString } = require("../utils");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 
 
 /**
@@ -45,14 +45,14 @@ const level = (loglevel) =>
 
 /**
  * @function stats
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const stats = (app) =>
+const stats = (build) =>
 {
-	const logLevel = app.logger.level || app.cmdLine.loglevel || app.build.log.level || 0;
-	if (logLevel !== 0 && logLevel !== "none") // && app.build.exports.stats)
+	const logLevel = build.logger.level || build.cmdLine.loglevel || build.log.level || 0;
+	if (logLevel !== 0 && logLevel !== "none") // && build.exports.stats)
 	{
-		app.wpc.stats = {
+		build.wpc.stats = {
 			preset: "errors-warnings",
 			assets: true,
 			colors: true,
@@ -63,7 +63,7 @@ const stats = (app) =>
 			// warningsFilter: /Cannot find module \'common\' or its corresponding type declarations/
 		};
 
-		app.wpc.infrastructureLogging = {
+		build.wpc.infrastructureLogging = {
 			colors: true,
 			level: level(logLevel)
 			// debug: /webpack\.cache/

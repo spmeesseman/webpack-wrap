@@ -10,7 +10,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 
 
@@ -29,18 +29,18 @@ class WpwExamplePlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"mocha">} */(this.app.build.options.jsdoc);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"mocha">} */(this.build.options.jsdoc);
 	}
 
 
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpwExamplePlugin | undefined}
      */
-	static build(app)
+	static build(build)
 	{
-		return app.build.options.types?.enabled ? new WpwExamplePlugin({ app }) : undefined;
+		return build.options.types?.enabled ? new WpwExamplePlugin({ build }) : undefined;
 	}
 
 

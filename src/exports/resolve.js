@@ -33,11 +33,38 @@ class WpwResolveExport extends WpwWebpackExport
 	}
 
 
+	app()
+	{
+		if (this.build.target === "web")
+		{
+			apply(this.build.wpc.resolve,
+			{
+				mainFields: [
+					"web", "module", "main"
+				],
+				fallback: {
+					path: require.resolve("path-browserify"),
+					os: require.resolve("os-browserify/browser")
+				}
+			});
+		}
+		else
+		{
+			apply(this.build.wpc.resolve,
+			{
+				mainFields: [
+					"module", "main"
+				]
+			});
+		}
+	}
+
+
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
      */
-	static build = (app) => { const e = new this({ app }); e.build(); return e; };
+	static create = (build) => { const e = new this({ build}); e.create(); return e; };
 
 
 	/**
@@ -45,19 +72,19 @@ class WpwResolveExport extends WpwWebpackExport
      * @protected
 	 * @throws {WpwError}
 	 */
-	build()
+	create()
 	{
-		const app = this.app;
-		if (isFunction(this[app.build.type]))
+		const build= this.build;
+		if (isFunction(this[build.type]))
 		{
-			app.logger.start("create resolve configuration", 2);
-			app.logger.write(`   create rules for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+			build.logger.start("create resolve configuration", 2);
+			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
 			this.base();
-			this[app.build.type]();
-			app.logger.success("create resolve configuration", 2);
+			this[build.type]();
+			build.logger.success("create resolve configuration", 2);
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${app.build.type}]` });
+			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${build.type}]` });
 		}
 	}
 
@@ -67,11 +94,11 @@ class WpwResolveExport extends WpwWebpackExport
 	 */
 	base()
 	{
-		apply(this.app.wpc,
+		apply(this.build.wpc,
 		/** @type {Partial<typedefs.WpwWebpackConfig>} */({
 			resolve:
 			{
-				alias: this.app.build.alias,
+				alias: this.build.alias,
 				modules: [
 					this.nodeModulesPath, "node_modules"
 				],
@@ -97,80 +124,53 @@ class WpwResolveExport extends WpwWebpackExport
 
 	jsdoc()
 	{
-		const jsdocOptions = this.app.build.options.jsdoc;
+		const jsdocOptions = this.build.options.jsdoc;
 		if (jsdocOptions && jsdocOptions.enabled)
 		{
 			//
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
-		}
-	}
-
-
-	module()
-	{
-		if (this.app.build.target === "web")
-		{
-			apply(this.app.wpc.resolve,
-			{
-				mainFields: [
-					"web", "module", "main"
-				],
-				fallback: {
-					path: require.resolve("path-browserify"),
-					os: require.resolve("os-browserify/browser")
-				}
-			});
-		}
-		else
-		{
-			apply(this.app.wpc.resolve,
-			{
-				mainFields: [
-					"module", "main"
-				]
-			});
+			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}
 
 
 	tests()
 	{
-		const testsOptions = this.app.build.options.testsuite;
+		const testsOptions = this.build.options.testsuite;
 		if (testsOptions && testsOptions.enabled)
 		{
 			//
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
+			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
 		}
 	}
 
 
 	types()
 	{
-		const typesOptions = this.app.build.options.types;
-		if (typesOptions && typesOptions.mode === "module" && this.app.wpc.resolve.extensions)
+		const typesOptions = this.build.options.types;
+		if (typesOptions && typesOptions.mode === "plugin" && this.build.wpc.resolve.extensions)
 		{
-			this.app.wpc.resolve.extensions.push(".d.ts");
+			this.build.wpc.resolve.extensions.push(".d.ts");
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
+			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
 		}
 	}
 
 
 	webapp()
 	{
-		apply(this.app.wpc.resolve,
+		apply(this.build.wpc.resolve,
 		{
 			modules: [
-				this.app.getContextPath(), "node_modules"
+				this.build.getContextPath(), "node_modules"
 			]
 		});
 	}
 };
 
 
-module.exports = WpwResolveExport.build;
+module.exports = WpwResolveExport.create;

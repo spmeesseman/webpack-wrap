@@ -27,10 +27,10 @@ class WpwLogHooksPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpwLogHooksPlugin | undefined}
      */
-	static build = (app) => app.build.options.loghooks?.enabled ? new WpwLogHooksPlugin({ app }) : undefined;
+	static create = (build) => build.options.loghooks?.enabled ? new WpwLogHooksPlugin({ build }) : undefined;
 
 
     /**
@@ -233,7 +233,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 	 */
 	writeBuildTag(hook)
 	{
-		const key = hook +this.app.wpc.name;
+		const key = hook +this.build.wpc.name;
 		if (!this.globalCache[key])
 		{
 			this.globalCache[key] = true;
@@ -244,4 +244,4 @@ class WpwLogHooksPlugin extends WpwPlugin
 }
 
 
-module.exports = WpwLogHooksPlugin.build;
+module.exports = WpwLogHooksPlugin.create;

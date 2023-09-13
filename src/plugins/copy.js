@@ -13,7 +13,7 @@
 const { existsSync } = require("fs");
 const { apply } = require("../utils");
 const { join, posix } = require("path");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 const CopyPlugin = require("copy-webpack-plugin");
 
@@ -68,10 +68,10 @@ class WpBuildCopyPlugin extends WpwPlugin
 	/**
      * @override
 	 * @template T
-     * @param {WpBuildApp} app
+     * @param {WpwBuild} build
 	 * @returns {WpBuildCopyPlugin | undefined}
      */
-	static build = (app) => WpBuildCopyPlugin.wrap(this, app, "copy");
+	static create = (build) => WpBuildCopyPlugin.wrap(this, build, "copy");
 
 
 	/**
@@ -163,18 +163,18 @@ class WpBuildCopyPlugin extends WpwPlugin
 	getVendorPlugin = () =>
 	{
 		let plugin;
-		const app = this.app,
-			  psxBuildPath = app.getBasePath({ rel: true, psx: true, dot: false, ctx: false }),
-			  psxBasePath = app.getContextPath({ rel: true, psx: true, dot: false, ctx: true }),
+		const build = this.build,
+			  psxBuildPath = build.getBasePath({ rel: true, psx: true, dot: false, ctx: false }),
+			  psxBasePath = build.getContextPath({ rel: true, psx: true, dot: false, ctx: true }),
 			  psxBaseCtxPath = posix.join(psxBasePath, "res");
 
 		if (this.buildOptions.defaults)
 		{
-			if (app.build.type === "webapp")
+			if (build.type === "webapp")
 			{
 				/** @type {CopyPlugin.Pattern[]} */
 				const patterns = [],
-					  base = app.getContextPath({ rel: false });
+					  base = build.getContextPath({ rel: false });
 				this.options.apps?.filter((appName) => existsSync(join(base, appName, "res"))).forEach(
 					(appName) => patterns.push(
 					{
@@ -195,11 +195,11 @@ class WpBuildCopyPlugin extends WpwPlugin
 					plugin = new CopyPlugin({ patterns });
 				}
 			}
-			else if (app.build.type === "module" && app.wpc.mode === "production")
+			else if (build.type === "app" && build.wpc.mode === "production")
 			{   //
 				// Copy resources to public info` sub-project during compilation
 				//
-				const infoProjectPath = join(psxBuildPath, "..", `${app.pkgJson.scopedName.name}-info`);
+				const infoProjectPath = join(psxBuildPath, "..", `${build.pkgJson.scopedName.name}-info`);
 				if (existsSync(infoProjectPath))
 				{
 					const psxDirInfoProj = posix.normalize(infoProjectPath);
@@ -246,4 +246,4 @@ class WpBuildCopyPlugin extends WpwPlugin
 }
 
 
-module.exports = WpBuildCopyPlugin.build;
+module.exports = WpBuildCopyPlugin.create;

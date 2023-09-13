@@ -38,10 +38,39 @@ class WpwEntryExport extends WpwWebpackExport
 
 
 	/**
+	 * @override
+	 */
+	app()
+	{
+		const build = this.build,
+			  srcPath = build.getSrcPath({ build: build.name, rel: true, ctx: true, dot: true, psx: true });
+		apply(build.wpc.entry,
+		{
+			[build.name]: {
+				import: `${srcPath}/${build.name}${build.source.dotext}`
+			}
+		});
+		if (build.debug)
+		{
+			/** @type {typedefs.IWpwWebpackEntryObject} */
+			(build.wpc.entry[build.name]).layer = "release";
+			apply(build.wpc.entry,
+			{
+				[`${build.name}.debug`]:
+				{
+					import: `${srcPath}/${build.name}${build.source.dotext}`,
+					layer: "debug"
+				}
+			});
+		}
+	};
+
+
+	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
      */
-	static build = (app) => { const e = new this({ app }); e.build(); return e; };
+	static create = (build) => { const e = new this({ build }); e.create(); return e; };
 
 
 	/**
@@ -49,51 +78,51 @@ class WpwEntryExport extends WpwWebpackExport
      * @protected
 	 * @throws {WpwError}
 	 */
-	build()
+	create()
 	{
-		const app = this.app;
-		app.logger.start("create entry points", 1);
+		const build= this.build;
+		build.logger.start("create entry points", 1);
 
 		//
 		// If the build rc defined `entry` itself, apply and we're done...
 		//
-		if (!isObjectEmpty(app.build.entry))
+		if (!isObjectEmpty(build.entry))
 		{
-			app.logger.write(`   add defined entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-			apply(app.wpc.entry, app.build.entry);
+			build.logger.write(`   add defined entry points for build '${build.name}' [ type: ${build.type} ]`, 2);
+			apply(build.wpc.entry, build.entry);
 		}
-		else if (isFunction(this[app.build.type]))
+		else if (isFunction(this[build.type]))
 		{
-			app.logger.write(`   create entry points for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
-			this[app.build.type]();
+			build.logger.write(`   create entry points for build '${build.name}' [ type: ${build.type} ]`, 2);
+			this[build.type]();
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.entry.build[${app.build.type}]` });
+			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.entry.build[${build.type}]` });
 		}
 
 		//
 		// Validate entry pont paths
 		//
-		const result = Object.values(app.wpc.entry).every((e) =>
+		const result = Object.values(build.wpc.entry).every((e) =>
 		{
 			if (!e || (!isString(e) && !e.import))
 			{
-				throw WpwError.getErrorProperty("entry", app.wpc, "entry target is invalid");
+				throw WpwError.getErrorProperty("entry", build.wpc, "entry target is invalid");
 			}
 			const ep = isString(e) ? e : e.import;
 			if (!ep.startsWith("./"))
 			{
-				app.logger.warning(`entry target should contain a leading './' in path, found [${ep}]`, app.logger.level !== 0 ? "   " : "");
+				build.logger.warning(`entry target should contain a leading './' in path, found [${ep}]`, build.logger.level !== 0 ? "   " : "");
 				return false;
 			}
 			return true;
 		});
 
 		if (result) {
-			app.logger.success("create entry points", 2);
+			build.logger.success("create entry points", 2);
 		}
 		else {
-			app.logger.write("entry points created, but with warnings", 2, "", app.logger.icons.color.warning);
+			build.logger.write("entry points created, but with warnings", 2, "", build.logger.icons.color.warning);
 		}
 	}
 
@@ -103,53 +132,24 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	jsdoc()
 	{
-		const app = this.app,
-			  jsdocOptions = app.build.options.jsdoc;
+		const build = this.build,
+			  jsdocOptions = build.options.jsdoc;
 		if (jsdocOptions && jsdocOptions.type === "entry")
 		{
-			const mainBuild = app.getBuild("module"),
-				jsdocSrcPath = app.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+			const mainBuild = build.getBuild("app"),
+				jsdocSrcPath = build.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			if (mainBuild && jsdocSrcPath)
 			{
-				const mainSrcPath = app.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-				apply(app.wpc.entry, {
-					[ app.build.name ]: `${mainSrcPath}/${mainBuild.name}${app.source.dotext}`
+				const mainSrcPath = build.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
+				apply(build.wpc.entry, {
+					[ build.name ]: `${mainSrcPath}/${mainBuild.name}${build.source.dotext}`
 				});
 			}
 		}
 		else {
-			this.app.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "module entry[jsdoc]" });
+			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "app entry[jsdoc]" });
 		}
 	}
-
-
-	/**
-	 * @override
-	 */
-	module()
-	{
-		const app = this.app,
-			  srcPath = app.getSrcPath({ build: app.build.name, rel: true, ctx: true, dot: true, psx: true });
-		apply(app.wpc.entry,
-		{
-			[app.build.name]: {
-				import: `${srcPath}/${app.build.name}${app.source.dotext}`
-			}
-		});
-		if (app.build.debug)
-		{
-			/** @type {typedefs.IWpwWebpackEntryObject} */
-			(app.wpc.entry[app.build.name]).layer = "release";
-			apply(app.wpc.entry,
-			{
-				[`${app.build.name}.debug`]:
-				{
-					import: `${srcPath}/${app.build.name}${app.source.dotext}`,
-					layer: "debug"
-				}
-			});
-		}
-	};
 
 
 	/**
@@ -158,11 +158,11 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	tests()
 	{
-		const app = this.app,
-			  testsPath = app.getSrcPath({ build: app.build.name, stat: true });
+		const build = this.build,
+			  testsPath = build.getSrcPath({ build: build.name, stat: true });
 		if (testsPath)
 		{
-			apply(app.wpc.entry, {
+			apply(build.wpc.entry, {
 				...this.testRunner(testsPath),
 				...this.testSuite(testsPath)
 			});
@@ -184,7 +184,7 @@ class WpwEntryExport extends WpwWebpackExport
 		)
 		.reduce((obj, e)=>
 		{
-			obj[e.replace(this.app.source.dotext, "")] = {
+			obj[e.replace(this.build.source.dotext, "")] = {
 				import: `./${e}`
 			};
 			return obj;
@@ -217,13 +217,13 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	types()
 	{
-		const app = this.app,
-			  typesConfig = app.build.options.types;
-		if (typesConfig && typesConfig.mode === "module")
+		const build = this.build,
+			  typesConfig = build.options.types;
+		if (typesConfig && typesConfig.mode === "plugin")
 		{
-			const virtualRelPath = relativePath(app.getBasePath(), `${app.global.cacheDir}/${app.build.name}${app.source.dotext}`);
-			apply(app.wpc.entry, {
-				[ app.build.name ]: `./${virtualRelPath.replace(/\\/g, "/")}`
+			const virtualRelPath = relativePath(build.getBasePath(), `${build.global.cacheDir}/${build.name}${build.source.dotext}`);
+			apply(build.wpc.entry, {
+				[ build.name ]: `./${virtualRelPath.replace(/\\/g, "/")}`
 			});
 		}
 	}
@@ -234,21 +234,21 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	webapp()
 	{
-		const app = this.app,
-			  appPath = app.getSrcPath();
+		const build = this.build,
+			  appPath = build.getSrcPath();
 		if (isDirectory(appPath))
 		{
-			apply(app.wpc.entry, createEntryObjFromDir(appPath, app.build.source.dotext));
+			apply(build.wpc.entry, createEntryObjFromDir(appPath, build.source.dotext));
 		}
 		else
 		{
-			const relPath = relativePath(app.getContextPath(), appPath),
-				  chunk = basename(relPath).replace(app.build.source.dotext, "");
-			apply(app.wpc.entry, { [ chunk ]: `./${relPath}` });
+			const relPath = relativePath(build.getContextPath(), appPath),
+				  chunk = basename(relPath).replace(build.source.dotext, "");
+			apply(build.wpc.entry, { [ chunk ]: `./${relPath}` });
 		}
 	}
 
 }
 
 
-module.exports = WpwEntryExport.build;
+module.exports = WpwEntryExport.create;

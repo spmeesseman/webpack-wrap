@@ -8,18 +8,18 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 
 
 /**
  * @function entry
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const experiments = (app) =>
+const experiments = (build) =>
 {
-	if (app.build.options.experiments)
+	if (build.options.experiments)
 	{
-		app.wpc.experiments = { layers: app.build.type === "module"};
+		build.wpc.experiments = { layers: build.type === "app"};
 	}
 };
 

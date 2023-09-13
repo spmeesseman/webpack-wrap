@@ -12,18 +12,18 @@
 
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
-/** @typedef {import("../../types/typedefs").WpBuildApp} WpBuildApp */
+/** @typedef {import("../../types/typedefs").WpwBuild} WpwBuild */
 /** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {BundleAnalyzerPlugin | undefined}
  */
-const analyzer = (app) =>
+const analyzer = (build) =>
 {
     let plugin;
-	if (app.cmdLine.analyze)
+	if (build.cmdLine.analyze)
 	{
 		plugin = new BundleAnalyzerPlugin({
 			analyzerPort: "auto",

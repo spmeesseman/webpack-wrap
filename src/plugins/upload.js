@@ -17,7 +17,7 @@
 const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
 const { WpwRegex } = require("../utils");
-const WpBuildApp = require("../core/app");
+const WpwBuild = require("../core/build");
 const { join, basename } = require("path");
 const { WebpackError } = require("webpack");
 const WpwError = require("../utils/message");
@@ -36,8 +36,8 @@ class WpBuildUploadPlugin extends WpwPlugin
 	constructor(options)
     {
         super(options); // apply(options, { globalCacheProps: [ "callCount", "readyCount" ] }));
-        this.app.global.upload.callCount = 0;
-        this.app.global.upload.readyCount = 0;
+        this.build.global.upload.callCount = 0;
+        this.build.global.upload.readyCount = 0;
     }
 
 
@@ -71,7 +71,7 @@ class WpBuildUploadPlugin extends WpwPlugin
      */
     async cleanup(_stats)
     {
-        const tmpUploadPath = join(this.app.build.paths.temp, this.app.build.mode);
+        const tmpUploadPath = join(this.build.paths.temp, this.build.mode);
         try
         {   if (existsSync(tmpUploadPath))
             {
@@ -80,10 +80,10 @@ class WpBuildUploadPlugin extends WpwPlugin
                 {
                     await rm(tmpUploadPath, { recursive: true, force: true });
                 }
-                this.app.logger.write("upload plugin cleanup completed");
+                this.build.logger.write("upload plugin cleanup completed");
         }   }
         catch (e) {
-			this.app.addMessage({
+			this.build.addMessage({
                 code: WpwError.Msg.ERROR_GENERAL,
                 compilation: this.compilation,
                 error: e,
@@ -104,11 +104,11 @@ class WpBuildUploadPlugin extends WpwPlugin
         // the OS/env temp dir.  We will move only files that have changed content there,
         // and perform only one upload when all builds have completed.
         //
-        const app = this.app,
-              logger = app.logger,
-              toUploadPath = join(app.build.paths.temp, app.build.mode);
+        const build = this.build,
+              logger = build.logger,
+              toUploadPath = join(build.paths.temp, build.mode);
 
-        if (!app.global.runtimeVars) {
+        if (!build.global.runtimeVars) {
             return;
         }
 
@@ -123,9 +123,9 @@ class WpBuildUploadPlugin extends WpwPlugin
             for (const file of Array.from(chunk.files))
             {
                 const asset = compilation.getAsset(file);
-                if (asset && chunk.name && (app.global.runtimeVars.next[chunk.name] !== app.global.runtimeVars.current[chunk.name] || !app.global.runtimeVars.previous[chunk.name]))
+                if (asset && chunk.name && (build.global.runtimeVars.next[chunk.name] !== build.global.runtimeVars.current[chunk.name] || !build.global.runtimeVars.previous[chunk.name]))
                 {
-                    const distPath = this.app.getDistPath();
+                    const distPath = this.build.getDistPath();
                     logger.value("   queue asset for upload", logger.tag(file), 2);
                     logger.value("      asset info", JSON.stringify(asset.info), 4);
                     await copyFile(join(distPath, file), join(toUploadPath, file));
@@ -133,7 +133,7 @@ class WpBuildUploadPlugin extends WpwPlugin
                     {
                         const sourceMapFile = asset.info.related.sourceMap.toString();
                         logger.value("   queue sourcemap for upload", logger.tag(sourceMapFile), 2);
-                        if (app.build.mode === "production") {
+                        if (build.mode === "production") {
                             logger.value("   remove production sourcemap from distribution", sourceMapFile, 3);
                             await rename(join(distPath, sourceMapFile), join(toUploadPath, sourceMapFile));
                         }
@@ -169,14 +169,14 @@ class WpBuildUploadPlugin extends WpwPlugin
             return;
         }
 
-        const name = app.pkgJson.scopedName.name;
+        const name = build.pkgJson.scopedName.name;
         const plinkCmds = [
             `mkdir ${rBasePath}/${name}`,
-            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}`,
-            `mkdir ${rBasePath}/${name}/v${app.pkgJson.version}/${app.build.mode}`,
-            `rm -f ${rBasePath}/${name}/v${app.pkgJson.version}/${app.build.mode}/*.*`
+            `mkdir ${rBasePath}/${name}/v${build.pkgJson.version}`,
+            `mkdir ${rBasePath}/${name}/v${build.pkgJson.version}/${build.mode}`,
+            `rm -f ${rBasePath}/${name}/v${build.pkgJson.version}/${build.mode}/*.*`
         ];
-        if (app.build.mode === "production") { plinkCmds.pop(); }
+        if (build.mode === "production") { plinkCmds.pop(); }
 
         const plinkArgs = [
             "-ssh",       // force use of ssh protocol
@@ -193,10 +193,10 @@ class WpBuildUploadPlugin extends WpwPlugin
             "-q",         // quiet, don't show statistics
             "-r",         // copy directories recursively
             toUploadPath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
-            `${user}@${host}:"${rBasePath}/${name}/v${app.pkgJson.version}"` // uploaded, and created if not exists
+            `${user}@${host}:"${rBasePath}/${name}/v${build.pkgJson.version}"` // uploaded, and created if not exists
         ];
 
-        await copyFile(join(this.app.getBasePath(), "node_modules", "source-map", "lib", "mappings.wasm"), join(toUploadPath, "mappings.wasm"));
+        await copyFile(join(this.build.getBasePath(), "node_modules", "source-map", "lib", "mappings.wasm"), join(toUploadPath, "mappings.wasm"));
 
         logger.write(`   upload resource files to ${host}`, 1, "");
         try
@@ -235,10 +235,10 @@ class WpBuildUploadPlugin extends WpwPlugin
  * Returns a `WpBuildUploadPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.upload`
  * property to a boolean value of `true` or `false`
- * @param {WpBuildApp} app
+ * @param {WpwBuild} build
  * @returns {WpBuildUploadPlugin | undefined} plugin instance
  */
-const upload = (app) => app.build.options.upload?.enabled ? new WpBuildUploadPlugin({ app }) : undefined;
+const upload = (build) => build.options.upload?.enabled ? new WpBuildUploadPlugin({ build }) : undefined;
 
 
 module.exports = upload;

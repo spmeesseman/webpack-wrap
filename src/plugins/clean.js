@@ -59,7 +59,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 			}
 		});
 
-		if (this.app.build.options.cache)
+		if (this.build.options.cache)
 		{
 			apply(options, {
 				cleanWebpackCache: {
@@ -76,10 +76,10 @@ class WpBuildCleanPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpBuildCleanPlugin | undefined}
      */
-	static build = (app) => WpBuildCleanPlugin.wrap(this, app, "copy");
+	static create = (build) => WpBuildCleanPlugin.wrap(this, build, "copy");
 
 
 	/**
@@ -89,8 +89,8 @@ class WpBuildCleanPlugin extends WpwPlugin
 	async buildAssets(compilation)
 	{
 		this.compilation = compilation;
-		const distPath = this.app.getDistPath(),
-			  compilerOptions = this.app.source.config.options.compilerOptions;
+		const distPath = this.build.getDistPath(),
+			  compilerOptions = this.build.source.config.options.compilerOptions;
 		if (await existsAsync(distPath))
 		{
 			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
@@ -101,7 +101,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 		}
 		if (compilerOptions.outDir)
 		{
-			const configOutDir = resolvePath(this.app.getContextPath(), compilerOptions.outDir);
+			const configOutDir = resolvePath(this.build.getContextPath(), compilerOptions.outDir);
 			if (await existsAsync(configOutDir))
 			{
 				const files = (await readdir(configOutDir)).filter(p => this.fileNameHashRegex().test(p));
@@ -121,21 +121,21 @@ class WpBuildCleanPlugin extends WpwPlugin
 	async buildCaches(compilation)
 	{
 		this.compilation = compilation;
-		const compilerOptions = this.app.source.config.options.compilerOptions,
+		const compilerOptions = this.build.source.config.options.compilerOptions,
 			  buildInfoFile = compilerOptions.tsBuildInfoFile;
 		if (buildInfoFile && await existsAsync(buildInfoFile))
 		{
 			await unlink(buildInfoFile);
 		}
-		if (await existsAsync(this.app.global.cacheDir))
+		if (await existsAsync(this.build.global.cacheDir))
 		{
-			const buildOptions = this.app.build.options;
+			const buildOptions = this.build.options;
 			await Promise.all([
 				WpwBuildOptionsKeys
 				.filter((plugin => !!buildOptions[plugin]))
 				.map(
 					(plugin) => join(
-						this.global.cacheDir, WpwPlugin.cacheFilename(this.app.build.mode, plugin)
+						this.global.cacheDir, WpwPlugin.cacheFilename(this.build.mode, plugin)
 					)
 				)
 				.filter(path => existsSync(path))
@@ -163,7 +163,7 @@ class WpBuildCleanPlugin extends WpwPlugin
      */
 	async staleAssets(stats)
 	{
-		const distPath = this.app.getDistPath();
+		const distPath = this.build.getDistPath();
 		if (await existsAsync(distPath))
 		{
 			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
@@ -185,7 +185,7 @@ class WpBuildCleanPlugin extends WpwPlugin
      */
 	async webpackCache(compilation)
 	{
-		if (this.app.build.options.cache)
+		if (this.build.options.cache)
 		{
 			const wpCacheDir = /** @type {typedefs.WebpackFileCacheOptions} */(this.wpc.cache).cacheDirectory;
 			if (wpCacheDir && await existsAsync(wpCacheDir)) {
@@ -205,7 +205,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 			  outputPath = this.wpc.output.path;
 		/** @type {CleanWebpackPluginOptions} */
 		let options;
-		if (this.app.build.type === "webapp")
+		if (this.build.type === "webapp")
 		{
 			options = {
 				dry: false,
@@ -224,7 +224,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 				verbose: this.logger.level >= 3,
 				dangerouslyAllowCleanPatternsOutsideProject: true,
 				cleanOnceBeforeBuildPatterns: [
-					`${this.app.build.paths.temp}/**`
+					`${this.build.paths.temp}/**`
 				]
 			};
 		}
@@ -234,4 +234,4 @@ class WpBuildCleanPlugin extends WpwPlugin
 }
 
 
-module.exports = WpBuildCleanPlugin.build;
+module.exports = WpBuildCleanPlugin.create;

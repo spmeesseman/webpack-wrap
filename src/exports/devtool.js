@@ -10,7 +10,7 @@ const WpwBase = require("../core/base");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 
 /**
  * Adds library mode webpack config `output` object.
@@ -30,29 +30,29 @@ const WpwBase = require("../core/base");
  *     source-map:                  : Recommended for prod builds w/ high quality SourceMaps
  *
  * @private
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const devtool = (app) =>
+const devtool = (build) =>
 {   //
 	// Disabled for this build - Using source-map-plugin - see webpack.plugin.js#sourcemaps
 	// ann the plugins() function below
 	//
-	if (app.build.options.devtool?.enabled)
+	if (build.options.devtool?.enabled)
 	{
-		if (app.build.options.sourcemaps?.enabled)
+		if (build.options.sourcemaps?.enabled)
 		{
-			app.wpc.devtool = false;
+			build.wpc.devtool = false;
 		}
 		else
 		{
-			if (app.build.mode === "production") {
-				app.wpc.devtool = "source-map";
+			if (build.mode === "production") {
+				build.wpc.devtool = "source-map";
 			}
-			else if (app.build.mode === "development") {
-				app.wpc.devtool = "eval-source-map";
+			else if (build.mode === "development") {
+				build.wpc.devtool = "eval-source-map";
 			}
 			else {
-				app.wpc.devtool = "eval";
+				build.wpc.devtool = "eval";
 			}
 		}
 	}

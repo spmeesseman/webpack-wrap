@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpBuildApp = require("../core/app");
+ const WpwBuild = require("../core/build");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -19,19 +19,19 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 
 /**
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  * @returns {WebpackPluginInstance[]}
  */
-const optimization = (app) =>
+const optimization = (build) =>
 {
 	const plugins = [];
-	if (app.build.options.optimization)
+	if (build.options.optimization)
 	{
-		if (app.build.target === "web")
+		if (build.target === "web")
 		{
 			plugins.push(new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
 		}
-		if (app.build.type !== "webapp")
+		if (build.type !== "webapp")
 		{
 			plugins.push(new webpack.NoEmitOnErrorsPlugin());
 		}

@@ -15,17 +15,17 @@ const { apply, isString, WpwRegex } = require("../utils");
  *
  */
 
-/** @typedef {import("../core/app")} WpBuildApp */
+/** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("../types").WebpackPathData}  WebpackPathData */
 /** @typedef {import("../types").WebpackAssetInfo}  WebpackAssetInfo */
 /** @typedef {import("../types").RequireKeys<WebpackPathData, "filename" | "chunk">} WebpackPathDataOutput */
 
 
-const outputEnvironment = (app) =>
+const outputEnvironment = (build) =>
 {
-	if (app.build.type === "tests")
+	if (build.type === "tests")
 	{
-		app.wpc.output.environment = {
+		build.wpc.output.environment = {
 			arrowFunction: false
 		};
 	}
@@ -36,29 +36,29 @@ const outputEnvironment = (app) =>
  * @see {@link https://webpack.js.org/configuration/output webpack.js.org/output}
  *
  * @function
- * @param {WpBuildApp} app The current build's rc wrapper @see {@link WpBuildApp}
+ * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
-const output = (app) =>
+const output = (build) =>
 {
-	app.logger.start("create output configuration", 2);
+	build.logger.start("create output configuration", 2);
 
-	apply(app.wpc.output,
+	apply(build.wpc.output,
 	{
-		path: app.getDistPath(),
+		path: build.getDistPath(),
 		filename: "[name].js",
 		compareBeforeEmit: true,
 		hashDigestLength: 20
-		// clean: app.clean ? (app.isTests ? { keep: /(test)[\\/]/ } : app.clean) : undefined
+		// clean: build.clean ? (build.isTests ? { keep: /(test)[\\/]/ } : build.clean) : undefined
 	});
 
-	app.logger.write(`   configure output for build '${app.build.name}' [ type: ${app.build.type} ]`, 2);
+	build.logger.write(`   configure output for build '${build.name}' [ type: ${build.type} ]`, 2);
 
-	if (app.build.type === "webapp")
+	if (build.type === "webapp")
 	{
-		apply(app.wpc.output,
+		apply(build.wpc.output,
 		{
-			// clean: app.clean ? { keep: /(img|font|readme|walkthrough)[\\/]/ } : undefined,
-			publicPath: app.build.vscode?.type === "webview" ? "#{webroot}/" : (process.env.ASSET_PATH || "/"),
+			// clean: build.clean ? { keep: /(img|font|readme|walkthrough)[\\/]/ } : undefined,
+			publicPath: build.vscode?.type === "webview" ? "#{webroot}/" : (process.env.ASSET_PATH || "/"),
 			/**
 			 * @param {WebpackPathData} pathData
 			 * @param {WebpackAssetInfo | undefined} _assetInfo
@@ -67,48 +67,48 @@ const output = (app) =>
 			filename: (pathData, _assetInfo) =>
 			{
 				let name = "[name]";
-				if (app.build.options.web?.filename?.camelToDash && pathData.chunk?.name)
+				if (build.options.web?.filename?.camelToDash && pathData.chunk?.name)
 				{
 					name = pathData.chunk.name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
-					app.logger.write(`   convert chunk name to '${name}' from ${pathData.chunk.name} as configured by transform`, 4);
+					build.logger.write(`   convert chunk name to '${name}' from ${pathData.chunk.name} as configured by transform`, 4);
 				}
-				if (app.build.options.web?.filename?.jsDirectory)
+				if (build.options.web?.filename?.jsDirectory)
 				{
-					app.logger.write(`   set output filename to 'js/${name}.js' as configured by transform`, 4);
+					build.logger.write(`   set output filename to 'js/${name}.js' as configured by transform`, 4);
 					return `js/${name}.js`;
 				}
 				return `${name}.js`;
 			}
 		});
 
-		if (app.build.vscode?.type === "webview")
+		if (build.vscode?.type === "webview")
 		{
-			app.logger.write("   set publicPath to '#{webroot}/' for vscode build", 3);
-			app.wpc.output.publicPath = "#{webroot}/";
+			build.logger.write("   set publicPath to '#{webroot}/' for vscode build", 3);
+			build.wpc.output.publicPath = "#{webroot}/";
 		}
 
-		if (app.build.options.web?.publicPath)
+		if (build.options.web?.publicPath)
 		{
-			app.logger.write(`   set publicPath to configured value '${app.build.options.web.publicPath}'`, 3);
-			app.wpc.output.publicPath = app.build.options.web.publicPath;
+			build.logger.write(`   set publicPath to configured value '${build.options.web.publicPath}'`, 3);
+			build.wpc.output.publicPath = build.options.web.publicPath;
 		}
 
-		if (isString(app.wpc.output.publicPath) && !app.wpc.output.publicPath.endsWith("/")) {
-			app.wpc.output.publicPath += "/";
+		if (isString(build.wpc.output.publicPath) && !build.wpc.output.publicPath.endsWith("/")) {
+			build.wpc.output.publicPath += "/";
 		}
 	}
-	else if (app.build.type === "tests")
+	else if (build.type === "tests")
 	{
-		app.logger.write("   set test build library target to 'umd", 3);
-		apply(app.wpc.output,
+		build.logger.write("   set test build library target to 'umd", 3);
+		apply(build.wpc.output,
 		{
 			libraryTarget: "umd",
 			umdNamedDefine: true
 		});
 	}
-	else if (app.build.type === "types")
+	else if (build.type === "types")
 	{
-		// apply(app.wpc.output,
+		// apply(build.wpc.output,
 		// {
 		// 	// libraryTarget: "commonjs2"
 		// 	// publicPath: "types/"
@@ -117,9 +117,9 @@ const output = (app) =>
 		// 	// umdNamedDefine: true
 		// });
 	}
-	else if (app.build.type === "module") // type: module / main
+	else if (build.type === "app") // type: module / main
 	{
-		apply(app.wpc.output,
+		apply(build.wpc.output,
 		{
 			libraryTarget: "commonjs2",
 			filename: (pathData, _assetInfo) =>
@@ -130,15 +130,15 @@ const output = (app) =>
 		});
 	}
 	else {
-		apply(app.wpc.output,
+		apply(build.wpc.output,
 		{
 			libraryTarget: "commonjs2"
 		});
 	}
 
-	outputEnvironment(app);
+	outputEnvironment(build);
 
-	app.logger.write("   output configuration created successfully", 2);
+	build.logger.write("   output configuration created successfully", 2);
 };
 
 

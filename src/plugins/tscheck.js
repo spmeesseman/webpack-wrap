@@ -38,8 +38,8 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} */(this.app.build.options.tscheck);
-        this.typesBuildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.app.build.options.types);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} */(this.build.options.tscheck);
+        this.typesBuildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.build.options.types);
 	}
 
 
@@ -50,13 +50,13 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
      */
     apply(compiler)
     {
-		const distPath = this.app.getDistPath({ build: "types" }),
-			  entry = this.app.wpc.entry[this.app.build.name] || this.app.wpc.entry.index,
+		const distPath = this.build.getDistPath({ build: "types" }),
+			  entry = this.build.wpc.entry[this.build.name] || this.build.wpc.entry.index,
 			  entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
 
 		if (this.typesBuildOptions?.bundle)
 		{
-			if (entryFile && existsSync(entryFile) && this.app.isOnlyBuild)
+			if (entryFile && existsSync(entryFile) && this.build.isOnlyBuild)
 			{
 				this.onApply(compiler,
 				{
@@ -86,7 +86,7 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 			this.onApply(compiler);
 		}
 
-		const logLevel = this.app.logger.level;
+		const logLevel = this.build.logger.level;
 		if (logLevel > 1)
 		{
 			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
@@ -106,10 +106,10 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpBuildApp} app
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpBuildTsCheckPlugin | undefined}
      */
-	static build = (app) => WpBuildTsCheckPlugin.wrap(this, app, "tscheck");
+	static create = (build) => WpBuildTsCheckPlugin.wrap(this, build, "tscheck");
 
 
 	/**
@@ -118,8 +118,8 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 	 */
 	getVendorPlugin = () =>
 	{
-		const app = this.app,
-			  config = app.source.config,
+		const build = this.build,
+			  config = build.source.config,
 			  configPath = /** @type {string} */(config.path);
 
 		/** @type {ForkTsCheckerTypescriptOptions} */
@@ -132,7 +132,7 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 			}
 		};
 
-		if (app.build.type === "tests")
+		if (build.type === "tests")
 		{
 			merge(tsOptions,
 			{
@@ -142,7 +142,7 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 				}
 			});
 		}
-		else if (app.build.type === "types")
+		else if (build.type === "types")
 		{
 			merge(tsOptions,
 			{
@@ -153,9 +153,9 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 			});
 		}
 
-		app.logger.write("get vendor plugin");
-		app.logger.write(`   add config file '${tsOptions.configFile}' to tschecker [${tsOptions.mode}][build=${!!tsOptions.build}]`, 2);
-		app.logger.write("   create 'fork-ts-checker-webpack-plugin' instance");
+		build.logger.write("get vendor plugin");
+		build.logger.write(`   add config file '${tsOptions.configFile}' to tschecker [${tsOptions.mode}][build=${!!tsOptions.build}]`, 2);
+		build.logger.write("   create 'fork-ts-checker-webpack-plugin' instance");
 
 		return new ForkTsCheckerWebpackPlugin(/** @type {ForkTsCheckerOptions} */(
 		{
@@ -164,8 +164,8 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 			typescript: tsOptions,
 			// logger: "webpack-infrastructure"
 			logger: {
-				error: app.logger.error,
-				log: app.logger.write
+				error: build.logger.error,
+				log: build.logger.write
 			}
 		}));
 	};
@@ -222,4 +222,4 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 }
 
 
-module.exports = WpBuildTsCheckPlugin.build;
+module.exports = WpBuildTsCheckPlugin.create;

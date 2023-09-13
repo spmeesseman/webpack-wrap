@@ -15,22 +15,22 @@ const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 
 /**
- * @param {import("../../types/typedefs").WpBuildApp} app
+ * @param {import("../../types/typedefs").WpwBuild} build
  * @returns {CircularDependencyPlugin | undefined}
  */
-const circular = (app) =>
+const circular = (build) =>
 {
     let plugin;
-    if (app.cmdLine.analyze)
+    if (build.cmdLine.analyze)
     {
         plugin = new CircularDependencyPlugin(
         {
-            cwd: app.getBasePath(),
-            exclude: new RegExp(getExcludes(app, app.source.config).join("|"), "gi"),
+            cwd: build.getBasePath(),
+            exclude: new RegExp(getExcludes(build, build.source.config).join("|"), "gi"),
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                app.addMessage({ code: WpwError.Msg.WARNING_GENERAL, compilation, message: paths.join(" -> ") });
+                build.addMessage({ code: WpwError.Msg.WARNING_GENERAL, compilation, message: paths.join(" -> ") });
             }
         });
     }
