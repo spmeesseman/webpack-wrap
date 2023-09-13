@@ -24,7 +24,6 @@ const WpwBuild = require("./build");
 /**
  * @extends {WpwBase}
  * @implements {typedefs.IDisposable}
- * @implements {typedefs.IWpBuildApp}
  */
 class WpBuildApp extends WpwBase
 {

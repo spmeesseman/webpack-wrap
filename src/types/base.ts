@@ -1,6 +1,6 @@
 
 /**
- * @file types/base.d.ts
+ * @file types/base.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -20,46 +20,45 @@
  *//** */
 
 import { WpwBuildOptionsKey } from "./rc";
-import { WpwLoggerOptions } from "./logger";
 
 
-declare type WpwAppInstance = InstanceType<typeof import("../core/app")>;
+type WpwAppInstance = InstanceType<typeof import("../core/app")>;
 
-declare type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
+type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
 
-declare interface IWpwBaseModuleOptions extends IWpwBaseOptions
+interface IWpwBaseModuleOptions extends IWpwBaseOptions
 {
     app: WpwAppInstance;
     key?: WpwBuildOptionsKey;
     globalCacheProps?: string[];
 };
-declare type WpwBaseModuleOptions = IWpwBaseModuleOptions;
+type WpwBaseModuleOptions = IWpwBaseModuleOptions;
 
-// declare type WpwBaseOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
+// type WpwBaseOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
 // {
 //     app: typeof import("../core/app").prototype,
 //     key?: WpwBuildOptionsKey;
 //     globalCacheProps?: string[];
 // } & (T extends WpwBuildOptionsKey ? WpwBuildOptions[T] : {});
 
-declare interface IWpwBaseModule extends IWpwBase
+interface IWpwBaseModule extends IWpwBase
 {
     app: WpwAppInstance;
 }
 
-declare interface IWpwBase
+interface IWpwBase
 {
     readonly name: string;
     readonly initialConfig: any;
     logger: WpwLoggerInstance;
 }
 
-declare interface IWpwBaseOptions
+interface IWpwBaseOptions
 {
-    logger?: WpwLoggerOptions | WpwLoggerInstance;
+    logger?: WpwLoggerInstance;
     [key: string]: any;
 };
-declare type WpwBaseOptions = IWpwBaseOptions;
+type WpwBaseOptions = IWpwBaseOptions;
 
 
 export { IWpwBase, IWpwBaseModule, IWpwBaseOptions, IWpwBaseModuleOptions, WpwBaseOptions, WpwBaseModuleOptions };

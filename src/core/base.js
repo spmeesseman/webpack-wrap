@@ -24,7 +24,7 @@ class WpwBase
 {
     /** @type {typedefs.IDisposable[]} */
     disposables;
-    /** @type {typedefs.WpBuildGlobalEnvironment} */
+    /** @type {typedefs.IWpwGlobalEnvironment} */
     global;
     /** @type {typedefs.WpwBaseOptions} */
     initialConfig;

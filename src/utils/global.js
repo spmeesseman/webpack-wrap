@@ -11,7 +11,7 @@
 const { resolve, join } = require("path");
 const { existsSync, readFileSync, mkdirSync, writeFileSync } = require("fs");
 
-/** @typedef {import("../types").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
+/** @typedef {import("../types").IWpwGlobalEnvironment} IWpwGlobalEnvironment */
 
 
 const cacheDir = resolve(__dirname, "..", "..", "node_modules", ".cache", "wpwrap");
@@ -21,7 +21,7 @@ const globalCacheFilePath = join(cacheDir, "global.json");
 if (!existsSync(globalCacheFilePath)) { writeFileSync(globalCacheFilePath, "{}"); }
 
 
-/** @type {WpBuildGlobalEnvironment} */
+/** @type {IWpwGlobalEnvironment} */
 const globalEnv = {
     buildCount: 0,
     cache: JSON.parse(readFileSync(globalCacheFilePath, "utf8")),

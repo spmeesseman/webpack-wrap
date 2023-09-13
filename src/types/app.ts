@@ -21,20 +21,13 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
-import { IWpwLogger } from "./logger";
-import { WpwErrorCode, WpwInfoCode, WpwWarningCode } from "./message";
-import { IDisposable, ClsWpwError } from "./generic";
-import {
-    EmitResult, CustomTransformers, CancellationToken, CompilerOptions, WriteFileCallback, SourceFile
-} from "typescript";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
     WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler,
-    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackCompilation
+    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions
 } from "./webpack";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, IWpwBuildConfig, WebpackTarget, WpwRcPathsKey,
-    WpwBuildModeConfig, IWpwSchema, WpwSourceCode, WpwVsCode, WpwPackageJson, IWpwSourceCode, WpwSourceCodeExtension
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwBuildBaseConfig, WpwSourceCodeExtension
 } from "./rc";
 
 
@@ -45,17 +38,16 @@ declare interface IWpBuildAppGetPathOptions {
 };
 declare type WpBuildAppGetPathOptions = IWpBuildAppGetPathOptions;
 
-declare interface IWpBuildGlobalEnvironment {
+declare interface IWpwGlobalEnvironment {
     buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any;
 };
-declare type WpBuildGlobalEnvironment = IWpBuildGlobalEnvironment;
 
 declare interface IWpBuildRuntimeEnvArgs {
     analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
 };
 declare type WpBuildRuntimeEnvArgs = IWpBuildRuntimeEnvArgs;
 
-declare type WpwBuildModeConfigBase = Omit<WpwBuildModeConfig, "builds">;
+declare type WpwBuildModeConfigBase = Omit<WpwBuildBaseConfig, "builds">;
 
 // declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
@@ -64,33 +56,6 @@ declare type WpBuildCombinedRuntimeArgs =
 
 declare type WpwSourceCodeDotExtensionApp = `.${WpwSourceCodeExtension}`;
 
-declare interface IWpwSourceCodeApp extends IWpwSourceCode
-{
-    readonly dotext: WpwSourceCodeDotExtension;
-    readonly ext: WpwSourceCodeExtension;
-    emit: (file?: SourceFile, writeFileCb?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDts?: boolean, transformers?: CustomTransformers) => EmitResult | undefined;
-}
-
-declare interface IWpBuildApp extends IDisposable
-{
-    build: IWpwBuildConfig;
-    logger: IWpwLogger;
-    wpc: WpwWebpackConfig;
-    readonly buildCount: number;
-    readonly cmdLine: WpBuildCombinedRuntimeArgs;
-    readonly global: WpBuildGlobalEnvironment;
-    readonly isOnlyBuild: boolean;
-    readonly pkgJson: WpwPackageJson;
-    readonly source: WpwSourceCode;
-    buildWrapper(): WpwWebpackConfig;
-    dispose(): Promise<void>;
-    getBuildWrapper(name: string): IWpBuildApp | undefined;
-    getBuild(name: string): WpwBuild | undefined;
-    getBasePath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
-    getContextPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
-    getDistPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
-    getSrcPath<P extends WpBuildAppGetPathOptions | undefined, R extends P extends { stat: true } ? string | undefined : string>(arg: P): R;
-}
 
 declare interface IWpwWebpackConfig extends WebpackConfig
 {
@@ -112,16 +77,13 @@ declare type WpwWebpackConfig = IWpwWebpackConfig;
 
 
 export {
-    IWpBuildApp,
-    IWpwSourceCodeApp,
     IWpwWebpackConfig,
     IWpBuildRuntimeEnvArgs,
     IWpBuildAppGetPathOptions,
     WpBuildCombinedRuntimeArgs,
-    IWpBuildGlobalEnvironment,
+    IWpwGlobalEnvironment,
     WpwBuildModeConfigBase,
     WpBuildAppGetPathOptions,
-    WpBuildGlobalEnvironment,
     WpBuildRuntimeEnvArgs,
     WpwSourceCodeDotExtensionApp,
     WpwWebpackConfig,

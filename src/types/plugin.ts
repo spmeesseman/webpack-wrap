@@ -1,6 +1,6 @@
 
 /**
- * @file types/plugin.d.ts
+ * @file types/plugin.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -47,14 +47,11 @@
  *//** */
 
 import { RequireKeys } from "./generic";
-import { IWpwLogger } from "./logger";
-import { WpwPluginConfigWaitDef } from "./rc";
+import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
 import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
-    WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackCompilationAssets,
-    WebpackCompilationParams, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation,
-    WebpackStats, WebpackNormalModuleFactory
+    WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation
 } from "./webpack";
 
 
@@ -86,7 +83,7 @@ declare interface IWpBuildPluginVendorOptions
 }
 declare type WpBuildPluginVendorOptions = IWpBuildPluginVendorOptions;
 
-declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitDef & { callback: (...args: any[]) => any };
+declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitItem & { callback: (...args: any[]) => any };
 
 declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
 
@@ -102,7 +99,7 @@ declare interface WpBuildPluginTapOptionsEntry
     async?: boolean;
     hook: WebpackCompilerHookName;
     hookCompilation?: WebpackCompilationHookName;
-    callback: WpwOnApplyCallback;
+    callback: WpwApplyCallback;
     stage?: WebpackCompilationHookStage;
     statsProperty?: string;
 };
@@ -113,7 +110,6 @@ declare interface IWpBuildPlugin extends IWpwBaseModule, WebpackPluginInstance
     // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;
     compiler?: WebpackCompiler;
-    logger: IWpwLogger;
 }
 
 declare type WpBuildDtsBundleOptions = DtsBundleOptions & { baseDir: string; name: string; out: string };

@@ -1,6 +1,6 @@
 
 /**
- * @file types/export.d.ts
+ * @file types/export.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -48,13 +48,14 @@
  *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
  *//** */
 
+
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
 
 
-declare type WpwExportOptions = { build?: string } & WpwBaseModuleOptions;
+type WpwExportOptions = { build?: string } & WpwBaseModuleOptions;
 
 
-declare interface IWpwExport extends IWpwBaseModule
+interface IWpwExport extends IWpwBaseModule
 {
     // app: ClsWpBuildApp;
     // compilation?: WebpackCompilation;

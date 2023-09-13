@@ -53,71 +53,71 @@ import webpack, {
     MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError
 }from "webpack";
 
-declare type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
+type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
 
-declare type WebpackCacheFacade = ReturnType<WebpackCompilation["getCache"]>;
+type WebpackCacheFacade = ReturnType<WebpackCompilation["getCache"]>;
 
-declare type WebpackSource = WebpackSources.Source;
+type WebpackSource = WebpackSources.Source;
 
-declare interface IWebpackCompilationAssets { [index: string]: WebpackSource }
-declare type WebpackCompilationAssets = IWebpackCompilationAssets;
+interface IWebpackCompilationAssets { [index: string]: WebpackSource }
+type WebpackCompilationAssets = IWebpackCompilationAssets;
 
-declare type WebpackCompilationHook = WebpackCompilation["hooks"];
+type WebpackCompilationHook = WebpackCompilation["hooks"];
 
-declare type WebpackCompilationHookName = keyof WebpackCompilationHook;
+type WebpackCompilationHookName = keyof WebpackCompilationHook;
 
-declare interface IWebpackCompilationParams {
+interface IWebpackCompilationParams {
     normalModuleFactory: WebpackNormalModuleFactory;
     contextModuleFactory: WebpackContextModuleFactory;
 }
-declare type WebpackCompilationParams = IWebpackCompilationParams;
+type WebpackCompilationParams = IWebpackCompilationParams;
 
-declare type WebpackCompilationHookStage = "ADDITIONAL" | "PRE_PROCESS" | "DERIVED" | "ADDITIONS" |  "OPTIMIZE" |
+type WebpackCompilationHookStage = "ADDITIONAL" | "PRE_PROCESS" | "DERIVED" | "ADDITIONS" |  "OPTIMIZE" |
                                            "OPTIMIZE_COUNT" | "OPTIMIZE_COMPATIBILITY" | "OPTIMIZE_SIZE" |
                                            "DEV_TOOLING" | "OPTIMIZE_INLINE" | "SUMMARIZE" | "OPTIMIZE_HASH" |
                                            "OPTIMIZE_TRANSFER" | "ANALYSE" | "REPORT";
 
-declare type WebpackCompilerHook = WebpackCompiler["hooks"];
+type WebpackCompilerHook = WebpackCompiler["hooks"];
 
-declare type WebpackCompilerAsyncHook = PickByType<WebpackCompilerHook, AsyncSeriesHook<any>>;
+type WebpackCompilerAsyncHook = PickByType<WebpackCompilerHook, AsyncSeriesHook<any>>;
 
-declare type WebpackCompilerSyncHook = PickByType<WebpackCompilerHook, SyncHook<any>>;
+type WebpackCompilerSyncHook = PickByType<WebpackCompilerHook, SyncHook<any>>;
 
-declare type WebpackCompilerHookName = keyof WebpackCompilerHook;
+type WebpackCompilerHookName = keyof WebpackCompilerHook;
 
-declare type WebpackCompilerAsyncHookName = keyof WebpackCompilerAsyncHook;
+type WebpackCompilerAsyncHookName = keyof WebpackCompilerAsyncHook;
 
-declare type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
+type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
 
-declare type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
+type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
 
-declare type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
+type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
 
-declare type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
+type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
 
-declare type WebpackHookMap<H> = HookMap<H>;
+type WebpackHookMap<H> = HookMap<H>;
 
-declare type WebpackLogger = ReturnType<WebpackCompilation["getLogger"]>;
+type WebpackLogger = ReturnType<WebpackCompilation["getLogger"]>;
 
-declare type WebpackLogLevel = Exclude<WebpackConfig["infrastructureLogging"], undefined>["level"];
+type WebpackLogLevel = Exclude<WebpackConfig["infrastructureLogging"], undefined>["level"];
 
-declare type WebpackMode = WebpackConfig["mode"];
+type WebpackMode = WebpackConfig["mode"];
 
-declare type WebpackModuleOptions = { rules: WebpackRuleSetRule[] } & ModuleOptions;
+type WebpackModuleOptions = { rules: WebpackRuleSetRule[] } & ModuleOptions;
 
-declare type WebpackNormalModuleFactory =  ReturnType<WebpackCompiler["createNormalModuleFactory"]>;
+type WebpackNormalModuleFactory =  ReturnType<WebpackCompiler["createNormalModuleFactory"]>;
 
-declare type WebpackOptimization = WebpackOptionsNormalized["optimization"];
+type WebpackOptimization = WebpackOptionsNormalized["optimization"];
 
-declare type WebpackEntry = EntryObject;
+type WebpackEntry = EntryObject;
 
-declare type WebpackOutput = RequireKeys<Exclude<WebpackConfig["output"], undefined>, "path">;
+type WebpackOutput = RequireKeys<Exclude<WebpackConfig["output"], undefined>, "path">;
 
-declare type WebpackRawSource = WebpackSources.RawSource;
+type WebpackRawSource = WebpackSources.RawSource;
 
-declare type WebpackRuleSetRule = Exclude<ConvertType<RuleSetRule, (false | "" | 0 | RuleSetRule | "..." | null | undefined)[] , RuleSetRule[]>, undefined>;
+type WebpackRuleSetRule = Exclude<ConvertType<RuleSetRule, (false | "" | 0 | RuleSetRule | "..." | null | undefined)[] , RuleSetRule[]>, undefined>;
 
-declare interface IWebpackRuntimeArgs extends Record<string, string[] | string | boolean | WebpackRuntimeEnvArgs | undefined>
+interface IWebpackRuntimeArgs extends Record<string, string[] | string | boolean | WebpackRuntimeEnvArgs | undefined>
 {
     clean?: boolean;
     config: string[];
@@ -125,32 +125,33 @@ declare interface IWebpackRuntimeArgs extends Record<string, string[] | string |
     mode?: WebpackMode;
     watch?: boolean;
 }
-declare type WebpackRuntimeArgs = IWebpackRuntimeArgs;
+type WebpackRuntimeArgs = IWebpackRuntimeArgs;
 
-declare interface IWebpackRuntimeEnvArgs { WEBPACK_WATCH?: boolean; watch?: boolean }
-declare type WebpackRuntimeEnvArgs = IWebpackRuntimeEnvArgs;
+interface IWebpackRuntimeEnvArgs { WEBPACK_WATCH?: boolean; watch?: boolean }
+type WebpackRuntimeEnvArgs = IWebpackRuntimeEnvArgs;
 
-declare type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;
+type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;
 
-declare type WebpackStatsPrinterType<T> = T extends WebpackSyncHook<infer X> ? X : never;
+type WebpackStatsPrinterType<T> = T extends WebpackSyncHook<infer X> ? X : never;
 
-declare type WebpackStatsPrinterPrint<T> =  T extends WebpackHookMap<infer X> ? X : never;
+type WebpackStatsPrinterPrint<T> =  T extends WebpackHookMap<infer X> ? X : never;
 
-declare type WebpackStatsPrinterContextHook<T, Y> =  T extends WebpackSyncBailHook<infer X, Y> ? X : never;
+type WebpackStatsPrinterContextHook<T, Y> =  T extends WebpackSyncBailHook<infer X, Y> ? X : never;
 
-declare type WebpackStatsPrinterContext = WebpackStatsPrinterContextHook<WebpackStatsPrinterPrint<WebpackStatsPrinterType<WebpackCompilationHook["statsPrinter"]>[0]["hooks"]["print"]>, string>[1];
+type WebpackStatsPrinterContext = WebpackStatsPrinterContextHook<WebpackStatsPrinterPrint<WebpackStatsPrinterType<WebpackCompilationHook["statsPrinter"]>[0]["hooks"]["print"]>, string>[1];
 
-declare type WebpackSyncBailHook<T, R> = SyncBailHook<T, R>;
+type WebpackSyncBailHook<T, R> = SyncBailHook<T, R>;
 
-declare type WebpackSyncHook<T> = SyncHook<T>;
+type WebpackSyncHook<T> = SyncHook<T>;
 
-declare type WebpackRuleSetUse = Exclude<RuleSetUse, string>;
+type WebpackRuleSetUse = Exclude<RuleSetUse, string>;
 
-// declare type WebpackRuleSetUseItem = Exclude<RuleSetUseItem, (string | undefined)>;
-declare interface IWebpackRuleSetUseItem { ident?: string; loader?: string; options: Record<string, any> };
-declare type WebpackRuleSetUseItem = WebpackRuleSetUseItem;
+// type WebpackRuleSetUseItem = Exclude<RuleSetUseItem, (string | undefined)>;
+interface IWebpackRuleSetUseItem { ident?: string; loader?: string; options: Record<string, any> };
+type WebpackRuleSetUseItem = IWebpackRuleSetUseItem;
 
-declare type WebpackType = typeof webpack;
+type WebpackType = typeof webpack;
+
 
 export {
     IWebpackRuntimeEnvArgs,

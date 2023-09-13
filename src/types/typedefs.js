@@ -242,7 +242,7 @@
 
 
 /***********************************************************************************************************************
- * BUILD.D.TS
+ * BUILD
  ***********************************************************************************************************************/
 
 // @typedef {import(".").hasSymbolSham} hasSymbolSham */
@@ -253,24 +253,22 @@
  */
 
 /***********************************************************************************************************************
- * APP.D.TS
+ * APP
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/app")} WpBuildApp */
-/** @typedef {import("./app").IWpBuildApp} IWpBuildApp */
 /** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
-/** @typedef {import("./app").IWpwSourceCodeApp} IWpwSourceCodeApp */
 /** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
 /** @typedef {import("./app").WpwBuildModeConfigBase} WpwBuildModeConfigBase */
 /** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
-/** @typedef {import("./app").WpBuildGlobalEnvironment} WpBuildGlobalEnvironment */
+/** @typedef {import("./app").IWpwGlobalEnvironment} IWpwGlobalEnvironment */
 /** @typedef {import("./app").WpBuildCombinedRuntimeArgs} WpBuildCombinedRuntimeArgs */
 /** @typedef {import("./app").WpwSourceCodeDotExtensionApp} WpwSourceCodeDotExtensionApp */
 
 
 /***********************************************************************************************************************
- * EXPORT.D.TS
+ * EXPORT
  ***********************************************************************************************************************/
 
 /** @typedef {import("./export").IWpwExport} IWpwExport */
@@ -278,7 +276,7 @@
 
 
 /***********************************************************************************************************************
- * GENERIC.D.TS
+ * GENERIC
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
@@ -315,12 +313,11 @@
  */
 
 /***********************************************************************************************************************
- * LOGGER.D.TS
+ * LOGGER
  ***********************************************************************************************************************/
 
 /** @typedef {import("../utils").WpwLogger} WpwLogger */
 /** @typedef {import("./logger").WpwLoggerIcon} WpwLoggerIcon */
-/** @typedef {import("./logger").WpwLoggerOptions} WpwLoggerOptions */
 /** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
 /** @typedef {import("./logger").WpwLoggerIconSet} WpwLoggerIconSet */
 /** @typedef {import("./logger").WpwLogColorMapping} WpwLogColorMapping */
@@ -329,7 +326,7 @@
 
 
 /***********************************************************************************************************************
- * MESSAGE.D.TS
+ * MESSAGE
  ***********************************************************************************************************************/
 
 /** @typedef {import("../utils/message")} WpwError */
@@ -353,7 +350,7 @@
 
 
 /***********************************************************************************************************************
- * PLUGINS PLUGIN.D.TS
+ * PLUGINS PLUGIN
  ***********************************************************************************************************************/
 
 

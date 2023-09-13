@@ -140,8 +140,12 @@ class WpwRc extends WpwBase
         }
         catch
         {   const parentDir = dirname(dirPath);
-            if (parentDir === dirPath) {
-                throw new WpwError(`Could not locate or parse '${basename(file)}', check existence or syntax`);
+            if (parentDir === dirPath)
+            {
+                throw new WpwError({
+                    code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+                    message: `Could not locate or parse '${basename(file)}', check existence or syntax`
+                });
             }
             return this.applyJsonFromFile(thisArg, file, parentDir);
         }

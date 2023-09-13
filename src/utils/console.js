@@ -30,7 +30,7 @@ class WpwLogger
 
 
     /**
-     * @param {typedefs.WpwLoggerOptions} options
+     * @param {Partial<typedefs.IWpwLog>} options
      */
     constructor(options)
     {
@@ -61,7 +61,7 @@ class WpwLogger
 
     /**
      * @private
-     * @param {typedefs.IWpwLog} options
+     * @param {Partial<typedefs.IWpwLog>} options
      */
     applyOptions = (options) =>
     {
