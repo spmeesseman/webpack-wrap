@@ -5,14 +5,20 @@
       // "allowJs": true,
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
-      "baseUrl": ".",
-      "experimentalDecorators": true,
+      // "baseUrl": "..",
+      // "experimentalDecorators": true,
       "incremental": true,
       "lib": [
         "es2020"
       ],
+      // "noLib": true,
       "module": "commonjs",
       "moduleResolution": "node",
+      // "declaration": true,
+      // "emitDeclarationOnly": true,
+      // "declarationMap": false,
+      // "declarationDir": "dist/types",
+      // "outFile": "dist/types/output",
       "noEmit": false,
       "noFallthroughCasesInSwitch": false,
       "noImplicitAny": false,
@@ -35,14 +41,15 @@
       "strictFunctionTypes": true,
       "strictNullChecks": true,
       "strictPropertyInitialization": false,
+      // "stripInternal": true,
       "suppressImplicitAnyIndexErrors": true,
       "suppressExcessPropertyErrors": true,
       "target": "es2020",
-      "tsBuildInfoFile": "./node_modules/.cache/wpwrap/tsconfig.tsbuildinfo",
+      // "tsBuildInfoFile": "./node_modules/.cache/wpwrap/tsconfig.tsbuildinfo",
       "useUnknownInCatchVariables": false
     },
     "include": [
-      "src/**/*.js"
+      "src"
     ],
     "exclude": [
         ".*",
@@ -54,7 +61,8 @@
         "res",
         "schema",
         "test-fixture",
-        "**/types/**",
+        "src/types/**",
+        "src/types/constants.js",
         "src/plugins/analyze/visualizer.js"
     ]
 }

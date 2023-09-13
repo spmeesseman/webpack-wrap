@@ -43,18 +43,17 @@ export interface IWpwMessageEnum
     [ key: string ]: WpwMessageCode;
 }
 
-export interface IWpwMessageInfo<E extends Error | undefined>
+export interface WpwMessageInfo
 {
     code: WpwMessageCode;
     compilation?: WebpackCompilation;
     detail?: string;
     detailObject?: Record<string, any>;
-    error?: E;
+    error?: WpwMessageType | WebpackError | Error | undefined;
     message: string;
     pad?: string;
     wpc?: IWpwWebpackConfig | Partial<IWpwWebpackConfig> | null;
 }
-export type WpwMessageInfo = IWpwMessageInfo<WpwMessageType | WebpackError | Error | undefined>;
 export type WpwMessageInfoKey = keyof WpwMessageInfo;
 
 export interface WpwWebpackError extends WebpackError

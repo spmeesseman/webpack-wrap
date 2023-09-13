@@ -9,10 +9,11 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwRegex = require("./regex");
-const { WebpackError } = require("webpack");
+const WpwRegex = require("./regex");
 const typedefs = require("../types/typedefs");
+const inspect = require("util").inspect.custom;
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
+const makeSerializable = require("webpack/lib//util/makeSerializable");
 const { isString, isError, isObject } = require("@spmeesseman/type-utils");
 
 
@@ -125,12 +126,24 @@ const WpwMessageEnum =
 
 
 /**
- * @extends {WebpackError}
- * @implements {typedefs.IWpwError}
+ * @extends {Error}
  */
-class WpwError extends WebpackError
+class WpwError extends Error
 {
     static Msg = WpwMessageEnum;
+
+    /** @type {string | undefined} */
+    details;
+    /** @type {typedefs.WebpackModule | undefined | null} */
+    module;
+    /** @type {typedefs.WebpackDependencyLocation | undefined} */
+    loc;
+    /** @type {boolean | undefined} */
+    hideStack;
+    /** @type {typedefs.WebpackChunk | undefined} */
+    chunk;
+    /** @type {string | undefined} */
+    file;
 
     /**
      * @param {typedefs.WpwMessageInfo} info
@@ -176,6 +189,33 @@ class WpwError extends WebpackError
         }
     }
 
+	[inspect]() {
+		return this.stack + (this.details ? `\n${this.details}` : "");
+	}
+
+	/**
+	 * @param {typedefs.WebpackObjectSerializerContext} context
+	 */
+	serialize({ write }) {
+		write(this.name);
+		write(this.message);
+		write(this.stack);
+		write(this.details);
+		write(this.loc);
+		write(this.hideStack);
+	}
+
+	/**
+	 * @param {typedefs.WebpackObjectDeserializerContext} context
+	 */
+	deserialize({ read }) {
+		this.name = read();
+		this.message = read();
+		this.stack = read();
+		this.details = read();
+		this.loc = read();
+		this.hideStack = read();
+	}
 
     /**
      * @param {typedefs.WpwMessageInfo} info
@@ -215,5 +255,7 @@ class WpwError extends WebpackError
 
 }
 
+
+makeSerializable(WpwError, "src/utils/WpwError");
 
 module.exports = WpwError;

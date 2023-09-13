@@ -281,14 +281,13 @@
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
 /** @typedef {import("./generic").MergeOptions} MergeOptions */
+/**  @typedef {import("./generic").ExecAsynResult} ExecAsynResult */
 /**
  * @template T
  * @template {keyof T} K
  * @typedef {import("./generic").RequireKeys<T, K>} RequireKeys
  */
-
 /**
- * Executes a command with a promisified child_process.exec()
  * @typedef {object} ExecAsyncOptions
  * @property {string} command command to execute, with arguments
  * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
@@ -296,9 +295,9 @@
  * @property {string} [program] program name to diasplay in any logging
  * @property {WpwLogger} [logger] a WpwLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
- * @property {boolean} [stdout] a padding to prepend any log messages with
- * @returns {Promise<number | null>}
+ * @property {boolean} [stdout]
  */
+
 
 /**
  * This callback is displayed as part of the Requester class.
@@ -330,8 +329,6 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../utils/message")} WpwError */
-/** @typedef {import("./message").IWpwError} IWpwError */
-/** @typedef {import("./message").ClsWpwError} ClsWpwError */
 /** @typedef {import("./message").IWpwMessage} IWpwMessage */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
@@ -343,10 +340,6 @@
 /** @typedef {import("./message").WpwWarningCode} WpwWarningCode */
 /** @typedef {import("./message").WpwReservedCode} WpwReservedCode */
 /** @typedef {import("./message").WpwMessageInfoKey} WpwMessageInfoKey */
-/**
- * @template E
- * @typedef {import("./message").IWpwMessageInfo<E>} IWpwMessageInfo<E>
- */
 
 
 /***********************************************************************************************************************
@@ -409,11 +402,17 @@
  * WEBPACK
  ***********************************************************************************************************************/
 
+// /** @typedef {import("webpack/Dependency").DependencyLocation} WebpackDependencyLocation */
+// /** @typedef {import("webpack/serialization/ObjectMiddleware").ObjectDeserializerContext} WebpackObjectDeserializerContext */
+// /** @typedef {import("webpack/serialization/ObjectMiddleware").ObjectSerializerContext} WebpackObjectSerializerContext */
+
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackType} WebpackType */
+/** @typedef {import("./webpack").WebpackChunk} WebpackChunk */
 /** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
-/** @typedef {import("./webpack").WebpackStats} WebpackStats */
 /** @typedef {import("./webpack").WebpackError} WebpackError */
+/** @typedef {import("./webpack").WebpackStats} WebpackStats */
+/** @typedef {import("./webpack").WebpackModule} WebpackModule */
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */
 /** @typedef {import("./webpack").WebpackSource} WebpackSource */
 /** @typedef {import("./webpack").WebpackCompiler} WebpackCompiler */
@@ -435,6 +434,7 @@
 /** @typedef {import("./webpack").WebpackCompilationParams} WebpackCompilationParams */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHook} WebpackCompilerAsyncHook */
 /** @typedef {import("./webpack").WebpackCompilationAssets} WebpackCompilationAssets */
+/** @typedef {import("./webpack").WebpackDependencyLocation} WebpackDependencyLocation */
 /** @typedef {import("./webpack").WebpackCompilationHookName} WebpackCompilationHookName */
 /** @typedef {import("./webpack").WebpackStatsPrinterContext} WebpackStatsPrinterContext */
 /** @typedef {import("./webpack").WebpackNormalModuleFactory} WebpackNormalModuleFactory */
@@ -444,7 +444,9 @@
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompiler>} WebpackSyncCompilerHook */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHookName} WebpackCompilerAsyncHookName */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompiler>} WebpackAsyncCompilerHook */
+/** @typedef {import("./webpack").WebpackObjectSerializerContext} WebpackObjectSerializerContext */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */
+/** @typedef {import("./webpack").WebpackObjectDeserializerContext} WebpackObjectDeserializerContext */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompilation>} WebpackAsyncCompilationHook */
 
 

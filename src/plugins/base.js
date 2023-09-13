@@ -263,7 +263,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {string} command
 	 * @param {string} program
 	 * @param {string | string[]} [ignoreOut]
-	 * @returns {Promise<number>}
+	 * @returns {Promise<number | null>}
 	 */
 	exec = async (command, program, ignoreOut) =>
     {

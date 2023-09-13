@@ -30,7 +30,10 @@
         "options": {
             "types": {
                 "mode": "module",
-                "bundle": true
+                "bundle": {
+                    "bundler": "dts-bundle"
+                },
+                "method": "tsc"
             },
             "vendormod":{
                 "clean_plugin": true,
