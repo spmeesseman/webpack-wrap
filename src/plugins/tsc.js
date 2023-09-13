@@ -201,7 +201,7 @@ class WpwTscPlugin extends WpwPlugin
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
-	 * @returns {Promise<number>}
+	 * @returns {Promise<number | null>}
 	 * @throws {typedefs.WpwError}
 	 */
 	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)

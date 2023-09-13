@@ -45,7 +45,7 @@
       "suppressImplicitAnyIndexErrors": true,
       "suppressExcessPropertyErrors": true,
       "target": "es2020",
-      // "tsBuildInfoFile": "./node_modules/.cache/wpwrap/tsconfig.tsbuildinfo",
+      "tsBuildInfoFile": "./node_modules/.cache/wpwrap/tsconfig.tsbuildinfo",
       "useUnknownInCatchVariables": false
     },
     "include": [

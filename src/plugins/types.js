@@ -280,7 +280,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
 
-		let rc = 0;
+		let rc;
 		if (method === "program")
 		{
 			const ignore = tscConfig.exclude || [],
@@ -375,7 +375,8 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				});
 			}
 
-			if (this.buildOptions.bundle)
+			const bundleOptions = this.buildOptions.bundle;
+			if (bundleOptions === true || (isObject(bundleOptions) && bundleOptions.bundler === "dts-bundle"))
 			{
 				await this.bundleDts("types", outputDirAbs);
 			}
