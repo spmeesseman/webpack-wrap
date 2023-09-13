@@ -201,6 +201,7 @@ class WpwTscPlugin extends WpwPlugin
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
+	 * @returns {Promise<number>}
 	 * @throws {typedefs.WpwError}
 	 */
 	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)
@@ -211,7 +212,7 @@ class WpwTscPlugin extends WpwPlugin
 				compilation: this.compilation,
 				message: "invalid source code configured path"
 			});
-			return;
+			return -1;
 		}
 		// const babel = [
 		// 	"npx", "babel", tsConfig, "--out-dir", outputDir, "--extensions", ".ts",
@@ -224,15 +225,15 @@ class WpwTscPlugin extends WpwPlugin
 		logger.write(`   execute tsc command using config file @ [${sourceCodeConfig.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);
 
-		let code = await this.exec(command, "tsc");
-		if (code !== 0)
+		let result = await this.exec(command, "tsc");
+		if (result !== 0)
 		{
 			this.app.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
-				message: "tsc returned error code " + code
+				message: "tsc returned error code " + result
 			});
-			return;
+			return result;
 		}
 		//
 		// Ensure target directory exists
@@ -246,7 +247,7 @@ class WpwTscPlugin extends WpwPlugin
 				compilation: this.compilation,
 				message: "output directory does not exist"
 			});
-			return;
+			return -2;
 		}
 		//
 		// Run `tsc-alias` for path aliasing if specified.
@@ -256,15 +257,15 @@ class WpwTscPlugin extends WpwPlugin
 			// Note that `tsc-alias` requires a filename e.g. tsconfig.json in it's path argument
 			//
 			command = `tsc-alias -p ${sourceCodeConfig.path}`;
-			code = await this.exec(command, "typescript path aliasing");
-			if (code !== 0)
+			result = await this.exec(command, "typescript path aliasing");
+			if (result !== 0)
 			{
 				this.app.addMessage({
 					code: WpwError.Msg.ERROR_TYPES_FAILED,
 					compilation: this.compilation,
-					message: "typescript path aliasing failed"
+					message: "typescript path aliasing failed, returned exit code " + result
 				});
-				return;
+				return result;
 			}
 		}
 		//
@@ -399,6 +400,7 @@ class WpwTscPlugin extends WpwPlugin
 		}
 
 		logger.write("   finished execution of tsc command", 3);
+		return 0;
 	}
 
 }

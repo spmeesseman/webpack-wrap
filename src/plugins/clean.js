@@ -10,12 +10,13 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const { existsSync } = require("fs");
 const { join, posix } = require("path");
-const { existsAsync, WpwBuildOptionsKeys, apply, resolvePath } = require("../utils");
 const typedefs = require("../types/typedefs");
 const { readdir, unlink, rmdir } = require("fs/promises");
+const { WpwBuildOptionsKeys } = require("../types/constants");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { existsSync } = require("fs");
+const { existsAsync, apply, resolvePath } = require("../utils");
 
 /** @typedef {import("clean-webpack-plugin").Options} CleanWebpackPluginOptions */
 

@@ -16,7 +16,7 @@ const { unlink, readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { existsSync } = require("fs");
-const { existsAsync, apply, findFiles, relativePath, resolvePath, isDirectory } = require("../utils");
+const { existsAsync, apply, findFiles, relativePath, resolvePath, isDirectory, isBoolean, isObject } = require("../utils");
 const { writeFile } = require("fs/promises");
 
 
@@ -142,14 +142,20 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 					strictNullChecks: false
 				});
 			}
+			const bundleOptions = this.buildOptions.bundle;
+			if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
+			{
+				programOptions.declarationDir = undefined;
+				programOptions.outFile = join(declarationDir, this.app.build.name);
+			}
 			if (!configuredOptions.incremental && !!configuredOptions.composite)
 			{
 				programOptions.incremental = true;
 			}
-			if (!configuredOptions.target)
-			{
-				programOptions.target = "es2020";
-			}
+			// if (!configuredOptions.target)
+			// {
+			// 	programOptions.target = "es2020";
+			// }
 			if (!configuredOptions.moduleResolution)
 			{   //
 				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
@@ -171,8 +177,16 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		{
 			const tscArgs = [
 				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false",
-				"--noEmit", "false", "--declarationDir", declarationDir, "--tsBuildInfoFile", tsBuildInfoFile
+				"--noEmit", "false", "--tsBuildInfoFile", tsBuildInfoFile
 			];
+			const bundleOptions = this.buildOptions.bundle;
+			if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
+			{
+				tscArgs.push("--outFile", join(declarationDir, this.app.build.name));
+			}
+			else {
+				tscArgs.push("--declarationDir", declarationDir);
+			}
 			if (sourceCode.type === "javascript")
 			{
 				tscArgs.push("--allowJs", "--strictNullChecks", "false");
@@ -266,16 +280,22 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
 
+		let rc = 0;
 		if (method === "program")
 		{
-			const options = this.getCompilerOptions(method);
-			const files = this.app.source.config.options.files;
+			const ignore = tscConfig.exclude || [],
+				  options = this.getCompilerOptions(method),
+				  files = this.app.source.config.options.files,
+				  typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
+			// if (typesExcludeIdx !== -1) {
+			// 	ignore.splice(typesExcludeIdx, 1);
+			// }
 			// const srcDtsFiles = await findFiles(
-			// 	`${typesSrcDir}/**/*.d.ts`, { cwd: typesSrcDir, ignore: tscConfig.exclude, absolute: true }
+			// 	`${typesSrcDir}/**/*.ts`, { cwd: typesSrcDir, ignore, absolute: true }
 			// );
 			// if (srcDtsFiles.length)
 			// {
-			// 	logger.write(`   adding ${srcDtsFiles.length} .d.ts files found in source directory`, 2);
+			// 	logger.write(`   adding ${srcDtsFiles.length} .ts files found in source directory`, 2);
 			// 	files.push(...srcDtsFiles);
 			// }
 			// if (tscConfig.include && tscConfig.exclude)
@@ -323,13 +343,17 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 				this.app.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
 				return;
 			}
+			rc = !result.emitSkipped ? 0 : -1;
+			if (result.diagnostics.length > 0) {
+				rc = result.diagnostics.length;
+			}
 		}
 		else if (method === "tsc")
 		{
 			const tscArgs = this.getCompilerOptions(method),
 				  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
 			this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir);
-			await this.execTsBuild(sourceCode.config, tscArgs, 1, outputDir);
+			rc = await this.execTsBuild(sourceCode.config, tscArgs, 1, outputDir);
 		}
 		else {
 			this.app.addMessage({
@@ -339,37 +363,43 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			});
 		}
 
-		const outputDirAbs = resolve(this.app.getBasePath(), outputDir);
-		if (!(await existsAsync(outputDirAbs)))
+		if (rc === 0)
 		{
-			this.app.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
-				compilation: this.compilation,
-				message: "output directory does not exist"
-			});
-		}
-
-		if (this.buildOptions.bundle)
-		{
-			await this.bundleDts("types", outputDirAbs);
-		}
-		else
-		{
-			const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
-			for (const file of files)
+			const outputDirAbs = resolve(this.app.getBasePath(), outputDir);
+			if (!(await existsAsync(outputDirAbs)))
 			{
-				const info = /** @type {typedefs.WebpackAssetInfo} */({
-					immutable: false,
-					javascriptModule: false,
-					types: true
+				this.app.addMessage({
+					code: WpwError.Msg.ERROR_TYPES_FAILED,
+					compilation: this.compilation,
+					message: "output directory does not exist"
 				});
-				const data = await readFile(file),
-					  source = new this.compiler.webpack.sources.RawSource(data);
-				this.compilation.emitAsset(relativePath(basePath, file), source, info);
 			}
-		}
 
-		logger.write("type definitions created successfully @ " + outputDir, 1);
+			if (this.buildOptions.bundle)
+			{
+				await this.bundleDts("types", outputDirAbs);
+			}
+			else
+			{
+				const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
+				for (const file of files)
+				{
+					const info = /** @type {typedefs.WebpackAssetInfo} */({
+						immutable: false,
+						javascriptModule: false,
+						types: true
+					});
+					const data = await readFile(file),
+					      source = new this.compiler.webpack.sources.RawSource(data);
+					this.compilation.emitAsset(relativePath(basePath, file), source, info);
+				}
+			}
+
+			logger.write("type definitions created successfully @ " + outputDir, 1);
+		}
+		else {
+			logger.write(`type definitions compilation completed with failure [code:${rc}]`, 1);
+		}
 	}
 }
 

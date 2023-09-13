@@ -3,7 +3,6 @@
 const WpwRegex = require("./regex");
 const WpwError = require("./message");
 const WpwLogger = require("./console");
-const typedefs = require("../types/typedefs");
 
 const { applySchemaDefaults, getSchemaVersion, validateSchema, SchemaDirectory } = require("./schema");
 
@@ -28,6 +27,6 @@ module.exports = {
     isBoolean, isClass, isDirectory, isDate, isEmpty, isError, isFunction, isJsTsConfigPath, isNulled, isNumber, isNumeric,
     isObject, typeUtils, isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeExt, mergeExt2,
     mergeIf, mergeWeak, mergeIfWeak, objUtils, pick, pickBy, pickNot, getSchemaVersion, pushIfNotExists, relativePath,
-    resolvePath, requireResolve, SchemaDirectory, typedefs, uniq, utils, validateSchema, WpwLogger, WpwError, WpwRegex,
+    resolvePath, requireResolve, SchemaDirectory, uniq, utils, validateSchema, WpwLogger, WpwError, WpwRegex,
     /* START_RC_DEFS */ isWebpackLibraryType, isWebpackMode, isWebpackTarget, isWpwBuildBaseConfigKey, isWpwBuildConfigKey, isWpwBuildOptionsKey, isWpwBuildType, isWpwLogColor, isWpwLogTrueColor, isWpwPackageJsonKey, isWpwPluginConfigRunScriptsKey, isWpwPluginConfigTypesBuildMode, isWpwPluginConfigTypesBundler, isWpwPluginConfigTypesMethod, isWpwRcPathsKey, isWpwSchemaKey, isWpwSourceCodeExtension, isWpwSourceCodeNodeJsModule, isWpwSourceCodeNodeJsModuleResolution, isWpwSourceCodeNodeJsTarget, isWpwSourceCodeType, isWpwSourceCodeTypescriptLoader, isWpwWebhookCompilationHookStage, isWpwWebpackCompilationHook, isWpwWebpackCompilerHook, isWpwWebpackMode, WebpackLibraryTypes, WebpackModes, WebpackTargets, WpwBuildBaseConfigKeys, WpwBuildConfigKeys, WpwBuildOptionsKeys, WpwBuildTypes, WpwKeysEnum, WpwLogColors, WpwLogTrueColors, WpwPackageJsonKeys, WpwPluginConfigRunScriptsKeys, WpwPluginConfigTypesBuildModes, WpwPluginConfigTypesBundlers, WpwPluginConfigTypesMethods, WpwRcPathsKeys, WpwSchemaKeys, WpwSourceCodeExtensions, WpwSourceCodeNodeJsModuleResolutions, WpwSourceCodeNodeJsModules, WpwSourceCodeNodeJsTargets, WpwSourceCodeTypes, WpwSourceCodeTypescriptLoaders, WpwWebhookCompilationHookStages, WpwWebpackCompilationHooks, WpwWebpackCompilerHooks, WpwWebpackModes /* END_RC_DEFS */
 };

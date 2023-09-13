@@ -124,7 +124,7 @@ const createEntryObjFromDir = (dir, ext) =>
  * Executes node.eXec() wrapped in a promise via util.promisify()
  * @async
  * @param {typedefs.ExecAsyncOptions} options
- * @returns {Promise<number | null>}
+ * @returns {Promise<typedefs.ExecAsynResult>}
  */
 const execAsync = async (options) =>
 {
@@ -135,7 +135,7 @@ const execAsync = async (options) =>
           logPad = options.logPad || "",
           logger = options.logger,
           colors = logger?.colors,
-          stdout = [], stderr = [],
+          stdout = [], stderr = [], errors = [],
           program = options.program || options.command.split(" ")[0];
 
     const _handleOutput = (out, stdarr) =>
@@ -182,11 +182,14 @@ const execAsync = async (options) =>
                     out.forEach((m) =>
                     {
                         const msg = logger.withColor(m, colors.grey),
-                            lvl = m.length <= 256 ? 1 : (m.length <= 512 ? 2 : (m.length <= 1024 ? 3 : 5));
+                              lvl = m.length <= 256 ? 1 : (m.length <= 512 ? 2 : (m.length <= 1024 ? 3 : 5));
                         logger.log(
-                            `${logPad}${hdr} ${msg}`, lvl, "",
+                            `${logPad}${hdr} ${msg}`, lvl, "   ",
                             exitCode !== 0 ? logger.icons.color.error : logger.icons.color.warning
                         );
+                        if ((/TS[0-9]{4}/).test(m)) {
+                            errors.push(m);
+                        }
                     });
                 }
             };
@@ -200,7 +203,7 @@ const execAsync = async (options) =>
         await procPromise;
     } catch{}
 
-    return exitCode;
+    return { code: exitCode, errors };
 };
 
 

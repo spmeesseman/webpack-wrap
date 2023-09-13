@@ -202,13 +202,19 @@ class WpBuildUploadPlugin extends WpwPlugin
         try
         {
             logger.write("   plink: create / clear remmote directory", 1);
-            await this.exec("plink " + plinkArgs.join(" "), "plink", [ "cannot create directory", "File exists" ]);
-            logger.write("   pscp:  upload files", 1, "");
-            await this.exec("pscp " + pscpArgs.join(" "), "pscp");
-            filesToUpload.forEach((f) =>
-                logger.write(`   ${logger.icons.color.successTag} ${logger.withColor(`uploaded ${basename(f)}`, logger.colors.grey)}`, 1)
-            );
-            logger.write("successfully uploaded resource files", 1);
+            let rc = await this.exec("plink " + plinkArgs.join(" "), "plink", [ "cannot create directory", "File exists" ]);
+            if (rc === 0)
+            {
+                logger.write("   pscp:  upload files", 1, "");
+                rc = await this.exec("pscp " + pscpArgs.join(" "), "pscp");
+                if (rc === 0)
+                {
+                    filesToUpload.forEach((f) =>
+                        logger.write(`   ${logger.icons.color.successTag} ${logger.withColor(`uploaded ${basename(f)}`, logger.colors.grey)}`, 1)
+                    );
+                    logger.write("successfully uploaded resource files", 1);
+                }
+            }
         }
         catch (e)
         {

@@ -12,13 +12,13 @@
  *//** */
 
 const WpwBase = require("./base");
+const WpwBuild = require("./build");
 const { existsSync } = require("fs");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
-const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
-const { apply, WpwError, isPromise, resolvePath, pickNot, WpwBuildOptionsKeys, isClass } = require("../utils");
-const WpwBuild = require("./build");
+const { WpwBuildOptionsKeys } = require("../types/constants");
+const { apply, WpwError, isPromise, resolvePath, pickNot, isClass } = require("../utils");
 
 
 /**

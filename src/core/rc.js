@@ -14,13 +14,13 @@ const os = require("os");
 const JSON5 = require("json5");
 const WpwBase = require("./base");
 const WpBuildApp = require("./app");
+const typedefs = require("../types/typedefs");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
-const { validateSchema, SchemaDirectory, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
+const { validateSchema, SchemaDirectory, getSchemaVersion } = require("../utils/schema");
 const {
-    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, typedefs, clone,
-    applyIf, resolvePath, pickNot, isObjectEmpty, isEmpty
+    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, clone, applyIf, resolvePath, pickNot
 } = require("../utils");
 
 

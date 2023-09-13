@@ -58,7 +58,7 @@ class WpwPluginWaitManager
         pushIfNotExists(this.done, name);
         // this.waiting.splice(this.waiting.indexOf(), 1);
         this.onPluginEvent.emit(`${name}_done`, ...args);
-        for (const r of this.registered.filter(r => name === r.target))
+        for (const r of this.registered.filter(r => name === r.name))
         {
             const res = r.callback(...args);
             if (isPromise(res)) {

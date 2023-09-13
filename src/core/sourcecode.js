@@ -9,14 +9,15 @@
  *//** */
 
 const JSON5 = require("json5");
-const { spawnSync } = require("child_process");
+const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
+const { spawnSync } = require("child_process");
 const { readFileSync, existsSync, readdirSync } = require("fs");
 const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
     isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
-    typedefs, mergeIf, apply, WpwError
+    mergeIf, apply, WpwError
 } = require("../utils");
 
 
@@ -49,7 +50,6 @@ class WpwSourceCode
         const jtsconfigFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
               defaultConfig = this.getDefaultConfig(sourceConfig.config),
               compilerOptions = sourceConfig.config.options?.compilerOptions || {};
-
         apply(this,
         {
             logger: build.logger,
@@ -98,12 +98,17 @@ class WpwSourceCode
         this.program = ts.createProgram(
         {
             options,
+            // options: {
+            //     configFilePath: this.config.path
+            // },
             //
             // TODO - support project references
             //
             projectReferences: undefined,
             host: this.createCompilerHost(options, ts),
+            // rootNames: [ "src" ]
             rootNames: files || this.config.options.files
+            // rootNames: []
         });
     }
 
@@ -143,7 +148,7 @@ class WpwSourceCode
         }
 
         const logger = this.logger;
-        logger.start("typescript.emit");
+        logger.start("typescript.emit", 1);
         logger.value("   source file", file, 2);
         logger.value("   emit types only", emitOnlyDts, 2);
         logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
@@ -161,13 +166,16 @@ class WpwSourceCode
         if (result.diagnostics)
         {
             let dCount = 0;
-            logger.value(`  ${result.diagnostics.length} diagnostic messages exist`, 1);
+            const diagMsgCt = logger.withColor(result.diagnostics.length.toString(), logger.colors.bold);
+            logger.write(`emit request produced ${diagMsgCt} diagnostic messages`);
             result.diagnostics.forEach((d) =>
             {
-                logger.write(`  diagnostic ${++dCount}`, 1, "", logger.icons.color.warning);
-                logger.write(`     code: ${d.code}`, 1, "", logger.icons.color.warning);
-                logger.write(`     category: ${d.category}`, 1, "", logger.icons.color.warning);
-                logger.write(`     message: ${d.messageText}`, 1, "", logger.icons.color.warning);
+                logger.write(`diagnostic ${++dCount}`, undefined, "", logger.icons.color.warning);
+                logger.write(`   code: ${d.code}`, undefined, "", logger.icons.color.warning);
+                logger.write(`   category: ${d.category}`, undefined, "", logger.icons.color.warning);
+                logger.write(`   message: ${d.messageText}`, undefined, "", logger.icons.color.warning);
+                logger.write(`   start: ${d.start}`, undefined, "", logger.icons.color.warning);
+                logger.write(`   file: ${d.file}`, undefined, "", logger.icons.color.warning);
             });
         }
 
@@ -371,6 +379,7 @@ class WpwSourceCode
     wpwToTsCompilerOptions(options, ts)
     {
         return mergeIf({
+            configFilePath: this.config.path,
             jsx: ts.JsxEmit[options.jsx || 0],
             module: options.module ? ts.ModuleKind[options.module] : ts.ModuleKind.CommonJS,
             target: options.target ? ts.ScriptTarget[options.target] : ts.ScriptTarget.ES2020,

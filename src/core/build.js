@@ -10,10 +10,11 @@
  *//** */
 
 const WpwBase = require("./base");
+const typedefs = require("../types/typedefs");
 const WpwSourceCode = require("./sourcecode");
-const { isWpwBuildType, isWebpackTarget, WpwBuildConfigKeys } = require("../types/constants");
+const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
-    utils, objUtils, typedefs, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults, merge
+    utils, objUtils, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults, merge
 } = require("../utils");
 
 

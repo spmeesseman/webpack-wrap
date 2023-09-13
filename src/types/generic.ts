@@ -18,7 +18,6 @@
  * Generic types and typings
  *//** */
 
-
 type AsArray<T = any> = T extends any[] ? T : [T];
 type ArrayInnerType<T> = T extends (infer U)[] ? U : never;
 // type ExtractTypings<T, V > = T extends V<infer X> ? X : never;
@@ -41,6 +40,8 @@ interface MergeOptions<T, U>
     values: [ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]];
 }
 
+interface ExecAsynResult { code: number | null; errors: string[] }
+
 
 export {
     ArrayInnerType,
@@ -49,6 +50,7 @@ export {
     ConvertType2,
     ConvertType3,
     ConvertTypeExcludeNon,
+    ExecAsynResult,
     // ExtractTypings,
     IDisposable,
     MergeOptions,

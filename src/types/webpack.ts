@@ -47,11 +47,17 @@ import { ConvertType, PickByType, RequireKeys, ArrayInnerType } from "./generic"
 import webpack, {
     Asset as WebpackAsset, AssetInfo as WebpackAssetInfo, AssetEmittedInfo as WebpackAssetEmittedInfo,
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
-    Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats,
+    Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats, Module as WebpackModule,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
     MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError
 }from "webpack";
+
+import {
+    ObjectDeserializerContext as WebpackObjectDeserializerContext, ObjectSerializerContext as WebpackObjectSerializerContext
+} from "webpack/lib/serialization/ObjectMiddleware";
+
+import { DependencyLocation as WebpackDependencyLocation } from "webpack/lib/Dependency";
 
 type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
 
@@ -91,18 +97,7 @@ type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
 
 type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
 
-// /**
-//  * @type RealDependencyLocation
-//  */
-// /**
-//  * @type SyntheticDependencyLocation
-//  */
-
-type WebpackDependencyLocation = Exclude<WebpackError["loc"], undefined>;
-interface _IWebpackError extends WebpackError // rids types declarations emit warning
-{
-    loc?: WebpackDependencyLocation;
-};
+// type WebpackDependencyLocation = Exclude<WebpackError["loc"], undefined>;
 
 type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
 
@@ -208,8 +203,11 @@ export {
     WebpackLogger,
     WebpackMemoryCacheOptions,
     WebpackMode,
+    WebpackModule,
     WebpackModuleOptions,
     WebpackNormalModuleFactory,
+    WebpackObjectDeserializerContext,
+    WebpackObjectSerializerContext,
     WebpackOptimization,
     WebpackPathData,
     WebpackPluginInstance,

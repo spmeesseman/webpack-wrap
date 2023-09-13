@@ -11,7 +11,8 @@
 
 const WpwBase = require("./base");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, WpwError, isWpwBuildOptionsKey } = require("../utils");
+const { lowerCaseFirstChar, WpwError } = require("../utils");
+const { isWpwBuildOptionsKey } = require("../types/constants");
 
 
 /**

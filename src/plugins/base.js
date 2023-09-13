@@ -263,10 +263,14 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {string} command
 	 * @param {string} program
 	 * @param {string | string[]} [ignoreOut]
-	 * @returns {Promise<number | null>}
+	 * @returns {Promise<number>}
 	 */
-	exec = (command, program, ignoreOut) =>
-        execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
+	exec = async (command, program, ignoreOut) =>
+    {
+        const result = await execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
+        result.errors.forEach(e => this.app.addMessage({ code: WpwError.Msg.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
+        return result.code;
+    };
 
 
 	/**
