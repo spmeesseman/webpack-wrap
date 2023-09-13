@@ -30,7 +30,7 @@ const circular = (app) =>
             failOnError: false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                compilation.warnings.push(new WpwError(paths.join(" -> ")));
+                app.addMessage({ code: WpwError.Msg.WARNING_GENERAL, compilation, message: paths.join(" -> ") });
             }
         });
     }

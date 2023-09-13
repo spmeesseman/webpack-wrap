@@ -91,6 +91,19 @@ type WebpackCompilerSyncHookName = keyof WebpackCompilerSyncHook;
 
 type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextModuleFactory"]>;
 
+// /**
+//  * @type RealDependencyLocation
+//  */
+// /**
+//  * @type SyntheticDependencyLocation
+//  */
+
+type WebpackDependencyLocation = Exclude<WebpackError["loc"], undefined>;
+interface _IWebpackError extends WebpackError // rids types declarations emit warning
+{
+    loc?: WebpackDependencyLocation;
+};
+
 type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
 
 type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
@@ -185,6 +198,7 @@ export {
     WebpackCompilerSyncHookName,
     WebpackConfig,
     WebpackContextModuleFactory,
+    WebpackDependencyLocation,
     WebpackEntry,
     WebpackEntryOptions,
     WebpackError,

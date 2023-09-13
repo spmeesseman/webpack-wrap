@@ -9,11 +9,11 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const WpwRegex = require("./regex");
 const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
 const { isString, isError, isObject } = require("@spmeesseman/type-utils");
-const WpwRegex = require("./regex");
 
 
 /**
@@ -65,7 +65,8 @@ const WpwMessage =
     //
     // ERRORS (800 - 899)
     //
-    WPW895: "an error has occurred due to the programmer writing bad code",
+    WPW895: "error due to unknown programmer writing crap code",
+    WPW898: "the current process flow has not yet been implemented",
     WPW899: "an unknown error has occurred"
 };
 
@@ -118,11 +119,13 @@ const WpwMessageEnum =
     // ERROR (800 - 899)
     //
     ERROR_SHITTY_PROGRAMMER: /** @type {typedefs.WpwErrorCode} */("WPW895"),
+    ERROR_NOT_IMPLEMENTED: /** @type {typedefs.WpwErrorCode} */("WPW898"),
     ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
 };
 
 
 /**
+ * @extends {WebpackError}
  * @implements {typedefs.IWpwError}
  */
 class WpwError extends WebpackError

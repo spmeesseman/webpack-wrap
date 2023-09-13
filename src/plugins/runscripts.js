@@ -13,7 +13,7 @@ const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { execSync } = require("child_process");
 const { execAsync, pickNot, capitalize } = require("../utils");
-const { WpwPluginConfigRunScriptsProps } = require("../types/constants");
+const { WpwPluginConfigRunScriptsKeys } = require("../types/constants");
 
 
 /**
@@ -42,7 +42,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
     apply(compiler)
     {
         const customTaps = /** @type {typedefs.WpBuildPluginTapOptions} */({});
-        const pluginOptions = pickNot(this.buildOptions, ...WpwPluginConfigRunScriptsProps);
+        const pluginOptions = pickNot(this.buildOptions, ...WpwPluginConfigRunScriptsKeys);
 
         Object.entries(pluginOptions).forEach(([ stage, tapConfig ]) =>
         {

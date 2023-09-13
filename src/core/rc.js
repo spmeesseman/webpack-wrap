@@ -64,7 +64,7 @@ class WpwRc extends WpwBase
     $schema;
     /** @type {typedefs.WpwVersionString} */
     schemaVersion;
-    /** @type {typedefs.IWpwSourceCodeConfig} */
+    /** @type {typedefs.IWpwSourceCode} */
     source;
     /** @type {typedefs.WpwBuildBaseConfig} */
     test;

@@ -23,7 +23,6 @@ const {
 /**
  * @implements {typedefs.IDisposable}
  * @implements {typedefs.IWpwSourceCode}
- * @implements {typedefs.IWpwSourceCodeApp}
  */
 class WpwSourceCode
 {

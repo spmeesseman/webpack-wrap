@@ -657,7 +657,7 @@ class WpwPlugin extends WpwBaseModule
                 const delayedCb = cb;
                 cb = () => {
                     eMgr.register({
-                        type: waitConfig.mode,
+                        mode: waitConfig.mode,
                         source: this.key,
                         name: waitConfig.name,
                         callback: () => delayedCb.call(this, message, options)

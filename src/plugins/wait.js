@@ -81,13 +81,16 @@ class WpwPluginWaitManager
         /** @param {(value: void | PromiseLike<void>) => void} resolve @param {any} reject */
         const _poll = (resolve, reject) =>
         {
-            if (existsSync(options.target))
+            if (existsSync(options.name))
             {
                 resolve();
             }
             else if (Date.now() - start > options.timeout)
             {
-                reject(new WpwError(`Wait operation times out at ${options.timeout} ms`));
+                reject(new WpwError({
+                    code: WpwError.Msg.ERROR_GENERAL,
+                    message: `wait operation timed out at ${options.timeout} ms`
+                }));
             }
             else {
                 setTimeout(_poll, options.interval, resolve, reject);

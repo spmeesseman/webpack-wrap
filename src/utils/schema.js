@@ -116,7 +116,7 @@ const getSchema = (key) =>
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
         }
         catch (e) {
-            WpwError.get("failed to read schema file", null, e);
+            WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema file", error: e });
         }
     }
     return /** @type {R} */(schemas[sKey]);
@@ -205,7 +205,10 @@ const validateSchema = (config, key, logger) =>
         }
     }
     catch (e) {
-        throw WpwError.get(`schema validation failed for ${schemaFile}: ${e.message}`);
+        throw WpwError.get({
+            code: WpwError.Msg.ERROR_SCHEMA,
+            message: `schema validation failed for ${schemaFile}: ${e.message}`
+        });
     }
 };
 

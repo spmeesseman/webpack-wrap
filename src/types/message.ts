@@ -1,6 +1,6 @@
 
 import { IWpwWebpackConfig } from "./app";
-import { WebpackCompilation, WebpackError } from "./webpack";
+import { WebpackCompilation, WebpackError, WebpackDependencyLocation } from "./webpack";
 
 
 export type WpwMessageType = import("../utils/message");
@@ -52,14 +52,12 @@ export interface IWpwMessageInfo<E extends Error | undefined>
     error?: E;
     message: string;
     pad?: string;
-    wpc?: IWpwWebpackConfig;
+    wpc?: IWpwWebpackConfig | Partial<IWpwWebpackConfig> | null;
 }
 export type WpwMessageInfo = IWpwMessageInfo<WpwMessageType | WebpackError | Error | undefined>;
 export type WpwMessageInfoKey = keyof WpwMessageInfo;
 
-export abstract class ClsWpwError
+export interface WpwWebpackError extends WebpackError
 {
-    static Msg: IWpwMessageEnum;
+    loc?: WebpackDependencyLocation;
 }
-
-export interface IWpwError extends ClsWpwError {}
