@@ -4,6 +4,6 @@ types/lib
 .dccache
 res/doc
 src/types/build
-src/types/rc.d.ts
+src/types/rc.ts
 src/types/constants.js
 src/types/types.d.ts

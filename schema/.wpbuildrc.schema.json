@@ -566,9 +566,6 @@
                 "testsuite": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
-                "tsbundle": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
-                },
                 "tsc": {
                     "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
                 },
@@ -2210,15 +2207,19 @@
             "default": "module",
             "oneOf": [{
                 "const": "module",
-                "description": "perform 'types' build as s standard module build and a virtual entry point"
+                "description": "perform 'types' build as s standard module build and a virtual entry point using internal plugin"
+            },
+            {
+                "const": "module2",
+                "description": "perform 'types' build as s standard module build and a virtual entry point using internal loader. use if having issues with 'module' mode"
             },
             {
                 "const": "tscheck",
-                "description": "perform 'types' build using fork-ts-checker-plugin and ts/jsonconfig.json. use if having issues with 'module' mode"
+                "description": "perform 'types' build using fork-ts-checker-plugin and ts/jsonconfig.json. use if having issues with 'module' or 'module2' mode"
             },
             { 
                 "const": "plugin",
-                "description": "perform 'types' build using internal plugin and ts/jsonconfig.json. use if having issues with 'module'or 'tscheck' mode"
+                "description": "perform 'types' build using internal plugin and ts/jsonconfig.json. use if having issues with 'module', 'module2', or 'tscheck' mode"
             }]
         },
         "WpwPluginConfigUpload": {

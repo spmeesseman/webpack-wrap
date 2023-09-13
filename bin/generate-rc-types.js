@@ -17,6 +17,7 @@ const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
 const WpBuildConsoleLogger = require("../src/utils/console");
 
+const DTS_MODE = false;
 const RUN_VALIDATION = true;
 
 const description = "Provides types macthing the .wpbuildrc.json configuration file schema";
@@ -78,7 +79,6 @@ const requiredProperties = [
     [ "pad", "WpwLog" ],
     [ "valueMaxLineLength", "WpwLog" ],
     [ "level", "WpwLog" ],
-    [ "base", "WpwLogPad" ],
     [ "value", "WpwLogPad" ],
     [ "source", "WpwBuildConfig" ],
     [ "config", "WpwSourceCode" ],
@@ -102,9 +102,14 @@ const requiredProperties = [
     [ "ext", "WpwSourceCode" ]
 ];
 
-const outputDtsFile = "rc.d.ts";
+
+const declare = () => DTS_MODE ? "declare " : "";
+const extension = () => DTS_MODE ? ".d.ts " : ".ts";
+
+const outputDtsFile = `rc${extension()}`;
 const outputDtsDir = resolve(__dirname, "..",  "src", "types");
 const outputDtsPath = join(outputDtsDir, outputDtsFile);
+
 
 /** @type {string[]} */
 const enums = [];
@@ -162,7 +167,16 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .wpwreplace("trailingSemiColons")
           .wpwreplace("trailingSpaces")
           .replace(/\n/g, EOL);
-
+    classTypes.forEach((cls) =>
+    {
+        data = data.replace(new RegExp(`: ${cls};$`, "gm"), ": I" + cls + ";");
+        data = data.replace(new RegExp(`: ${cls}$`, "gm"), ": I" + cls);
+    });
+    configToClassTypes.forEach(([ cfg, cls ]) =>
+    {
+        data = data.replace(new RegExp(`: ${cls};$`, "gm"), ": " + cfg + ";");
+        data = data.replace(new RegExp(`: ${cls}$`, "gm"), ": " + cfg);
+    });
     await writeFile(outputDtsPath, `${EOL}${hdr}${EOL}${EOL}${EOL}${data.trim()}${EOL}`);
     logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
     return data;
@@ -298,15 +312,15 @@ const wpwreplace =
             /\nexport interface (.*?) ([^]*?)\n\}/g,
             (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
             {
-                let src = `\nexport declare interface I${m1} ${m2}\n}`;
+                let src = `\nexport ${declare()}interface I${m1} ${m2}\n}`;
                 logger.log(`      added interface I${m1}`);
                 pushTypedef("rc", "type", `I${m1}`);
                 pushEnum(m1, "type", m2);
                 if (!classTypes.includes(m1))
                 {
-                    src += `\nexport declare type ${m1} = I${m1};\n` +
-                        `export declare type ${m1}Key = keyof ${m1};\n`;
-                        // `export declare type Type${m1} = Required<${m1}>;\n`;
+                    src += `\nexport ${declare()}type ${m1} = I${m1};\n` +
+                           `export ${declare()}type ${m1}Key = keyof ${m1};\n`;
+                           // `export declare type Type${m1} = Required<${m1}>;\n`;
                     pushTypedef("rc", "type", m1, `${m1}Key`);
                     pushEnum(m1, "type", m2);
                 }
@@ -327,13 +341,13 @@ const wpwreplace =
             /\nexport type (.*?) =/g, (v, m) =>
             {
                 pushTypedef("rc", "type", m);
-                return v.replace("export type", "export declare type");
+                return v.replace("export type", `export ${declare()}type`);
             }
         )
         .replace(/([^\|]) \{\n    /g, (_, m) => m + "\n{\n    ")
         .replace(/\n    \| +(["0-9a-z])/g, (_, m) => " | " + m)
         .replace(/[a-z] = +\| +(?:"?[a-z]|[0-9])/g, (v) => v.replace("= |", "="))
-        .replace("export declare type WpwLoggerLevel", "\nexport declare type WpwLoggerLevel");
+        .replace(`export ${declare()}type WpwLoggerLevel`, `\nexport ${declare()}type WpwLoggerLevel`);
     },
     formatWebpackEntry: (data) =>
     {
@@ -369,12 +383,16 @@ const wpwreplace =
     removeZeroLengthConstraints: (data) => data.replace(/: \[\]/g, ": string[]"),
     replaceBooleanTypedefs: (data) =>
     {
-        return data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
+        data = data.replace(/    (.*?)\?\: WpwBooleanReadOnly;/g, (v, m) => `    readonly ${m}?: boolean;`)
                    .replace(/    (.*?)\?\: WpwBuildOptionsPluginKeyReadOnly;/g, (_, m) => `    readonly ${m}?: WpwBuildOptionsPluginKey;`)
                    .replace(/    (.*?)\?\: WpwBooleanDefaultTrue;/g, (v, m) => `    ${m}?: boolean;`)
-                   .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`)
-                   .replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
-                   .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
+                   .replace(/    (.*?)\?\: WpwBooleanDefaultFalse;/g, (v, m) => `    ${m}?: boolean;`);
+        if (DTS_MODE) {
+            return data.replace(/export declare type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
+                       .replace(/export declare type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
+        }
+        return data.replace(/export type WpwBoolean(?:ReadOnly|DefaultTrue|DefaultFalse) = boolean;\n\n/g, "")
+                   .replace(/export type WpwBuildOptionsPluginKeyReadOnly = boolean;\n\n/g, "");
     },
     trailingSemiColons: (data) => data.replace(/([;\{])\n\s*?\n(\s+)/g, (_, m1, m2) => m1 + "\n" + m2).replace(/; *\};/g, " };"),
     trailingSpaces: (data) => data.replace(/ +\n/g, "\n").replace(/[\w] ;/g, (v) => v.replace(" ;", ";"))
@@ -388,8 +406,9 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
     const _proc = (data, baseSrc) =>
     {
-        const rgxPropEnum = /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
-              rgxType = new RegExp(`export declare interface I(${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?)${EOL}\\}${EOL}`, "g");
+        const rgxPropEnum = DTS_MODE ? /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g :
+                                       /export type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
+              rgxType = new RegExp(`export ${declare()}interface I(${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?)${EOL}\\}${EOL}`, "g");
 
         while ((match = rgxPropEnum.exec(data)) !== null)
         {
@@ -419,7 +438,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             }
         }
 
-        const rgx3 = /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
+        const rgx3 = DTS_MODE ? /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g : /export type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
         while ((match = rgx3.exec(data)) !== null)
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
@@ -433,10 +452,10 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
     pushExport("WebpackMode", "s", '"development" | "none" | "production"');
     for (const addFile of extFilesCreateEnums)
     {
-        const source = addFile.replace(".d.ts", "");
+        const source = addFile.replace(extension(), "");
         const addData = (await readFile(join(outputDtsDir, addFile), "utf8")).replace(/\r\n/g, "\n").replace(/\n/g, EOL);
         _proc(addData, source);
-        const rgxKeys = /export declare type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g;
+        const rgxKeys = DTS_MODE ? /export declare type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g : /export type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g;
         while ((match = rgxKeys.exec(addData)) !== null)
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
@@ -565,19 +584,19 @@ cliWrap(async () =>
 
     const inputFile = ".wpbuildrc.schema.json",
           schemaDir = resolve(__dirname, "..", "schema"),
-          indexPath = resolve(__dirname, "..", "src", "types", "index.d.ts"),
+          indexPath = resolve(__dirname, "..", "src", "types", "index" + extension()),
           jsontotsFlags = "-f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties";
 
     let data = await readFile(indexPath, "utf8");
     const match = data.match(/\/\*\*(?:[^]*?)\*\/\/\*\* \*\//);
     if (!match) {
-        throw new Error("Could not read header from index file 'index.d.ts'");
+        throw new Error(`Could not read header from index file 'index${extension()}'`);
     }
 
     data = await readFile(outputDtsPath, "utf8");
     const hdr =  match[0]
           .replace(" with `WpBuild`", " with `WpwRc`")
-          .replace("@file types/index.d.ts", `@file types/${outputDtsFile}`)
+          .replace(`@file types/index${extension()}`, `@file types/${outputDtsFile}`)
           .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
           .replace("Collectively exports all Wpw types", description);;
 
