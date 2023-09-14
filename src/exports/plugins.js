@@ -108,7 +108,7 @@ const webPlugins = (build) =>
 			// @ts-ignore
 			htmlcsp(build),              //
 			htmlinlinechunks(build),     //
-			copy(build),                 // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
+			copy(build, { apps }),       // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
 			imageminimizer(build)        //
 		);
 	}

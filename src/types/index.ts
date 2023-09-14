@@ -1,6 +1,6 @@
 
 /**
- * @file types/index.d.ts
+ * @file src/types/index.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023

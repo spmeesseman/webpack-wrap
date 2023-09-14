@@ -23,7 +23,7 @@ class WpwPluginWaitManager
     waiting;
     /** @type {EventEmitter} @private */
     onPluginEvent;
-    /** @type {typedefs.WpBuildPluginWaitOptions[]} @private */
+    /** @type {typedefs.WpwPluginWaitOptions[]} @private */
     registered;
 
 
@@ -72,7 +72,7 @@ class WpwPluginWaitManager
     /**
      * @function
      * @private
-     * @param {Required<typedefs.WpBuildPluginWaitOptions>} options
+     * @param {Required<typedefs.WpwPluginWaitOptions>} options
      * @returns {Promise<void>}
      */
     pollFile(options)
@@ -102,7 +102,7 @@ class WpwPluginWaitManager
 
     /**
      * @function
-     * @param {typedefs.WpBuildPluginWaitOptions} options
+     * @param {typedefs.WpwPluginWaitOptions} options
      */
     register(options)
     {

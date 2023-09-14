@@ -252,6 +252,7 @@
  * @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsConfig<T>
  */
 
+
 /***********************************************************************************************************************
  * APP
  ***********************************************************************************************************************/
@@ -259,11 +260,10 @@
 /** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("../core/sourcecode")} WpwSourceCode */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
-/** @typedef {import("./app").WpBuildRuntimeEnvArgs} WpBuildRuntimeEnvArgs */
-/** @typedef {import("./app").WpwBuildModeConfigBase} WpwBuildModeConfigBase */
-/** @typedef {import("./app").WpBuildAppGetPathOptions} WpBuildAppGetPathOptions */
+/** @typedef {import("./app").WpwRuntimeEnvArgs} WpwRuntimeEnvArgs */
+/** @typedef {import("./app").WpwGetRcPathOptions} WpwGetRcPathOptions */
 /** @typedef {import("./app").IWpwGlobalEnvironment} IWpwGlobalEnvironment */
-/** @typedef {import("./app").WpBuildCombinedRuntimeArgs} WpBuildCombinedRuntimeArgs */
+/** @typedef {import("./app").WpwCombinedRuntimeArgs} WpwCombinedRuntimeArgs */
 /** @typedef {import("./app").WpwSourceCodeDotExtensionApp} WpwSourceCodeDotExtensionApp */
 
 
@@ -281,12 +281,9 @@
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
 /** @typedef {import("./generic").MergeOptions} MergeOptions */
-/**  @typedef {import("./generic").ExecAsynResult} ExecAsynResult */
-/**
- * @template T
- * @template {keyof T} K
- * @typedef {import("./generic").RequireKeys<T, K>} RequireKeys
- */
+/** @typedef {import("./generic").ExecAsynResult} ExecAsynResult */
+/** @template T @template {keyof T} K @typedef {import("./generic").RequireKeys<T, K>} RequireKeys */
+/** @template {WpwBuildOptionsKey} T @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsType<T> */
 /**
  * @typedef {object} ExecAsyncOptions
  * @property {string} command command to execute, with arguments
@@ -298,18 +295,6 @@
  * @property {boolean} [stdout]
  */
 
-
-/**
- * This callback is displayed as part of the Requester class.
- * @callback WpBuildCallback
- * @param {...any} args
- * @returns {any}
- */
-
-/**
- * @template {WpwBuildOptionsKey} T
- * @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsType<T>
- */
 
 /***********************************************************************************************************************
  * LOGGER
@@ -347,16 +332,18 @@
  ***********************************************************************************************************************/
 
 
-/** @typedef {import("./plugin").IWpBuildPlugin} IWpBuildPlugin */
+/** @typedef {import("./plugin").IWpwPlugin} IWpwPlugin */
 /** @typedef {import("./plugin").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("./plugin").WpBuildDtsBundleOptions} WpBuildDtsBundleOptions */
-/** @typedef {import("./plugin").WpBuildPluginTapOptions} WpBuildPluginTapOptions */
-/** @typedef {import("./plugin").WpBuildPluginWaitOptions} WpBuildPluginWaitOptions */
-/** @typedef {import("./plugin").WpBuildPluginVendorOptions} WpBuildPluginVendorOptions */
-/** @typedef {import("./plugin").WpBuildPluginTapOptionsEntry} WpBuildPluginTapOptionsEntry */
-/** @typedef {import("./plugin").WpBuildPluginMultiWaitOptions} WpBuildPluginMultiWaitOptions */
+/** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */
+/** @typedef {import("./plugin").WpwPluginTapOptions} WpwPluginTapOptions */
+/** @typedef {import("./plugin").WpwPluginWaitOptions} WpwPluginWaitOptions */
+/** @typedef {import("./plugin").WpwPluginWrappedHookHandler} WpwPluginWrappedHookHandler */
+/** @typedef {import("./plugin").WpwPluginBaseTapOptions} WpwPluginBaseTapOptions */
+/** @typedef {import("./plugin").WpwPluginMultiWaitOptions} WpwPluginMultiWaitOptions */
+/** @typedef {import("./plugin").WpwPluginWrappedHookHandlerSync} WpwPluginWrappedHookHandlerSync */
+/** @typedef {import("./plugin").WpwPluginWrappedHookHandlerAsync} WpwPluginWrappedHookHandlerAsync */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
-/** @typedef {import("./plugin").WpBuildPluginCompilationOptionsEntry} WpBuildPluginCompilationOptionsEntry */
+/** @typedef {import("./plugin").WpwPluginCompilationTapOptions} WpwPluginCompilationTapOptions */
 
 
 /***********************************************************************************************************************
@@ -371,9 +358,9 @@
 /** @typedef {import("json-schema").JSONSchema4Object} JsonSchema4Object */
 /** @typedef {import("json-schema").JSONSchema6Object} JsonSchema6Object */
 /** @typedef {import("json-schema").JSONSchema7Object} JsonSchema7Object */
+/** @typedef {RequireKeys<JsonSchema, "properties">} JsonSchemaWithProperties */
 /** @typedef {import("json-schema").JSONSchema6Definition} JsonSchema6Definition */
 /** @typedef {import("json-schema").JSONSchema7Definition} JsonSchema7Definition */
-/** @typedef {RequireKeys<JsonSchema, "properties">} JsonSchemaWithProperties */
 /** @typedef {import("json-schema").JSONSchema4["properties"]} JsonSchema4Properties */
 /** @typedef {import("json-schema").JSONSchema6["properties"]} JsonSchema6Properties */
 /** @typedef {import("json-schema").JSONSchema7["properties"]} JsonSchema7Properties */

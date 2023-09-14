@@ -661,56 +661,6 @@
                 "types": {
                     "allOf": [{
                         "if": {
-                            "properties": {
-                                "types": {
-                                    "properties": {
-                                        "enabled": {
-                                            "oneOf": [{
-                                                "const": true
-                                            }, false]
-                                        },
-                                        "mode": {
-                                            "const": "plugin"
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "then": {
-                            "required": [
-                                "tscheck"
-                            ],
-                            "properties": {
-                                "tscheck": {
-                                    "properties": {
-                                        "enabled": {
-                                            "const": true
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "else": {
-                            "anyOf": [{
-                                "properties": {
-                                    "tscheck": {
-                                        "properties": {
-                                            "enabled": {
-                                                "const": false
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "tscheck": false
-                                }
-                            }]
-                        }
-                    },
-                    {
-                        "if": {
                             "not": {
                                 "properties": {
                                     "types": {
@@ -2092,8 +2042,8 @@
                 "enabled": {
                     "type": "boolean"
                 },
-                "removeSource": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                "baseDir": {
+                    "$ref": "#/definitions/DirectoryPath"
                 },
                 "bundler": {
                     "$ref": "#/definitions/WpwPluginConfigTypesBundler"
@@ -2105,8 +2055,28 @@
                     "type": "string",
                     "maxLength": 256
                 },
-                "outputFile": {
-                    "$ref": "#/definitions/FileName"
+                "main": {
+                    "$ref": "#/definitions/FileOrDirectoryPath",
+                    "description": "relative path to the mina file, or directory - if a directory is specified, all dts files will be included, i.e. **/*.d.ts"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 50
+                },
+                "out": {
+                    "$ref": "#/definitions/FileName",
+                    "description": "output file name (ending in .d.ts)"
+                },
+                "outputAsModuleFolder": {
+                    "$ref": "#/definitions/BooleanDefaultTrue",
+                    "description": "output with module folder structure as opposed to module namespaces"
+                },
+                "removeSource": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
+                },
+                "verbose": {
+                    "$ref": "#/definitions/BooleanDefaultFalse"
                 }
             },
             "examples": [{
@@ -2119,6 +2089,7 @@
         "WpwPluginConfigTypesBundler": {
             "$id": "#/WpwPluginConfigTypesBundler",
             "default": "dts-bundle",
+            "description": "the library / program / package to use for bundling",
             "oneOf": [{
                 "const": "dts-bundle"
             },

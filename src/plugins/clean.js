@@ -40,7 +40,7 @@ class WpBuildCleanPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		const options = /** @type {typedefs.WpBuildPluginTapOptions} */(
+		const options = /** @type {typedefs.WpwPluginTapOptions} */(
 		{
 			cleanStaleAssets: {
 				async: true,

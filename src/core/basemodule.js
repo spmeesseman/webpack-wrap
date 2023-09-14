@@ -25,6 +25,8 @@ class WpwBaseModule extends WpwBase
 {
     /** @type {typedefs.WpwBuild} */
     build;
+    /** @type {typedefs.WpwBuildOptionsConfig<any>} @protected */
+    buildOptions;
     /** @type {Record<string, any>} */
     globalCache;
     /** @type {string}  @protected */
@@ -54,6 +56,7 @@ class WpwBaseModule extends WpwBase
         this.options = options;
         this.wpc = this.build.wpc;
         this.logger = this.build.logger;
+        this.buildOptions = this.build.options[this.key];
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.build.disposables.push(this);
@@ -128,7 +131,7 @@ class WpwBaseModule extends WpwBase
      */
 	validateOptions(options)
     {
-        if (!options.app) {
+        if (!options.build) {
             throw WpwError.getErrorMissing("app", this.wpc, "invalid option[app]");
         }
         if (!this.isValidOptionsKey(options.key)) {

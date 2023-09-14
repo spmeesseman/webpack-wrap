@@ -1,6 +1,6 @@
 
 /**
- * @file types/plugin.ts
+ * @file src/types/plugin.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -48,82 +48,67 @@
 import { RequireKeys } from "./generic";
 import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
-import { Options as DtsBundleOptions } from "dts-bundle/lib";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation
 } from "./webpack";
 
 
-declare type WpwPluginOptions =
+type WpwPluginOptions =
 {
     apps?: string[];
-    plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
     registerVendorPluginsFirst?: boolean;
     registerVendorPluginsOnly?: boolean;
     wrapPlugin?: boolean;
 } & WpwBaseModuleOptions;
 
-// declare type WpwPluginOptions<T extends WpwBuildOptionsKey | undefined = undefined> =
-// {
-//     apps?: string[];
-//     build?: string;
-//     plugins?: WpBuildPluginVendorOptions | WpBuildPluginVendorOptions[];
-//     registerVendorPluginsFirst?: boolean;
-//     registerVendorPluginsOnly?: boolean;
-//     wrapPlugin?: boolean;
-// } & WpwBaseOptions<T>;
+type WpwPluginWaitOptions = WpwPluginConfigWaitItem & { callback: WpwPluginWrappedHookHandler };
 
-declare interface IWpBuildPluginVendorOptions
-{
-    ctor: new(...args: any[]) => WebpackPluginInstance;
-    options: Readonly<Record<string, any>>;
-    [ key: string ]: any;
-}
-declare type WpBuildPluginVendorOptions = IWpBuildPluginVendorOptions;
+type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
 
-declare type WpBuildPluginWaitOptions = WpwPluginConfigWaitItem & { callback: (...args: any[]) => any };
+type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
-declare type WpBuildPluginMultiWaitOptions = WpBuildPluginWaitOptions[];
+type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void;
 
-declare interface IWpBuildPluginCacheOptions { file: string }
-declare type WpBuildPluginCacheOptions = IWpBuildPluginCacheOptions;
+type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => void;
 
-declare type WpwApplyCallback = (...args: any[]) => void | PromiseLike<void>;
+type WpwPluginWrappedHookHandlerSync = (...args: any[]) => Promise<void>;
 
-declare type WpBuildPluginTapOptions  = Record<string, WpBuildPluginTapOptionsEntry | WpBuildPluginCompilationOptionsEntry>;
+type WpwPluginWrappedHookHandler = WpwPluginWrappedHookHandlerAsync | WpwPluginWrappedHookHandlerSync;
 
-declare interface WpBuildPluginTapOptionsEntry
+type WpwPluginHookHandler = (...args: any[]) => WpwPluginHookHandlerResult | Promise<WpwPluginHookHandlerResult>;
+
+type WpwPluginTapOptions  = Record<string, WpwPluginBaseTapOptions | WpwPluginCompilationTapOptions>;
+
+interface WpwPluginBaseTapOptions
 {
     async?: boolean;
     hook: WebpackCompilerHookName;
     hookCompilation?: WebpackCompilationHookName;
-    callback: WpwApplyCallback;
+    callback: WpwPluginHookHandler;
     stage?: WebpackCompilationHookStage;
     statsProperty?: string;
+    waitStage?: WpwPluginHookWaitStage;
 };
-declare type WpBuildPluginCompilationOptionsEntry = RequireKeys<WpBuildPluginTapOptionsEntry, "stage" | "hookCompilation">;
+type WpwPluginCompilationTapOptions = RequireKeys<WpwPluginBaseTapOptions, "stage" | "hookCompilation">;
 
-declare interface IWpBuildPlugin extends IWpwBaseModule, WebpackPluginInstance
+interface IWpwPlugin extends IWpwBaseModule, WebpackPluginInstance
 {
-    // app: ClsWpBuildApp;
     compilation?: WebpackCompilation;
     compiler?: WebpackCompiler;
 }
 
-declare type WpBuildDtsBundleOptions = DtsBundleOptions & { baseDir: string; name: string; out: string };
-
 
 export {
-    IWpBuildPlugin,
-    IWpBuildPluginCacheOptions,
-    IWpBuildPluginVendorOptions,
-    WpBuildDtsBundleOptions,
-    WpBuildPluginCacheOptions,
-    WpBuildPluginCompilationOptionsEntry,
+    IWpwPlugin,
+    WpwPluginBaseTapOptions,
+    WpwPluginCompilationTapOptions,
+    WpwPluginHookHandler,
+    WpwPluginHookWaitStage,
+    WpwPluginMultiWaitOptions,
     WpwPluginOptions,
-    WpBuildPluginTapOptions,
-    WpBuildPluginTapOptionsEntry,
-    WpBuildPluginVendorOptions,
-    WpBuildPluginWaitOptions,
-    WpBuildPluginMultiWaitOptions
+    WpwPluginTapOptions,
+    WpwPluginWaitOptions,
+    WpwPluginWrappedHookHandler,
+    WpwPluginWrappedHookHandlerAsync,
+    WpwPluginWrappedHookHandlerSync
 };

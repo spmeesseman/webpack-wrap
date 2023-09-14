@@ -34,9 +34,9 @@ class WpwRc extends WpwBase
     alias;
     /** @type {WpwBuild[]} */
     apps;
-    /** @type {typedefs.WpBuildRuntimeEnvArgs} */
+    /** @type {typedefs.WpwRuntimeEnvArgs} */
     arge;
-    /** @type {typedefs.WpBuildCombinedRuntimeArgs} */
+    /** @type {typedefs.WpwCombinedRuntimeArgs} */
     args;
     /** @type {typedefs.WebpackRuntimeArgs} */
     argv;
@@ -86,7 +86,7 @@ class WpwRc extends WpwBase
      * @see {@link WpwBuild} for build lvel wrapper defintion.  Stupidly named `app` (???).
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
-     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
+     * @param {typedefs.WpwRuntimeEnvArgs} arge
      */
     constructor(argv, arge)
     {
@@ -191,7 +191,7 @@ class WpwRc extends WpwBase
      * configuration export(s) to webpack.config.js.
      *
      * @param {typedefs.WebpackRuntimeArgs} argv
-     * @param {typedefs.WpBuildRuntimeEnvArgs} arge
+     * @param {typedefs.WpwRuntimeEnvArgs} arge
      * @returns {typedefs.WpwWebpackConfig[]} arge
      */
     static create(argv, arge)
@@ -205,7 +205,7 @@ class WpwRc extends WpwBase
         //
         rc.apps.push(
             ...rc.builds.filter(
-                (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.build.type === b.type)
+                (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.type === b.type)
             )
             .map((build) => new WpwBuild(build, rc))
         );
@@ -220,7 +220,7 @@ class WpwRc extends WpwBase
                 throw WpwError.getErrorProperty("type");
             }
             build.active = true;
-            return build.buildWrapper();
+            return build.webpackExports();
         });
     }
 
@@ -229,17 +229,15 @@ class WpwRc extends WpwBase
      * @param {string} nameOrType
      * @returns {typedefs.WpwBuild | undefined}
      */
-    getBuild(nameOrType) { return this.apps.find(a => a.build.type === nameOrType || a.build.name === nameOrType); }
-
-
+    getBuild(nameOrType) { return this.apps.find(a => a.type === nameOrType || a.name === nameOrType); }
 
 
     /**
      * @private
      * @template {boolean | undefined} T
      * @template {T extends false | undefined ? Exclude<typedefs.WebpackMode, undefined> : Exclude<typedefs.WpwWebpackMode, undefined>} R
-     * @param {typedefs.WpBuildRuntimeEnvArgs | typedefs.WpBuildCombinedRuntimeArgs} arge Webpack build environment
-     * @param {typedefs.WebpackRuntimeArgs | typedefs.WpBuildCombinedRuntimeArgs | undefined | null} argv Webpack command line args
+     * @param {typedefs.WpwRuntimeEnvArgs | typedefs.WpwCombinedRuntimeArgs} arge Webpack build environment
+     * @param {typedefs.WebpackRuntimeArgs | typedefs.WpwCombinedRuntimeArgs | undefined | null} argv Webpack command line args
      * @param {T} [wpBuild] Convert to WpwWebpackMode @see {@link typedefs.WpwWebpackMode WpwWebpackMode}, i.e. convert mode `none` to mode `test`
      * @returns {R}
      */
@@ -268,11 +266,11 @@ class WpwRc extends WpwBase
             {
                 for (const a of this.apps)
                 {
-                    const dependsOnTypes = (isObject(a.build.entry) && a.build.entry.dependOn === "types") ||
-                                           a.build.options.wait?.items?.find(w => w.name === "types");
+                    const dependsOnTypes = (isObject(a.entry) && a.entry.dependOn === "types") ||
+                                           a.options.wait?.items?.find(w => w.name === "types");
                     if (!this.isSingleBuild || dependsOnTypes)
                     {
-                        if (asArray(a.build.options.wait?.items).find(t => t.name === "types"))
+                        if (asArray(a.options.wait?.items).find(t => t.name === "types"))
                         {
                             this.apps.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
                             break;

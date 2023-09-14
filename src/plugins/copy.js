@@ -23,9 +23,8 @@ const CopyPlugin = require("copy-webpack-plugin");
  */
 class WpBuildCopyPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"copy">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"copy">} */
     buildOptions;
-
 
 	/**
 	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -67,16 +66,15 @@ class WpBuildCopyPlugin extends WpwPlugin
 
 	/**
      * @override
-	 * @template T
      * @param {WpwBuild} build
+     * @param {Partial<typedefs.WpwPluginOptions>} [options]
 	 * @returns {WpBuildCopyPlugin | undefined}
      */
-	static create = (build) => WpBuildCopyPlugin.wrap(this, build, "copy");
+	static create = (build, options) => WpBuildCopyPlugin.wrap(this, build, "copy", options);
 
 
 	/**
 	 * @private
-	 * @async
 	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
 	copyEntryModulesNoHash(assets)

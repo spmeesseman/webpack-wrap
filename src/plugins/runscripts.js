@@ -41,13 +41,13 @@ class WpwRunScriptsPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-        const customTaps = /** @type {typedefs.WpBuildPluginTapOptions} */({});
+        const customTaps = /** @type {typedefs.WpwPluginTapOptions} */({});
         const pluginOptions = pickNot(this.buildOptions, ...WpwPluginConfigRunScriptsKeys);
 
         Object.entries(pluginOptions).forEach(([ stage, tapConfig ]) =>
         {
             const tapKey = `runScripts${capitalize(stage)}`;
-            const customTap = customTaps[tapKey] = /** @type {typedefs.WpBuildPluginTapOptionsEntry} */({
+            const customTap = customTaps[tapKey] = /** @type {typedefs.WpwPluginBaseTapOptions} */({
                 async: tapConfig.async,
                 hook: stage,
                 callback: () => this.runScripts(stage)
@@ -58,7 +58,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
         });
 
         this.onApply(compiler, Object.assign(customTaps,
-        /** @type {typedefs.WpBuildPluginTapOptions} */({
+        /** @type {typedefs.WpwPluginTapOptions} */({
             runScriptsInitialize: {
                 hook: "initialize",
                 callback: () => this.runScripts("initialize")

@@ -23,9 +23,9 @@ const { writeFile } = require("fs/promises");
 /**
  * @extends WpwTscPlugin
  */
-class WpBuildTypesPlugin extends WpwTscPlugin
+class WpwTypesPlugin extends WpwTscPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @protected */
     buildOptions;
 	/** @type {string} @private */
 	virtualFile;
@@ -40,19 +40,15 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 		super(options);
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.build.options.types);
 	}
 
 
 	/**
      * @override
      * @param {typedefs.WpwBuild} build
-	 * @returns {WpBuildTypesPlugin | undefined}
+	 * @returns {WpwTypesPlugin | undefined}
      */
-	static create(build)
-	{
-		return build.options.types?.enabled ? new WpBuildTypesPlugin({ build }) : undefined;
-	}
+	static create = (build) => WpwTypesPlugin.wrap(WpwTypesPlugin, build, "types", undefined, [[ "mode", "plugin" ]]);
 
 
     /**
@@ -378,7 +374,7 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 			const bundleOptions = this.buildOptions.bundle;
 			if (bundleOptions === true || (isObject(bundleOptions) && bundleOptions.bundler === "dts-bundle"))
 			{
-				await this.bundleDts("types", outputDirAbs);
+				await this.dtsBundle("types", outputDirAbs);
 			}
 			else
 			{
@@ -405,4 +401,4 @@ class WpBuildTypesPlugin extends WpwTscPlugin
 }
 
 
-module.exports = WpBuildTypesPlugin.create;
+module.exports = WpwTypesPlugin.create;

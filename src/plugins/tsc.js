@@ -16,7 +16,7 @@ const { existsSync } = require("fs");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { access, unlink, readFile } = require("fs/promises");
-const { findFiles, relativePath, resolvePath, existsAsync } = require("../utils");
+const { findFiles, relativePath, resolvePath, existsAsync, isString, isDirectory } = require("../utils");
 
 
 /**
@@ -25,21 +25,35 @@ const { findFiles, relativePath, resolvePath, existsAsync } = require("../utils"
  */
 class WpwTscPlugin extends WpwPlugin
 {
+    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
+    typesBuildOptions;
+
+
+    /**
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     */
+	constructor(options)
+	{
+		super(options);
+        this.typesBuildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.build.options.types);
+	}
+
+
     /**
 	 * @protected
 	 * @param {string} statsProperty
 	 * @param {string | undefined} [outputDir] full path
 	 */
-	async bundleDts(statsProperty, outputDir)
+	async dtsBundle(statsProperty, outputDir)
 	{
-
 		if (this.global.typesBundled) {
 			this.build.addMessage({ code: WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, message: "dts bundling already completed" });
 			return;
 		}
 
 		const l = this.build.logger,
-			  baseDir = this.build.getBasePath();
+			  baseBuildDir = this.build.getBasePath(),
+			  bundleOptions = /** @type {typedefs.IWpwPluginConfigTypesBundle} */(this.typesBuildOptions.bundle);
 		l.start("bundle types .d.ts files", 1);
 		l.value("   types output directory", outputDir, 2);
 
@@ -47,7 +61,7 @@ class WpwTscPlugin extends WpwPlugin
 		{
 			const compilerOptions = this.build.source.config.options.compilerOptions;
 			outputDir = resolvePath(
-				baseDir, compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true })
+				baseBuildDir, compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true })
 			);
 			if (!(await existsAsync(outputDir)))
 			{
@@ -56,67 +70,31 @@ class WpwTscPlugin extends WpwPlugin
 			}
 		}
 
-		// const baseDir = this.build.getBasePath(),
-		// 	  dtsFile = this.build.name + ".d.ts",
-		// 	  dtsFilePathAbs = join(outputDir, dtsFile),
-		// 	  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
-		// 	  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
-		// 	  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
-		// 	  outputDirRelBase = relativePath(baseDir, outputDir),
-		// 	  entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.build.name)?.options);
-		// 		// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.build.name)?.options);
-		// let entryName = /** @type {string} */(entryOptions.name),
-		// 	entryFile = /** @type {string} */(this.compilation.getAsset(entryName)?.name),
-		// 	entryFileAbs, entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.build.source.ext,
+		const name = bundleOptions.name || `${this.build.pkgJson.name}-${this.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
+			out = bundleOptions.out || this.build.name + ".d.ts",
+			dtsFilePathAbs = join(outputDir, out),
+			dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
+			dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
+			dtsFilePathRelBase = relativePath(baseBuildDir, dtsFilePathAbs).replace(/\\/g, "/"),
+			dtsBundleBaseDir = relativePath(baseBuildDir, outputDir).replace(/\\/g, "/").replace(/\/$/, ""),
+			baseDir = bundleOptions.baseDir || dtsBundleBaseDir;
 
-		// if (entryFile)
-		// {
-		// 	entryFileAbs = resolvePath(outputDir, entryFile);
-		// 	entryFileRel = relativePath(outputDir, entryFileAbs);
-		// 	entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
-		// 	entryFileRelBase = relativePath(baseDir, entryFileAbs);
-		// }
-
-		// f (!entryFileAbs || !existsSync(entryFileAbs))
-		//
-		// 	const typesOptions = this.build.types;
-		// 	if (typesOptions && typesOptions.enabled && typesOptions.entry)
-		// 	{
-		// 		entryName = this.fileNameStrip(typesOptions.entry, true);
-		// 		entryFile = typesOptions.entry;
-		// 		entryFileAbs = resolvePath(outputDir, entryFile);
-		// 		entryFileRel = relativePath(outputDir, entryFileAbs);
-		// 		entryFileRelBase = relativePath(baseDir, entryFileAbs);
-		// 		entryFileRelContext = relativePath(this.compiler.context, entryFileAbs);
-		// 	}
-
-		// if (!entryFileRel || !entryFileRelBase || !entryFileAbs || !entryFileRelContext)
-		// {
-		// 	this.build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "could not determine entry file" });
-		// 	return;
-		// }
-
-		// entryFile = entryFile.replace(/\\/g, "/");
-		// entryFileRel = entryFileRel.replace(/\\/g, "/");
-		// entryFileRelBase = entryFileRelBase.replace(/\\/g, "/");
-		// entryFileRelContext = entryFileRelBase.replace(/\\/g, "/");
-
-		// let dtsEntryFile = entryFile.replace(this.build.source.ext, "d.ts");
-		// const rootDir = this.build.source.config.options.compilerOptions.rootDir;
-		// if (rootDir && rootDir !== ".") {
-		// 	dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
-		// }
-		// const dtsEntryFileAbs = resolvePath(outputDir, dtsEntryFile),
-		// 	  dtsEntryFileRel = relativePath(outputDir, dtsEntryFileAbs),
-		// 	  dtsEntryFileRelContext = relativePath(this.compiler.context, dtsEntryFileAbs),
-		// 	  dtsEntryFileRelBase = relativePath(baseDir, dtsEntryFileAbs);
-
-		const dtsFile = this.build.name + ".d.ts",
-			  dtsFilePathAbs = join(outputDir, dtsFile),
-			  dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			  dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
-			  dtsFilePathRelBase = relativePath(baseDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			  dtsBundleBaseDir = relativePath(baseDir, outputDir).replace(/\\/g, "/").replace(/\/$/, "");
+		let main = dtsBundleBaseDir + "/**/*.d.ts";
+		if (isString(bundleOptions.main))
+		{
+			let cfgMain = bundleOptions.main;
+			if (bundleOptions.main === "entry")
+			{
+				cfgMain = this.getDtsEntryFile(outputDir);
+			}
+			if (await existsAsync(resolvePath(baseBuildDir, cfgMain)))
+			{
+				main = cfgMain;
+				if (bundleOptions.main !== "entry" && isDirectory(main)) {
+					main = join(main, "**/*.d.ts");
+				}
+			}
+		}
 
 		if (existsSync(dtsFilePathAbs))
 		{
@@ -124,18 +102,15 @@ class WpwTscPlugin extends WpwPlugin
 			await unlink(dtsFilePathAbs);
 		}
 
-		/** @type {typedefs.WpBuildDtsBundleOptions} */
+		/** @type {typedefs.WpwPluginConfigTypesBundle} */
 		const bundleCfg =
 		{
-			name: `${this.build.pkgJson.name}-${this.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
-			baseDir: dtsBundleBaseDir,
-			headerPath: "",
-			headerText: "",
-			main: dtsBundleBaseDir + "/**/*.d.ts",
-			out: dtsFile,
-			outputAsModuleFolder: true,
-			// removeSource: true,
-			verbose: this.build.log.level >= 4
+			out, main, name, baseDir,
+			headerPath: bundleOptions.headerPath || "",
+			headerText: bundleOptions.headerText || "",
+			outputAsModuleFolder: bundleOptions.outputAsModuleFolder !== undefined ? bundleOptions.outputAsModuleFolder : true,
+			removeSource: !!bundleOptions.removeSource,
+			verbose: this.build.log.level >= 4 || !!bundleOptions.verbose
 		};
 
 		if (this.logger.level >= 2)
@@ -148,7 +123,7 @@ class WpwTscPlugin extends WpwPlugin
 			l.value("      base output path", outputDir);
 			l.write("   dts-bundle options:");
 			l.value("      name", bundleCfg.name);
-			l.value("      out", bundleCfg.out);
+			l.value("      output file", bundleCfg.out);
 			l.value("      main", bundleCfg.main);
 			l.value("      base dir", bundleCfg.baseDir);
 			l.value("      header text", bundleCfg.headerText);
@@ -401,6 +376,40 @@ class WpwTscPlugin extends WpwPlugin
 
 		logger.write("   finished execution of tsc command", 3);
 		return 0;
+	}
+
+
+	/**
+	 * @protected
+	 * @param {string} outputDir full path
+	 * @returns {string}
+	 */
+	getDtsEntryFile(outputDir)
+	{
+		const baseDir = this.build.getBasePath();
+		const entryOptions = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entries.get(this.build.name)?.options);
+		// 		// entryOptions2 = /** @type {typedefs.WebpackEntryOptions} */(this.compilation.entrypoints.get(this.build.name)?.options);
+		const entryName = /** @type {string} */(entryOptions.name);
+		let entryFile = /** @type {string} */(this.compilation.getAsset(entryName)?.name); // ,
+			// entryFileAbs; // , entryFileRel, entryFileRelBase, entryFileRelContext;// entryName + "." + this.build.source.ext,
+		if (entryFile)
+		{
+			// entryFileAbs = resolvePath(outputDir, entryFile).replace(/\\/g, "/");
+			// entryFileRel = relativePath(outputDir, entryFileAbs).replace(/\\/g, "/");
+			// entryFileRelBase = relativePath(baseDir, entryFileAbs).replace(/\\/g, "/");
+			// entryFileRelContext = relativePath(this.compiler.context, entryFileAbs).replace(/\\/g, "/");
+			entryFile = resolvePath(outputDir, entryFile).replace(/\\/g, "/");
+		}
+		let dtsEntryFile = entryFile.replace(this.build.source.ext, "d.ts");
+		const rootDir = this.build.source.config.options.compilerOptions.rootDir;
+		if (rootDir && rootDir !== ".") {
+			dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
+		}
+		const dtsEntryFileAbs = resolvePath(outputDir, dtsEntryFile),
+			  // dtsEntryFileRel = relativePath(outputDir, dtsEntryFileAbs),
+			  // dtsEntryFileRelContext = relativePath(this.compiler.context, dtsEntryFileAbs),
+			  dtsEntryFileRelBase = relativePath(baseDir, dtsEntryFileAbs);
+		return dtsEntryFileRelBase;
 	}
 
 }

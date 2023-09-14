@@ -65,7 +65,7 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 						hook: "compilation",
 						stage: "DERIVED",
 						statsProperty: "tsbundle",
-						callback: () => this.bundleDts("tsbundle")
+						callback: () => this.dtsBundle("tsbundle")
 					}
 				});
 			}
@@ -77,7 +77,7 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 						async: true,
 						hook: "afterEmit",
 						statsProperty: "tsbundle",
-						callback: () => this.bundleDts("tsbundle")
+						callback: () => this.dtsBundle("tsbundle")
 					}
 				});
 			}

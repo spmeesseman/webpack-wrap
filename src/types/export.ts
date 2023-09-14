@@ -1,6 +1,6 @@
 
 /**
- * @file types/export.ts
+ * @file src/types/export.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023

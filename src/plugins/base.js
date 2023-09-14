@@ -45,16 +45,19 @@ const WpBuildCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
-const { isFunction, mergeIf, execAsync, asArray, applyIf } = require("../utils");
+const { isFunction, execAsync, applyIf, asArray } = require("../utils");
 
 
 /**
  * @abstract
  * @extends {WpwBaseModule}
- * @implements {typedefs.IWpBuildPlugin}
+ * @implements {typedefs.IWpwPlugin}
  */
 class WpwPlugin extends WpwBaseModule
 {
+    /**  @private  */
+    static eventManager = new WpwPluginWaitManager();
+
     /** @protected */
     cache;
     /** @type {typedefs.WebpackCompilation} */
@@ -71,8 +74,6 @@ class WpwPlugin extends WpwBaseModule
     wpCacheCompilation;
     /** @type {typedefs.WebpackLogger} @protected */
     wpLogger;
-    /**  @private  */
-    static eventManager = new WpwPluginWaitManager();
 
 
     /**
@@ -85,20 +86,6 @@ class WpwPlugin extends WpwBaseModule
         this.validatePluginOptions(options);
         this.options = applyIf(this.options, options);
         this.cache = new WpBuildCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
-        if (!this.options.wrapPlugin)
-        {
-            mergeIf(this.options, { plugins: [] });
-            const plugins = asArray(this.options.plugins);
-            if (options.registerVendorPluginsOnly) {
-                this.plugins = [ ...plugins.map(p => new p.ctor(p.options)) ];
-            }
-            else if (options.registerVendorPluginsFirst) {
-                this.plugins = [ ...plugins.map(p => new p.ctor(p.options)), this ];
-            }
-            else {
-                this.plugins = [ this, ...plugins.map(p => new p.ctor(p.options)) ];
-            }
-        }
     }
 
 
@@ -116,7 +103,7 @@ class WpwPlugin extends WpwBaseModule
      *
      * @private
      * @param {string} prop
-     * @returns {string}
+     * @returns {string} string
      */
     breakProp = (prop) => prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
                               .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
@@ -132,7 +119,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} identifier
      * @param {string} outputDir Output directory of build
      * @param {typedefs.WebpackRawSource | undefined} source
-     * @returns {Promise<typedefs.CacheResult>}
+     * @returns {Promise<typedefs.CacheResult>} Promise<CacheResult>
      */
     checkSnapshot = async (filePath, identifier, outputDir, source) =>
     {
@@ -209,7 +196,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} filePath
      * @param {string} identifier
      * @param {string} outputDir Output directory of build
-     * @returns {Promise<boolean>}
+     * @returns {Promise<boolean>} Promise<boolean>
      */
     checkSnapshotExists = async (filePath, identifier, outputDir) =>
     {
@@ -230,7 +217,7 @@ class WpwPlugin extends WpwBaseModule
 	/**
 	 * @protected
 	 * @param {typedefs.WebpackSnapshot} snapshot
-	 * @returns {Promise<boolean | undefined>}
+	 * @returns {Promise<boolean | undefined>} Promise<boolean | undefined>
 	 */
 	checkSnapshotValid = async (snapshot) =>
 	{
@@ -245,7 +232,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @protected
 	 * @param {number} startTime
 	 * @param {string} dependency
-	 * @returns {Promise<typedefs.WebpackSnapshot | undefined | null>}
+	 * @returns {Promise<typedefs.WebpackSnapshot | undefined | null>} Promise<WebpackSnapshot | undefined | null>
 	 */
 	createSnapshot = async (startTime, dependency) =>
 	{
@@ -263,7 +250,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {string} command
 	 * @param {string} program
 	 * @param {string | string[]} [ignoreOut]
-	 * @returns {Promise<number | null>}
+	 * @returns {Promise<number | null>} Promise<number | null>
 	 */
 	exec = async (command, program, ignoreOut) =>
     {
@@ -283,7 +270,7 @@ class WpwPlugin extends WpwBaseModule
 	/**
 	 * @protected
 	 * @param {Buffer} source
-	 * @returns {string}
+	 * @returns {string} string
 	 */
 	getContentHash(source)
 	{
@@ -311,17 +298,11 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * @returns {(typedefs.WebpackPluginInstance | InstanceType<WpwPlugin>)[]}
-     */
-    getPlugins() { return this.plugins; }
-
-
-    /**
      * @abstract
 	 * @protected
-     * @returns {typedefs.WebpackPluginInstance}
+     * @returns {typedefs.WebpackPluginInstance | typedefs.WebpackPluginInstance[]} WebpackPluginInstance
      */
-    getVendorPlugin() { return { apply: () => {} }; };
+    getVendorPlugin() { return []; };
 
 
 	/**
@@ -339,7 +320,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string|any} hook
-     * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
+     * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook} hook is AsyncCompilerHook | AsyncCompilationHook
      */
     isAsyncHook = (hook) => isFunction(hook.tapPromise);
 
@@ -347,7 +328,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string} file
-     * @returns {boolean}
+     * @returns {boolean} boolean
      */
     isEntryAsset = (file) => WpwPlugin.getEntriesRegex(this.wpc).test(file);
 
@@ -363,7 +344,7 @@ class WpwPlugin extends WpwBaseModule
      * Called by extending class on call to apply() from webpack runtime
      * @protected
      * @param {typedefs.WebpackCompiler} compiler
-     * @param {typedefs.WpBuildPluginTapOptions} [options]
+     * @param {typedefs.WpwPluginTapOptions} [options]
      * @throws {WebpackError}
      */
     onApply(compiler, options)
@@ -381,7 +362,7 @@ class WpwPlugin extends WpwBaseModule
                                        optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
             if (hasCompilationHook)
             {
-                const compilationHooks = /** @type {[string, typedefs.WpBuildPluginCompilationOptionsEntry][]} */(
+                const compilationHooks = /** @type {[string, typedefs.WpwPluginCompilationTapOptions][]} */(
                     optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation")
                 );
                 this.tapCompilationHooks(compilationHooks);
@@ -392,12 +373,12 @@ class WpwPlugin extends WpwBaseModule
                 const hook = compiler.hooks[tapOpts.hook];
                 if (!tapOpts.async)
                 {
-                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
+                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
                 }
                 else
                 {   if (this.isAsyncHook(hook))
                     {
-                        hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts).bind(this));
+                        hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
                     }
                     else {
                         this.handleError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
@@ -406,19 +387,18 @@ class WpwPlugin extends WpwBaseModule
                 }
             }
         }
+
         //
-        // if there's a wrapped vendor plugin, then forward the compiler instance to the plugin's apply() method
+        // if there's a wrapped vendor plugin(s), then forward the compiler instance to the plugin's apply() method
         //
-        if (this.options.wrapPlugin) {
-            this.plugins[0].apply.call(this.plugins[0], compiler);
-        }
+        for (const p of this.plugins) { p.apply.call(p, compiler); }
     }
 
 
     /**
      * @protected
      * @param {typedefs.WebpackCompilation} compilation
-     * @returns {boolean}
+     * @returns {boolean} boolean
      */
     onCompilation(compilation)
     {
@@ -427,16 +407,6 @@ class WpwPlugin extends WpwBaseModule
         this.wpCacheCompilation = compilation.getCache(this.name);
         return !compilation.getStats().hasErrors();
     }
-
-
-    /**
-     * Extending plugins need to call this function when it's specific tassks are done/complete.
-     * Used in the {@link WpwPlugin.eventInfo wait} functionality
-     *
-     * @protected
-     * @param {...any} args any plugin specific arguments
-     */
-    onDone(...args) { WpwPlugin.eventManager.onPluginDone(this.name, ...args); }
 
 
     /**
@@ -470,7 +440,7 @@ class WpwPlugin extends WpwBaseModule
 
     /**
      * @private
-     * @param {[string, typedefs.WpBuildPluginCompilationOptionsEntry][]} optionsArray
+     * @param {[string, typedefs.WpwPluginCompilationTapOptions][]} optionsArray
      */
     tapCompilationHooks(optionsArray)
     {
@@ -496,7 +466,7 @@ class WpwPlugin extends WpwBaseModule
                     this.handleError("Invalid hook parameters: stage not specified for processAssets");
                     return;
                 }
-                this.tapCompilationStage(name, /** @type {typedefs.WpBuildPluginCompilationOptionsEntry} */(tapOpts));
+                this.tapCompilationStage(name, /** @type {typedefs.WpwPluginCompilationTapOptions} */(tapOpts));
             });
         });
     }
@@ -505,8 +475,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string} optionName
-     * @param {typedefs.WpBuildPluginCompilationOptionsEntry} options
-     * @returns {void}
+     * @param {typedefs.WpwPluginCompilationTapOptions} options
      * @throws {WebpackError}
      */
     tapCompilationStage(optionName, options)
@@ -520,20 +489,20 @@ class WpwPlugin extends WpwBaseModule
             {
                 const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
                 if (!options.async) {
-                    hook.tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options).bind(this));
+                    hook.tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
                 }
                 else {
-                    hook.tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options).bind(this));
+                    hook.tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
                 }
             }
             else
             {
                 if (!options.async) {
-                    hook.tap(name, this.wrapCallback(optionName, options).bind(this));
+                    hook.tap(name, this.wrapCallback(optionName, options));
                 }
                 else {
                     if (this.isAsyncHook(hook)) {
-                        hook.tapPromise(name, this.wrapCallback(optionName, options).bind(this));
+                        hook.tapPromise(name, this.wrapCallback(optionName, options, true));
                     }
                     else {
                         this.handleError(`Invalid async hook specified: ${options.hook}`);
@@ -549,7 +518,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string} name
-     * @param {typedefs.WpBuildPluginTapOptionsEntry} options
+     * @param {typedefs.WpwPluginBaseTapOptions} options
      */
     tapStatsPrinter(name, options)
     {
@@ -571,7 +540,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @private
      * @param {typedefs.WebpackCompiler} compiler
-     * @param {typedefs.WpBuildPluginTapOptions} options
+     * @param {typedefs.WpwPluginTapOptions} options
      * @throws {WpwError}
      */
 	validateApplyOptions(compiler, options)
@@ -606,20 +575,23 @@ class WpwPlugin extends WpwBaseModule
 
     /**
      * Wraps a vendor plugin to give it access to the WpBuildApp instance. vendor plugin instantiation
-     * is done via the constructor's call to  the {@link WpwPlugin.getOptions getOptions()} override
+     * is done via the constructor's call to the override function {@link WpwPlugin.getVendorPlugin getVendorPlugin()}
      * @template {WpwPlugin} T
      * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper
-     * @param {typedefs.WpwBuildOptionsKey} optionsKey
-     * @returns {T | undefined}
+     * @param {typedefs.WpwBuildOptionsKey} buildOptionsKey
+     * @param {Partial<typedefs.WpwPluginOptions>} [pluginOptions]
+     * @param {[ string, string | boolean | number ][]} [addOptionsKeysCheck]
+     * @returns {T | undefined} T | undefined
      */
-    static wrap(clsType, build, optionsKey)
+    static wrap(clsType, build, buildOptionsKey, pluginOptions, addOptionsKeysCheck)
     {
-        const options = build.options[optionsKey];
-        if (options && options.enabled !== false)
+        const buildOptions = build.options[buildOptionsKey];
+        if (buildOptions && buildOptions.enabled !== false && asArray(addOptionsKeysCheck).every(o => buildOptions[o[0]] === o[1]))
         {
-            const plugin = new clsType({ build, wrapPlugin: true });
-            plugin.plugins.push(plugin.getVendorPlugin());
+            const plugin = new clsType(applyIf({ build, wrapPlugin: true }, pluginOptions));
+            plugin.plugins.push(...asArray(plugin.getVendorPlugin()));
+            plugin.buildOptions = buildOptions;
             return plugin;
         }
     }
@@ -627,11 +599,14 @@ class WpwPlugin extends WpwBaseModule
 
     /**
      * @private
+     * @template {boolean} T
+     * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
      * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
-     * @param {typedefs.WpBuildPluginTapOptionsEntry} options
-     * @returns {typedefs.WpBuildCallback}
+     * @param {typedefs.WpwPluginBaseTapOptions} options
+     * @param {T} [async]
+     * @returns {R} WpwPluginWrappedHookHandler
      */
-    wrapCallback(message, options)
+    wrapCallback(message, options, async)
     {
         let cb;
         const logger = this.logger,
@@ -640,36 +615,48 @@ class WpwPlugin extends WpwBaseModule
               eMgr= WpwPlugin.eventManager,
               wait = this.build.options.wait;
 
-        if (!options.async) {
-            cb = (/** @type {any} */arg) => {
+        if (async !== true)
+        {
+            cb = (/** @type {...any} */...args) =>
+            {
                 logger.start(logMsg, 1);
-                callback(arg);
-                eMgr.emit(`${this.name}_start`, options.hook);
+                const result = callback(...args);
+                if (result) {
+                    eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
+                }
             };
         }
-        else {
-            cb = async (/** @type {any} */arg) => {
+        else
+        {
+            cb = async (/** @type {...any} */...args) =>
+            {
                 logger.start(logMsg, 1);
-                await callback(arg);
-                eMgr.emit(`${this.name}_start`, options.hook);
+                const result = await callback(...args);
+                if (result) {
+                    eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
+                }
             };
         }
+
         if (wait?.items)
         {
+            const delayedCb = cb;
             wait.items.forEach((waitConfig) =>
-            {
-                const delayedCb = cb;
+            {   //
+                // We wait for the last item in the array to complete i.e emit it's 'done' event
+                // so just set the return cb to the last array items event registration
+                //
                 cb = () => {
                     eMgr.register({
                         mode: waitConfig.mode,
                         source: this.key,
                         name: waitConfig.name,
-                        callback: () => delayedCb.call(this, message, options)
+                        callback: () => delayedCb
                     });
                 };
             }, this);
         }
-        return cb;
+        return /** @type {R} */(cb);
     }
 }
 

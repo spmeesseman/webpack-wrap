@@ -284,7 +284,7 @@ class WpwLogger
      * @param {string} name
      * @param {string} version
      * @param {string} subtitle
-     * @param {typedefs.WpBuildCallback | null | undefined} [cb]
+     * @param {((logger: WpwLogger) => unknown) | null | undefined} [cb]
      * @param {WpwLogger} [logger]
      * @param {tinycolor.ColorInput[]} colors
      */

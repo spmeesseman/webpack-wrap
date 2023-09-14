@@ -152,7 +152,7 @@ module.exports = {
         "jsdoc/no-multi-asterisks": 1, // Recommended
         "jsdoc/no-restricted-syntax": 0,
         "jsdoc/no-types": 0,
-        "jsdoc/no-undefined-types": 1, // Recommended
+        "jsdoc/no-undefined-types": 0, // Recommended
         "jsdoc/require-asterisk-prefix": 1,
         "jsdoc/require-description": 0,
         "jsdoc/require-description-complete-sentence": 0,

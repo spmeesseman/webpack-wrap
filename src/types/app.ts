@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file types/app.d.ts
+ * @file src/types/app.ts
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -32,31 +32,29 @@ import {
 
 declare const __WPBUILD__: any;
 
-declare interface IWpBuildAppGetPathOptions {
+interface IWpwGetRcPathOptions {
     build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string;
 };
-declare type WpBuildAppGetPathOptions = IWpBuildAppGetPathOptions;
+type WpwGetRcPathOptions = IWpwGetRcPathOptions;
 
-declare interface IWpwGlobalEnvironment {
+interface IWpwGlobalEnvironment {
     buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any;
 };
 
-declare interface IWpBuildRuntimeEnvArgs {
+interface IWpwRuntimeEnvArgs {
     analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
 };
-declare type WpBuildRuntimeEnvArgs = IWpBuildRuntimeEnvArgs;
+type WpwRuntimeEnvArgs = IWpwRuntimeEnvArgs;
 
-declare type WpwBuildModeConfigBase = Omit<WpwBuildBaseConfig, "builds">;
+// interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
-// declare interface WpBuildRModeConfig extends WpBuildRModeConfig {};
+type WpwCombinedRuntimeArgs =
+    WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpwRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
 
-declare type WpBuildCombinedRuntimeArgs =
-    WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpBuildRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
-
-declare type WpwSourceCodeDotExtensionApp = `.${WpwSourceCodeExtension}`;
+type WpwSourceCodeDotExtensionApp = `.${WpwSourceCodeExtension}`;
 
 
-declare interface IWpwWebpackConfig extends WebpackConfig
+interface IWpwWebpackConfig extends WebpackConfig
 {
     cache: WebpackFileCacheOptions | WebpackMemoryCacheOptions;
     context: string;
@@ -72,18 +70,17 @@ declare interface IWpwWebpackConfig extends WebpackConfig
     target: WebpackTarget;
     module: WebpackModuleOptions;
 }
-declare type WpwWebpackConfig = IWpwWebpackConfig;
+type WpwWebpackConfig = IWpwWebpackConfig;
 
 
 export {
     IWpwWebpackConfig,
-    IWpBuildRuntimeEnvArgs,
-    IWpBuildAppGetPathOptions,
-    WpBuildCombinedRuntimeArgs,
+    IWpwRuntimeEnvArgs,
+    IWpwGetRcPathOptions,
+    WpwCombinedRuntimeArgs,
     IWpwGlobalEnvironment,
-    WpwBuildModeConfigBase,
-    WpBuildAppGetPathOptions,
-    WpBuildRuntimeEnvArgs,
+    WpwGetRcPathOptions,
+    WpwRuntimeEnvArgs,
     WpwSourceCodeDotExtensionApp,
     WpwWebpackConfig,
     __WPBUILD__

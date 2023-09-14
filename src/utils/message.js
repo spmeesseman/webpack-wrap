@@ -26,7 +26,7 @@ const WpwMessage =
     //
     WPW000: "general info issued",
     WPW025: "build skipped (non-fatal)",
-    WPW075: "suggesstion to enable option",
+    WPW075: "auto-enabled build option",
     //
     // INFO (100- 199)
     //
@@ -79,7 +79,7 @@ const WpwMessageEnum =
     // INFO (000 - 099)
     //
     INFO_BUILD_SKIPPED_NON_FATAL: /** @type {typedefs.WpwInfoCode} */("WPW025"),
-    INFO_SHOULD_ENABLE_OPTION: /** @type {typedefs.WpwInfoCode} */("WPW075"),
+    INFO_AUTO_ENABLED_OPTION: /** @type {typedefs.WpwInfoCode} */("WPW075"),
     //
     // INFO (100 - 199)
     //

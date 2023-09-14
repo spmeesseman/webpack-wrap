@@ -3,7 +3,7 @@
     "builds": [{
         "name": "webpack-wrap",
         "target": "node",
-        "type": "module",
+        "type": "app",
         "log": {
             "color": "cyan"
         },
@@ -29,7 +29,7 @@
         },
         "options": {
             "types": {
-                "mode": "module",
+                "mode": "plugin",
                 "bundle": {
                     "bundler": "tsc"
                 },

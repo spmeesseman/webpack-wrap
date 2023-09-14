@@ -11,15 +11,16 @@
  *//** */
 
 const WpwBase = require("./base");
+const { existsSync } = require("fs");
 const wpexports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwSourceCode = require("./sourcecode");
+const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget, WpwBuildOptionsKeys } = require("../types/constants");
 const {
-    utils, objUtils, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults, merge, pickNot, resolvePath, isClass, apply, isPromise
+    utils, objUtils, typeUtils, validateSchema, WpwError, WpwLogger, applySchemaDefaults, merge,
+    pickNot, resolvePath, isClass, apply, isPromise, pushIfNotExists
 } = require("../utils");
-const { isAbsolute, relative, sep } = require("path");
-const { existsSync } = require("fs");
 
 
 /**
@@ -29,8 +30,6 @@ const { existsSync } = require("fs");
  */
 class WpwBuild extends WpwBase
 {
-    /** @type {string} @override */
-    name;
     /** @type {boolean | undefined} */
     active;
     /** @type {typedefs.WpwWebpackAliasConfig} */
@@ -41,16 +40,20 @@ class WpwBuild extends WpwBase
     debug;
     /** @type {typedefs.WpwWebpackEntry} */
     entry;
+    /** @type {WpwError[]} @private */
+    errors;
+    /** @type {WpwError[]} @private */
+    info;
     /** @type {typedefs.WpwLog} */
     log;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
+    /** @type {string} @override */
+    name;
     /** @type {typedefs.WpwBuildOptions} */
     options;
     /** @type {typedefs.WpwRcPaths} */
     paths;
-    /** @type {typedefs.WpwRc}} @private */
-    wrapper;
     /** @type {typedefs.WpwSourceCode} */
     source;
     /** @type {typedefs.WebpackTarget} */
@@ -59,19 +62,12 @@ class WpwBuild extends WpwBase
     type;
     /** @type {typedefs.WpwVsCode} */
     vscode;
-    /** @type {typedefs.WpwBuild} */
-    build;
-
-    /** @type {WpwError[]} @private */
-    errors;
-    /** @type {WpwError[]} @private */
-    info;
-    /** @type {typedefs.WpwRc} @private */
-    rc;
     /** @type {WpwError[]} @private */
     warnings;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
+    /** @type {typedefs.WpwRc}} @private */
+    wrapper;
 
 
     /**
@@ -95,7 +91,7 @@ class WpwBuild extends WpwBase
 
 	/**
 	 * Merges the base rc level and the environment level configurations into each
-	 * build configuration and update`this.builds` with fully configured build defs
+	 * build configuration and update`thiss` with fully configured build defs
      *
 	 * @private
      * @param {typedefs.IWpwBuildConfig} buildConfig
@@ -116,23 +112,50 @@ class WpwBuild extends WpwBase
 	 */
     configureOptions()
     {
+        const messages = [];
         const optionMessage = (/** @type {string} */ o) =>
             `the ${o} option was auto-enabled, enable this option for the ${this.name} build in .wpwraprc to bury this message`;
-        if (this.options.sourcemaps && (!this.options.vendormod || !this.options.vendormod.source_map_plugin))
+
+        if (this.type === "types")
         {
-            this.options.vendormod = merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
-            this.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("vendormod.source_map_plugin") });
+            if (this.options.types?.mode === "tscheck" && !this.options.tscheck)
+            {
+                this.options.tscheck = { enabled: true };
+                pushIfNotExists(messages, "tscheck");
+            }
         }
+        else if (this.type === "tests")
+        {
+            if  (!this.options.vendormod || !this.options.vendormod.nyc)
+            {
+                this.options.vendormod = merge(this.options.vendormod, { enabled: true, nyc: true });
+                pushIfNotExists(messages, "vendormod.nyc");
+            }
+        }
+
         if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
         {
             this.options.tscheck = { enabled: true };
-            this.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("tscheck") });
+            pushIfNotExists(messages, "tscheck");
         }
-        if (this.type === "tests" && (!this.options.vendormod || !this.options.vendormod.nyc))
+
+        if (this.options.sourcemaps)
         {
-            this.options.vendormod = merge(this.options.vendormod, { enabled: true, nyc: true });
-            this.addMessage({ code: WpwError.Msg.INFO_SHOULD_ENABLE_OPTION, message: optionMessage("vendormod.nyc") });
+            if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)
+            {
+                this.options.vendormod = merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
+                pushIfNotExists(messages, "vendormod.source_map_plugin");
+            }
+            if (this.options.devtool)
+            {
+                delete this.options.devtool;
+                pushIfNotExists(messages, "removed option devtool (sourcemaps overrides)");
+            }
         }
+
+        messages.forEach((m) => {
+            this.addMessage({ code: WpwError.Msg.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
+        });
     }
 
 
@@ -164,10 +187,10 @@ class WpwBuild extends WpwBase
     };
 
 
-    get buildCount() { return this.rc.buildCount; }
-    get cmdLine() { return this.rc.args; }
-    get isOnlyBuild() { return this.rc.isSingleBuild; }
-    get pkgJson() { return this.rc.pkgJson; }
+    get buildCount() { return this.wrapper.buildCount; }
+    get cmdLine() { return this.wrapper.args; }
+    get isOnlyBuild() { return this.wrapper.isSingleBuild; }
+    get pkgJson() { return this.wrapper.pkgJson; }
 
 
     /**
@@ -215,53 +238,14 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @returns {typedefs.WpwWebpackConfig}
-     */
-    buildWrapper = () =>
-    {
-        this.wpc = this.getDefaultWebpackExports();
-        this.global.buildCount = this.global.buildCount || 0;
-        this.printBuildStart();
-        try
-        {   wpexports.cache(this);          // Asset cache
-            wpexports.experiments(this);    // Set any experimental flags that will be used
-            wpexports.entry(this);          // Entry points for built output
-            wpexports.externals(this);      // External modules
-            wpexports.ignorewarnings(this); // Warnings from the compiler to ignore
-            wpexports.optimization(this);   // Build optimization
-            wpexports.minification(this);   // Minification / Terser plugin options
-            wpexports.output(this);         // Output specifications
-            wpexports.devtool(this);        // Dev tool / sourcemap control
-            wpexports.resolve(this);        // Resolve config
-            wpexports.rules(this);          // Loaders & build rules
-            wpexports.stats(this);          // Stats i.e. console output & webpack verbosity
-            wpexports.watch(this);          // Watch-mode options
-            wpexports.plugins(this);        // Plugins - exports.plugins() inits all plugin.plugins
-            this.printBuildProperties();
-            this.printWpcProperties();
-        }
-        catch (e)
-        {   this.logger.blank(undefined, this.logger.icons.color.error);
-            this.logger.error("An error was encountered while creating the webpack configuration export");
-            this.logger.error("Using the following build parameters:");
-            this.logger.blank(undefined, this.logger.icons.color.error);
-            this.printBuildProperties();
-            this.logger.blank(undefined, this.logger.icons.color.error);
-            throw e;
-        }
-        return this.wpc;
-    };
-
-
-    /**
      * @param {string} name
      * @returns {typedefs.WpwBuild | undefined}
      */
-    getBuild = (name) => this.rc.getBuild(name);
+    getBuild = (name) => this.wrapper.getBuild(name);
 
 
     /**
-     * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
@@ -270,7 +254,7 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
@@ -279,29 +263,7 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @private
-     * @returns {typedefs.WpwWebpackConfig}
-     */
-    getDefaultWebpackExports = () =>
-    {
-        const build = this.build;
-        return {
-            cache: { type: "memory" },
-            context: build.paths.ctx || build.paths.base,
-            entry: {},
-            mode: build.mode === "test" ? "none" : build.mode,
-            module: { rules: [] },
-            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
-            output: { path: this.getDistPath() }, // { path: this.getDistPath({ rel: true }) }
-            plugins: [],
-            resolve: {},
-            target: build.target
-        };
-    };
-
-
-    /**
-     * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
@@ -311,7 +273,7 @@ class WpwBuild extends WpwBase
 
     /**
      * @private
-     * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {typedefs.WpwRcPathsKey} pathKey
      * @param {P} [options]
@@ -320,10 +282,10 @@ class WpwBuild extends WpwBase
     getRcPath = (pathKey, options) =>
     {
         let path;
-        const opts = options || /** @type {typedefs.WpBuildAppGetPathOptions} */({}),
-              basePath = opts.ctx ? this.build.paths.ctx : this.build.paths.base,
-              buildName = opts.build || this.build.name,
-              build = this.rc.builds.find(b => b.name === buildName || b.type === buildName);
+        const opts = options || /** @type {typedefs.WpwGetRcPathOptions} */({}),
+              basePath = opts.ctx ? this.paths.ctx : this.paths.base,
+              buildName = opts.build || this.name,
+              build = this.getBuild(buildName);
 
         const _getPath = /** @param {string | undefined} path */(path) =>
         {
@@ -375,138 +337,17 @@ class WpwBuild extends WpwBase
             path = _getPath(build.paths[pathKey]);
         }
 
-        return /** @type {R} */(path || _getPath(this.build.paths[pathKey]) || _getPath(this.rc.paths[pathKey]) || _getPath(basePath));
+        return /** @type {R} */(path || _getPath(this.paths[pathKey]) || _getPath(this.wrapper.paths[pathKey]) || _getPath(basePath));
     };
 
 
     /**
-     * @template {typedefs.WpBuildAppGetPathOptions | undefined} P
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
     getSrcPath = (options) => this.getRcPath("src", options);
-
-
-   /**
-    * @private
-    */
-    printBuildProperties = () =>
-    {
-        const l = this.logger;
-        l.sep();
-        l.write("Global Configuration:", 1, "", 0, l.colors.white);
-        Object.keys(this.global).filter(k => typeof this.global[k] !== "object").forEach(
-            (k) => l.value(`   ${k}`, this.global[k], 1)
-        );
-        l.sep();
-        l.write("Base Configuration:", 1, "", 0, l.colors.white);
-        l.value("   name", this.pkgJson.scopedName.name, 1);
-        if (this.pkgJson.scopedName.scope) {
-            l.value("   npm scope", this.pkgJson.scopedName.scope, 1);
-        }
-        l.value("   mode", this.rc.mode, 1);
-        l.value("   logging level", this.rc.log.level, 1);
-        l.value("   app version", this.pkgJson.version, 1);
-        l.value("   wpw version", this.rc.wpwVersion, 2);
-        l.value("   wpw schema version", this.rc.schemaVersion, 2);
-        l.value("   # of active builds", this.rc.apps.length, 2);
-        l.value("   active build names", this.rc.apps.map(a => a.build.name).join(", "), 2);
-        l.value("   # of defined builds", this.rc.builds.length, 2);
-        l.value("   defined build names", this.rc.builds.map(b => b.name).join(", "), 2);
-        l.sep();
-        l.write("Build Configuration:", 1, "", 0, l.colors.white);
-        l.value("   name", this.build.name, 1);
-        l.value("   type", this.build.type, 1);
-        l.value("   target", this.build.target, 1);
-        l.value("   source code type", this.source.type, 2);
-        l.value("   is vscode extension", !!this.build.vscode && !!this.build.vscode.type, 2);
-        l.value("   logging level", this.build.log.level, 2);
-        l.value("   alias configuration", JSON.stringify(this.build.alias), 3);
-        l.value("   log configuration", JSON.stringify(this.build.log), 3);
-        l.value("   options configuration", JSON.stringify(this.build.options), 3);
-        l.value("   paths configuration", JSON.stringify(this.build.paths), 3);
-        l.sep();
-        if (l.level >= 2)
-        {
-            l.write("Build Options:", 2, "", 0, l.colors.white);
-            WpwBuildOptionsKeys.forEach((key) => { l.value(`   ${key} enabled`, !!this.build.options[key]); });
-            l.value("   options configuration", JSON.stringify(this.build.options), 3);
-            l.sep();
-            l.write("Build Paths:", 2, "", 0, l.colors.white);
-            l.value("   base/project directory", this.getBasePath());
-            l.value("   context directory", this.getContextPath());
-            l.value("   distribution directory", this.getDistPath());
-            l.value("   source directory", this.getSrcPath());
-            l.value("   temp directory", this.getRcPath("temp"));
-            l.sep();
-            l.write(`Build Paths Relative to [${this.getBasePath()}]:`, 2, "", 0, l.colors.white);
-            l.value("   context directory", this.getContextPath({ rel: true }));
-            l.value("   distribution directory", this.getDistPath({ rel: true }));
-            l.value("   source directory", this.getSrcPath({ rel: true }));
-            l.sep();
-        }
-        l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
-        l.value("   source code ext", this.source.ext, 1);
-        l.value("   source code type", this.source.type, 1);
-        l.value("   ts/js config file", this.source.config.file, 2);
-        l.value("   ts/js config directory", this.source.config.dir, 2);
-        l.value("   ts/js config path", this.source.config.path, 2);
-        l.value("   sourcecode configured options", JSON.stringify(pickNot(this.build.source.config, "raw", "options")), 3);
-        l.value("   ts/js configured options", JSON.stringify(pickNot(this.build.source.config.options, "compilerOptions", "files")), 3);
-        l.value("   ts/js configured compiler options", JSON.stringify(this.build.source.config.options.compilerOptions), 3);
-        l.value("   ts/js configured files", JSON.stringify(this.build.source.config.options.files), 4);
-        l.sep();
-    };
-
-
-    printBuildStart = () =>
-    {
-        this.logger.value(
-            `Start Webpack build ${++this.global.buildCount}`,
-            this.logger.tag(this.build.name) + " " + this.logger.tag(this.build.target),
-            undefined, undefined, this.logger.icons.color.start, this.logger.colors.white
-        );
-    };
-
-
-    /**
-     * @private
-     * @param {WpwError} e
-     * @param {Function} fn
-     * @param {string} [icon]
-     */
-    printNonFatalIssue = (e, fn, icon) =>
-    {
-        if (!icon || fn.name !== "write") {
-            fn.call(this.logger, `Location: ${e.file}`);
-        }
-        else {
-            fn.call(this.logger, `Location: ${e.file}`, undefined, "", this.logger.icons.color.star);
-        }
-        fn.call(this.logger, "   " + e.message);
-    };
-
-
-    /**
-     * @private
-     */
-     printWpcProperties = () =>
-     {
-         const l = this.logger;
-         l.write("Webpack Configuration:", 1, "", 0, l.colors.white);
-         l.value("   build name", this.wpc.name, 1);
-         l.value("   mode", this.wpc.mode, 1);
-         l.value("   target",this.wpc.target, 1);
-         l.value("   infrastructure logging level", this.wpc.infrastructureLogging?.level || "none", 2);
-         l.value("   context directory", this.wpc.context, 1);
-         l.value("   output directory", this.wpc.output.path, 1);
-         l.value("   entry", JSON.stringify(this.wpc.entry), 3);
-         l.value("   resolve", JSON.stringify(this.wpc.resolve), 3);
-         l.value("   output", JSON.stringify(this.wpc.output), 3);
-         l.value("   rules", JSON.stringify(this.wpc.module.rules), 3);
-         l.sep();
-     };
 
 
     /**
@@ -588,6 +429,127 @@ class WpwBuild extends WpwBase
     }
 
 
+   /**
+    * @private
+    */
+    printBuildProperties = () =>
+    {
+        const l = this.logger;
+        l.sep();
+        l.write("Global Configuration:", 1, "", 0, l.colors.white);
+        Object.keys(this.global).filter(k => typeof this.global[k] !== "object").forEach(
+            (k) => l.value(`   ${k}`, this.global[k], 1)
+        );
+        l.sep();
+        l.write("Base Configuration:", 1, "", 0, l.colors.white);
+        l.value("   name", this.pkgJson.scopedName.name, 1);
+        if (this.pkgJson.scopedName.scope) {
+            l.value("   npm scope", this.pkgJson.scopedName.scope, 1);
+        }
+        l.value("   mode", this.wrapper.mode, 1);
+        l.value("   logging level", this.wrapper.log.level, 1);
+        l.value("   app version", this.pkgJson.version, 1);
+        l.value("   wpw version", this.wrapper.wpwVersion, 2);
+        l.value("   wpw schema version", this.wrapper.schemaVersion, 2);
+        l.value("   # of active builds", this.buildCount, 2);
+        l.value("   active build names", this.wrapper.apps.map(a => a.name).join(", "), 2);
+        l.value("   # of defined builds", this.wrapper.builds.length, 2);
+        l.value("   defined build names", this.wrapper.builds.map(b => b.name).join(", "), 2);
+        l.sep();
+        l.write("Build Configuration:", 1, "", 0, l.colors.white);
+        l.value("   name", this.name, 1);
+        l.value("   type", this.type, 1);
+        l.value("   target", this.target, 1);
+        l.value("   source code type", this.source.type, 2);
+        l.value("   is vscode extension", !!this.vscode && !!this.vscode.type, 2);
+        l.value("   logging level", this.log.level, 2);
+        l.value("   alias configuration", JSON.stringify(this.alias), 3);
+        l.value("   log configuration", JSON.stringify(this.log), 3);
+        l.value("   options configuration", JSON.stringify(this.options), 3);
+        l.value("   paths configuration", JSON.stringify(this.paths), 3);
+        l.sep();
+        if (l.level >= 2)
+        {
+            l.write("Build Options:", 2, "", 0, l.colors.white);
+            WpwBuildOptionsKeys.forEach((key) => { l.value(`   ${key} enabled`, !!this.options[key]); });
+            l.value("   options configuration", JSON.stringify(this.options), 3);
+            l.sep();
+            l.write("Build Paths:", 2, "", 0, l.colors.white);
+            l.value("   base/project directory", this.getBasePath());
+            l.value("   context directory", this.getContextPath());
+            l.value("   distribution directory", this.getDistPath());
+            l.value("   source directory", this.getSrcPath());
+            l.value("   temp directory", this.getRcPath("temp"));
+            l.sep();
+            l.write(`Build Paths Relative to [${this.getBasePath()}]:`, 2, "", 0, l.colors.white);
+            l.value("   context directory", this.getContextPath({ rel: true }));
+            l.value("   distribution directory", this.getDistPath({ rel: true }));
+            l.value("   source directory", this.getSrcPath({ rel: true }));
+            l.sep();
+        }
+        l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
+        l.value("   source code ext", this.source.ext, 1);
+        l.value("   source code type", this.source.type, 1);
+        l.value("   ts/js config file", this.source.config.file, 2);
+        l.value("   ts/js config directory", this.source.config.dir, 2);
+        l.value("   ts/js config path", this.source.config.path, 2);
+        l.value("   sourcecode configured options", JSON.stringify(pickNot(this.source.config, "raw", "options")), 3);
+        l.value("   ts/js configured options", JSON.stringify(pickNot(this.source.config.options, "compilerOptions", "files")), 3);
+        l.value("   ts/js configured compiler options", JSON.stringify(this.source.config.options.compilerOptions), 3);
+        l.value("   ts/js configured files", JSON.stringify(this.source.config.options.files), 4);
+        l.sep();
+    };
+
+
+    printBuildStart = () =>
+    {
+        this.logger.value(
+            `Start Webpack build ${++this.global.buildCount}`,
+            this.logger.tag(this.name) + " " + this.logger.tag(this.target),
+            undefined, undefined, this.logger.icons.color.start, this.logger.colors.white
+        );
+    };
+
+
+    /**
+     * @private
+     * @param {WpwError} e
+     * @param {Function} fn
+     * @param {string} [icon]
+     */
+    printNonFatalIssue = (e, fn, icon) =>
+    {
+        if (!icon || fn.name !== "write") {
+            fn.call(this.logger, `Location: ${e.file}`);
+        }
+        else {
+            fn.call(this.logger, `Location: ${e.file}`, undefined, "", this.logger.icons.color.star);
+        }
+        fn.call(this.logger, "   " + e.message);
+    };
+
+
+    /**
+     * @private
+     */
+    printWpcProperties = () =>
+     {
+         const l = this.logger;
+         l.write("Webpack Configuration:", 1, "", 0, l.colors.white);
+         l.value("   build name", this.wpc.name, 1);
+         l.value("   mode", this.wpc.mode, 1);
+         l.value("   target",this.wpc.target, 1);
+         l.value("   infrastructure logging level", this.wpc.infrastructureLogging?.level || "none", 2);
+         l.value("   context directory", this.wpc.context, 1);
+         l.value("   output directory", this.wpc.output.path, 1);
+         l.value("   entry", JSON.stringify(this.wpc.entry), 3);
+         l.value("   resolve", JSON.stringify(this.wpc.resolve), 3);
+         l.value("   output", JSON.stringify(this.wpc.output), 3);
+         l.value("   rules", JSON.stringify(this.wpc.module.rules), 3);
+         l.sep();
+    };
+
+
     /**
      * @private
      */
@@ -650,6 +612,67 @@ class WpwBuild extends WpwBase
             throw WpwError.getErrorMissing("build[config.target]");
         }
     }
+
+
+    /**
+     * @private
+     * @returns {typedefs.WpwWebpackConfig}
+     */
+    webpackDefaultExports = () =>
+    {
+        const build = this;
+        return {
+            cache: { type: "memory" },
+            context: build.paths.ctx || build.paths.base,
+            entry: {},
+            mode: build.mode === "test" ? "none" : build.mode,
+            module: { rules: [] },
+            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
+            output: { path: this.getDistPath() }, // { path: this.getDistPath({ rel: true }) }
+            plugins: [],
+            resolve: {},
+            target: build.target
+        };
+    };
+
+
+    /**
+     * @returns {typedefs.WpwWebpackConfig}
+     */
+    webpackExports = () =>
+    {
+        this.wpc = this.webpackDefaultExports();
+        this.global.buildCount = this.global.buildCount || 0;
+        this.printBuildStart();
+        try
+        {   wpexports.cache(this);          // Asset cache
+            wpexports.experiments(this);    // Set any experimental flags that will be used
+            wpexports.entry(this);          // Entry points for built output
+            wpexports.externals(this);      // External modules
+            wpexports.ignorewarnings(this); // Warnings from the compiler to ignore
+            wpexports.optimization(this);   // Build optimization
+            wpexports.minification(this);   // Minification / Terser plugin options
+            wpexports.output(this);         // Output specifications
+            wpexports.devtool(this);        // Dev tool / sourcemap control
+            wpexports.resolve(this);        // Resolve config
+            wpexports.rules(this);          // Loaders & build rules
+            wpexports.stats(this);          // Stats i.e. console output & webpack verbosity
+            wpexports.watch(this);          // Watch-mode options
+            wpexports.plugins(this);        // Plugins - exports.plugins() inits all plugin.plugins
+            this.printBuildProperties();
+            this.printWpcProperties();
+        }
+        catch (e)
+        {   this.logger.blank(undefined, this.logger.icons.color.error);
+            this.logger.error("An error was encountered while creating the webpack configuration export");
+            this.logger.error("Using the following build parameters:");
+            this.logger.blank(undefined, this.logger.icons.color.error);
+            this.printBuildProperties();
+            this.logger.blank(undefined, this.logger.icons.color.error);
+            throw e;
+        }
+        return this.wpc;
+    };
 
 }
 

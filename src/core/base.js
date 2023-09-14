@@ -45,7 +45,7 @@ class WpwBase
             disposables: [],
             global: globalEnv,
             name: this.constructor.name,
-            initialConfig: merge({}, pickNot(options, "app"))
+            initialConfig: merge({}, pickNot(options, "build"))
         });
 
         if (isObject(options.logger))
