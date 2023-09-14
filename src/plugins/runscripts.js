@@ -21,7 +21,7 @@ const { WpwPluginConfigRunScriptsKeys } = require("../types/constants");
  */
 class WpwRunScriptsPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} @protected */
     buildOptions;
 
     /**

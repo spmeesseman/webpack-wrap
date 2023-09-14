@@ -19,7 +19,7 @@ const typedefs = require("../types/typedefs");
  */
 class WpwExamplePlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"mocha">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"mocha">} @protected */
     buildOptions;
 
 
@@ -38,7 +38,7 @@ class WpwExamplePlugin extends WpwPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwExamplePlugin | undefined}
      */
-	static build(build)
+	static create(build)
 	{
 		return build.options.types?.enabled ? new WpwExamplePlugin({ build }) : undefined;
 	}
@@ -67,4 +67,4 @@ class WpwExamplePlugin extends WpwPlugin
 }
 
 
-module.exports = WpwExamplePlugin.build;
+module.exports = WpwExamplePlugin.create;

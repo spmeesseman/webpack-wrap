@@ -20,7 +20,7 @@ const { isBoolean, pick, isObject, relativePath, apply, asArray } = require("../
  */
 class WpwJsDocPlugin extends WpBuilPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} @protected */
     buildOptions;
 
 

@@ -27,18 +27,12 @@ const { existsSync } = require("fs");
  */
 class WpBuildTsCheckPlugin extends WpwTscPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} @private */
-    buildOptions;
-    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
-    typesBuildOptions;
-
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"tscheck">} */(this.build.options.tscheck);
         this.typesBuildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.build.options.types);
 	}
 

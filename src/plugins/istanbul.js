@@ -20,7 +20,7 @@ const typedefs = require("../types/typedefs");
  */
 class WpwIstanbulPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"istanbul">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"istanbul">} @protected */
     buildOptions;
 
 

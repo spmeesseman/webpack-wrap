@@ -22,7 +22,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
-    /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} @protected */
     buildOptions;
 
 

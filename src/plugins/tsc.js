@@ -25,7 +25,7 @@ const { findFiles, relativePath, resolvePath, existsAsync, isString, isDirectory
  */
 class WpwTscPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @private */
+    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @protected */
     typesBuildOptions;
 
 
