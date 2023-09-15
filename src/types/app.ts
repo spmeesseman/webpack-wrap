@@ -22,11 +22,11 @@
 
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
-    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler,
-    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions
+    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackInfrastructureLogging,
+    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
 } from "./webpack";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwBuildBaseConfig, WpwSourceCodeExtension
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceCodeExtension
 } from "./rc";
 
 
@@ -60,6 +60,7 @@ interface IWpwWebpackConfig extends WebpackConfig
     context: string;
     mode: Exclude<WebpackConfig["mode"], undefined>;
     entry: WpwWebpackEntry & WebpackEntry;
+    infrastructureLogging: WebpackInfrastructureLogging;
     output: WebpackOutput;
     plugins: (
 		| undefined
@@ -67,10 +68,18 @@ interface IWpwWebpackConfig extends WebpackConfig
 		| WebpackPluginInstance
 	)[];
     resolve: WebpackResolveOptions;
+    stats: WebpackStatsOptions;
     target: WebpackTarget;
     module: WebpackModuleOptions;
 }
 type WpwWebpackConfig = IWpwWebpackConfig;
+
+type WpwWebpackAliasValue = string | string[];
+interface IWpwWebpackAliasConfig
+{
+    [k: string]: WpwWebpackAliasValue | undefined;
+}
+type WpwWebpackAliasConfig = IWpwWebpackAliasConfig;
 
 
 export {
@@ -83,5 +92,7 @@ export {
     WpwRuntimeEnvArgs,
     WpwSourceCodeDotExtensionApp,
     WpwWebpackConfig,
+    IWpwWebpackAliasConfig,
+    WpwWebpackAliasConfig,
     __WPBUILD__
 };

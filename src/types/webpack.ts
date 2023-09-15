@@ -49,7 +49,8 @@ import webpack, {
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats, Module as WebpackModule,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
-    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError
+    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError,
+    StatsOptions as WebpackStatsOptions
 }from "webpack";
 
 import {
@@ -103,6 +104,8 @@ type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLaz
 type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
 
 type WebpackHookMap<H> = HookMap<H>;
+
+ type WebpackInfrastructureLogging = Exclude<WebpackConfig["infrastructureLogging"], undefined>;
 
 type WebpackLogger = ReturnType<WebpackCompilation["getLogger"]>;
 
@@ -199,6 +202,7 @@ export {
     WebpackEtag,
     WebpackExternalItem,
     WebpackFileCacheOptions,
+    WebpackInfrastructureLogging,
     WebpackLogger,
     WebpackMemoryCacheOptions,
     WebpackMode,
@@ -222,5 +226,6 @@ export {
     WebpackSource,
     WebpackStats,
     WebpackStatsAsset,
+    WebpackStatsOptions,
     WebpackStatsPrinterContext
 };

@@ -30,8 +30,6 @@ const {
  */
 class WpwRc extends WpwBase
 {
-    /** @type {typedefs.WpwWebpackAliasConfig} */
-    alias;
     /** @type {WpwBuild[]} */
     apps;
     /** @type {typedefs.WpwRuntimeEnvArgs} */

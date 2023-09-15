@@ -31,8 +31,6 @@ class WpwBuild extends WpwBase
 {
     /** @type {boolean | undefined} */
     active;
-    /** @type {typedefs.WpwWebpackAliasConfig} */
-    alias;
     /** @type {boolean} */
     auto;
     /** @type {boolean} */

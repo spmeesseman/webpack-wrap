@@ -137,11 +137,11 @@ class WpwResolveExport extends WpwWebpackExport
 
     /**
      * @private
-	 * @returns {typedefs.IWpwWebpackAliasConfig}
+	 * @returns {typedefs.WpwWebpackAliasConfig}
      */
     resolveAliasPaths()
     {
-		/** @type {typedefs.IWpwWebpackAliasConfig} */
+		/** @type {typedefs.WpwWebpackAliasConfig} */
         const alias = {},
               jstsConfig = this.build.source.config,
               jstsDir = jstsConfig.dir,

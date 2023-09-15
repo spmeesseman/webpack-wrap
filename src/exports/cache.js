@@ -9,8 +9,9 @@
  *//** */
 
 const { join } = require("path");
-const { apply } = require("../utils");
+const { apply, applyIf } = require("../utils");
 const WpwBuild = require("../core/build");
+const { existsSync } = require("fs");
 
 /** @typedef {import("../types").WebpackFileCacheOptions} WebpackFileCacheOptions */
 
@@ -24,7 +25,7 @@ const cache = (build) =>
 	if (build.options.cache)
 	{
         const basePath = build.getBasePath();
-		apply(build.wpc.cache, {
+		const cache = apply(build.wpc.cache, {
             type: "filesystem",
             cacheDirectory: join(build.global.cacheDir, "webpack"),
             name: `${build.name}_${build.mode}_${build.wpc.target}`.toLowerCase(),
@@ -37,6 +38,31 @@ const cache = (build) =>
                 ]
             }
         });
+        let rcPath = join(basePath, ".wpbuildrc.json");
+        if (existsSync(rcPath)) {
+            cache.buildDependencies.config.push(rcPath);
+        }
+        else
+        {
+            rcPath = join(basePath, ".wpwrap.json");
+            if (existsSync(rcPath)) {
+                cache.buildDependencies.config.push(rcPath);
+            }
+            else {
+                rcPath = join(basePath, ".wpw.json");
+                if (existsSync(rcPath)) {
+                    cache.buildDependencies.config.push(rcPath);
+                }
+            }
+        }
+        const projectSchemaPath = join(basePath, "schema", ".wpbuildrc.schema.json");
+        if (existsSync(projectSchemaPath)) {
+            cache.buildDependencies.config.push(projectSchemaPath);
+        }
+
+        if (!build.wpc.infrastructureLogging.debug && (build.logger.level === 5 || build.options.cache.verbose)) {
+		    applyIf(build.wpc.infrastructureLogging, { debug: /webpack\.cache/ });
+        }
     }
     else {
         apply(build.wpc.cache, {

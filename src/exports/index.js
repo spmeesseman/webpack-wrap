@@ -36,12 +36,14 @@ const webpackDefaultExports = (build) =>
         cache: { type: "memory" },
         context: build.paths.ctx || build.paths.base,
         entry: {},
+        infrastructureLogging: {},
         mode: build.mode === "test" ? "none" : build.mode,
         module: { rules: [] },
         name: `${build.pkgJson.scopedName.scope}|${build.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
         output: { path: build.getDistPath() }, // { path: build.getDistPath({ rel: true }) }
         plugins: [],
         resolve: {},
+        stats: {},
         target: build.target
     };
 };

@@ -13,9 +13,6 @@
             "type": "string",
             "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/\\.wpbuildrc\\.schema\\.json(?:.*?)$"
         },
-        "alias": {
-            "$ref": "#/definitions/WpwWebpackAliasConfig"
-        },
         "builds": {
             "$ref": "#/definitions/WpwBuildConfigs"
         },
@@ -209,9 +206,6 @@
                 },
                 "active": {
                     "$ref": "#/definitions/BooleanReadOnly"
-                },
-                "alias": {
-                    "$ref": "#/definitions/WpwWebpackAliasConfig"
                 },
                 "auto": {
                     "$ref": "#/definitions/BooleanReadOnly"
@@ -421,9 +415,6 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-                "alias": {
-                    "$ref": "#/definitions/WpwWebpackAliasConfig"
-                },
                 "builds": {
                     "$ref": "#/definitions/WpwBuildConfigs"
                 },
@@ -457,7 +448,7 @@
                     "$ref": "#/definitions/WpwPluginConfigBanner"
                 },
                 "cache": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwPluginConfigCache"
                 },
                 "clean": {
                     "$ref": "#/definitions/WpwOptionsConfigBase"
@@ -1323,6 +1314,30 @@
             {
                 "enabled": true,
                 "text": "Copyright #{DATE_STAMP_YEAR} [--My Name or Co.--], All RIghts Reserved"
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwPluginConfigCache": {
+            "$id": "#/WpwPluginConfigCache",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "verbose": {
+                    "type": "boolean"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "verbose": false
+            },
+            {
+                "verbose": true
             },
             {
                 "enabled": false
@@ -2889,52 +2904,6 @@
                 }
             }]
         },
-        "WpwWebpackAliasValue": {
-            "$id": "#/WpwWebpackAliasValue",
-            "anyOf": [{
-                "$ref": "#/definitions/DirectoryPathGlob"
-            },
-            {
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/DirectoryPathGlob"
-                }
-            },
-            {
-                "type": "boolean",
-                "const": false,
-                "readOnly": true
-            }]
-        },
-        "WpwWebpackAliasConfig": {
-            "$id": "#/WpwWebpackAliasConfig",
-            "type": "object",
-            "minProperties": 1,
-            "patternProperties": {
-                "^[a-zA-Z:@][\\w:@]+$": {
-                    "$ref": "#/definitions/WpwWebpackAliasValue"
-                }
-            },
-            "propertyNames": {
-                "maxLength": 20
-            },
-            "description": "Key value pairs for aliased import/require paths",
-            "examples": [{
-                "alias":
-                {
-                    ":env": "src/lib/env/node",
-                    ":types": "types"
-                }
-            },
-            {
-                "alias": {
-                    ":env": [
-                        "src/lib/env/web", "src/webapp/tools/env/web"
-                    ],
-                    ":types": "types"
-                }
-            }]
-        },
         "WpwWebpackEntry": {
             "$id": "#/WpwWebpackEntry",
             "type": "object",
@@ -3217,7 +3186,7 @@
             "propertyNames": {
                 "maxLength": 20
             },
-            "description": "An object that is directly applied to the webpack configurqtion before it is returned to the main process",
+            "description": "An object that is directly applied to the webpack configurqtion before it is returned to the wp engine",
             "examples": [
             {
                 "context": "/usr/lib/projectname/src",

@@ -1,6 +1,6 @@
 // @ts-check
 
-const { isString } = require("../utils");
+const { isString, apply } = require("../utils");
 
 /**
  * @file exports/stats.js
@@ -52,7 +52,7 @@ const stats = (build) =>
 	const logLevel = build.logger.level || build.cmdLine.loglevel || build.log.level || 0;
 	if (logLevel !== 0 && logLevel !== "none") // && build.exports.stats)
 	{
-		build.wpc.stats = {
+		apply(build.wpc.stats, {
 			preset: "errors-warnings",
 			assets: true,
 			colors: true,
@@ -61,13 +61,16 @@ const stats = (build) =>
 			warningsCount: true,
 			timings: true
 			// warningsFilter: /Cannot find module \'common\' or its corresponding type declarations/
-		};
+		});
 
-		build.wpc.infrastructureLogging = {
+		apply(build.wpc.infrastructureLogging, {
 			colors: true,
 			level: level(logLevel)
-			// debug: /webpack\.cache/
-		};
+		});
+
+		if (logLevel === 5) {
+			apply(build.wpc.infrastructureLogging, { debug: true });
+		}
 	}
 };
 
