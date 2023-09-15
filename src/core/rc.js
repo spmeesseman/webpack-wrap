@@ -30,15 +30,13 @@ const {
  */
 class WpwRc extends WpwBase
 {
-    /** @type {WpwBuild[]} */
-    apps;
     /** @type {typedefs.WpwRuntimeEnvArgs} */
     arge;
     /** @type {typedefs.WpwCombinedRuntimeArgs} */
     args;
     /** @type {typedefs.WebpackRuntimeArgs} */
     argv;
-    /** @type {typedefs.WpwBuild[]} */
+    /** @type {WpwBuild[]} */
     builds;
     /** @type {typedefs.IWpwBuildConfig[]} */
     buildConfigs;
@@ -48,6 +46,8 @@ class WpwRc extends WpwBase
     log;
     /** @type {typedefs.WpwWebpackMode} */
     mode;
+    /** @type {typedefs.WebpackConfigOverride} */
+    overrides;
     /** @type {typedefs.WpwRcPaths} */
     paths;
     /** @type {typedefs.WpwPackageJson} */
@@ -89,29 +89,17 @@ class WpwRc extends WpwBase
     constructor(argv, arge)
     {
         super({ argv, arge });
-        Object.keys(arge).filter(k => isString(arge[k]) && /true|false/i.test(arge[k])).forEach((k) => {
-            arge[k] = arge[k].toLowerCase() === "true";
-        });
-        apply(this,
-        {
-            args: apply({}, arge, argv),
-            mode: this.getMode(arge, argv, true),
-            arge, argv, apps: [], errors: [], pkgJson: {}, warnings: []
-        });
-        applySchemaDefaults(this, "WpwSchema");
-        this.applyJsonFromFile(this, ".wpbuildrc.json");
-        this.applyPackageJson();
-        this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main" }));
-        this.printBanner();
-        this.applyVersions();
-        this.mergeBuildConfigs();
+        this.initConfig(argv, arge);
+        this.initLogger();
+        this.createBuildConfigs();
+        this.createBuilds();
         validateSchema(this, "WpwSchema", this.logger);
     };
 
 
-    get hasTests() { return !!this.builds.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
-    get isSingleBuild() { return !!this.args.build && this.apps.length <= 1; }
-    get buildCount() { return this.apps.length; }
+    get hasTests() { return !!this.buildConfigs.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
+    get isSingleBuild() { return !!this.args.build && this.builds.length <= 1; }
+    get buildCount() { return this.builds.length; }
 
 
     /**
@@ -175,40 +163,86 @@ class WpwRc extends WpwBase
 
 
     /**
-     * Base entry function to initialize build configurations and provide the webpack
-     * configuration export(s) to webpack.config.js.
+     * Base entry function to initialize builds in the compilation and provide the webpack
+     * configuration export(s) to the calling module i.e. webpack.config.js or wpwrap.js.
      *
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpwRuntimeEnvArgs} arge
      * @returns {typedefs.WpwWebpackConfig[]} arge
      */
-    static create(argv, arge)
+    static create = (argv, arge) => new WpwRc(argv, arge).builds.map(b => b.wpc);
+
+
+    /**
+     * @private
+     */
+    createBuilds()
     {
-        const rc = new WpwRc(argv, arge); // Create the top level build wrapper
-        rc.maybeAddTypesBuild();
-        //
-        // Instantiate all 'app' instances first, then call buildWrapper() on each one to
-        // return the webpack config, as some configuration exports will need information
-        // from the other defined builds
-        //
-        rc.apps.push(
-            ...rc.builds.filter(
-                (b) => (!arge.build || b.name === arge.build) && !rc.apps.find((a) => a.type === b.type)
+        this.builds.push(
+            ...this.buildConfigs.filter(
+                (b) => (!this.arge.build || b.name === this.arge.build)).map((b) => new WpwBuild(b, this)
             )
-            .map((build) => new WpwBuild(build, rc))
         );
-        //
-        // Call app.buildWrapper() on each 'app' instance to create the webpack configuration
-        // for each active build, and return the array of resulting configurtaions.  These are
-        // exported to the webpack process in the caller module and the compilation begins.
-        //
-        return rc.apps.map((build) =>
+        this.maybeAddTypesBuild();
+        this.builds.forEach((b) =>
         {
-            if (!build.mode || !build.target || !build.type) {
-                throw WpwError.getErrorProperty("type");
+            const wpConfig = b.webpackExports();
+            merge(wpConfig, this.overrides, this[this.mode].overrides, b.overrides);
+        });
+    }
+
+
+	/**
+	 * @private
+	 */
+    createBuildConfigs()
+    {
+        this.logger.write("merge all levels of build configurations to root config", 1);
+        const rootBaseConfig = this.getBasePropertyConfig(this),
+              baseBuildConfigs = this.builds.splice(0),
+              modeConfig = /** @type {typedefs.IWpwBuildBaseConfig} */(this[this.mode]),
+              modeBaseConfig = this.getBasePropertyConfig(modeConfig),
+              modeBuildConfigs = modeConfig.builds,
+              emptyConfig = () => /** @type {typedefs.IWpwBuildConfig} */({});
+        //
+        // First loop all builds that werw defeined in sechema.builds `baseBuildConfigs`. Then merge
+        // in both thw base configuration properties in the root level schema/rc, and then the build
+        // configuration itself
+        //
+        baseBuildConfigs.forEach((config) =>
+        {
+            this.touchBuildOptionsEnabled(config.options);
+            this.buildConfigs.push(merge(emptyConfig(), rootBaseConfig, config, modeBaseConfig));
+        });
+        //
+        // Process the current environment's config.  Add all builds defined in the env config that
+        // aren't defined at root level, and pply the root base config and mode base cconfig to each.
+        // If the build "is" defined already at root level, then merge in the environment config.
+        //
+        modeBuildConfigs.forEach((config) =>
+        {
+            let rootBuildConfig = this.buildConfigs.find(bc => bc.name === config.name);
+            if (!rootBuildConfig)
+            {
+                this.touchBuildOptionsEnabled(modeBaseConfig.options);
+                rootBuildConfig = merge(emptyConfig(), rootBaseConfig, modeBaseConfig);
+                this.buildConfigs.push(rootBuildConfig);
             }
-            build.active = true;
-            return build.webpackExports();
+            merge(rootBuildConfig, config);
+        });
+        //
+        // Resolve all defined paths in all root level build config to an absolute path.  If the build
+        // config defines `log.color`, then apply that color to some of the base color properties if
+        // they are not specifically defined already.
+        //
+        this.buildConfigs.forEach((config) =>
+        {
+            applyIf(config, { mode: this.mode });
+            if (config.log.color) {
+                const c = config.log.color;
+                applyIf(config.log.colors, { valueStar: c, buildBracket: c, tagBracket: c, infoIcon: c });
+            }
+            this.resolvePaths(config);
         });
     }
 
@@ -248,85 +282,59 @@ class WpwRc extends WpwBase
 
     /**
      * @private
+     * @param {typedefs.WebpackRuntimeArgs} argv
+     * @param {typedefs.WpwRuntimeEnvArgs} arge
+     */
+    initConfig(argv, arge)
+    {
+        Object.keys(arge).filter(k => isString(arge[k]) && /true|false/i.test(arge[k])).forEach((k) => {
+            arge[k] = arge[k].toLowerCase() === "true";
+        });
+        apply(this,
+        {
+            mode: this.getMode(arge, argv, true),
+            arge, argv, args: apply({}, arge, argv),
+            buildConfigs: [], errors: [], pkgJson: {}, warnings: []
+        });
+        applySchemaDefaults(this, "WpwSchema");
+        this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.applyPackageJson();
+        this.applyVersions();
+    }
+
+
+    /**
+     * @private
+     */
+    initLogger()
+    {
+        this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main" }));
+        this.printBanner();
+    }
+
+
+    /**
+     * @private
      */
     maybeAddTypesBuild()
     {
         const typesBuild = this.getBuildConfig("types");
         if (typesBuild && this.args.build !== typesBuild.name && (!this.isSingleBuild || !existsSync(typesBuild.paths.dist)))
         {
-            for (const a of this.apps)
+            for (const b of this.builds)
             {
-                const dependsOnTypes = (isObject(a.entry) && a.entry.dependOn === "types") ||
-                                        a.options.wait?.items?.find(w => w.name === "types");
+                const dependsOnTypes = (isObject(b.entry) && b.entry.dependOn === "types") ||
+                                        b.options.wait?.items?.find(w => w.name === "types");
                 if (!this.isSingleBuild || dependsOnTypes)
                 {
-                    if (asArray(a.options.wait?.items).find(t => t.name === "types"))
+                    if (asArray(b.options.wait?.items).find(t => t.name === "types"))
                     {
-                        this.apps.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
+                        this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
                         break;
                     }
                 }
             }
         }
-    }
-
-
-	/**
-	 * @private
-	 */
-    mergeBuildConfigs()
-    {
-        const configs = /** @type {typedefs.IWpwBuildConfig[]} */[],
-              rootBaseConfig = this.getBasePropertyConfig(this),
-              baseBuildConfigs = clone(this.builds),
-              modeConfig = /** @type {typedefs.IWpwBuildBaseConfig} */(this[this.mode]),
-              modeBaseConfig = this.getBasePropertyConfig(modeConfig),
-              modeBuildConfigs = modeConfig.builds,
-              emptyConfig = () => /** @type {typedefs.IWpwBuildConfig} */({});
-
-        this.logger.write("merge all levels of build configurations to root config", 1);
-        //
-        // First loop all builds that werw defeined in sechema.builds `baseBuildConfigs`. Then merge
-        // in both thw base configuration properties in the root level schema/rc, and then the build
-        // configuration itself
-        //
-        baseBuildConfigs.forEach((config) =>
-        {
-            this.touchBuildOptionsEnabled(config.options);
-            configs.push(merge(emptyConfig(), rootBaseConfig, config, modeBaseConfig));
-        });
-        //
-        // Process the current environment's config.  Add all builds defined in the env config that
-        // aren't defined at root level, and pply the root base config and mode base cconfig to each.
-        // If the build "is" defined already at root level, then merge in the environment config.
-        //
-        modeBuildConfigs.forEach((config) =>
-        {
-            let rootBuildConfig = configs.find(bc => bc.name === config.name);
-            if (!rootBuildConfig)
-            {
-                this.touchBuildOptionsEnabled(modeBaseConfig.options);
-                rootBuildConfig = merge(emptyConfig(), rootBaseConfig, modeBaseConfig);
-                configs.push(rootBuildConfig);
-            }
-            merge(rootBuildConfig, config);
-        });
-        //
-        // Resolve all defined paths in all root level build config to an absolute path.  If the build
-        // config defines `log.color`, then apply that color to some of the base color properties if
-        // they are not specifically defined already.
-        //
-        configs.forEach((config) =>
-        {
-            applyIf(config, { mode: this.mode });
-            if (config.log.color) {
-                const c = config.log.color;
-                applyIf(config.log.colors, { valueStar: c, buildBracket: c, tagBracket: c, infoIcon: c });
-            }
-            this.resolvePaths(config);
-        });
-        this.builds = configs;
-        this.buildConfigs = baseBuildConfigs;
     }
 
 

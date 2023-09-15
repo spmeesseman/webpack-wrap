@@ -29,8 +29,6 @@ const {
  */
 class WpwBuild extends WpwBase
 {
-    /** @type {boolean | undefined} */
-    active;
     /** @type {boolean} */
     auto;
     /** @type {boolean} */
@@ -49,6 +47,8 @@ class WpwBuild extends WpwBase
     name;
     /** @type {typedefs.WpwBuildOptions} */
     options;
+    /** @type {typedefs.WebpackConfigOverride} */
+    overrides;
     /** @type {typedefs.WpwRcPaths} */
     paths;
     /** @type {typedefs.WpwSourceCode} */
@@ -226,19 +226,19 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @param {string} name
-     * @returns {typedefs.IWpwBuildConfig | undefined}
-     */
-    getBuildConfig = (name) => this.wrapper.getBuildConfig(name);
-
-
-    /**
      * @template {typedefs.WpwGetRcPathOptions | undefined} P
      * @template {P extends { stat: true } ? string | undefined : string} R
      * @param {P} [options]
      * @returns {R}
      */
     getBasePath = (options) => (!options || !options.ctx ? this.getRcPath("base", options) : this.getRcPath("ctx", options));
+
+
+    /**
+     * @param {string} name
+     * @returns {typedefs.IWpwBuildConfig | undefined}
+     */
+    getBuildConfig = (name) => this.wrapper.getBuildConfig(name);
 
 
     /**
@@ -432,7 +432,7 @@ class WpwBuild extends WpwBase
     {
         printBuildStart(this);
         try
-        {   const wpc = webpackExports.call(this, this);
+        {   const wpc = webpackExports(this);
             printBuildProperties(this, this.wrapper);
             printWpcProperties(this);
             return wpc;

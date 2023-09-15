@@ -99,7 +99,6 @@
 /** @typedef {import("./constants").WpwBuildConfigKeys} WpwBuildConfigKeys */
 /** @typedef {import("./constants").WpwPackageJsonKeys} WpwPackageJsonKeys */
 /** @typedef {import("./constants").WpwSourceCodeTypes} WpwSourceCodeTypes */
-/** @typedef {import("./rc").IWebpackConfigOverride} IWebpackConfigOverride */
 /** @typedef {import("./rc").IWpwPackageJsonScripts} IWpwPackageJsonScripts */
 /** @typedef {import("./rc").IWpwPluginConfigBanner} IWpwPluginConfigBanner */
 /** @typedef {import("./rc").IWpwPluginConfigUpload} IWpwPluginConfigUpload */
@@ -132,7 +131,6 @@
 /** @typedef {import("./rc").IWpwPluginConfigIstanbul} IWpwPluginConfigIstanbul */
 /** @typedef {import("./rc").IWpwPluginConfigLogHooks} IWpwPluginConfigLogHooks */
 /** @typedef {import("./rc").IWpwPluginConfigWaitItem} IWpwPluginConfigWaitItem */
-/** @typedef {import("./rc").WebpackConfigOverrideKey} WebpackConfigOverrideKey */
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
 /** @typedef {import("./rc").WpwPackageJsonRepository} WpwPackageJsonRepository */
 /** @typedef {import("./rc").WpwPackageJsonScopedName} WpwPackageJsonScopedName */

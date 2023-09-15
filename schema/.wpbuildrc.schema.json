@@ -25,8 +25,14 @@
         "options": {
             "$ref": "#/definitions/WpwBuildOptions"
         },
+        "overrides": {
+            "$ref": "#/definitions/WebpackConfigOverride"
+        },
         "paths": {
             "$ref": "#/definitions/WpwRcPaths"
+        },
+        "pkgJson": {
+            "$ref": "#/definitions/WpwPackageJson"
         },
         "production": {
             "$ref": "#/definitions/WpwBuildBaseConfig"
@@ -204,9 +210,6 @@
                     "minLength": 3,
                     "maxLength": 30
                 },
-                "active": {
-                    "$ref": "#/definitions/BooleanReadOnly"
-                },
                 "auto": {
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
@@ -224,6 +227,9 @@
                 },
                 "options": {
                     "$ref": "#/definitions/WpwBuildOptions"
+                },
+                "overrides": {
+                    "$ref": "#/definitions/WebpackConfigOverride"
                 },
                 "paths": {
                     "$ref": "#/definitions/WpwRcPaths"
@@ -426,6 +432,9 @@
                 },
                 "options": {
                     "$ref": "#/definitions/WpwBuildOptions"
+                },
+                "overrides": {
+                    "$ref": "#/definitions/WebpackConfigOverride"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwSourceCode"
@@ -1038,7 +1047,7 @@
         "WpwPackageJson": {
             "$id": "#/WpwPackageJson",
             "type": "object",
-            "description": "Required package.json properties",
+            "readOnly": true,
             "additionalProperties": false,
             "required": [
                 "name",

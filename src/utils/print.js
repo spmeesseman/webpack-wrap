@@ -40,9 +40,9 @@ const printBuildProperties = (build, wrapper) =>
     l.value("   wpw version", wrapper.wpwVersion, 2);
     l.value("   wpw schema version", wrapper.schemaVersion, 2);
     l.value("   # of active builds", build.buildCount, 2);
-    l.value("   active build names", wrapper.apps.map(a => a.name).join(", "), 2);
-    l.value("   # of defined builds", wrapper.builds.length, 2);
-    l.value("   defined build names", wrapper.builds.map(b => b.name).join(", "), 2);
+    l.value("   active build names", wrapper.builds.map(a => a.name).join(", "), 2);
+    l.value("   # of defined builds", wrapper.buildConfigs.length, 2);
+    l.value("   defined build names", wrapper.buildConfigs.map(b => b.name).join(", "), 2);
     l.sep();
     l.write("Build Configuration:", 1, "", 0, l.colors.white);
     l.value("   name", build.name, 1);

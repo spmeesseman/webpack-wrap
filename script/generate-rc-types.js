@@ -60,16 +60,7 @@ const mapValueTypesAllowUndefined = [
  * Types that will be auto populated/nonnullable at runtime, but are optional in json schema
  */
 const requiredProperties = [
-    [ "$schema", "WpwSchema" ],
-    [ "builds", "WpwSchema" ],
-    [ "log", "WpwSchema" ],
-    [ "options", "WpwSchema" ],
-    [ "paths", "WpwSchema" ],
-    [ "production", "WpwSchema" ],
-    [ "schemaVersion", "WpwSchema" ],
-    [ "source", "WpwSchema" ],
-    [ "test", "WpwSchema" ],
-    [ "wpwVersion", "WpwSchema" ],
+    [ "*", "WpwSchema" ],
     [ "*", "WpwMessage" ],
     [ "mode", "WpwBuildConfig" ],
     [ "default", "WpwLogColoring" ],
@@ -163,6 +154,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .wpwreplace("removeOrFormatNumberedDupTypes")
           .wpwreplace("formatPackageJsonAuthor")
           .wpwreplace("formatWebpackEntry")
+          .wpwreplace("formatWebpackConfigOverride")
           .wpwreplace("formatInterface")
           .wpwreplace("formatType")
           .wpwreplace("replaceBooleanTypedefs")
@@ -358,6 +350,13 @@ const wpwreplace =
         return data.replace(
             /export type WebpackEntry =\s+\|(?:[^]*?)\};/g,
             (v) => v.replace("| string", "string").replace(/\n/g, " ").replace(/ {2,}/g, " ")
+        );
+    },
+    formatWebpackConfigOverride: (data) =>
+    {
+        return data.replace(
+            /export interface WebpackConfigOverride *(?:[^]*?)\n\}/g,
+            "import { Configuration as IWebpackConfigOverride } from \"webpack\";\nexport type WebpackConfigOverride = IWebpackConfigOverride;"
         );
     },
     justifyInnerObjects: (data) =>
