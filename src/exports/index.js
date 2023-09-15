@@ -23,12 +23,11 @@ const resolve = require("./resolve");
 const rules = require("./rules");
 const stats = require("./stats");
 const watch = require("./watch");
-const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {typedefs.WpwWebpackConfig}
  */
 const webpackDefaultExports = (build) =>
@@ -49,7 +48,7 @@ const webpackDefaultExports = (build) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {typedefs.WpwWebpackConfig}
  * @throws
  */
