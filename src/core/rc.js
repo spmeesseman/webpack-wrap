@@ -107,7 +107,6 @@ class WpwRc extends WpwBase
         this.initializeLogger();
         this.applyVersions();
         this.mergeBuildConfigs();
-
         validateSchema(this, "WpwSchema", this.logger);
     };
 

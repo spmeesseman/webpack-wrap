@@ -16,16 +16,11 @@ const { readFileSync } = require("fs");
 const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
-const { WpwKeysEnum } = require("../types/constants");
+const { WpwKeysEnum, requiredProperties } = require("../types/constants");
 const { isDefined, isString, isObject, isArray, pick, isNulled, isObjectEmpty } = require("@spmeesseman/type-utils");
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
-
-const runtimeRequired = [
-    "WpwSourceCode",
-    "WpwSourceCodeConfig"
-];
 
 const runtimeExclude = [
     "WpwSourceCodeTypescriptOptions"
@@ -87,16 +82,13 @@ const _applySchemaDefaults = (config, schemaObj, definitions) =>
                 }
                 else if ((!def.type || def.type === "object") && def.properties && def.maxProperties !== 0)
                 {
-                    const sCfg = _applySchemaDefaults({}, def, definitions);
-                    if (!isObjectEmpty(sCfg))
+                    const sId = schemaObj.title || getDefinitionName(schemaObj),
+                          sCfg = _applySchemaDefaults({}, def, definitions),
+                          oName = getDefinitionName(schemaObj);
+                    if (!isObjectEmpty(sCfg) || sId === "WpwSchema" || requiredProperties.find(([ p, c ]) => p === key && c === oName))
                     {
-                        const req = runtimeRequired,
-                              sId =  getDefinitionName(schemaObj);
-                        if (sId === "WpwSchema" || req.includes(sId) || req.includes(getDefinitionName(baseRef)))
-                        {
-                            if (!runtimeExclude.includes(getDefinitionName(baseRef))) {
-                                config[key] = sCfg;
-                            }
+                        if (!runtimeExclude.includes(getDefinitionName(baseRef))) {
+                            config[key] = sCfg;
                         }
                     }
                 }

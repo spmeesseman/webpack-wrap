@@ -510,6 +510,11 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
         data += `/**${EOL} * @enum {string[]}${EOL} */${EOL}const WpwKeysEnum =${EOL}{${EOL}${enumKeys.join("," + EOL)}${EOL}};${EOL}`;
+        data += `${EOL}const requiredProperties = ` + JSON.stringify(requiredProperties, null, 4)
+                                                      .replace(/\[\n {8}([^]*?)\n {4}\]/g, (_, m) => `[ ${m.replace("\n", "")} ]`)
+                                                      .replace(/, {2,}/g, ", ").replace(/","/g, ", ").replace(/\r\n/g, "\n")
+                                                      .replace(/\n/g, EOL) + ";" + EOL;
+        exported.push("requiredProperties");
         data += `${EOL}module.exports = {${EOL}${exported.join("," + EOL)}${EOL}};${EOL}`;
         data = data.replace("'json-to-typescript' utility", `'generate-rc-types' script and${EOL} * 'json-to-typescript' utility${EOL} *`);
         data = data.replace(/ \* the 'json\-to\-typescript' utility(?:[^]+?) \*\//, ` * the 'json-to-typescript' utility${EOL} *${EOL} */`);

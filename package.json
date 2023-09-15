@@ -23,7 +23,7 @@
         "build-all_dev": "webpack --mode development --env mode=development --config ./webpack.config.js",
         "build-docs": "webpack --env build=docs --mode production --env mode=production --config ./webpack.config.js",
         "build-docs:jsdoc": "jsdoc --destination res/docs/api --configure .jsdoc.json --recurse ./src",
-        "build-examples": "node bin/create-examples.js",
+        "build-examples": "node script/create-examples.js",
         "build-main-development": "webpack --build module --mode development --env mode=development --config ./webpack.config.js",
         "build-main-production": "webpack --build module --mode production --env mode=production --config ./webpack.config.js",
         "build-main-test": "webpack --build module --mode none --env mode=test --config ./webpack.config.js",
@@ -51,16 +51,16 @@
         "rebuild-types-all": "rpm run clean-types-all && npm run build-types-all",
         "rebuild-types-schema": "rpm run clean-types-schema && npm run build-types-schema",
         "rebuild-types-app": "rpm run clean-types-app && npm run build-types-app",
-        "schema-upload": "node bin/upload-rc-schema.js",
-        "schema-build_types": "node bin/generate-rc-types.js",
+        "schema-upload": "node script/upload-rc-schema.js",
+        "schema-build_types": "node script/generate-rc-types.js",
         "schema-build_types_and_upload": "npm run build-types-schema && npm run build-types && npm run upload_schema"
     },
     "files": [
-        "bin/wpwrap.js",
+        "bin",
         "example",
         "res",
         "schema",
-        "src"
+        "dist"
     ],
     "publishConfig": {
         "access": "public"
@@ -73,13 +73,13 @@
         "helper"
     ],
     "bin": {
-        "wpwrap": "./bin/wpwrap.js",
-        "wp-wrap": "./bin/wpwrap.js",
+        "wpw": "./bin/wpwrap.js",
         "webpack-wrap": "./bin/wpwrap.js"
     },
     "engines": {
         "node": ">=14.16.0"
     },
+    "types": "dist/types/types.d.ts",
     "peerDependencies": {
         "typescript": ">3.6.0"
     },
