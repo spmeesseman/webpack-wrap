@@ -52,7 +52,6 @@ const printBuildProperties = (build, wrapper) =>
     l.value("   source code type", build.source.type, 2);
     l.value("   is vscode extension", !!build.vscode && !!build.vscode.type, 2);
     l.value("   logging level", build.log.level, 2);
-    l.value("   alias configuration", JSON.stringify(build.alias), 3);
     l.value("   log configuration", JSON.stringify(build.log), 3);
     l.value("   options configuration", JSON.stringify(build.options), 3);
     l.value("   paths configuration", JSON.stringify(build.paths), 3);

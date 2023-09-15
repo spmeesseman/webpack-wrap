@@ -11,7 +11,7 @@
 const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const { apply, isFunction, WpwError} = require("../utils");
+const { apply, isFunction, WpwError, pushIfNotExists, isArray, asArray, resolvePath} = require("../utils");
 
 
 /**
@@ -98,7 +98,7 @@ class WpwResolveExport extends WpwWebpackExport
 		/** @type {Partial<typedefs.WpwWebpackConfig>} */({
 			resolve:
 			{
-				alias: this.build.alias,
+				alias: this.resolveAliasPaths(),
 				modules: [
 					this.nodeModulesPath, "node_modules"
 				],
@@ -133,6 +133,39 @@ class WpwResolveExport extends WpwWebpackExport
 			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}
+
+
+    /**
+     * @private
+	 * @returns {typedefs.IWpwWebpackAliasConfig}
+     */
+    resolveAliasPaths()
+    {
+		/** @type {typedefs.IWpwWebpackAliasConfig} */
+        const alias = {},
+              jstsConfig = this.build.source.config,
+              jstsDir = jstsConfig.dir,
+              jstsPaths = jstsConfig.options.compilerOptions.paths;
+
+        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
+        {
+            const value = alias[key];
+            if (isArray(value)) {
+                pushIfNotExists(value, path);
+            }
+            else { alias[key] = [ path ]; }
+        };
+
+        if (jstsDir && jstsPaths)
+        {
+            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
+            {
+                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
+            });
+        }
+
+		return alias;
+    };
 
 
 	tests()

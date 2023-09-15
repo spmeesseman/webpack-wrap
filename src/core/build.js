@@ -84,7 +84,7 @@ class WpwBuild extends WpwBase
         this.source = new WpwSourceCode(objUtils.clone(config.source), this);
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.disposables.push(this.source, this.logger);
-        this.logger.write(`successfully initialized build '${this.name}'`, 2);
+        this.logger.write(`successfully initialized build wrapper instance '${this.name}'`, 2);
     }
 
 
@@ -98,15 +98,14 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
         this.mergeDefaultOptions();
-        this.configureOptions();
-        this.resolveAliasPaths();
+        this.configureDependencyOptions();
     }
 
 
 	/**
 	 * @private
 	 */
-    configureOptions()
+    configureDependencyOptions()
     {
         const messages = [];
         const optionMessage = (/** @type {string} */o) =>
@@ -413,46 +412,6 @@ class WpwBuild extends WpwBase
             }
         });
     }
-
-
-    /**
-     * @private
-     */
-    resolveAliasPaths()
-    {
-        if (!this.alias) { return; }
-
-        const alias = this.alias,
-              jstsConfig = this.source.config,
-              jstsDir = jstsConfig.dir,
-              jstsPaths = jstsConfig.options.compilerOptions.paths;
-
-        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
-        {
-            const value = alias[key];
-            if (typeUtils.isArray(value)) {
-                if (!value.includes(path)) { value.push(path); }
-            }
-            else { alias[key] = [ path ]; }
-        };
-
-        if (jstsDir && jstsPaths)
-        {
-            Object.entries(jstsPaths).filter(p => typeUtils.isArray(p)).forEach(([ key, paths ]) =>
-            {
-                if (paths) utils.asArray(paths).forEach((p) => _pushAlias(key, utils.resolvePath(jstsDir, p)), this);
-            });
-        }
-
-        if (!alias[":env"])
-        {
-            const basePath = this.paths.base,
-                  srcPath = utils.relativePath(basePath, this.paths.src),
-                  envGlob = `**/${srcPath}/**/{env,environment,target}/${this.target}/`,
-                  envDirs = utils.findFilesSync(envGlob, { cwd: basePath, absolute: true, dotRelative: false });
-            envDirs.forEach((path) => _pushAlias(":env", path), this);
-        }
-    };
 
 
     /**
