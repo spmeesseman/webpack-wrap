@@ -18,7 +18,7 @@ const typedefs = require("../types/typedefs");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
-const { validateSchema, SchemaDirectory, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
+const { validateSchema, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
 const {
     WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, clone, applyIf, resolvePath, pickNot
 } = require("../utils");
@@ -101,7 +101,6 @@ class WpwRc extends WpwBase
             arge, argv, apps: [], errors: [], pkgJson: {}, warnings: []
         });
         applySchemaDefaults(this, "WpwSchema");
-        // this.applyJsonFromFile(this, ".wpbuildrc.defaults.json", SchemaDirectory);
         this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyPackageJson();
         this.initializeLogger();

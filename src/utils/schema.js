@@ -82,10 +82,11 @@ const _applySchemaDefaults = (config, schemaObj, definitions) =>
                 }
                 else if ((!def.type || def.type === "object") && def.properties && def.maxProperties !== 0)
                 {
-                    const sId = schemaObj.title || getDefinitionName(schemaObj),
+                    const req = requiredProperties,
+                          sId = schemaObj.title || getDefinitionName(schemaObj),
                           sCfg = _applySchemaDefaults({}, def, definitions),
                           oName = getDefinitionName(schemaObj);
-                    if (!isObjectEmpty(sCfg) || sId === "WpwSchema" || requiredProperties.find(([ p, c ]) => p === key && c === oName))
+                    if (sId === "WpwSchema" || !isObjectEmpty(sCfg) || req.find(([ p, c ]) => p === key && c === oName))
                     {
                         if (!runtimeExclude.includes(getDefinitionName(baseRef))) {
                             config[key] = sCfg;
@@ -147,6 +148,23 @@ const getSchema = (key) =>
     {
         try {
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
+            // const schema = {
+            //    $ref: key ? `https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/${key}` :
+            //                "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json"
+            // };
+            // const ajv = new Ajv({loadSchema: loadSchema})
+            // ajv.compileAsync(schema).then(function (validate) {
+            // const valid = validate(data)
+            // // ...
+            // })
+            // const schema_user = require("./schema_user.json")
+            // const validate = ajv.getSchema("https://example.com/user.json")
+            // || ajv.compile(schema_user)
+            // async function loadSchema(uri) {
+            //     const res = await request.json(uri)
+            //     if (res.statusCode >= 400) throw new Error("Loading error: " + res.statusCode)
+            //     return res.body
+            // }
         }
         catch (e) {
             throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema file", error: e });
@@ -254,4 +272,4 @@ const validateSchema = (config, key, logger) =>
 };
 
 
-module.exports = { applySchemaDefaults, getSchemaVersion, validateSchema, SchemaDirectory };
+module.exports = { applySchemaDefaults, getSchemaVersion, validateSchema };
