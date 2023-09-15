@@ -9,17 +9,16 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpwRc = require("../core/rc");
-const WpwBuild = require("../core/build");
-const { WpwError, pickNot } = require("../utils");
+const typedefs = require("../types/typedefs");
 const { WpwBuildOptionsKeys } = require("../types/constants");
+const { pickNot } = require("@spmeesseman/type-utils");
 
 let buildCount = 0;
 
 
 /**
- * @param {WpwBuild} build
- * @param {WpwRc} wrapper
+ * @param {typedefs.WpwBuild} build
+ * @param {typedefs.WpwRc} wrapper
  */
 const printBuildProperties = (build, wrapper) =>
 {
@@ -90,7 +89,7 @@ const printBuildProperties = (build, wrapper) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  */
 const printBuildStart = (build) =>
 {
@@ -103,8 +102,8 @@ const printBuildStart = (build) =>
 
 
 /**
- * @param {WpwBuild} build
- * @param {WpwError} e
+ * @param {typedefs.WpwBuild} build
+ * @param {typedefs.WpwError} e
  * @param {Function} fn
  * @param {string} [icon]
  */
@@ -121,7 +120,7 @@ const printNonFatalIssue = (build, e, fn, icon) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  */
 const printWpcProperties = (build) =>
 {

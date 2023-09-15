@@ -12,7 +12,7 @@
 
 const WpwBase = require("./base");
 const { existsSync } = require("fs");
-const wpexports = require("../exports");
+const webpackExports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwSourceCode = require("./sourcecode");
 const { isAbsolute, relative, sep } = require("path");
@@ -428,52 +428,16 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @private
      * @returns {typedefs.WpwWebpackConfig}
      */
-    webpackDefaultExports = () =>
+    webpackExports()
     {
-        const build = this;
-        return {
-            cache: { type: "memory" },
-            context: build.paths.ctx || build.paths.base,
-            entry: {},
-            mode: build.mode === "test" ? "none" : build.mode,
-            module: { rules: [] },
-            name: `${this.pkgJson.scopedName.scope}|${this.pkgJson.version}|${build.name}|${build.mode}|${build.target}`,
-            output: { path: this.getDistPath() }, // { path: this.getDistPath({ rel: true }) }
-            plugins: [],
-            resolve: {},
-            target: build.target
-        };
-    };
-
-
-    /**
-     * @returns {typedefs.WpwWebpackConfig}
-     */
-    webpackExports = () =>
-    {
-        this.wpc = this.webpackDefaultExports();
-        this.global.buildCount = this.global.buildCount || 0;
         printBuildStart(this);
         try
-        {   wpexports.cache(this);          // Asset cache
-            wpexports.experiments(this);    // Set any experimental flags that will be used
-            wpexports.entry(this);          // Entry points for built output
-            wpexports.externals(this);      // External modules
-            wpexports.ignorewarnings(this); // Warnings from the compiler to ignore
-            wpexports.optimization(this);   // Build optimization
-            wpexports.minification(this);   // Minification / Terser plugin options
-            wpexports.output(this);         // Output specifications
-            wpexports.devtool(this);        // Dev tool / sourcemap control
-            wpexports.resolve(this);        // Resolve config
-            wpexports.rules(this);          // Loaders & build rules
-            wpexports.stats(this);          // Stats i.e. console output & webpack verbosity
-            wpexports.watch(this);          // Watch-mode options
-            wpexports.plugins(this);        // Plugins - exports.plugins() inits all plugin.plugins
+        {   const wpc = webpackExports.call(this, this);
             printBuildProperties(this, this.wrapper);
             printWpcProperties(this);
+            return wpc;
         }
         catch (e)
         {   this.logger.blank(undefined, this.logger.icons.color.error);
@@ -484,8 +448,7 @@ class WpwBuild extends WpwBase
             this.logger.blank(undefined, this.logger.icons.color.error);
             throw e;
         }
-        return this.wpc;
-    };
+    }
 
 }
 

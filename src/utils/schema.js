@@ -125,8 +125,6 @@ const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
         }
     });
     _applySchemaDefaults(config, schemaObj, definitions);
-    console.log("******************* constructor:  ");
-    console.log(JSON.stringify(pick(config, "source", "paths", "builds", "log"), null, 4));
     return /** @type {Required<T>} */(config);
 };
 

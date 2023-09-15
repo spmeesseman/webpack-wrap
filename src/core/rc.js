@@ -227,7 +227,7 @@ class WpwRc extends WpwBase
      * @param {string} nameOrType
      * @returns {typedefs.IWpwBuildConfig | undefined}
      */
-    getBuildConfig(nameOrType) { return this.initialConfig.builds.find(b => b.type === nameOrType || b.name === nameOrType); }
+    getBuildConfig(nameOrType) { return this.buildConfigs.find(b => b.type === nameOrType || b.name === nameOrType); }
 
 
     /**
