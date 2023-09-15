@@ -17,10 +17,20 @@ const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
 const { WpwKeysEnum } = require("../types/constants");
-const { isBoolean, isString, isObject, isArray, isPrimitive, pick, isNulled } = require("@spmeesseman/type-utils");
+const { isDefined, isString, isObject, isArray, pick, isNulled, isObjectEmpty } = require("@spmeesseman/type-utils");
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
+
+const runtimeRequired = [
+    "WpwSourceCode",
+    "WpwSourceCodeConfig"
+];
+
+const runtimeExclude = [
+    "WpwSourceCodeTypescriptOptions"
+];
+
 
 
 // /**
@@ -35,70 +45,100 @@ const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
 //  */
 
 /**
- * @template T
+ * @template {{}} T
  * @param {T | Partial<T>} config
- * @param {typedefs.WpwJsonSchemaKey} schemaKey
  * @param {NonNullable<typedefs.JsonSchema>} schemaObj
+ * @param {typedefs.JsonSchemaDefinition} definitions
+ * @returns {T | Partial<T>}
  * @throws {WpwError}
  */
-const _applySchemaDefaults = (config, schemaKey, schemaObj) =>
+const _applySchemaDefaults = (config, schemaObj, definitions) =>
 {
-    for (const [ k, d ] of Object.entries(schemaObj))
+    const propertiesObject = getDefinitionSchemaProperties(schemaObj, definitions);
+    for (const [ key, definition ] of Object.entries(propertiesObject))
     {
-        let def = d;
-        const key = k;
-        if (def && isNulled(config[key]))
+        let def = definition;
+        if (isObject(propertiesObject.enabled) && !propertiesObject.enabled.default)
         {
-            if (def.$ref) {
-                def = getDefinitionSchema(def);
+            continue;
+        }
+        if (isObject(def) && isNulled(config[key]))
+        {
+            const baseRef = def;
+            if (def.$ref)
+            {
+                def = getDefinitionSchema(def, definitions);
             }
-            if (isPrimitive(def) || isArray(def)) {
-                throw WpwError.getErrorProperty("schema.definition." + key, null, `[schemakey: ${schemaKey}] [def:${def.toString()}]`);
+            if (def.readOnly || (key === "enabled" && !def.default))
+            {
+                continue;
             }
-            if (def.default || isPrimitive(def.default)) {
-                config[key] = def.default;
+            if (isDefined(def.default))
+            {
+                config[key] = def.default; // apply(config, { [key]: def.default });
             }
-            // else if (isArray(def)) {
-            //     config[key] = [];
-            // }
-            else if (def.properties) {
-                config[key] = {};
-                _applySchemaDefaults(config[k], schemaKey, def.properties);
+            else
+            {
+                if (def.type === "array")
+                {
+                    if ((isArray(schemaObj.required) && schemaObj.required.includes(key))) {
+                        config[key] = [];
+                    }
+                }
+                else if ((!def.type || def.type === "object") && def.properties && def.maxProperties !== 0)
+                {
+                    const sCfg = _applySchemaDefaults({}, def, definitions);
+                    if (!isObjectEmpty(sCfg))
+                    {
+                        const req = runtimeRequired,
+                              sId =  getDefinitionName(schemaObj);
+                        if (sId === "WpwSchema" || req.includes(sId) || req.includes(getDefinitionName(baseRef)))
+                        {
+                            if (!runtimeExclude.includes(getDefinitionName(baseRef))) {
+                                config[key] = sCfg;
+                            }
+                        }
+                    }
+                }
             }
-            // else {
-            //     config[key] = undefined; // {};
-            // }
         }
     }
+    return config;
 };
 
 
 /**
- * @template T
+ * @template {Record<string, any>} T
  * @param {T | Partial<T>} config
  * @param {typedefs.WpwJsonSchemaKey} schemaKey
  * @param {...string} propertyKeys
- * @returns {T}
+ * @returns {Required<T>}
  * @throws {WpwError}
  */
 const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
 {
-    const definitions = /** @type {Exclude<typedefs.JsonSchemaDefinition, undefined>} */(getSchema("WpwSchema").definitions);
-    let schemaObj = getDefinitionSchema(definitions[/** @type {string} */(schemaKey)]);
+    const schema = getSchema("WpwSchema"),
+          definitions = /** @type {Exclude<typedefs.JsonSchemaDefinition, undefined>} */(schema.definitions),
+          baseDefinition = definitions[/** @type {string} */(schemaKey)];
+    let schemaObj = schemaKey !== "WpwSchema" ? getDefinitionSchema(baseDefinition, definitions) : schema;
     propertyKeys.forEach((key) =>
     {
         if (schemaObj) {
-            schemaObj = getDefinitionSchemaProperties(schemaObj);
-            schemaObj = getDefinitionSchema(schemaObj[key]);
+            schemaObj = getDefinitionSchemaProperties(schemaObj, definitions);
+            schemaObj = getDefinitionSchema(schemaObj[key], definitions);
         }
         else {
             throw WpwError.getErrorProperty("schema error - could not locate specified schema key");
         }
     });
-    schemaObj = getDefinitionSchemaProperties(schemaObj);
-    _applySchemaDefaults(config, schemaKey, schemaObj);
-    return /** @type {T} */(config);
+    _applySchemaDefaults(config, schemaObj, definitions);
+    console.log("******************* constructor:  ");
+    console.log(JSON.stringify(pick(config, "source", "paths", "builds", "log"), null, 4));
+    return /** @type {Required<T>} */(config);
 };
+
+
+const getDefinitionName = (/** @type {typedefs.JsonSchema} */ obj) => (obj.title || obj.$id || obj.$ref)?.replace(/#\/(?:definitions\/)?/, "") || "";
 
 
 /**
@@ -106,6 +146,7 @@ const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
  * @template {T extends "WpwSchema" | undefined ? typedefs.JsonSchema : typedefs.JsonSchema | undefined} R
  * @param {T} [key]
  * @returns {R}
+ * @throws {WpwError}
  */
 const getSchema = (key) =>
 {
@@ -116,7 +157,7 @@ const getSchema = (key) =>
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
         }
         catch (e) {
-            WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema file", error: e });
+            throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema file", error: e });
         }
     }
     return /** @type {R} */(schemas[sKey]);
@@ -133,24 +174,25 @@ const getSchemaFile = (key) =>
 
 /**
  * @param {boolean | typedefs.JsonSchema} schemaObj
+ * @param {typedefs.JsonSchemaDefinition} definitions
  * @returns {NonNullable<typedefs.JsonSchema>}
+ * @throws {WpwError}
  */
-const getDefinitionSchema = (schemaObj) =>
+const getDefinitionSchema = (schemaObj, definitions) =>
 {
     /** @type {NonNullable<typedefs.JsonSchema>} */
     let property = { type: "object", properties: { enabled: { const: true }}};
-    if (!isBoolean(schemaObj) && isObject(schemaObj))
+    if (isObject(schemaObj))
     {
-        const definitions = getSchema("WpwSchema").definitions;
-        if (definitions)
+        property = schemaObj;
+        while (isObject(property) && isString(property.$ref))
         {
-            property = schemaObj;
-            while (isString(property.$ref))
-            {
-                const refProperty = definitions[refName(property.$ref)];
-                if (!isBoolean(refProperty) && isObject(refProperty, true)) {
-                    property = refProperty;
-                }
+            const refProperty = definitions[refName(property.$ref)];
+            if (isObject(refProperty)) {
+                property = refProperty;
+            }
+            else {
+                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema definitions" });
             }
         }
     }
@@ -160,11 +202,12 @@ const getDefinitionSchema = (schemaObj) =>
 
 /**
  * @param {boolean | typedefs.JsonSchema} schemaObj
+ * @param {typedefs.JsonSchemaDefinition} definitions
  * @returns {Exclude<typedefs.JsonSchemaProperties, undefined>}
  */
-const getDefinitionSchemaProperties = (schemaObj) =>
+const getDefinitionSchemaProperties = (schemaObj, definitions) =>
 {
-    const schema = getDefinitionSchema(schemaObj);
+    const schema = getDefinitionSchema(schemaObj, definitions);
     if (schema.properties) {
         return schema.properties;
     }
@@ -174,6 +217,12 @@ const getDefinitionSchemaProperties = (schemaObj) =>
 
 const getSchemaVersion = (/** @type {string | undefined} */ key) =>
     schemas[`Wpw${key || "Schema"}`].$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
+
+
+const isArrayTypeValue = (schema) =>
+{
+    return schema.type === "array";
+};
 
 
 const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "");

@@ -26,7 +26,6 @@ const {
 /**
  * @extends {WpwBase}
  * @implements {typedefs.IWpwBuildConfig}
- * @implements {typedefs.IDisposable}
  */
 class WpwBuild extends WpwBase
 {

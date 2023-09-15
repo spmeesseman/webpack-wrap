@@ -90,7 +90,6 @@
         "DirectoryPath": {
             "$id": "#/WpwDirectoryPath",
             "type": "string",
-            "default": "src",
             "maxLength": 150,
             "description": "relative or absolute path to a directory",
             "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/:]+)$",
@@ -1234,17 +1233,14 @@
                 },
                 "ctx": {
                     "$ref": "#/definitions/DirectoryPath",
-                    "default": ".",
                     "description": "path to the base context directory as defined by Webpack, full path or relative to the project directory containing package.json"
                 },
                 "dist": {
-                    "type": "string",
-                    "default": "dist",
+                    "$ref": "#/definitions/DirectoryPath",
                     "description": "path to the distribution / output directory, full path or relative to the project directory containing package.json"
                 },
                 "src": {
                     "$ref": "#/definitions/DirectoryPath",
-                    "default": "src",
                     "description": "path to the base source directory, full path or relative to the project directory containing package.json"
                 },
                 "temp": {
@@ -2508,17 +2504,14 @@
             "properties": {
                 "dir": {
                     "type": "string",
-                    "readOnly": true,
-                    "maxLength": 0
+                    "readOnly": true
                 },
                 "file": {
                     "type": "string",
-                    "maxItems": 0,
                     "readOnly": true
                 },
                 "excludeAbs": {
                     "type": "array",
-                    "maxItems": 0,
                     "readOnly": true,
                     "items": {
                         "type": "string"
@@ -2526,7 +2519,6 @@
                 },
                 "includeAbs": {
                     "type": "array",
-                    "maxItems": 0,
                     "readOnly": true,
                     "items": {
                         "type": "string"
@@ -2537,7 +2529,6 @@
                 },
                 "path": {
                     "type": "string",
-                    "default": "tsconfig.json",
                     "pattern": "^(?:(?:\\.[\\\\/])?[~@!\\w\\.\\-\\\\/:]+)?(?:t|j)sconfig\\.(?:[\\w\\-]+?\\.)?json$",
                     "minLength": 13,
                     "maxLength": 150,

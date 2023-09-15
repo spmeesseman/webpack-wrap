@@ -65,8 +65,7 @@ class WpwLogger
      */
     applyOptions = (options) =>
     {
-        const defaults = applySchemaDefaults(/** @type {Required<typedefs.IWpwLog>} */({}), "WpwLog");
-        const opts = this.options = merge(defaults, options);
+        const opts = this.options = merge(applySchemaDefaults(/** @type {typedefs.IWpwLog} */({}), "WpwLog"), options);
         let len = opts.envTag1.length + opts.envTag2.length + 6;
         WpwLogger.envTagLen = !WpwLogger.envTagLen || len > WpwLogger.envTagLen ? len : WpwLogger.envTagLen;
         len = opts.pad.value;
