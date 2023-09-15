@@ -136,8 +136,8 @@ class WpwEntryExport extends WpwWebpackExport
 			  jsdocOptions = build.options.jsdoc;
 		if (jsdocOptions && jsdocOptions.type === "entry")
 		{
-			const mainBuild = build.getBuild("app"),
-				jsdocSrcPath = build.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
+			const mainBuild = build.getBuildConfig("app"),
+				  jsdocSrcPath = build.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
 			if (mainBuild && jsdocSrcPath)
 			{
 				const mainSrcPath = build.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });

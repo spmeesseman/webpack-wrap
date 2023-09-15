@@ -40,8 +40,10 @@ class WpwRc extends WpwBase
     args;
     /** @type {typedefs.WebpackRuntimeArgs} */
     argv;
-    /** @type {typedefs.WpwBuildConfig[]} */
+    /** @type {typedefs.WpwBuild[]} */
     builds;
+    /** @type {typedefs.IWpwBuildConfig[]} */
+    buildConfigs;
     /** @type {typedefs.WpwBuildBaseConfig} */
     development;
     /** @type {typedefs.WpwLog} */
@@ -82,8 +84,6 @@ class WpwRc extends WpwBase
      * each layer's configuration from top level down, (i.e. the top level, `this`, and
      * the current mode/environement e.g. `production`) into each defined build config.
      *
-     * @see {@link WpwRc.create WpwRc.create()} for wbbuild initiantiation process
-     * @see {@link WpwBuild} for build lvel wrapper defintion.  Stupidly named `app` (???).
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpwRuntimeEnvArgs} arge
@@ -103,7 +103,8 @@ class WpwRc extends WpwBase
         applySchemaDefaults(this, "WpwSchema");
         this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyPackageJson();
-        this.initializeLogger();
+        this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main" }));
+        this.printBanner();
         this.applyVersions();
         this.mergeBuildConfigs();
         validateSchema(this, "WpwSchema", this.logger);
@@ -111,22 +112,20 @@ class WpwRc extends WpwBase
 
 
     get hasTests() { return !!this.builds.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
-    get hasTypes() { return !!this.getBuild("types"); }
     get isSingleBuild() { return !!this.args.build && this.apps.length <= 1; }
     get buildCount() { return this.apps.length; }
 
 
     /**
      * @private
-     * @template {Record<string, any>} T
-     * @param {T} thisArg
+     * @param {Record<string, any>} dst
      * @param {string} file
      * @param {string} [dirPath]
      * @param {string[]} properties
-     * @returns {{ path: string; data: T; }}
+     * @returns {string} {string} full path
      * @throws {WpwError}
      */
-    applyJsonFromFile(thisArg, file, dirPath = resolve(), ...properties)
+    applyJsonFromFile(dst, file, dirPath = resolve(), ...properties)
     {
         const path = join(dirPath, file);
         try
@@ -134,8 +133,8 @@ class WpwRc extends WpwBase
             if (properties.length > 0) {
                 data = pick(data, ...properties);
             }
-            merge(thisArg, data);
-            return { path, data };
+            merge(dst, data);
+            return path;
         }
         catch
         {   const parentDir = dirname(dirPath);
@@ -146,18 +145,18 @@ class WpwRc extends WpwBase
                     message: `Could not locate or parse '${basename(file)}', check existence or syntax`
                 });
             }
-            return this.applyJsonFromFile(thisArg, file, parentDir);
+            return this.applyJsonFromFile(dst, file, parentDir);
         }
     }
+
 
     /**
      * @private
      */
     applyPackageJson()
     {
-        const pkgJson = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonKeys);
-        this.pkgJsonPath = pkgJson.path;
-        const nameData = pkgJson.data.name.split("/");
+        this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonKeys);
+        const nameData = this.pkgJson.name.split("/");
         apply(this.pkgJson, {
             scopedName: {
                 name: nameData.length > 1 ? nameData[1] : nameData[0],
@@ -175,14 +174,6 @@ class WpwRc extends WpwBase
         const wpwVersion = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version;
         apply(this, { schemaVersion: getSchemaVersion(), version: this.pkgJson.version, wpwVersion });
     }
-
-
-    /**
-     * @private
-     * @param {typedefs.IWpwBuildBaseConfig} config
-     * @returns {Omit<typedefs.IWpwBuildBaseConfig, "builds">}
-     */
-    getBasePropertyConfig(config) { return pickNot(pick(config, ...WpwBuildBaseConfigKeys), "builds"); }
 
 
     /**
@@ -225,10 +216,18 @@ class WpwRc extends WpwBase
 
 
     /**
-     * @param {string} nameOrType
-     * @returns {typedefs.WpwBuild | undefined}
+     * @private
+     * @param {typedefs.IWpwBuildBaseConfig} config
+     * @returns {Omit<typedefs.IWpwBuildBaseConfig, "builds">}
      */
-    getBuild(nameOrType) { return this.apps.find(a => a.type === nameOrType || a.name === nameOrType); }
+    getBasePropertyConfig(config) { return pickNot(pick(config, ...WpwBuildBaseConfigKeys), "builds"); }
+
+
+    /**
+     * @param {string} nameOrType
+     * @returns {typedefs.IWpwBuildConfig | undefined}
+     */
+    getBuildConfig(nameOrType) { return this.initialConfig.builds.find(b => b.type === nameOrType || b.name === nameOrType); }
 
 
     /**
@@ -249,31 +248,24 @@ class WpwRc extends WpwBase
     }
 
 
-    initializeLogger()
-    {
-        this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main" }));
-        this.printBanner();
-    }
-
-
+    /**
+     * @private
+     */
     maybeAddTypesBuild()
     {
-        if (this.hasTypes) // Some build require types to be built, auto-add the types build if defined, and
-        {               // a dependency of the single build
-            const typesBuild = this.getBuild("types");
-            if (typesBuild && this.args.build !== typesBuild.name && (!this.isSingleBuild || !existsSync(typesBuild.paths.dist)))
+        const typesBuild = this.getBuildConfig("types");
+        if (typesBuild && this.args.build !== typesBuild.name && (!this.isSingleBuild || !existsSync(typesBuild.paths.dist)))
+        {
+            for (const a of this.apps)
             {
-                for (const a of this.apps)
+                const dependsOnTypes = (isObject(a.entry) && a.entry.dependOn === "types") ||
+                                        a.options.wait?.items?.find(w => w.name === "types");
+                if (!this.isSingleBuild || dependsOnTypes)
                 {
-                    const dependsOnTypes = (isObject(a.entry) && a.entry.dependOn === "types") ||
-                                           a.options.wait?.items?.find(w => w.name === "types");
-                    if (!this.isSingleBuild || dependsOnTypes)
+                    if (asArray(a.options.wait?.items).find(t => t.name === "types"))
                     {
-                        if (asArray(a.options.wait?.items).find(t => t.name === "types"))
-                        {
-                            this.apps.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
-                            break;
-                        }
+                        this.apps.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
+                        break;
                     }
                 }
             }
@@ -282,11 +274,6 @@ class WpwRc extends WpwBase
 
 
 	/**
-	 * Add all defined builds to the root builds array, i.e. those defined in root 'builds'
-     * already, and/or defined in the current environment's config. Merge in all levels of
-     * build configurations, including root level, environment level, and the individual
-     * build config itself havign the highest merge priority.
-     *
 	 * @private
 	 */
     mergeBuildConfigs()
@@ -341,6 +328,7 @@ class WpwRc extends WpwBase
             this.resolvePaths(config);
         });
         this.builds = configs;
+        this.buildConfigs = baseBuildConfigs;
     }
 
 
@@ -390,6 +378,7 @@ class WpwRc extends WpwBase
 
 
     /**
+     * @private
      * @param {typedefs.WpwBuildOptions | undefined} options
      */
     touchBuildOptionsEnabled(options)
