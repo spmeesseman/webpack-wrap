@@ -14,7 +14,7 @@ const WpwBase = require("./base");
 const { existsSync } = require("fs");
 const webpackExports = require("../exports");
 const typedefs = require("../types/typedefs");
-const WpwSourceCode = require("./sourcecode");
+const WpwSourceCode = require("./source");
 const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
