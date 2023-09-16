@@ -13,7 +13,7 @@ let logger;
 /** @type {import("schema-utils/declarations/validate").Schema} */
 const schema = {
     type: "object",
-    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.loader.types.json",
+    $id: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.loader.types.json",
     properties: {
         test: {
             type: "string"
@@ -28,7 +28,7 @@ const schema = {
                     type: "string"
                 },
                 typesConfig: {
-                    $ref: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
+                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
                 }
             }
         }

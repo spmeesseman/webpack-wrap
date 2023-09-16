@@ -21,7 +21,7 @@ const { join, dirname, isAbsolute, resolve, relative } = require("path");
 /**
  * @extends WpwTscPlugin
  */
-class WpBuildTestSuitePlugin extends WpwTscPlugin
+class WpwTestSuitePlugin extends WpwTscPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -95,9 +95,9 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 
 /**
  * @param {WpwBuild} build
- * @returns {WpBuildTestSuitePlugin | undefined}
+ * @returns {WpwTestSuitePlugin | undefined}
  */
-const testsuite = (build) => build.options.testsuite ? new WpBuildTestSuitePlugin({ build }) : undefined;
+const testsuite = (build) => build.options.testsuite ? new WpwTestSuitePlugin({ build }) : undefined;
 
 
 module.exports = testsuite;

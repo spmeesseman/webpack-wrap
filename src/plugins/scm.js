@@ -19,7 +19,7 @@ const WpwBuild = require("../core/build");
 /**
  * @extends WpwPlugin
  */
-class WpBuildScmPlugin extends WpwPlugin
+class WpwScmPlugin extends WpwPlugin
 {
     /**
      * @param {WpwPluginOptions} options Plugin options to be applied
@@ -86,9 +86,9 @@ class WpBuildScmPlugin extends WpwPlugin
 
 /**
  * @param {WpwBuild} build
- * @returns {WpBuildScmPlugin | undefined}
+ * @returns {WpwScmPlugin | undefined}
  */
-const scm = (build) => build.options.scm ? new WpBuildScmPlugin({ build }) : undefined;
+const scm = (build) => build.options.scm ? new WpwScmPlugin({ build }) : undefined;
 
 
 module.exports = scm;

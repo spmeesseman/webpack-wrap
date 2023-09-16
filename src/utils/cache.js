@@ -19,10 +19,9 @@ const { readFileSync, existsSync, writeFileSync } = require("fs");
 
 
 /**
- * @class WpBuildCache
  * @implements {IDisposable}
  */
-class WpBuildCache
+class WpwCache
 {
     /**
      * @member
@@ -45,7 +44,6 @@ class WpBuildCache
 
 
     /**
-     * @class WpBuildApplication
      * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
      * @param {string} file Filename to read/write cache to
      */
@@ -122,4 +120,4 @@ class WpBuildCache
 }
 
 
-module.exports = WpBuildCache;
+module.exports = WpwCache;

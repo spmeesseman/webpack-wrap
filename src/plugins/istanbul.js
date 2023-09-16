@@ -120,7 +120,6 @@ class WpwIstanbulPlugin extends WpwPlugin
     // const { createInstrumenter } = require("istanbul-lib-instrument");
     //
     // /** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
-    // /** @typedef {import("../utils").WpBuildApp} WpBuildApp */
     // /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
     //
     //

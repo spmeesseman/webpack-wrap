@@ -77,10 +77,10 @@ class WpwWrapper extends WpwBase
 
 
     /**
-     * Top level rc configuration wrapper.  Initializes build configurations and Wraps
-     * all build level 'WpBuildRcApp' instances.  Builds are initialized by merging
-     * each layer's configuration from top level down, (i.e. the top level, `this`, and
-     * the current mode/environement e.g. `production`) into each defined build config.
+     * Top level rc configuration wrapper.  Initializes build configurations and wraps
+     * all build level wrappers.  Builds are initialized by merging each layer's
+     * configuration from top level down, (i.e. the top level, `this`, and the current
+     * mode/environement e.g. `production`) into each defined build config.
      *
      * @private
      * @param {typedefs.WebpackRuntimeArgs} argv
@@ -92,8 +92,8 @@ class WpwWrapper extends WpwBase
         this.initConfig(argv, arge);
         this.initLogger();
         this.createBuildConfigs();
-        this.createBuilds();
         validateSchema(this, "WpwSchema", this.logger);
+        this.createBuilds();
     };
 
 
@@ -258,14 +258,14 @@ class WpwWrapper extends WpwBase
      * @template {T extends false | undefined ? Exclude<typedefs.WebpackMode, undefined> : Exclude<typedefs.WpwWebpackMode, undefined>} R
      * @param {typedefs.WpwRuntimeEnvArgs | typedefs.WpwCombinedRuntimeArgs} arge Webpack build environment
      * @param {typedefs.WebpackRuntimeArgs | typedefs.WpwCombinedRuntimeArgs | undefined | null} argv Webpack command line args
-     * @param {T} [wpBuild] Convert to WpwWebpackMode @see {@link typedefs.WpwWebpackMode WpwWebpackMode}, i.e. convert mode `none` to mode `test`
+     * @param {T} [wpw] Convert to WpwWebpackMode @see {@link typedefs.WpwWebpackMode WpwWebpackMode}, i.e. convert mode `none` to mode `test`
      * @returns {R}
      */
-    getMode(arge, argv, wpBuild)
+    getMode(arge, argv, wpw)
     {
         let mode = argv?.mode || arge.mode || "production";
-        if (wpBuild === true && mode === "none") { mode = "test"; }
-        else if (!wpBuild && mode === "test") { mode = "none"; }
+        if (wpw === true && mode === "none") { mode = "test"; }
+        else if (!wpw && mode === "test") { mode = "none"; }
         return /** @type {R} */(mode);
     }
 

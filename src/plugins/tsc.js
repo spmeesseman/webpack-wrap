@@ -16,7 +16,7 @@ const { existsSync } = require("fs");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { access, unlink, readFile } = require("fs/promises");
-const { findFiles, relativePath, resolvePath, existsAsync, isString, isDirectory } = require("../utils");
+const { findFiles, relativePath, resolvePath, existsAsync, isString, isDirectory, apply, applyIf } = require("../utils");
 
 
 /**
@@ -42,86 +42,70 @@ class WpwTscPlugin extends WpwPlugin
     /**
 	 * @protected
 	 * @param {string} statsProperty
-	 * @param {string | undefined} [outputDir] full path
 	 */
-	async dtsBundle(statsProperty, outputDir)
+	async dtsBundle(statsProperty)
 	{
-		if (this.global.typesBundled) {
-			this.build.addMessage({ code: WpwError.Msg.INFO_BUILD_SKIPPED_NON_FATAL, message: "dts bundling already completed" });
+		const l = this.build.logger,
+			  baseBuildDir = this.build.getBasePath(),
+			  bundleOptions = /** @type {typedefs.IWpwPluginConfigTypesBundle} */(this.typesBuildOptions.bundle),
+			  declarationDir = this.build.source.config.compilerOptions.declarationDir,
+			  dtsFilesOutputDir = resolvePath(baseBuildDir, declarationDir ?? this.build.getDistPath({ fallback: true }));
+
+		if (!(await existsAsync(dtsFilesOutputDir)))
+		{
+			this.build.addMessage({ code: WpwError.Msg.ERROR_NO_OUTPUT_DIR, compilation: this.compilation, message: "dts bundling failed" });
 			return;
 		}
 
-		const l = this.build.logger,
-			  baseBuildDir = this.build.getBasePath(),
-			  bundleOptions = /** @type {typedefs.IWpwPluginConfigTypesBundle} */(this.typesBuildOptions.bundle);
 		l.start("bundle types .d.ts files", 1);
-		l.value("   types output directory", outputDir, 2);
 
-		if (!outputDir)
+		/** @type {typedefs.WpwPluginConfigTypesBundle} */
+		const bundleCfg = apply({}, bundleOptions, { verbose: this.build.log.level >= 4 || !!bundleOptions.verbose }),
+			  dtsBundleOutputDir = bundleOptions.baseDir ? resolvePath(baseBuildDir, bundleOptions.baseDir) : dtsFilesOutputDir,
+			  dtsBundleBaseDir = relativePath(baseBuildDir, dtsBundleOutputDir).replace(/\\/g, "/").replace(/\/$/, "");
+
+		applyIf(bundleCfg,
 		{
-			const compilerOptions = this.build.source.config.compilerOptions;
-			outputDir = resolvePath(
-				baseBuildDir, compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true })
-			);
-			if (!(await existsAsync(outputDir)))
-			{
-				this.build.addMessage({ code: WpwError.Msg.ERROR_NO_OUTPUT_DIR, compilation: this.compilation, message: "dts bundling failed" });
-				return;
-			}
-		}
+			baseDir: dtsBundleBaseDir,
+			name: `${this.build.pkgJson.name}-${this.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
+			out: this.build.name + ".d.ts"
+		});
 
-		const name = bundleOptions.name || `${this.build.pkgJson.name}-${this.build.name}`.replace(/\//g, "-").replace(/@/g, ""),
-			out = bundleOptions.out || this.build.name + ".d.ts",
-			dtsFilePathAbs = join(outputDir, out),
-			dtsFilePathRel = relativePath(outputDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			dtsFilePathRelContext = relativePath(this.compiler.context, dtsFilePathAbs).replace(/\\/g, "/"),
-			dtsFilePathRelBase = relativePath(baseBuildDir, dtsFilePathAbs).replace(/\\/g, "/"),
-			dtsBundleBaseDir = relativePath(baseBuildDir, outputDir).replace(/\\/g, "/").replace(/\/$/, ""),
-			baseDir = bundleOptions.baseDir || dtsBundleBaseDir;
-
-		let main = dtsBundleBaseDir + "/**/*.d.ts";
-		if (isString(bundleOptions.main))
+		let main = dtsFilesOutputDir + "/**/*.d.ts";
+		if (isString(bundleCfg.main))
 		{
-			let cfgMain = bundleOptions.main;
-			if (bundleOptions.main === "entry")
+			let cfgMain = bundleCfg.main;
+			if (cfgMain === "entry")
 			{
-				cfgMain = this.getDtsEntryFile(outputDir);
+				cfgMain = this.getDtsEntryFile(dtsFilesOutputDir);
 			}
 			if (await existsAsync(resolvePath(baseBuildDir, cfgMain)))
 			{
 				main = cfgMain;
-				if (bundleOptions.main !== "entry" && isDirectory(main)) {
+				if (bundleCfg.main !== "entry" && isDirectory(main)) {
 					main = join(main, "**/*.d.ts");
 				}
 			}
 		}
+		bundleCfg.main = main;
 
+		const dtsFilePathAbs = join(dtsBundleOutputDir, /** @type {string} */(bundleCfg.out)),
+			  dtsFilePathRel = relativePath(baseBuildDir, dtsFilePathAbs);
 		if (existsSync(dtsFilePathAbs))
 		{
-			l.write("   clean/remove prior bundle output @ " + dtsFilePathRelBase, 2);
+			l.write("   clean/remove prior bundle output @ " + dtsFilePathRel, 2);
 			await unlink(dtsFilePathAbs);
 		}
 
-		/** @type {typedefs.WpwPluginConfigTypesBundle} */
-		const bundleCfg =
-		{
-			out, main, name, baseDir,
-			headerPath: bundleOptions.headerPath || "",
-			headerText: bundleOptions.headerText || "",
-			outputAsModuleFolder: bundleOptions.outputAsModuleFolder !== undefined ? bundleOptions.outputAsModuleFolder : true,
-			removeSource: !!bundleOptions.removeSource,
-			verbose: this.build.log.level >= 4 || !!bundleOptions.verbose
-		};
-
 		if (this.logger.level >= 2)
 		{
+			l.value("   types output directory", dtsFilesOutputDir, 2);
 			l.write("   output bundle path info:");
-			l.value("      relative path (->dist)", dtsFilePathRel);
-			l.value("      relative path (->context)", dtsFilePathRelContext);
-			l.value("      relative path (->base)", dtsFilePathRelBase);
+			l.value("      relative path (->dist)", dtsBundleBaseDir);
+			l.value("      relative path (->base)", dtsFilePathRel);
 			l.value("      absolute path", dtsFilePathAbs);
-			l.value("      base output path", outputDir);
-			l.write("   dts-bundle options:");
+			l.value("      base output path", dtsBundleOutputDir);
+			l.write("   output bundle options:");
 			l.value("      name", bundleCfg.name);
 			l.value("      output file", bundleCfg.out);
 			l.value("      main", bundleCfg.main);
@@ -130,32 +114,20 @@ class WpwTscPlugin extends WpwPlugin
 			l.value("      header path", bundleCfg.headerPath);
 			l.value("      output as module folder", bundleCfg.outputAsModuleFolder);
 		}
-			//
-		try // Create bundle - using dts bundling library
-		{	// TODO - Can typescript.program() bundle, using 'out' compilerOption?
-			//
+
+		try
+		{   const outputFiles = await findFiles("**/*.d.ts", { cwd: dtsFilesOutputDir, absolute: true });
 			dts.bundle(bundleCfg);
-			this.global.typesBundled = true;
-			//
-			// Add .d.ts file as file dependencies
-			//
-			// this.compilation.fileDependencies.clear();
-			const outputFiles = await findFiles("**/*.d.ts", { cwd: outputDir, absolute: true });
-			outputFiles.forEach((f) => { this.compilation.fileDependencies.add(f); });
-			//
-			// Emit bundled file as compilation asset
-			//
+			const data = await readFile(dtsFilePathAbs);
 			const info = /** @type {typedefs.WebpackAssetInfo} */({
 				// contenthash: newHash,
 				immutable: false, // newHash === persistedCache[filePathRel],
 				javascriptModule: false,
 				[statsProperty]: true
 			});
-			const data = await readFile(dtsFilePathAbs),
-				  source = new this.compiler.webpack.sources.RawSource(data);
-			this.compilation.emitAsset(dtsFilePathRel, source, info);
-			// this.compilation.fileDependencies.add(dtsFilePathAbs);
-			l.write("   dts bundle created successfully @ " + dtsFilePathRelBase, 1);
+			outputFiles.forEach((f) => { this.compilation.fileDependencies.add(f); });
+			this.compilation.emitAsset(dtsFilePathRel, new this.compiler.webpack.sources.RawSource(data), info);
+			l.write("   dts bundle created successfully @ " + dtsFilePathRel, 1);
 		}
 		catch (e) {
 			this.build.addMessage({

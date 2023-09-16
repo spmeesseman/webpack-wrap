@@ -260,12 +260,8 @@ class WpwBuild extends WpwBase
      */
     getRcPath(pathKey, options)
     {
-        let path;
-        const opts = options || /** @type {typedefs.WpwGetRcPathOptions} */({}),
-              basePath = opts.ctx ? this.paths.ctx : this.paths.base,
-              buildName = opts.build || this.name,
-              build = this.getBuildConfig(buildName);
 
+        /** @returns {R} */
         const _getPath = /** @param {string | undefined} path */(path) =>
         {
             if (path)
@@ -307,16 +303,18 @@ class WpwBuild extends WpwBase
                         path = undefined;
                     }
                 }
-
-                return path ? (!opts.psx ? path : path.replace(/\\/g, "/")) : undefined;
             }
+            else if (opts.fallback)
+            {
+                path = _getPath(this.getBuildConfig("app")?.paths[pathKey]) || _getPath(basePath);
+            }
+            path = !path || !opts.psx ? path : path.replace(/\\/g, "/");
+            return /** @type {R} */(path);
         };
-
-        if (build) {
-            path = _getPath(build.paths[pathKey]);
-        }
-
-        return /** @type {R} */(path || _getPath(this.paths[pathKey]) || _getPath(this.wrapper.paths[pathKey]) || _getPath(basePath));
+        const opts = options || /** @type {typedefs.WpwGetRcPathOptions} */({}),
+              basePath = opts.ctx ? this.paths.ctx : this.paths.base,
+              build = opts.build ? this.getBuildConfig(opts.build) : undefined;
+        return !build ? _getPath(this.paths[pathKey]) : _getPath(build.paths[pathKey]);
     }
 
 

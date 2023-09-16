@@ -79,12 +79,12 @@ class WpwBaseModule extends WpwBase
      * @returns {typedefs.WpwBuildOptionsKey}
      */
     get baseName() { return /** @type {typedefs.WpwBuildOptionsKey} */(
-        this.constructor.name.replace(/^Wpw|^WpBuild|Plugin$|(?:Webpack)?Export$/g, "")
+        this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, "")
     ); }
 
 
 	/**
-	 * @protected
+	 * @protect
 	 * @param {string} file
 	 * @param {boolean} [rmvExt] Remove file extension
 	 * @returns {string}

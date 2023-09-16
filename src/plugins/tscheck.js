@@ -25,7 +25,7 @@ const { existsSync } = require("fs");
 /**
  * @extends WpwTscPlugin
  */
-class WpBuildTsCheckPlugin extends WpwTscPlugin
+class WpwTsCheckPlugin extends WpwTscPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -101,9 +101,9 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 	/**
      * @override
      * @param {typedefs.WpwBuild} build
-	 * @returns {WpBuildTsCheckPlugin | undefined}
+	 * @returns {WpwTsCheckPlugin | undefined}
      */
-	static create = (build) => WpBuildTsCheckPlugin.wrap(this, build, "tscheck");
+	static create = (build) => WpwTsCheckPlugin.wrap(this, build, "tscheck");
 
 
 	/**
@@ -213,4 +213,4 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 }
 
 
-module.exports = WpBuildTsCheckPlugin.create;
+module.exports = WpwTsCheckPlugin.create;

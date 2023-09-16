@@ -1,5 +1,5 @@
 {
-    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/spm.schema.wpw.json",
+    "$schema": "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/spm.schema.wpw.json",
     "name": "vscode-taskexplorer-sample",
     "displayName": "Task Explorer [Sample]",
     "detailedDisplayName": "Task Explorer VSCode Extension [Sample]",

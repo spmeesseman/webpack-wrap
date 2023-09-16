@@ -147,8 +147,8 @@ const getSchema = (key) =>
         try {
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
             // const schema = {
-            //    $ref: key ? `https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json#/${key}` :
-            //                "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json"
+            //    $ref: key ? `https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/${key}` :
+            //                "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json"
             // };
             // const ajv = new Ajv({loadSchema: loadSchema})
             // ajv.compileAsync(schema).then(function (validate) {
@@ -223,16 +223,17 @@ const getDefinitionSchemaProperties = (schemaObj, definitions) =>
 };
 
 
-const getSchemaVersion = (/** @type {string | undefined} */ key) =>
-    schemas[`Wpw${key || "Schema"}`].$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
+/**
+ * @param {string | undefined} [key]
+ * @returns {string | undefined} version string
+ */
+const getSchemaVersion = (key) => getSchema(key)?.$id.match(WpwRegex.PathVersion)?.[1] || "0.0.1";
 
 
-const isArrayTypeValue = (schema) =>
-{
-    return schema.type === "array";
-};
-
-
+/**
+ * @param {string} ref
+ * @returns {string} reference name with stripped path, e.g. #/definitions/WpwBuildConfig => WpwBuildConfig
+ */
 const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "");
 
 
@@ -245,6 +246,7 @@ const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "")
 const validateSchema = (config, key, logger) =>
 {
     const log = logger || { write: () => {}, withColor: () => "", colors: { italic: [ 0, 0 ] } },
+          code = WpwError.Msg.ERROR_SCHEMA,
           schemaFile = getSchemaFile(key);
     log.write("validate schema `" + log.withColor(schemaFile, log.colors.italic) + "`", 1);
     try
@@ -254,18 +256,15 @@ const validateSchema = (config, key, logger) =>
         {
             const enumKeys = WpwKeysEnum[key || "WpwSchema"],
                   baseConfig = enumKeys ? pick(config, ...enumKeys) : config;
-            validate(schema, baseConfig, { name: key, baseDataPath: key });
+            validate(schema, baseConfig);
             log.write("   schema validation successful", 1);
         }
         else {
-            throw new Error("schema definitions does not exist");
+            throw new WpwError({ code, message: `unable to load schema file ${schemaFile} [key=${key}]` });
         }
     }
     catch (e) {
-        throw WpwError.get({
-            code: WpwError.Msg.ERROR_SCHEMA,
-            message: `schema validation failed for ${schemaFile}: ${e.message}`
-        });
+        throw new WpwError({ code, message: `schema validation failed for ${schemaFile}: ${e.message}`, error: e });
     }
 };
 

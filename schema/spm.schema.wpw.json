@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json",
+    "$id": "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json",
     "description": "Webpack-Wrap configuration file schema",
     "title": "WpwSchema",
     "type": "object",
@@ -11,7 +11,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/webpack\\-wrap\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/\\.spm\\.schema\\.json(?:.*?)$"
+            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app[0-9]\\.spmeesseman\\.com\\/res\\/app\\/webpack-wrap\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?\\/schema)\\/spm\\.schema\\.wpw\\.json$"
         },
         "builds": {
             "$ref": "#/definitions/WpwBuildConfigs"
@@ -916,7 +916,7 @@
                 },
                 "envTag1": {
                     "type": "string",
-                    "default": "wpbuild",
+                    "default": "wpwrap",
                     "minimum": 2,
                     "maxLength": 15
                 },
@@ -1115,7 +1115,7 @@
                 "type": "string",
                 "minLength": 3,
                 "maxLength": 30,
-                "pattern": "^[\\W\\w\\.\\- \\@]+$"
+                "pattern": "^[\\w\\.\\-@ ]+$"
             }, 
             {
                 "type": "object",
@@ -1129,13 +1129,13 @@
                         "type": "string",
                         "minLength": 3,
                         "maxLength": 30,
-                        "pattern": "^[\\W\\w\\.\\- \\@]+$"
+                        "pattern": "^[\\w\\.\\-@ ]+$"
                     },
                     "email": {
                         "type": "string",
                         "minLength": 6,
                         "maxLength": 50,
-                        "pattern": "^[\\w\\.\\-\\@]+$"
+                        "pattern": "^[\\w\\.\\-@]+$"
                     }
                 }}
             ]
@@ -1182,13 +1182,11 @@
             "properties": {
                 "name": {
                     "type": "string",
-                    "maxLength": 0,
                     "readOnly": true
                 },
                 "scope": {
                     "type": "string",
                     "pattern": "@[a-z]+",
-                    "maxLength": 0,
                     "readOnly": true
                 }
             },
@@ -1245,7 +1243,7 @@
                 },
                 "temp": {
                     "$ref": "#/definitions/DirectoryPath",
-                    "default": "node_modules/.cache/wpbuild/temp",
+                    "default": "node_modules/.cache/wpwrap/temp",
                     "description": "path to a temporary directory, full path or relative to the project directory containing package.json"
                 }
             }

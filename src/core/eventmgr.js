@@ -16,7 +16,7 @@ const typedefs = require("../types/typedefs");
  * @class WpwLoggerHookStagesPlugin
  * @implements {typedefs.IDisposable}
  */
-class WpBuildEventManager
+class WpwEventManager
 {
 	/**
 	 * @class WpwLoggerHookStagesPlugin
@@ -30,4 +30,4 @@ class WpBuildEventManager
 }
 
 
-module.exports = WpBuildEventManager;
+module.exports = WpwEventManager;

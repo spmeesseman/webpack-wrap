@@ -24,7 +24,7 @@ const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
 /**
  * @extends WpwPlugin
  */
-class WpBuildRuntimeVarsPlugin extends WpwPlugin
+class WpwRuntimeVarsPlugin extends WpwPlugin
 {
     /**
      * @param {WpwPluginOptions} options Plugin options to be applied
@@ -242,7 +242,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
 
 
     /**
-     * Performs source code modifications for \_\_WPBUILD\_\_[contentHash]
+     * Performs source code modifications for \_\__WPWRAP__\_\_[contentHash]
      * @private
      * @param {string} sourceCode
      * @returns {string}
@@ -251,7 +251,7 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
     {
         Object.entries(this.globalCache.next).forEach(([ chunkName, hash ]) =>
         {
-            const regex = new RegExp(`(?:interface_[0-9]+\\.)?__WPBUILD__\\.contentHash(?:\\.|\\[")${chunkName}(?:"\\])? *(,|\r|\n)`, "gm");
+            const regex = new RegExp(`(?:interface_[0-9]+\\.)?__WPWRAP__\\.contentHash(?:\\.|\\[")${chunkName}(?:"\\])? *(,|\r|\n)`, "gm");
             sourceCode = sourceCode.replace(regex, (_v, g) =>`"${hash}"${g}`);
         });
         return sourceCode;
@@ -261,13 +261,13 @@ class WpBuildRuntimeVarsPlugin extends WpwPlugin
 
 
 /**
- * Returns a `WpBuildRuntimeVarsPlugin` instance if appropriate for the current build
+ * Returns a `WpwRuntimeVarsPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.runtimevars`
  * property to a boolean value of  `true` or `false`
  * @param {WpwBuild} build
- * @returns {WpBuildRuntimeVarsPlugin | undefined}
+ * @returns {WpwRuntimeVarsPlugin | undefined}
  */
-const runtimevars = (build) => build.options.runtimevars ? new WpBuildRuntimeVarsPlugin({ build }) : undefined;
+const runtimevars = (build) => build.options.runtimevars ? new WpwRuntimeVarsPlugin({ build }) : undefined;
 
 
 module.exports = runtimevars;

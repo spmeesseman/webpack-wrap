@@ -1,5 +1,5 @@
 {
-    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json",
+    "$schema": "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json",
     "builds": [{
         "name": "webpack-wrap",
         "target": "node",
@@ -43,7 +43,7 @@
             }
         },
         "paths": {
-            "dist": "dist/types",
+            "dist": "dist",
             "src": "src"
         }
     }],

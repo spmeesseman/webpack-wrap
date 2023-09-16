@@ -35,7 +35,7 @@ const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const WpBuildCache = require("../utils/cache");
+const WpwCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
@@ -79,7 +79,7 @@ class WpwPlugin extends WpwBaseModule
         this.plugins = [];
         this.validatePluginOptions(options);
         this.options = applyIf(this.options, options);
-        this.cache = new WpBuildCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
+        this.cache = new WpwCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
     }
 
 
@@ -568,7 +568,7 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Wraps a vendor plugin to give it access to the WpBuildApp instance. vendor plugin instantiation
+     * Wraps a vendor plugin to give it access to the WpwBuild instance. vendor plugin instantiation
      * is done via the constructor's call to the override function {@link WpwPlugin.getVendorPlugin getVendorPlugin()}
      * @template {WpwPlugin} T
      * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type

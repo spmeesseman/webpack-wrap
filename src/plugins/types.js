@@ -101,12 +101,9 @@ class WpwTypesPlugin extends WpwTscPlugin
 
 	/**
 	 * @private
-	 * @template {string} T
-	 * @template {T extends "program" ? typedefs.WpwSourceConfigCompilerOptions : string[]} R
-	 * @param {T} type
-	 * @returns {R}
+	 * @returns {typedefs.WpwSourceConfigCompilerOptions}
 	 */
-	getCompilerOptions(type)
+	getCompilerOptions()
 	{
 		const source = this.build.source,
 			  configuredOptions = this.build.source.config.compilerOptions,
@@ -119,100 +116,64 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
 			  declarationDir = configuredOptions.declarationDir || this.build.getDistPath({ rel: true, psx: true });
 
-		if (type === "program")
+		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
+		const programOptions = {
+			declaration: true,
+			declarationDir,
+			declarationMap: false,
+			emitDeclarationOnly: true,
+			noEmit: false,
+			skipLibCheck: true,
+			tsBuildInfoFile
+		};
+		if (source.type === "javascript")
 		{
-			/** @type {typedefs.WpwSourceConfigCompilerOptions} */
-			const programOptions = {
-				declaration: true,
-				declarationDir,
-				declarationMap: false,
-				emitDeclarationOnly: true,
-				noEmit: false,
-				skipLibCheck: true,
-				tsBuildInfoFile
-			};
-			if (source.type === "javascript")
-			{
-				apply(programOptions, {
-					allowJs: true,
-					strictNullChecks: false
-				});
+			apply(programOptions, {
+				allowJs: true,
+				strictNullChecks: false
+			});
+		}
+		const bundleOptions = this.buildOptions.bundle;
+		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
+		{
+			programOptions.declarationDir = undefined;
+			programOptions.outFile = join(declarationDir, this.build.name);
+		}
+		if (!configuredOptions.incremental && !!configuredOptions.composite)
+		{
+			programOptions.incremental = true;
+		}
+		// if (!configuredOptions.target)
+		// {
+		// 	programOptions.target = "es2020";
+		// }
+		if (!configuredOptions.moduleResolution)
+		{   //
+			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
+			//
+			if (this.build.target !== "node") {
+				programOptions.moduleResolution = "node";
 			}
-			const bundleOptions = this.buildOptions.bundle;
-			if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
-			{
-				programOptions.declarationDir = undefined;
-				programOptions.outFile = join(declarationDir, this.build.name);
-			}
-			if (!configuredOptions.incremental && !!configuredOptions.composite)
-			{
-				programOptions.incremental = true;
-			}
-			// if (!configuredOptions.target)
-			// {
-			// 	programOptions.target = "es2020";
+			// else if (this.build.nodeVersion < 12) {
+			//	programOptions.moduleResolution = "node10";
 			// }
-			if (!configuredOptions.moduleResolution)
-			{   //
-				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
-				//
-				if (this.build.target !== "node") {
-					programOptions.moduleResolution = "node";
-				}
-				// else if (this.build.nodeVersion < 12) {
-				//	programOptions.moduleResolution = "node10";
-				// }
-				else {
-					programOptions.moduleResolution = "node";
-					// programOptions.moduleResolution = "node16";
-				}
-			}
-			return /** @type {R} */(programOptions);
-		}
-		else
-		{
-			const tscArgs = [
-				"--skipLibCheck", "--declaration", "--emitDeclarationOnly", "--declarationMap", "false",
-				"--noEmit", "false", "--tsBuildInfoFile", tsBuildInfoFile
-			];
-			const bundleOptions = this.buildOptions.bundle;
-			if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
-			{
-				tscArgs.push("--outFile", join(declarationDir, this.build.name));
-			}
 			else {
-				tscArgs.push("--declarationDir", declarationDir);
+				programOptions.moduleResolution = "node";
+				// programOptions.moduleResolution = "node16";
 			}
-			if (source.type === "javascript")
-			{
-				tscArgs.push("--allowJs", "--strictNullChecks", "false");
-			}
-			if (!configuredOptions.incremental && !!configuredOptions.composite)
-			{
-				tscArgs.push("--incremental");
-			}
-			if (!configuredOptions.target)
-			{
-				tscArgs.push("--target", "es2020 ");
-			}
-			if (!configuredOptions.moduleResolution)
-			{   //
-				// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
-				//
-				if (this.build.target !== "node") {
-					tscArgs.push("--moduleResolution", "node");
-				}
-				// else if (this.build.nodeVersion < 12) {
-				// 	tscArgs.push("--moduleResolution", "node10");
-				// }
-				else {
-					tscArgs.push("--moduleResolution", "node");
-					// tscArgs.push("--moduleResolution", "node16");
-				}
-			}
-			return /** @type {R} */(tscArgs);
 		}
+		return programOptions;
 	};
+
+
+	/**
+	 * @param {typedefs.WpwSourceConfigCompilerOptions} options
+	 * @returns {string[]}
+	 */
+	compilerOptionsToArgs(options)
+	{
+		return Object.entries(options).map(([ key, value ]) => value !== true ? `--${key} ${value}` : `--${key}`);
+	}
 
 
 	/**
@@ -259,7 +220,8 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  tscConfig = source.config,
 			  compilerOptions = tscConfig.compilerOptions,
 			  typesSrcDir = this.build.getSrcPath(),
-			  outputDir = compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true });
+			  typesDistDir = this.build.getDistPath({ rel: true, psx: true, fallback: true }),
+			  outputDir = compilerOptions.declarationDir ?? typesDistDir;
 
 		logger.write("start types build", 1);
 		logger.value("   method", method, 2);
@@ -277,10 +239,12 @@ class WpwTypesPlugin extends WpwTscPlugin
 		}
 
 		let rc;
+		const options = this.getCompilerOptions();
+		this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDir);
+
 		if (method === "program")
 		{
 			const ignore = tscConfig.exclude || [],
-				  options = this.getCompilerOptions(method),
 				  files = this.build.source.config.files,
 				  typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
 			// if (typesExcludeIdx !== -1) {
@@ -331,7 +295,6 @@ class WpwTypesPlugin extends WpwTscPlugin
 			// 		logger.write("   input files list modification complete", 2);
 			// 	}
 			// }
-			this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDir);
 			this.build.source.createProgram(options, files);
 			const result = this.build.source.emit(undefined, undefined, undefined, true);
 			if (!result)
@@ -339,17 +302,11 @@ class WpwTypesPlugin extends WpwTscPlugin
 				this.build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
 				return;
 			}
-			rc = !result.emitSkipped ? 0 : -1;
-			if (result.diagnostics.length > 0) {
-				rc = result.diagnostics.length;
-			}
+			rc = !result.emitSkipped ? result.diagnostics.length : -1;
 		}
 		else if (method === "tsc")
 		{
-			const tscArgs = this.getCompilerOptions(method),
-				  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
-			this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir);
-			rc = await this.execTsBuild(source.configFile, tscArgs, 1, outputDir);
+			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), 1, outputDir);
 		}
 		else {
 			this.build.addMessage({
@@ -369,26 +326,45 @@ class WpwTypesPlugin extends WpwTscPlugin
 					compilation: this.compilation,
 					message: "output directory does not exist"
 				});
+				return;
 			}
 
-			const bundleOptions = this.buildOptions.bundle;
-			if (bundleOptions === true || (isObject(bundleOptions) && bundleOptions.bundler === "dts-bundle"))
+			const _emit = async (fileAbs) =>
 			{
-				await this.dtsBundle("types", outputDirAbs);
+				const info = /** @type {typedefs.WebpackAssetInfo} */({
+					immutable: false,
+					javascriptModule: false,
+					types: true
+				});
+				const data = await readFile(fileAbs),
+				      source = new this.compiler.webpack.sources.RawSource(data);
+				this.compilation.emitAsset(relativePath(basePath, fileAbs), source, info);
+			};
+
+			const bundleOptions = this.buildOptions.bundle,
+			      isBundleEnabled = bundleOptions === true || isObject(bundleOptions);
+			if (isBundleEnabled)
+			{
+				const bundler = isObject(bundleOptions) ? bundleOptions.bundler : "tsc";
+				if (bundler === "dts-bundle")
+				{
+					await this.dtsBundle("types");
+				}
+				else
+				{   // const files = await findFiles(
+					// 	"**/*.ts", { cwd: outputDirAbs, absolute: true, ignore: [ "**/" + options.outFile ] }
+					// );
+					for (const file of source.config.files){
+						this.compilation.fileDependencies.add(file);
+					}
+					await _emit(resolvePath(basePath, options.outFile));
+				}
 			}
 			else
 			{
 				const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
-				for (const file of files)
-				{
-					const info = /** @type {typedefs.WebpackAssetInfo} */({
-						immutable: false,
-						javascriptModule: false,
-						types: true
-					});
-					const data = await readFile(file),
-					      source = new this.compiler.webpack.sources.RawSource(data);
-					this.compilation.emitAsset(relativePath(basePath, file), source, info);
+				for (const file of files){
+					await _emit(relativePath(basePath, file));
 				}
 			}
 

@@ -600,7 +600,7 @@ cliWrap(async () =>
 
     data = await readFile(outputDtsPath, "utf8");
     const hdr =  match[0]
-          .replace(" with `WpBuild`", " with `WpwRc`")
+          .replace(" with `WpWrap`", " with `WpwRc`")
           .replace(`@file types/index${extension()}`, `@file types/${outputDtsFile}`)
           .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
           .replace("Collectively exports all Wpw types", description);;

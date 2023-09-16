@@ -53,7 +53,7 @@ module.exports = {
         "@typescript-eslint/tslint"
     ],
     globals: {
-        __WPBUILD__: "readonly",
+        __WPWRAP__: "readonly",
         wpwreplace: "readonly"
     },
     rules: {

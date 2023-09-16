@@ -20,7 +20,7 @@ const WpwBuild = require("../core/build");
 /**
  * @extends WpwPlugin
  */
-class WpBuildEnvironmentPlugin extends WpwPlugin
+class WpwEnvironmentPlugin extends WpwPlugin
 {
     /**
      * Called by webpack runtime to initialize this plugin
@@ -64,9 +64,9 @@ class WpBuildEnvironmentPlugin extends WpwPlugin
 
 /**
  * @param {WpwBuild} build
- * @returns {WpBuildEnvironmentPlugin | undefined}
+ * @returns {WpwEnvironmentPlugin | undefined}
  */
-const environment = (build) => build.mode === "production" ? new WpBuildEnvironmentPlugin({ build }) : undefined;
+const environment = (build) => build.mode === "production" ? new WpwEnvironmentPlugin({ build }) : undefined;
 
 
 module.exports = environment;

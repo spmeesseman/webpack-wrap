@@ -23,7 +23,7 @@ const { rename, unlink, readdir } = require("fs/promises");
 /**
  * @extends WpwPlugin
  */
-class WpBuildLicenseFilePlugin extends WpwPlugin
+class WpwLicenseFilePlugin extends WpwPlugin
 {
     /**
      * Called by webpack runtime to initialize this plugin
@@ -69,10 +69,10 @@ class WpBuildLicenseFilePlugin extends WpwPlugin
 
 /**
  * @param {WpwBuild} build
- * @returns {WpBuildLicenseFilePlugin | undefined}
+ * @returns {WpwLicenseFilePlugin | undefined}
  */
 const licensefiles = (build) =>
-    (build.options.licensefiles ? new WpBuildLicenseFilePlugin({ build }) : undefined);
+    (build.options.licensefiles ? new WpwLicenseFilePlugin({ build }) : undefined);
 
 
 module.exports = licensefiles;

@@ -10,11 +10,11 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpBuildApp = require("@spmeesseman/webpack-wrap/core/app");
+const WpwBuild= require("@spmeesseman/webpack-wrap/core/build");
 const WpwPlugin = require("@spmeesseman/webpack-wrap/plugins/base");
 const typedefs = require("@spmeesseman/webpack-wrap/types/typedefs");
 
-// const WpBuildApp = require("../src/core/app");
+// const WpwBuild = require("../src/core/build");
 // const WpwPlugin = require("../src/plugins/base");
 // const typedefs = require("../src/types/typedefs");
 
@@ -40,12 +40,12 @@ class WpwExamplePlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {WpBuildApp} app
+     * @param {WpwBuild} build
 	 * @returns {WpwExamplePlugin | undefined}
      */
-	static build(app)
+	static create(build)
 	{
-		return app.build.options.types?.enabled ? new WpwExamplePlugin({ app }) : undefined;
+		return app.build.options.types?.enabled ? new WpwExamplePlugin({ build }) : undefined;
 	}
 
 
@@ -71,4 +71,4 @@ class WpwExamplePlugin extends WpwPlugin
 }
 
 
-module.exports = WpwExamplePlugin.build;
+module.exports = WpwExamplePlugin.create;

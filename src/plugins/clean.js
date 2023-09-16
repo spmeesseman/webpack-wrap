@@ -24,7 +24,7 @@ const { existsAsync, apply, resolvePath } = require("../utils");
 /**
  * @extends WpwPlugin
  */
-class WpBuildCleanPlugin extends WpwPlugin
+class WpwCleanPlugin extends WpwPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -77,9 +77,9 @@ class WpBuildCleanPlugin extends WpwPlugin
 	/**
      * @override
      * @param {typedefs.WpwBuild} build
-	 * @returns {WpBuildCleanPlugin | undefined}
+	 * @returns {WpwCleanPlugin | undefined}
      */
-	static create = (build) => WpBuildCleanPlugin.wrap(this, build, "copy");
+	static create = (build) => WpwCleanPlugin.wrap(this, build, "copy");
 
 
 	/**
@@ -234,4 +234,4 @@ class WpBuildCleanPlugin extends WpwPlugin
 }
 
 
-module.exports = WpBuildCleanPlugin.create;
+module.exports = WpwCleanPlugin.create;

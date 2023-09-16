@@ -18,7 +18,7 @@ const { existsSync, readFileSync, readdirSync, writeFileSync } = require("fs");
 /**
  * @extends WpwPlugin
  */
-class WpBuildVendorModPlugin extends WpwPlugin
+class WpwVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
@@ -58,7 +58,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 	 */
 	modifyVendorSource = () =>
 	{
-		if (!WpBuildVendorModPlugin.ranOnce && this.buildOptions.enabled)
+		if (!WpwVendorModPlugin.ranOnce && this.buildOptions.enabled)
 		{
 			if (this.buildOptions.all || this.buildOptions.clean_plugin) {
 				this.cleanPlugin();
@@ -73,7 +73,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 				this.tsLoader();
 			}
 		}
-		WpBuildVendorModPlugin.ranOnce = true;
+		WpwVendorModPlugin.ranOnce = true;
 	};
 
 
@@ -193,13 +193,13 @@ class WpBuildVendorModPlugin extends WpwPlugin
 
 
 /**
- * Returns a `WpBuildVendorModPlugin` instance if appropriate for the current build
+ * Returns a `WpwVendorModPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.vendormod`
  * property to a boolean value of  `true` or `false`
  * @param {typedefs.WpwBuild} build
- * @returns {WpBuildVendorModPlugin | undefined}
+ * @returns {WpwVendorModPlugin | undefined}
  */
-const vendormod = (build) => build.options.vendormod?.enabled ? new WpBuildVendorModPlugin({ build }) : undefined;
+const vendormod = (build) => build.options.vendormod?.enabled ? new WpwVendorModPlugin({ build }) : undefined;
 
 
 module.exports = vendormod;

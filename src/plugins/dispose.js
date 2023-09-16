@@ -16,7 +16,7 @@ const typedefs = require("../types/typedefs");
 /**
  * @extends WpwPlugin
  */
-class WpBuildDisposePlugin extends WpwPlugin
+class WpwDisposePlugin extends WpwPlugin
 {
     /**
      * Called by webpack runtime to initialize this plugin
@@ -45,9 +45,9 @@ class WpBuildDisposePlugin extends WpwPlugin
 
 /**
  * @param {typedefs.WpwBuild} build
- * @returns {WpBuildDisposePlugin}
+ * @returns {WpwDisposePlugin}
  */
-const dispose = (build) => new WpBuildDisposePlugin({ build });
+const dispose = (build) => new WpwDisposePlugin({ build });
 
 
 module.exports = dispose;

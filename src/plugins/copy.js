@@ -21,7 +21,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 /**
  * @extends WpwPlugin
  */
-class WpBuildCopyPlugin extends WpwPlugin
+class WpwdCopyPlugin extends WpwPlugin
 {
     /** @type {typedefs.WpwBuildOptionsConfig<"copy">} */
     buildOptions;
@@ -68,9 +68,9 @@ class WpBuildCopyPlugin extends WpwPlugin
      * @override
      * @param {WpwBuild} build
      * @param {Partial<typedefs.WpwPluginOptions>} [options]
-	 * @returns {WpBuildCopyPlugin | undefined}
+	 * @returns {WpwdCopyPlugin | undefined}
      */
-	static create = (build, options) => WpBuildCopyPlugin.wrap(this, build, "copy", options);
+	static create = (build, options) => WpwdCopyPlugin.wrap(this, build, "copy", options);
 
 
 	/**
@@ -244,4 +244,4 @@ class WpBuildCopyPlugin extends WpwPlugin
 }
 
 
-module.exports = WpBuildCopyPlugin.create;
+module.exports = WpwdCopyPlugin.create;

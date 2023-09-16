@@ -28,7 +28,7 @@ const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
 /**
  * @extends WpwPlugin
  */
-class WpBuildUploadPlugin extends WpwPlugin
+class WpwUploadPlugin extends WpwPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -236,9 +236,9 @@ class WpBuildUploadPlugin extends WpwPlugin
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.upload`
  * property to a boolean value of `true` or `false`
  * @param {WpwBuild} build
- * @returns {WpBuildUploadPlugin | undefined} plugin instance
+ * @returns {WpwUploadPlugin | undefined} plugin instance
  */
-const upload = (build) => build.options.upload?.enabled ? new WpBuildUploadPlugin({ build }) : undefined;
+const upload = (build) => build.options.upload?.enabled ? new WpwUploadPlugin({ build }) : undefined;
 
 
 module.exports = upload;

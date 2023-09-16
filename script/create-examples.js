@@ -11,7 +11,7 @@
 
 const { resolve } = require("path");
 const { execAsync, existsAsync } = require("../src/utils/utils");
-const WpBuildConsoleLogger = require("../src/utils/console");
+const WpwLogger = require("../src/utils/console");
 const { readFile, writeFile, mkdir } = require("fs/promises");
 
 
@@ -19,7 +19,7 @@ const { readFile, writeFile, mkdir } = require("fs/promises");
 // Run from script directtory so we work regardless of where cwd is set
 //
 
-/** @type {WpBuildConsoleLogger} */
+/** @type {WpwLogger} */
 let logger;
 
 const remotePath = resolve(__dirname, "..", "schema");
@@ -47,8 +47,8 @@ cliWrap(async () =>
         throw new Error("One or more required template files do not exist");
     }
 
-    logger = new WpBuildConsoleLogger({
-        envTag1: "wpbuild", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
+    logger = new WpwLogger({
+        envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
     logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
 

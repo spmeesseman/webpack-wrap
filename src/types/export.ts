@@ -23,9 +23,6 @@ type WpwExportOptions = WpwBaseModuleOptions;
 
 interface IWpwExport extends IWpwBaseModule
 {
-    // app: ClsWpBuildApp;
-    // compilation?: WebpackCompilation;
-    // compiler?: WebpackCompiler;
 }
 
 

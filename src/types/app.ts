@@ -30,10 +30,10 @@ import {
 } from "./rc";
 
 
-declare const __WPBUILD__: any;
+declare const __WPWRAP__: any;
 
 interface IWpwGetRcPathOptions {
-    build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string;
+    build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string; fallback?: boolean;
 };
 type WpwGetRcPathOptions = IWpwGetRcPathOptions;
 
@@ -45,8 +45,6 @@ interface IWpwRuntimeEnvArgs {
     analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
 };
 type WpwRuntimeEnvArgs = IWpwRuntimeEnvArgs;
-
-// interface WpBuildRModeConfig extends WpBuildRModeConfig {};
 
 type WpwCombinedRuntimeArgs =
     WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpwRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
@@ -94,5 +92,5 @@ export {
     WpwWebpackConfig,
     IWpwWebpackAliasConfig,
     WpwWebpackAliasConfig,
-    __WPBUILD__
+    __WPWRAP__
 };
