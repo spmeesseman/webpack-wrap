@@ -20,7 +20,7 @@ const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
 const { validateSchema, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
 const {
-    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, clone, applyIf, resolvePath, pickNot
+    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, applyIf, resolvePath, pickNot
 } = require("../utils");
 
 
