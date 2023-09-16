@@ -99,13 +99,13 @@ const capitalize = (value) =>
 
 /**
  * @param {string} dir
- * @param {typedefs.WpwSourceCodeExtension | typedefs.WpwSourceCodeDotExtensionApp} ext
+ * @param {typedefs.WpwSourceExtension | typedefs.WpwSourceDotExtensionApp} ext
  * @returns {typedefs.WpwWebpackEntry}
  */
 const createEntryObjFromDir = (dir, ext) =>
 {
     if (!ext.startsWith(".")) {
-        ext = /** @type {typedefs.WpwSourceCodeDotExtensionApp} */("." + ext);
+        ext = /** @type {typedefs.WpwSourceDotExtensionApp} */("." + ext);
     }
     return glob.sync(
         `*${ext}`, {
@@ -311,13 +311,12 @@ const findExPathSync = (paths) =>
 
   /**
  * @param {typedefs.WpwBuild} build
- * @param {typedefs.WpwSourceCodeConfig} [srcConfig]
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]
  * @param {boolean} [allowDts]
  * @returns {RegExp[]}
  */
-const getExcludes = (build, srcConfig, allowTest, allowTypes, allowDts) =>
+const getExcludes = (build, allowTest, allowTypes, allowDts) =>
 {
     const ex = [ /node_modules/, /\\.vscode[\\\/]/ ];
     if (allowTest !== true) {
@@ -329,7 +328,6 @@ const getExcludes = (build, srcConfig, allowTest, allowTypes, allowDts) =>
     if (allowDts !== true) {
         ex.push(/\.d\.ts$/);
     }
-    // ex.push(...rulesConfig.excludeAbs);
     return ex;
 };
 

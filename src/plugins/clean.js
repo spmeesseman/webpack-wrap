@@ -90,7 +90,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 	{
 		this.compilation = compilation;
 		const distPath = this.build.getDistPath(),
-			  compilerOptions = this.build.source.config.options.compilerOptions;
+			  compilerOptions = this.build.source.config.compilerOptions;
 		if (await existsAsync(distPath))
 		{
 			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
@@ -121,7 +121,7 @@ class WpBuildCleanPlugin extends WpwPlugin
 	async buildCaches(compilation)
 	{
 		this.compilation = compilation;
-		const compilerOptions = this.build.source.config.options.compilerOptions,
+		const compilerOptions = this.build.source.config.compilerOptions,
 			  buildInfoFile = compilerOptions.tsBuildInfoFile;
 		if (buildInfoFile && await existsAsync(buildInfoFile))
 		{

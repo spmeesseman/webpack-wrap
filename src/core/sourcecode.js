@@ -16,61 +16,55 @@ const { readFileSync, existsSync, readdirSync } = require("fs");
 const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
-    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath, isJsTsConfigPath,
-    mergeIf, apply, WpwError
+    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath,
+    isJsTsConfigPath, mergeIf, apply, WpwError, pickNot, pick
 } = require("../utils");
 
 
 /**
  * @implements {typedefs.IDisposable}
- * @implements {typedefs.IWpwSourceCode}
+ * @implements {typedefs.IWpwSourceConfig}
  */
-class WpwSourceCode
+class WpwSource
 {
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
-    /** @type {typedefs.WpwSourceCodeConfig} */
+    /** @type {typedefs.IWpwSourceTsConfig} */
     config;
-    /** @type {typedefs.WpwSourceCodeExtension} @private */
+    /** @type {typedefs.IWpwSourceTsConfigFile} */
+    configFile;
+    /** @type {typedefs.WpwSourceExtension} @private */
     exension;
     /** @type {WpwLogger} @private */
     logger;
+    /** @type {typedefs.WpwSourceOptions} */
+    options;
     /** @type {typedefs.TypeScriptProgram | undefined} @private */
     program;
-    /** @type {typedefs.WpwSourceCodeType} */
+    /** @type {typedefs.WpwSourceType} */
     type;
 
 
     /**
-     * @param {typedefs.IWpwSourceCode} sourceConfig
+     * @param {typedefs.IWpwSourceConfig} sourceConfig
 	 * @param {typedefs.WpwBuild} build
      */
     constructor(sourceConfig, build)
     {
-        const jtsconfigFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
-              defaultConfig = this.getDefaultConfig(sourceConfig.config),
-              compilerOptions = sourceConfig.config.options?.compilerOptions || {};
-        apply(this,
-        {
-            logger: build.logger,
-            type: sourceConfig.type || "javascript",
-            exension: sourceConfig.type === "typescript" ? "ts" : "js",
-            config: merge(
-                defaultConfig,
-                jtsconfigFileInfo,
-                {
-                    options: /** @type {typedefs.WpwSourceCodeConfigOptions} */({ compilerOptions })
-                }
-            )
-        });
+        const defaultConfig = { config: { compilerOptions: {}, files: [] }},
+              configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
+              configFile = pickNot(configFileInfo || { config: {} }, "config"),
+              config = pick(configFileInfo || { config: {} }, "config");;
+        apply(this, sourceConfig, defaultConfig);
+        merge(this, { config, configFile }, { config: { compilerOptions: sourceConfig.config.compilerOptions } });
     };
 
 
     dispose() { this.cleanupProgram(); }
 
 
-    get dotext() { return /** @type {typedefs.WpwSourceCodeDotExtensionApp} */(`.${this.exension}`); }
-    get ext() { return /** @type {typedefs.WpwSourceCodeExtension} */(this.exension); }
+    get dotext() { return /** @type {typedefs.WpwSourceDotExtensionApp} */(`.${this.exension}`); }
+    get ext() { return /** @type {typedefs.WpwSourceExtension} */(this.exension); }
 
 
     cleanupProgram()
@@ -83,17 +77,17 @@ class WpwSourceCode
 
 
     /**
-     * @param {typedefs.WpwSourceCodeConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
+     * @param {typedefs.WpwSourceConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
      * @param {string[]} [files]
 	 */
     createProgram(compilerOptions, files)
     {
-        const ts = WpwSourceCode.typescript = WpwSourceCode.typescript || require(require.resolve("typescript"));
+        const ts = WpwSource.typescript = WpwSource.typescript || require(require.resolve("typescript"));
         if (!ts) {
             throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
         }
         this.cleanupProgram();
-        const programOptions = merge({}, this.config.options.compilerOptions, compilerOptions),
+        const programOptions = merge({}, this.config.compilerOptions, compilerOptions),
               options = this.wpwToTsCompilerOptions(programOptions, ts);
         this.program = ts.createProgram(
         {
@@ -107,7 +101,7 @@ class WpwSourceCode
             projectReferences: undefined,
             host: this.createCompilerHost(options, ts),
             // rootNames: [ "src" ]
-            rootNames: files || this.config.options.files
+            rootNames: files || this.config.files
             // rootNames: []
         });
     }
@@ -186,7 +180,7 @@ class WpwSourceCode
 
     /**
      * @private
-     * @param {typedefs.IWpwSourceCode} sourceConfig
+     * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
      * @returns {string | undefined}
      */
@@ -233,9 +227,10 @@ class WpwSourceCode
             }
         };
 
-        if (isJsTsConfigPath(sourceConfig.config.path))
+        const cfgPath = sourceConfig.configFile?.path;
+        if (isJsTsConfigPath(cfgPath))
         {
-            const curPath = resolvePath(build.paths.base, sourceConfig.config.path);
+            const curPath = resolvePath(build.paths.base, cfgPath);
             if (curPath && existsSync(curPath)) {
                 return curPath;
             }
@@ -264,9 +259,9 @@ class WpwSourceCode
 
     /**
      * @private
-     * @param {typedefs.IWpwSourceCode} sourceConfig
+     * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
-     * @returns {typedefs.WpwSourceCodeConfig | undefined}
+     * @returns {(typedefs.WpwSourceTsConfigFile & { config: typedefs.WpwSourceTsConfig}) | undefined}
      */
     getJsTsConfigFileInfo(sourceConfig, build)
     {
@@ -277,7 +272,7 @@ class WpwSourceCode
                   start = data.indexOf("{"),
                   end = data.lastIndexOf("}") + 1,
                   raw = data.substring(start, end);
-            return { raw, json: /** @type {typedefs.WpwSourceCodeConfigOptions} */(JSON5.parse(raw)) };
+            return { raw, json: /** @type {typedefs.WpwSourceTsConfig} */(JSON5.parse(raw)) };
         };
 
         const path = this.findJsTsConfig(sourceConfig, build);
@@ -286,7 +281,7 @@ class WpwSourceCode
             const exclude = [], include = [],
                   dir = dirname(path),
                   file = basename(path),
-                  json = /** @type {typedefs.WpwSourceCodeConfigOptions} */({});
+                  json = /** @type {typedefs.WpwSourceTsConfig} */({});
 
             asArray(json.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
             {
@@ -335,51 +330,21 @@ class WpwSourceCode
                 ));
             }
 
-            return { dir, file, path, options: json, raw: buildJson.raw, includeAbs: uniq(include), excludeAbs: uniq(exclude) };
+            return { dir, file, path, config: json, raw: buildJson.raw };
         }
     }
 
 
     /**
      * @private
-     * @param {typedefs.WpwSourceCodeConfig} config
-     * @returns {typedefs.WpwSourceCodeConfig}
-     */
-    getDefaultConfig(config)
-    {
-        const cfg = merge({}, config);
-        if (!cfg.options)
-        {
-            apply(cfg,  { options: { compilerOptions: {}, files: [] }});
-        }
-        else
-        {   if (!cfg.options.compilerOptions) {
-                cfg.options.compilerOptions = {};
-            }
-            if (!cfg.options.files) {
-                cfg.options.files = [];
-            }
-        }
-        if (!cfg.excludeAbs) {
-            cfg.excludeAbs = [];
-        }
-        if (!cfg.includeAbs) {
-            cfg.includeAbs = [];
-        }
-        return cfg;
-    }
-
-
-    /**
-     * @private
-     * @param {typedefs.WpwSourceCodeConfigCompilerOptions} options typescript compiler options
+     * @param {typedefs.WpwSourceConfigCompilerOptions} options typescript compiler options
      * @param {typedefs.TypeScript} ts
      * @returns {typedefs.TypeScriptCompilerOptions}
      */
     wpwToTsCompilerOptions(options, ts)
     {
         return mergeIf({
-            configFilePath: this.config.path,
+            configFilePath: this.configFile.path,
             jsx: ts.JsxEmit[options.jsx || 0],
             module: options.module ? ts.ModuleKind[options.module] : ts.ModuleKind.CommonJS,
             target: options.target ? ts.ScriptTarget[options.target] : ts.ScriptTarget.ES2020,
@@ -391,4 +356,4 @@ class WpwSourceCode
 }
 
 
-module.exports = WpwSourceCode;
+module.exports = WpwSource;

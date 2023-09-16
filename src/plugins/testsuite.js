@@ -61,7 +61,7 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 
 		const testsDir = join(this.build.getDistPath(), "test");
 
-		if (!this.build.source.config.options || !this.build.source.config.path)
+		if (!this.build.source.config || !this.build.source.configFile.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
 			this.build.addMessage({ code: WpwError.Msg.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
@@ -71,14 +71,14 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 			return;
 		}
 
-		this.build.logger.value("   using tsconfig file", this.build.source.config.path, 2);
+		this.build.logger.value("   using tsconfig file", this.build.source.configFile.path, 2);
 
-		if (!existsSync(testsDir) && this.build.source.config.dir)
+		if (!existsSync(testsDir) && this.build.source.configFile.dir)
 		{
 			this.build.logger.write("   checking for tsbuildinfo file path", 3);
-			let buildInfoFile = this.build.source.config.options.compilerOptions.tsBuildInfoFile || join(dirname(this.build.source.config.dir), "tsconfig.tsbuildinfo");
+			let buildInfoFile = this.build.source.config.compilerOptions.tsBuildInfoFile || join(dirname(this.build.source.configFile.dir), "tsconfig.tsbuildinfo");
 			if (!isAbsolute(buildInfoFile)) {
-				buildInfoFile = resolve(this.build.source.config.dir, buildInfoFile);
+				buildInfoFile = resolve(this.build.source.configFile.dir, buildInfoFile);
 			}
 			this.build.logger.value("   delete tsbuildinfo file", buildInfoFile, 3);
 			try {
@@ -86,8 +86,8 @@ class WpBuildTestSuitePlugin extends WpwTscPlugin
 			} catch {}
 		}
 
-		const relTsConfigPath = relative(this.build.getBasePath(), this.build.source.config.path);
-		await this.execTsBuild(this.build.source.config, [ "-p", relTsConfigPath ], 2, testsDir);
+		const relTsConfigPath = relative(this.build.getBasePath(), this.build.source.configFile.path);
+		await this.execTsBuild(this.build.source.configFile, [ "-p", relTsConfigPath ], 2, testsDir);
 	}
 
 }

@@ -78,8 +78,8 @@ class WpwRulesExport extends WpwWebpackExport
 	app()
 	{
 		const build = this.build,
-			  exclude = getExcludes(build, this.build.source.config),
-			  include = this.getIncludes();
+			  exclude = getExcludes(build),
+			  include = this.build.getSrcPath();
 
 		if (build.debug)
 		{
@@ -136,7 +136,7 @@ class WpwRulesExport extends WpwWebpackExport
 						noEmit: false // tsCheckerEnabled
 					}
 				});
-				const declarationDir = build.source.config.options.compilerOptions.declarationDir ||
+				const declarationDir = build.source.config.compilerOptions.declarationDir ||
 									   build.getDistPath({ build: "types" });
 				if (declarationDir) {
 					loader.options.compilerOptions.declarationDir = declarationDir;
@@ -150,8 +150,8 @@ class WpwRulesExport extends WpwWebpackExport
 				use: loader,
 				test: build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
 				// include: uniq([ mainSrcPath, typesSrcPath ]),
-				include: this.getIncludes(),
-				exclude: getExcludes(build, this.build.source.config, false, true, true)
+				include: this.build.getSrcPath(),
+				exclude: getExcludes(build, false, true, true)
 			});
 		}
 	}
@@ -176,13 +176,6 @@ class WpwRulesExport extends WpwWebpackExport
 		}
 		build.logger.success("create rules", 2);
 	}
-
-
-	/**
-	 * @private
-	 * @returns {string[]}
-	 */
-	getIncludes = () => uniq([ this.build.getSrcPath(), ...this.build.source.config.includeAbs ]);
 
 
 	/**
@@ -219,11 +212,10 @@ class WpwRulesExport extends WpwWebpackExport
 			  jsdocOptions = build.options.jsdoc;
 		if (jsdocOptions && jsdocOptions.type === "entry")
 		{
-			const exclude = getExcludes(build, build.source.config),
-				include = this.getIncludes(),
-				jsdocSrcPath= build.getSrcPath();
+			const exclude = getExcludes(build),
+				include = build.getSrcPath();
 
-			if (existsSync(jsdocSrcPath))
+			if (existsSync(include))
 			{
 				build.wpc.module.rules.push(
 				{
@@ -238,7 +230,7 @@ class WpwRulesExport extends WpwWebpackExport
 						loader: "wpw-jsdoc-loader",
 						options: {
 							outDir: build.getDistPath(),
-							rootDir: jsdocSrcPath
+							rootDir: include
 						}
 					}
 				});
@@ -290,7 +282,7 @@ class WpwRulesExport extends WpwWebpackExport
 					implementation: esbuild,
 					loader: "tsx",
 					target: "es2020",
-					tsconfigRaw: this.build.source.config.raw
+					tsconfigRaw: this.build.source.configFile.raw
 				}
 			};
 		},
@@ -304,7 +296,7 @@ class WpwRulesExport extends WpwWebpackExport
 			return {
 				loader: "ts-loader",
 				options: {
-					configFile: this.build.source.config.path,
+					configFile: this.build.source.configFile.path,
 					experimentalWatchApi: false,
 					logInfoToStdOut: logOptions.level && logOptions.level >= 0,
 					logLevel: logOptions.level && logOptions.level >= 3 ? "info" : (logOptions.level && logOptions.level >= 1 ? "warn" : "error"),
@@ -377,9 +369,9 @@ class WpwRulesExport extends WpwWebpackExport
 			build.wpc.module.rules.push(
 			{
 				test: /\.tsx?$/,
-				include: this.getIncludes(),
+				include: build.getSrcPath(),
 				use: this.getSourceLoader("babel"),
-				exclude: getExcludes(build, this.build.source.config, true)
+				exclude: getExcludes(build, true)
 			});
 		}
 
@@ -428,7 +420,7 @@ class WpwRulesExport extends WpwWebpackExport
 	webapp()
 	{
 		const build = this.build,
-			  exclude = getExcludes(build, this.build.source.config);
+			  exclude = getExcludes(build);
 
 		build.wpc.module.rules.push(
 		{
@@ -443,7 +435,7 @@ class WpwRulesExport extends WpwWebpackExport
 			{
 				exclude,
 				test: /\.tsx?$/,
-				include: this.getIncludes(),
+				include: this.build.getSrcPath(),
 				use: this.getSourceLoader()
 			});
 		}

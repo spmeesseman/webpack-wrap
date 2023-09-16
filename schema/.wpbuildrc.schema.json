@@ -41,7 +41,7 @@
             "$ref": "#/definitions/VersionString"
         },
         "source": {
-            "$ref": "#/definitions/WpwSourceCode"
+            "$ref": "#/definitions/WpwSourceConfig"
         },
         "test": {
             "$ref": "#/definitions/WpwBuildBaseConfig"
@@ -235,7 +235,7 @@
                     "$ref": "#/definitions/WpwRcPaths"
                 },
                 "source": {
-                    "$ref": "#/definitions/WpwSourceCode"
+                    "$ref": "#/definitions/WpwSourceConfig"
                 },
                 "target": {
                     "$ref": "#/definitions/WebpackTarget"
@@ -437,7 +437,7 @@
                     "$ref": "#/definitions/WebpackConfigOverride"
                 },
                 "source": {
-                    "$ref": "#/definitions/WpwSourceCode"
+                    "$ref": "#/definitions/WpwSourceConfig"
                 },
                 "vscode": {
                     "$ref": "#/definitions/WpwVsCode"
@@ -2482,97 +2482,116 @@
                 }
             }
         },
-        "WpwSourceCode": {
-            "$id": "#/WpwSourceCode",
+        "WpwSourceConfig": {
+            "$id": "#/WpwSourceConfig",
             "type": "object",
+            "minProperties": 1,
             "additionalProperties": false,
-            "properties": {
-                "config": {
-                    "$ref": "#/definitions/WpwSourceCodeConfig"
-                },
-                "ext": {
-                    "$ref": "#/definitions/WpwSourceCodeExtension"
-                },
-                "type": {      
-                    "$ref": "#/definitions/WpwSourceCodeType"
-                },
-                "ts": {
-                    "$ref": "#/definitions/WpwSourceCodeTypescriptOptions"
-                }
-            },
             "required": [
                 "type"
             ],
+            "properties": {
+                "config": {
+                    "$ref": "#/definitions/WpwSourceTsConfig"
+                },
+                "configFile": {
+                    "$ref": "#/definitions/WpwSourceTsConfigFile"
+                },
+                "ext": {
+                    "$ref": "#/definitions/WpwSourceExtension"
+                },
+                "options": {
+                    "$ref": "#/definitions/WpwSourceOptions"
+                },
+                "type": {      
+                    "$ref": "#/definitions/WpwSourceType"
+                }
+            },
             "dependencies": {
                 "type": {
-                    "if": {
-                        "properties": {
-                            "type": {
-                                "const": "javascript"
+                    "allOf": [{
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "javascript"
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "options": {
+                                    "properties": {
+                                        "ts": false
+                                    }
+                                }
                             }
                         }
                     },
-                    "then": {
-                        "properties": {
-                            "ts": false
+                    {
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "const": "typescript"
+                                }
+                            }
+                        },
+                        "then": {
+                            "properties": {
+                                "options": {
+                                    "properties": {
+                                        "js": false
+                                    }
+                                }
+                            }
                         }
-                    }
+                    }]
                 }
             }
         },
-        "WpwSourceCodeConfig": {
-            "$id": "#/WpwSourceCodeConfig",
+        "WpwSourceJavascriptOptions": {
+            "$id": "#/WpwSourceJavascriptOptions",
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
             "properties": {
-                "dir": {
-                    "type": "string",
-                    "readOnly": true
-                },
-                "file": {
-                    "type": "string",
-                    "readOnly": true
-                },
-                "excludeAbs": {
-                    "type": "array",
-                    "readOnly": true,
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "includeAbs": {
-                    "type": "array",
-                    "readOnly": true,
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "options": {      
-                    "$ref": "#/definitions/WpwSourceCodeConfigOptions"
-                },
-                "path": {
-                    "type": "string",
-                    "pattern": "^(?:(?:\\.[\\\\/])?[~@!\\w\\.\\-\\\\/:]+)?(?:t|j)sconfig\\.(?:[\\w\\-]+?\\.)?json$",
-                    "minLength": 13,
-                    "maxLength": 150,
-                    "description": "Path to a [t|s]]sconfig[.*].json file, filename inclusive, full path or relative to the project base directory containing package.json"
-                },
-                "raw": {
-                    "type": "string",
-                    "maxItems": 0,
-                    "readOnly": true
+                "loader": {
+                    "$ref": "#/definitions/WpwSourceJavascriptLoader"
                 }
             }
         },
-        "WpwSourceCodeConfigOptions": {
-            "$id": "#/WpwSourceCodeConfigOptions",
+        "WpwSourceJavascriptLoader": {
+            "$id": "#/WpwSourceJavascriptLoader",
+            "default": "ts-loader",
+            "description": "preferred loader for typescript files, defaults to `babel`",
+            "oneOf": [{
+                "const": "babel"
+            },
+            {
+                "const": "esbuild"
+            }]
+        },
+        "WpwSourceOptions": {
+            "$id": "#/WpwSourceOptions",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "js": {
+                    "$ref": "#/definitions/WpwSourceJavascriptOptions"
+                },
+                "ts": {
+                    "$ref": "#/definitions/WpwSourceTypescriptOptions"
+                }
+            }
+        },
+        "WpwSourceTsConfig": {
+            "$id": "#/WpwSourceTsConfig",
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "compilerOptions": {
-                    "$ref": "#/definitions/WpwSourceCodeConfigCompilerOptions"
+                    "$ref": "#/definitions/WpwSourceConfigCompilerOptions"
                 },
                 "exclude": {
                     "type": "array",
@@ -2606,8 +2625,33 @@
                 }
             }
         },
-        "WpwSourceCodeConfigCompilerOptions": {
-            "$id": "#/WpwSourceCodeConfigCompilerOptions",
+        "WpwSourceTsConfigFile": {
+            "$id": "#/WpwSourceTsConfigFile",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "required": [ "path" ],
+            "properties": {
+                "dir": {
+                    "type": "string",
+                    "readOnly": true
+                },
+                "file": {
+                    "type": "string",
+                    "readOnly": true
+                },
+                "path": {
+                    "$ref": "#/definitions/FilePath",
+                    "description": "Path to a [t|s]]sconfig[.*].json file, filename inclusive, absolute or relative to the project base directory"
+                },
+                "raw": {
+                    "type": "string",
+                    "readOnly": true
+                }
+            }
+        },
+        "WpwSourceConfigCompilerOptions": {
+            "$id": "#/WpwSourceConfigCompilerOptions",
             "type": "object",
             "additionalProperties": true,
             "properties": {                      
@@ -2680,17 +2724,17 @@
                 "lib": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/WpwSourceCodeNodeJsTarget"
+                        "$ref": "#/definitions/WpwSourceNodeJsTarget"
                     }
                 },  
                 "mapRoot": {
                     "type": "string"
                 },
                 "module": {
-                    "$ref": "#/definitions/WpwSourceCodeNodeJsModule"
+                    "$ref": "#/definitions/WpwSourceNodeJsModule"
                 },
                 "moduleResolution": {
-                    "$ref": "#/definitions/WpwSourceCodeNodeJsModuleResolution"
+                    "$ref": "#/definitions/WpwSourceNodeJsModuleResolution"
                 },
                 "noEmit": {
                     "type": "boolean"
@@ -2729,7 +2773,7 @@
                     "type": "string"
                 }, 
                 "paths": {
-                    "$ref": "#/definitions/WpwSourceCodeConfigCompilerOptionsPaths"
+                    "$ref": "#/definitions/WpwSourceConfigCompilerOptionsPaths"
                 }, 
                 "removeComments": {
                     "type": "boolean"
@@ -2777,7 +2821,7 @@
                     "type": "boolean"
                 },
                 "target": {
-                    "$ref": "#/definitions/WpwSourceCodeNodeJsTarget"
+                    "$ref": "#/definitions/WpwSourceNodeJsTarget"
                 },
                 "tsBuildInfoFile": {
                     "type": "string"
@@ -2796,8 +2840,8 @@
                 }
             }
         },
-        "WpwSourceCodeConfigCompilerOptionsPaths": {
-            "$id": "#/WpwSourceCodeConfigCompilerOptionsPaths",
+        "WpwSourceConfigCompilerOptionsPaths": {
+            "$id": "#/WpwSourceConfigCompilerOptionsPaths",
             "type": "object",
             "patternProperties": {
                 "^[a-zA-Z:@][\\w:@]+$": {
@@ -2811,19 +2855,19 @@
                 "maxLength": 50
             }
         },
-        "WpwSourceCodeTypescriptOptions": {
-            "$id": "#/WpwSourceCodeTypescriptOptions",
+        "WpwSourceTypescriptOptions": {
+            "$id": "#/WpwSourceTypescriptOptions",
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
             "properties": {
                 "loader": {
-                    "$ref": "#/definitions/WpwSourceCodeTypescriptLoader"
+                    "$ref": "#/definitions/WpwSourceTypescriptLoader"
                 }
             }
         },
-        "WpwSourceCodeTypescriptLoader": {
-            "$id": "#/WpwSourceCodeTypescriptLoader",
+        "WpwSourceTypescriptLoader": {
+            "$id": "#/WpwSourceTypescriptLoader",
             "default": "ts-loader",
             "description": "preferred loader for typescript files, defaults to `babel`",
             "oneOf": [{
@@ -2836,23 +2880,23 @@
                 "const": "ts-loader"
             }]
         },
-        "WpwSourceCodeNodeJsModule": {
-            "$id": "#/WpwSourceCodeNodeJsModule",
+        "WpwSourceNodeJsModule": {
+            "$id": "#/WpwSourceNodeJsModule",
             "default": "commonjs",
             "enum": [
                 "amd", "commonjs", "commonJS", "es2015", "ES2015", "es6", "ES6", "esnext", "ESNEXT", "system", "umd"
             ]
         },
-        "WpwSourceCodeNodeJsModuleResolution": {
-            "$id": "#/WpwSourceCodeNodeJsModuleResolution",
+        "WpwSourceNodeJsModuleResolution": {
+            "$id": "#/WpwSourceNodeJsModuleResolution",
             "type": "string",
             "default": "node",
             "enum": [
                 "node", "node10", "node16", "nodenext", "bundler"
             ]
         },
-        "WpwSourceCodeNodeJsTarget": {
-            "$id": "#/WpwSourceCodeNodeJsTarget",
+        "WpwSourceNodeJsTarget": {
+            "$id": "#/WpwSourceNodeJsTarget",
             "type": "string",
             "default": "es2020",
             "enum": [
@@ -2860,8 +2904,8 @@
                 "ES5", "ES6", "ES2015", "ES2016", "ES2017", "ES2018", "ES2019", "ES2020", "ESNEXT"
             ]
         },
-        "WpwSourceCodeExtension": {
-            "$id": "#/WpwSourceCodeExtension",
+        "WpwSourceExtension": {
+            "$id": "#/WpwSourceExtension",
             "default": "js",
             "readOnly": true,
             "maxLength": 0,
@@ -2871,8 +2915,8 @@
                 "const": "ts"
             }]
         },
-        "WpwSourceCodeType": {
-            "$id": "#/WpwSourceCodeType",
+        "WpwSourceType": {
+            "$id": "#/WpwSourceType",
             "default": "javascript",
             "oneOf": [{
                 "const": "javascript"

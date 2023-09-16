@@ -141,29 +141,18 @@ class WpwResolveExport extends WpwWebpackExport
      */
     resolveAliasPaths()
     {
-		/** @type {typedefs.WpwWebpackAliasConfig} */
+        /** @type {typedefs.WpwWebpackAliasConfig} */
         const alias = {},
               jstsConfig = this.build.source.config,
-              jstsDir = jstsConfig.dir,
-              jstsPaths = jstsConfig.options.compilerOptions.paths;
-
-        const _pushAlias = (/** @type {string} */ key, /** @type {string} */ path) =>
-        {
-            const value = alias[key];
-            if (isArray(value)) {
-                pushIfNotExists(value, path);
-            }
-            else { alias[key] = [ path ]; }
-        };
-
+              jstsDir = this.build.source.configFile.dir,
+              jstsPaths = jstsConfig.compilerOptions.paths;
         if (jstsDir && jstsPaths)
         {
-            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, paths ]) =>
+            Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, p ]) =>
             {
-                if (paths) asArray(paths).forEach((p) => _pushAlias(key, resolvePath(jstsDir, p)), this);
+            	p.forEach((p) => { alias[key] = pushIfNotExists(asArray(alias[key]), resolvePath(jstsDir, p)); });
             });
         }
-
 		return alias;
     };
 

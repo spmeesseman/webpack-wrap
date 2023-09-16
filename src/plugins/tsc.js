@@ -59,7 +59,7 @@ class WpwTscPlugin extends WpwPlugin
 
 		if (!outputDir)
 		{
-			const compilerOptions = this.build.source.config.options.compilerOptions;
+			const compilerOptions = this.build.source.config.compilerOptions;
 			outputDir = resolvePath(
 				baseBuildDir, compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true })
 			);
@@ -171,7 +171,7 @@ class WpwTscPlugin extends WpwPlugin
 	/**
 	 * Executes a typescript build using the specified tsconfig
 	 * @protected
-	 * @param {typedefs.WpwSourceCodeConfig} sourceCodeConfig
+	 * @param {typedefs.WpwSourceTsConfigFile} sourceCodeConfig
 	 * @param {string[]} args
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
@@ -401,7 +401,7 @@ class WpwTscPlugin extends WpwPlugin
 			entryFile = resolvePath(outputDir, entryFile).replace(/\\/g, "/");
 		}
 		let dtsEntryFile = entryFile.replace(this.build.source.ext, "d.ts");
-		const rootDir = this.build.source.config.options.compilerOptions.rootDir;
+		const rootDir = this.build.source.config.compilerOptions.rootDir;
 		if (rootDir && rootDir !== ".") {
 			dtsEntryFile = dtsEntryFile.replace(rootDir.replace(/\\/g, "/"), "").replace("//", "/").replace(/^\//, "");
 		}

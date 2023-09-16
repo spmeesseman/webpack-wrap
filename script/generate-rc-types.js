@@ -72,7 +72,6 @@ const requiredProperties = [
     [ "level", "WpwLog" ],
     [ "value", "WpwLogPad" ],
     [ "source", "WpwBuildConfig" ],
-    [ "config", "WpwSourceCode" ],
     [ "log", "WpwBuildConfig" ],
     [ "paths", "WpwBuildConfig" ],
     [ "options", "WpwBuildConfig" ],
@@ -88,11 +87,9 @@ const requiredProperties = [
     [ "dist", "WpwRcPaths" ],
     [ "src", "WpwRcPaths" ],
     [ "temp", "WpwRcPaths" ],
-    [ "includeAbs", "WpwSourceCodeConfig" ],
-    [ "excludeAbs", "WpwSourceCodeConfig" ],
-    [ "options", "WpwSourceCodeConfig" ],
-    [ "compilerOptions", "WpwSourceCodeConfigOptions" ],
-    [ "files", "WpwSourceCodeConfigOptions" ],
+    [ "config", "WpwSourceConfig" ],
+    [ "compilerOptions", "WpwSourceTsConfig" ],
+    [ "files", "WpwSourceTsConfig" ],
     [ "scopedName", "WpwPackageJson" ],
     [ "ext", "WpwSourceCode" ]
 ];

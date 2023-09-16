@@ -77,13 +77,13 @@ const printBuildProperties = (build, wrapper) =>
     l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
     l.value("   source code ext", build.source.ext, 1);
     l.value("   source code type", build.source.type, 1);
-    l.value("   ts/js config file", build.source.config.file, 2);
-    l.value("   ts/js config directory", build.source.config.dir, 2);
-    l.value("   ts/js config path", build.source.config.path, 2);
-    l.value("   sourcecode configured options", JSON.stringify(pickNot(build.source.config, "raw", "options")), 3);
-    l.value("   ts/js configured options", JSON.stringify(pickNot(build.source.config.options, "compilerOptions", "files")), 3);
-    l.value("   ts/js configured compiler options", JSON.stringify(build.source.config.options.compilerOptions), 3);
-    l.value("   ts/js configured files", JSON.stringify(build.source.config.options.files), 4);
+    l.value("   ts/js config file", build.source.configFile.file, 2);
+    l.value("   ts/js config directory", build.source.configFile.dir, 2);
+    l.value("   ts/js config path", build.source.configFile.path, 2);
+    l.value("   sourcecode configured options", JSON.stringify(pickNot(build.source.configFile, "raw")), 3);
+    l.value("   ts/js configured options", JSON.stringify(pickNot(build.source.config, "compilerOptions", "files")), 3);
+    l.value("   ts/js configured compiler options", JSON.stringify(build.source.config.compilerOptions), 3);
+    l.value("   ts/js configured files", JSON.stringify(build.source.config.files), 4);
     l.sep();
 };
 

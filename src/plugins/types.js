@@ -102,14 +102,14 @@ class WpwTypesPlugin extends WpwTscPlugin
 	/**
 	 * @private
 	 * @template {string} T
-	 * @template {T extends "program" ? typedefs.WpwSourceCodeConfigCompilerOptions : string[]} R
+	 * @template {T extends "program" ? typedefs.WpwSourceConfigCompilerOptions : string[]} R
 	 * @param {T} type
 	 * @returns {R}
 	 */
 	getCompilerOptions(type)
 	{
 		const sourceCode = this.build.source,
-			  configuredOptions = this.build.source.config.options.compilerOptions,
+			  configuredOptions = this.build.source.config.compilerOptions,
 			  basePath = this.build.getBasePath(),
 			  //
 			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
@@ -121,7 +121,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 
 		if (type === "program")
 		{
-			/** @type {typedefs.WpwSourceCodeConfigCompilerOptions} */
+			/** @type {typedefs.WpwSourceConfigCompilerOptions} */
 			const programOptions = {
 				declaration: true,
 				declarationDir,
@@ -256,7 +256,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  logger = this.logger,
 			  basePath = this.build.getBasePath(),
 			  method = this.buildOptions.method,
-			  tscConfig = sourceCode.config.options,
+			  tscConfig = sourceCode.config,
 			  compilerOptions = tscConfig.compilerOptions,
 			  typesSrcDir = this.build.getSrcPath(),
 			  outputDir = compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true });
@@ -281,7 +281,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 		{
 			const ignore = tscConfig.exclude || [],
 				  options = this.getCompilerOptions(method),
-				  files = this.build.source.config.options.files,
+				  files = this.build.source.config.files,
 				  typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
 			// if (typesExcludeIdx !== -1) {
 			// 	ignore.splice(typesExcludeIdx, 1);
@@ -349,7 +349,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			const tscArgs = this.getCompilerOptions(method),
 				  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
 			this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir);
-			rc = await this.execTsBuild(sourceCode.config, tscArgs, 1, outputDir);
+			rc = await this.execTsBuild(sourceCode.configFile, tscArgs, 1, outputDir);
 		}
 		else {
 			this.build.addMessage({

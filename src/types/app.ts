@@ -26,7 +26,7 @@ import {
     WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
 } from "./webpack";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceCodeExtension
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
 } from "./rc";
 
 
@@ -51,7 +51,7 @@ type WpwRuntimeEnvArgs = IWpwRuntimeEnvArgs;
 type WpwCombinedRuntimeArgs =
     WebpackRuntimeArgs & WebpackRuntimeEnvArgs & WpwRuntimeEnvArgs & { mode: WpwWebpackMode | Exclude<WebpackMode, undefined> };
 
-type WpwSourceCodeDotExtensionApp = `.${WpwSourceCodeExtension}`;
+type WpwSourceDotExtensionApp = `.${WpwSourceExtension}`;
 
 
 interface IWpwWebpackConfig extends WebpackConfig
@@ -90,7 +90,7 @@ export {
     IWpwGlobalEnvironment,
     WpwGetRcPathOptions,
     WpwRuntimeEnvArgs,
-    WpwSourceCodeDotExtensionApp,
+    WpwSourceDotExtensionApp,
     WpwWebpackConfig,
     IWpwWebpackAliasConfig,
     WpwWebpackAliasConfig,

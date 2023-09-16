@@ -64,7 +64,7 @@ class WpwRc extends WpwBase
     $schema;
     /** @type {typedefs.WpwVersionString} */
     schemaVersion;
-    /** @type {typedefs.IWpwSourceCode} */
+    /** @type {typedefs.IWpwSourceConfig} */
     source;
     /** @type {typedefs.WpwBuildBaseConfig} */
     test;
@@ -97,7 +97,6 @@ class WpwRc extends WpwBase
     };
 
 
-    get hasTests() { return !!this.buildConfigs.find(b => b.type === "tests" || b.name.toLowerCase().startsWith("test")); }
     get isSingleBuild() { return !!this.args.build && this.builds.length <= 1; }
     get buildCount() { return this.builds.length; }
 
@@ -142,6 +141,7 @@ class WpwRc extends WpwBase
     applyPackageJson()
     {
         this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonKeys);
+        this.version = this.pkgJson.version;
         const nameData = this.pkgJson.name.split("/");
         apply(this.pkgJson, {
             scopedName: {
@@ -149,16 +149,6 @@ class WpwRc extends WpwBase
                 scope: nameData.length > 1 ? nameData[0] : undefined
             }
         });
-    }
-
-
-    /**
-     * @private
-     */
-    applyVersions()
-    {
-        const wpwVersion = JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version;
-        apply(this, { schemaVersion: getSchemaVersion(), version: this.pkgJson.version, wpwVersion });
     }
 
 
@@ -292,14 +282,15 @@ class WpwRc extends WpwBase
         });
         apply(this,
         {
+            schemaVersion: getSchemaVersion(),
             mode: this.getMode(arge, argv, true),
             arge, argv, args: apply({}, arge, argv),
-            buildConfigs: [], errors: [], pkgJson: {}, warnings: []
+            buildConfigs: [], errors: [], pkgJson: {}, warnings: [],
+            wpwVersion: JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version
         });
         applySchemaDefaults(this, "WpwSchema");
         this.applyJsonFromFile(this, ".wpbuildrc.json");
         this.applyPackageJson();
-        this.applyVersions();
     }
 
 

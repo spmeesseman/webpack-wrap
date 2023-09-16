@@ -112,14 +112,11 @@ class WpBuildTsCheckPlugin extends WpwTscPlugin
 	 */
 	getVendorPlugin = () =>
 	{
-		const build = this.build,
-			  config = build.source.config,
-			  configPath = /** @type {string} */(config.path);
-
+		const build = this.build;
 		/** @type {ForkTsCheckerTypescriptOptions} */
 		const tsOptions = {
 			build: false,
-			configFile: configPath,
+			configFile: build.source.configFile.path,
 			mode: "readonly",
 			diagnosticOptions: {
 				syntactic: true, semantic: true, declaration: false, global: false
