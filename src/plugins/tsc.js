@@ -171,7 +171,7 @@ class WpwTscPlugin extends WpwPlugin
 	/**
 	 * Executes a typescript build using the specified tsconfig
 	 * @protected
-	 * @param {typedefs.WpwSourceTsConfigFile} sourceCodeConfig
+	 * @param {typedefs.WpwSourceTsConfigFile} configFile
 	 * @param {string[]} args
 	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
@@ -179,9 +179,9 @@ class WpwTscPlugin extends WpwPlugin
 	 * @returns {Promise<number | null>}
 	 * @throws {typedefs.WpwError}
 	 */
-	async execTsBuild(sourceCodeConfig, args, identifier, outputDir, alias)
+	async execTsBuild(configFile, args, identifier, outputDir, alias)
 	{
-		if (!sourceCodeConfig || !sourceCodeConfig.path) {
+		if (!configFile || !configFile.path) {
 			this.build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
@@ -194,10 +194,10 @@ class WpwTscPlugin extends WpwPlugin
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
 		const logger = this.build.logger,
-			  relativeOutputPath = relativePath(this.build.paths.base, sourceCodeConfig.path);
+			  relativeOutputPath = relativePath(this.build.paths.base, configFile.path);
 
 		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
-		logger.write(`   execute tsc command using config file @ [${sourceCodeConfig.path}]`, 1);
+		logger.write(`   execute tsc command using config file @ [${configFile.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);
 
 		let result = await this.exec(command, "tsc");
@@ -231,7 +231,7 @@ class WpwTscPlugin extends WpwPlugin
 		{   //
 			// Note that `tsc-alias` requires a filename e.g. tsconfig.json in it's path argument
 			//
-			command = `tsc-alias -p ${sourceCodeConfig.path}`;
+			command = `tsc-alias -p ${configFile.path}`;
 			result = await this.exec(command, "typescript path aliasing");
 			if (result !== 0)
 			{

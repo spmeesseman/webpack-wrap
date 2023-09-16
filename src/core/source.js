@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file src/core/sourcecode.js
+ * @file src/core/source.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -16,8 +16,8 @@ const { readFileSync, existsSync, readdirSync } = require("fs");
 const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
-    isString, merge, isArray, resolvePath, asArray, uniq, findFilesSync, relativePath,
-    isJsTsConfigPath, mergeIf, apply, WpwError, pickNot, pick
+    apply, isString, merge, isArray, resolvePath, asArray, findFilesSync, relativePath,
+    isJsTsConfigPath, mergeIf, WpwError, pickNot, pick
 } = require("../utils");
 
 

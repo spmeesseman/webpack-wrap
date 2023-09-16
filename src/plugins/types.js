@@ -108,7 +108,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 */
 	getCompilerOptions(type)
 	{
-		const sourceCode = this.build.source,
+		const source = this.build.source,
 			  configuredOptions = this.build.source.config.compilerOptions,
 			  basePath = this.build.getBasePath(),
 			  //
@@ -116,7 +116,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  //        if separate, use buildinfofile specified in config file
 			  //
 			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
-			  // tsBuildInfoFile = resolve(basePath, sourceCode.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
+			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
 			  declarationDir = configuredOptions.declarationDir || this.build.getDistPath({ rel: true, psx: true });
 
 		if (type === "program")
@@ -131,7 +131,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 				skipLibCheck: true,
 				tsBuildInfoFile
 			};
-			if (sourceCode.type === "javascript")
+			if (source.type === "javascript")
 			{
 				apply(programOptions, {
 					allowJs: true,
@@ -183,7 +183,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			else {
 				tscArgs.push("--declarationDir", declarationDir);
 			}
-			if (sourceCode.type === "javascript")
+			if (source.type === "javascript")
 			{
 				tscArgs.push("--allowJs", "--strictNullChecks", "false");
 			}
@@ -252,11 +252,11 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 */
 	async types(assets)
 	{
-		const sourceCode = this.build.source,
+		const source = this.build.source,
 			  logger = this.logger,
 			  basePath = this.build.getBasePath(),
 			  method = this.buildOptions.method,
-			  tscConfig = sourceCode.config,
+			  tscConfig = source.config,
 			  compilerOptions = tscConfig.compilerOptions,
 			  typesSrcDir = this.build.getSrcPath(),
 			  outputDir = compilerOptions.declarationDir ?? this.build.getDistPath({ rel: true, psx: true });
@@ -349,7 +349,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			const tscArgs = this.getCompilerOptions(method),
 				  tsBuildInfoFile = tscArgs[tscArgs.findIndex(a => a === "--tsBuildInfoFile") + 1];
 			this.maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir);
-			rc = await this.execTsBuild(sourceCode.configFile, tscArgs, 1, outputDir);
+			rc = await this.execTsBuild(source.configFile, tscArgs, 1, outputDir);
 		}
 		else {
 			this.build.addMessage({

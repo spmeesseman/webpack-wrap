@@ -23,7 +23,7 @@ const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
 
 const runtimeExclude = [
-    "WpwSourceCodeTypescriptOptions"
+    "WpwSourceJavascriptOptions", "WpwSourceTypescriptOptions"
 ];
 
 

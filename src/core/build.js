@@ -12,9 +12,9 @@
 
 const WpwBase = require("./base");
 const { existsSync } = require("fs");
+const WpwSource = require("./source");
 const webpackExports = require("../exports");
 const typedefs = require("../types/typedefs");
-const WpwSourceCode = require("./source");
 const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
@@ -51,8 +51,10 @@ class WpwBuild extends WpwBase
     overrides;
     /** @type {typedefs.WpwRcPaths} */
     paths;
-    /** @type {typedefs.WpwSourceCode} */
+    /** @type {typedefs.WpwSource} */
     source;
+    /** @type {typedefs.WpwSourceConfig} */
+    sourceConfig;
     /** @type {typedefs.WebpackTarget} */
     target;
     /** @type {typedefs.WpwBuildType} */
@@ -75,28 +77,12 @@ class WpwBuild extends WpwBase
     {
         super(config);
         objUtils.apply(this, { info: [], errors: [], warnings: [], wrapper });
-        this.validateConfig(config);
-        this.configure(config);
-        this.logger = new WpwLogger(this.log);
-        this.logger.write(`initializing configured build '${this.name}'`, 1);
-        this.source = new WpwSourceCode(objUtils.clone(config.source), this);
+        this.initConfig(config);
+        this.initLogger();
         validateSchema(this, "WpwBuildConfig", this.logger);
+        this.source = new WpwSource(objUtils.clone(config.source), this);
         this.disposables.push(this.source, this.logger);
         this.logger.write(`successfully initialized build wrapper instance '${this.name}'`, 2);
-    }
-
-
-	/**
-	 * @private
-     * @param {typedefs.IWpwBuildConfig} buildConfig
-	 */
-    configure(buildConfig)
-    {
-        objUtils.merge(this, buildConfig);
-        objUtils.apply(this, { target: this.getTarget(), type: this.getType() });
-        objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-        this.mergeDefaultOptions();
-        this.configureDependencyOptions();
     }
 
 
@@ -372,6 +358,30 @@ class WpwBuild extends WpwBase
             else if (this.target === "webworker") { type = "webapp"; }
         }
         return type;
+    }
+
+
+	/**
+	 * @private
+     * @param {typedefs.IWpwBuildConfig} config
+	 */
+    initConfig(config)
+    {
+        this.validateConfig(config);
+        objUtils.merge(this, config, { target: this.getTarget(), type: this.getType() });
+        objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
+        this.mergeDefaultOptions();
+        this.configureDependencyOptions();
+    }
+
+
+    /**
+     * @private
+     */
+    initLogger()
+    {
+        this.logger = new WpwLogger(this.log);
+        this.logger.write(`initializing configured build '${this.name}'`, 1);
     }
 
 

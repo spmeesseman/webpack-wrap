@@ -88,10 +88,10 @@ const requiredProperties = [
     [ "src", "WpwRcPaths" ],
     [ "temp", "WpwRcPaths" ],
     [ "config", "WpwSourceConfig" ],
+    [ "ext", "WpwSourceConfig" ],
     [ "compilerOptions", "WpwSourceTsConfig" ],
     [ "files", "WpwSourceTsConfig" ],
-    [ "scopedName", "WpwPackageJson" ],
-    [ "ext", "WpwSourceCode" ]
+    [ "scopedName", "WpwPackageJson" ]
 ];
 
 

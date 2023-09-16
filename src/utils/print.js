@@ -80,7 +80,7 @@ const printBuildProperties = (build, wrapper) =>
     l.value("   ts/js config file", build.source.configFile.file, 2);
     l.value("   ts/js config directory", build.source.configFile.dir, 2);
     l.value("   ts/js config path", build.source.configFile.path, 2);
-    l.value("   sourcecode configured options", JSON.stringify(pickNot(build.source.configFile, "raw")), 3);
+    l.value("   source configured options", JSON.stringify(pickNot(build.source.configFile, "raw")), 3);
     l.value("   ts/js configured options", JSON.stringify(pickNot(build.source.config, "compilerOptions", "files")), 3);
     l.value("   ts/js configured compiler options", JSON.stringify(build.source.config.compilerOptions), 3);
     l.value("   ts/js configured files", JSON.stringify(build.source.config.files), 4);

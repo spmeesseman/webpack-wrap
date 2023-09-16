@@ -266,7 +266,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../core/build")} WpwBuild */
-/** @typedef {import("../core/source")} WpwSourceCode */
+/** @typedef {import("../core/source")} WpwSource */
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").WpwRuntimeEnvArgs} WpwRuntimeEnvArgs */
 /** @typedef {import("./app").WpwGetRcPathOptions} WpwGetRcPathOptions */
