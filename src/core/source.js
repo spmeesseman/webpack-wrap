@@ -17,7 +17,7 @@ const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
 const { resolve, basename, join, dirname, isAbsolute } = require("path");
 const {
     apply, isString, merge, isArray, resolvePath, asArray, findFilesSync, relativePath,
-    isJsTsConfigPath, mergeIf, WpwError, pickNot, pick
+    isJsTsConfigPath, mergeIf, WpwError, pickNot
 } = require("../utils");
 
 
@@ -33,8 +33,8 @@ class WpwSource
     config;
     /** @type {typedefs.IWpwSourceTsConfigFile} */
     configFile;
-    /** @type {typedefs.WpwSourceExtension} @private */
-    exension;
+    /** @type {typedefs.WpwSourceExtension} */
+    ext;
     /** @type {WpwLogger} @private */
     logger;
     /** @type {typedefs.WpwSourceOptions} */
@@ -51,20 +51,25 @@ class WpwSource
      */
     constructor(sourceConfig, build)
     {
-        const defaultConfig = { config: { compilerOptions: {}, files: [] }},
-              configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
-              configFile = pickNot(configFileInfo || { config: {} }, "config"),
-              config = pick(configFileInfo || { config: {} }, "config");;
-        apply(this, sourceConfig, defaultConfig);
-        merge(this, { config, configFile }, { config: { compilerOptions: sourceConfig.config.compilerOptions } });
+        this.logger = build.logger;
+        const configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build);
+        apply(this, {
+            type: sourceConfig.type || "javascript",
+            ext: sourceConfig.type === "typescript" ? "ts" : "js"
+        }, sourceConfig);
+        if (configFileInfo)
+        {
+            const configFile = /** @type {typedefs.WpwSourceTsConfigFile} */(pickNot(configFileInfo, "config")),
+                  compilerOptions = sourceConfig.config?.compilerOptions || {};
+            merge(this, { configFile, config: merge({}, configFileInfo.config, { compilerOptions }) });
+        }
     };
 
 
     dispose() { this.cleanupProgram(); }
 
 
-    get dotext() { return /** @type {typedefs.WpwSourceDotExtensionApp} */(`.${this.exension}`); }
-    get ext() { return /** @type {typedefs.WpwSourceExtension} */(this.exension); }
+    get dotext() { return /** @type {typedefs.WpwSourceDotExtensionApp} */(`.${this.ext}`); }
 
 
     cleanupProgram()

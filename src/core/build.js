@@ -371,9 +371,10 @@ class WpwBuild extends WpwBase
     initConfig(config)
     {
         this.validateConfig(config);
-        objUtils.merge(this, config, { target: this.getTarget(), type: this.getType() });
+        objUtils.apply(this, config);
+        objUtils.applyIf(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-        this.mergeDefaultOptions();
+        // this.mergeDefaultOptions();
         this.configureDependencyOptions();
     }
 

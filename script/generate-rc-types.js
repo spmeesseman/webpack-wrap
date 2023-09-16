@@ -12,13 +12,13 @@
 
 const { EOL } = require("os");
 const { existsSync } = require("fs");
-const WpwLogger = require("../src/utils/console");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
 
-const DTS_MODE = false;
-const RUN_VALIDATION = true;
+const DTS_MODE = false;           // if `true`, output as .d.ts. and "declare" all types
+const DISABLE_VALIDATION = false; // if `true`, don't run tsc --noEmit on output files
+const DISABLE_WPW_LOGGER = false; // if `true`, don't init a WpwLogger (necessary when constants.js does not previously exist)
 
 const description = "Provides types macthing the .wpwrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
@@ -142,7 +142,7 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */exe) =>
  */
 const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
-    logger.log("   parsing json2ts output");
+    logger?.log("   parsing json2ts output");
 
     data = data
           .replace(/\r\n/g, "\n").replace(new RegExp(EOL,"g"), "\n")
@@ -171,7 +171,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
         data = data.replace(new RegExp(`: ${cls}$`, "gm"), ": " + cfg);
     });
     await writeFile(outputDtsPath, `${EOL}${hdr}${EOL}${EOL}${EOL}${data.trim()}${EOL}`);
-    logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
+    logger?.success(`   created ${outputDtsFile} (${outputDtsPath})`);
     return data;
 };
 
@@ -198,10 +198,10 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
     if (result && result.toString().toLowerCase().startsWith("y"))
     {
         await writeFile(file, previousContent);
-        logger.warning(`created ${basename(file)} but tsc validation failed, previous content has been restored`, "   ");
+        logger?.warning(`created ${basename(file)} but tsc validation failed, previous content has been restored`, "   ");
         return { code: 1 };
     }
-    logger.warning(`created ${basename(file)} but tsc validation failed, new content was retained`, "   ");
+    logger?.warning(`created ${basename(file)} but tsc validation failed, new content was retained`, "   ");
     return { code: 0 };
 };
 
@@ -237,7 +237,7 @@ const pushEnum = (/** @type {string} */property, /** @type {"enum" | "type" | "o
             `${jsdoc}\nconst ${propertyName} =\n{${(`${valueFmt}\n};\n`).replace(/"[,;]\},/g, "\"\n};\n").replace(/"[,;]\n\};/g, "\"\n};")}`
         );
         exported.push(`    ${propertyName}`);
-        logger.log(`      added enum ${propertyName}`);
+        logger?.log(`      added enum ${propertyName}`);
     }
 };
 
@@ -277,7 +277,7 @@ const pushExport = (/** @type {string} */property, /** @type {string} */suffix, 
             exported.push(`    ${clsPropertyName}`);
         }
     }
-    logger.log(`      added runtime constants for type ${property}`);
+    logger?.log(`      added runtime constants for type ${property}`);
     return [ pName1, `is${pName2}` ];
 };
 
@@ -289,7 +289,7 @@ const pushTypedef = (/** @type {string} */source, /** @type {"enum" | "type"} */
     );
     typedefs.push(.../** @type {[string, "enum" | "type", string][]} */(incProps.map(p => [ source, kind, p ])));
     for (const property of incProps) {
-        logger.log(`      added typedef for type ${property}`);
+        logger?.log(`      added typedef for type ${property}`);
     }
 };
 
@@ -306,7 +306,7 @@ const wpwreplace =
             (/** @type {string} */_v, /** @type {string} */m1, /** @type {string} */m2) =>
             {
                 let src = `\nexport ${declare()}interface I${m1} ${m2}\n}`;
-                logger.log(`      added interface I${m1}`);
+                logger?.log(`      added interface I${m1}`);
                 pushTypedef("rc", "type", `I${m1}`);
                 pushEnum(m1, "type", m2);
                 if (!classTypes.includes(m1))
@@ -402,7 +402,7 @@ const wpwreplace =
 const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */data) =>
 {
     let match;
-    logger.log("   create implementation constants");
+    logger?.log("   create implementation constants");
 
     const _proc = (data, baseSrc) =>
     {
@@ -483,11 +483,15 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
     if (lines.length > 0)
     {
+        let constantsData;
         const constantsFile = "constants.js",
               constantsPath = join(outputDtsDir, constantsFile),
-              constantsData = await readFile(constantsPath, "utf8"),
               enumKeys = exported.filter(e => (/^ +Wpw(?:[a-zA-Z]*?)s$/).test(e))
                                  .map(e => `${e.replace(/(?:Key)?s$/, "")}: ${e.trimStart()}`);
+        try {
+            await readFile(constantsPath, "utf8");
+        } catch { constantsData = ""; }
+
         configToClassTypes.forEach(([ cfg, cls ]) =>
         {
             const enumStr =enumKeys.find(k => k.includes(cfg + ":"));
@@ -495,9 +499,11 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
                 enumKeys.push(enumStr.replace(cfg, cls));
             }
         });
+
         exported.push("    WpwKeysEnum");
         enumKeys.sort((a, b) => a.localeCompare(b));
         exported.sort((a, b) => a.localeCompare(b));
+
         hdr = hdr.replace(`@file types/${outputDtsFile}`, `@file types/${constantsFile}`);
         data = `/* eslint-disable no-unused-labels */${EOL}`;
         data += `/* eslint-disable @typescript-eslint/naming-convention */${EOL}`;
@@ -519,9 +525,9 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
         await writeTypedefsJs();
 
-        if (RUN_VALIDATION !== false)
+        if (!DISABLE_VALIDATION)
         {
-            logger.write(`      validating ${constantsFile}`);
+            logger?.write(`      validating ${constantsFile}`);
             const result = await execAsync({
                 logger,
                 logPad: "      ",
@@ -529,16 +535,15 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
                 execOptions: { cwd: outputDtsDir },
                 command: `npx tsc --moduleResolution node --target es2020 --noEmit --allowSyntheticDefaultImports --skipLibCheck --allowJs ./${constantsFile}`
             });
-
             if (result.code === 0) {
-                logger.success(`   created ${constantsFile} (${constantsPath}) [tsc validated]`);
+                logger?.success(`   created ${constantsFile} (${constantsPath}) [tsc validated]`);
             }
             else {
                 await promptForRestore(constantsPath, constantsData);
             }
         }
         else {
-            logger.success(`   created ${constantsFile} (${constantsPath}) [no tsc validation]`);
+            logger?.success(`   created ${constantsFile} (${constantsPath}) [no tsc validation]`);
         }
     }
 };
@@ -554,7 +559,7 @@ const writeIndexJs = async () =>
         `/* START_RC_DEFS */ ${exported.sort((a, b) => a.localeCompare(b)).map(e => e.trim()).join(", ")} /* END_RC_DEFS */`
     );
     await writeFile(indexPath, data);
-    logger.success(`   updated exports in src/utils/${indexFile} (${indexPath})`);
+    logger?.success(`   updated exports in src/utils/${indexFile} (${indexPath})`);
 };
 
 
@@ -576,17 +581,22 @@ const writeTypedefsJs = async () =>
         .join("\r\n")}\r\n/* END_RC_DEFS */`
     );
     await writeFile(typesPath, data);
-    logger.success(`   updated definitions in src/types/${typesFile} (${typesPath})`);
+    logger?.success(`   updated definitions in src/types/${typesFile} (${typesPath})`);
 };
 
 
 cliWrap(async () =>
 {
-    logger = new WpwLogger({
-        envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
-    });
-    logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+    if (!DISABLE_WPW_LOGGER)
+    {
+        const WpwLogger = require("../src/utils/console");
+        logger = new WpwLogger({
+            envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
+        });
+        logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+    }
 
+    let result = { code: 0 };
     const inputFile = "spm.schema.wpw.json",
           schemaDir = resolve(__dirname, "..", "schema"),
           indexPath = resolve(__dirname, "..", "src", "types", "index" + extension()),
@@ -598,17 +608,20 @@ cliWrap(async () =>
         throw new Error(`Could not read header from index file 'index${extension()}'`);
     }
 
-    data = await readFile(outputDtsPath, "utf8");
+    try {
+        data = await readFile(outputDtsPath, "utf8");
+    }
+    catch { data = ""; }
+
     const hdr =  match[0]
           .replace(" with `WpWrap`", " with `WpwRc`")
           .replace(`@file types/index${extension()}`, `@file types/${outputDtsFile}`)
           .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
-          .replace("Collectively exports all Wpw types", description);;
+          .replace("Collectively exports all Wpw types", description);
 
-    logger.log("creating rc configuration file types and typings from schema");
-    logger.log("   executing json2ts");
-
-    let result = await execAsync({
+    logger?.log("creating rc configuration file types and typings from schema");
+    logger?.log("   executing json2ts");
+    result = await execAsync({
         logger,
         logPad: "   ",
         execOptions: { cwd: resolve(__dirname, "..", "schema") },
@@ -622,9 +635,9 @@ cliWrap(async () =>
         throw new Error(`Output file '${outputDtsFile}' does not exist`);
     }
 
-    if (RUN_VALIDATION !== false)
+    if (!DISABLE_VALIDATION)
     {
-        logger.write(`   validating ${outputDtsFile}`);
+        logger?.write(`   validating ${outputDtsFile}`);
         result = await execAsync({
             logger,
             logPad: "   ",
@@ -634,7 +647,7 @@ cliWrap(async () =>
         });
 
         if (result.code === 0) {
-            logger.success(`   created ${outputDtsFile} (${outputDtsPath})`);
+            logger?.success(`   created ${outputDtsFile} (${outputDtsPath})`);
         }
         else {
             result = await promptForRestore(outputDtsPath, data);
@@ -649,9 +662,12 @@ cliWrap(async () =>
         await writeIndexJs();
     }
 
-    logger.blank(undefined, logger.icons.color.success);
-    const msg = RUN_VALIDATION !== false ? " [tsc validated]" : " [no tsc validation]";
-    logger.success("types and typings created successfully" + msg, undefined, "", true);
-    logger.blank(undefined, logger.icons.color.success);
+    if (logger)
+    {
+        logger.blank(undefined, logger?.icons.color.success);
+        const msg = !DISABLE_VALIDATION ? " [tsc validated]" : " [no tsc validation]";
+        logger.success("types and typings created successfully" + msg, undefined, "", true);
+        logger.blank(undefined, logger?.icons.color.success);
+    }
 
 })();

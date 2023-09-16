@@ -105,16 +105,17 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 */
 	getCompilerOptions()
 	{
-		const source = this.build.source,
-			  configuredOptions = this.build.source.config.compilerOptions,
-			  basePath = this.build.getBasePath(),
+		const build = this.build,
+			  source = build.source,
+			  configuredOptions = build.source.config.compilerOptions,
+			  basePath = build.getBasePath(),
 			  //
 			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
 			  //        if separate, use buildinfofile specified in config file
 			  //
 			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
 			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
-			  declarationDir = configuredOptions.declarationDir || this.build.getDistPath({ rel: true, psx: true });
+			  declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true });
 
 		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
 		const programOptions = {
@@ -137,7 +138,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
 		{
 			programOptions.declarationDir = undefined;
-			programOptions.outFile = join(declarationDir, this.build.name);
+			programOptions.outFile = join(declarationDir, build.name);
 		}
 		if (!configuredOptions.incremental && !!configuredOptions.composite)
 		{
@@ -151,10 +152,10 @@ class WpwTypesPlugin extends WpwTscPlugin
 		{   //
 			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
 			//
-			if (this.build.target !== "node") {
+			if (build.target !== "node") {
 				programOptions.moduleResolution = "node";
 			}
-			// else if (this.build.nodeVersion < 12) {
+			// else if (build.nodeVersion < 12) {
 			//	programOptions.moduleResolution = "node10";
 			// }
 			else {
@@ -172,7 +173,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 */
 	compilerOptionsToArgs(options)
 	{
-		return Object.entries(options).map(([ key, value ]) => value !== true ? `--${key} ${value}` : `--${key}`);
+		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
 	}
 
 
@@ -213,14 +214,15 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 */
 	async types(assets)
 	{
-		const source = this.build.source,
+		const build = this.build,
+			  source = build.source,
 			  logger = this.logger,
-			  basePath = this.build.getBasePath(),
+			  basePath = build.getBasePath(),
 			  method = this.buildOptions.method,
 			  tscConfig = source.config,
 			  compilerOptions = tscConfig.compilerOptions,
-			  typesSrcDir = this.build.getSrcPath(),
-			  typesDistDir = this.build.getDistPath({ rel: true, psx: true, fallback: true }),
+			  typesSrcDir = build.getSrcPath(),
+			  typesDistDir = build.getDistPath({ rel: true, psx: true, fallback: true }),
 			  outputDir = compilerOptions.declarationDir ?? typesDistDir;
 
 		logger.write("start types build", 1);
@@ -245,7 +247,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (method === "program")
 		{
 			const ignore = tscConfig.exclude || [],
-				  files = this.build.source.config.files,
+				  files = build.source.config.files,
 				  typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
 			// if (typesExcludeIdx !== -1) {
 			// 	ignore.splice(typesExcludeIdx, 1);
@@ -269,19 +271,19 @@ class WpwTypesPlugin extends WpwTscPlugin
 			// 		for (const incPath of tscConfig.include)
 			// 		{
 			// 			let globPattern;
-			// 			const globMatch = incPath.match(new RegExp(`.*?(\\*\\*?(?:[\\\\\\/]\\*(?:\\*|\\.${this.build.source.ext})))`));
+			// 			const globMatch = incPath.match(new RegExp(`.*?(\\*\\*?(?:[\\\\\\/]\\*(?:\\*|\\.${build.source.ext})))`));
 			// 			if (globMatch) {
 			// 				globPattern = globMatch[1];
 			// 			}
-			// 			const fullPath = resolvePath(this.build.getBasePath(), !globPattern ? incPath : incPath.replace(globPattern, ""));
+			// 			const fullPath = resolvePath(build.getBasePath(), !globPattern ? incPath : incPath.replace(globPattern, ""));
 			// 			if (globPattern || isDirectory(fullPath))
 			// 			{
 			// 				logger.value("      add files from include path", incPath, 4);
 			// 				const incFiles = await findFiles(
 			// 					// incPath,
-			// 					globPattern ? incPath : `${incPath}/**/*.${this.build.source.ext}`,
-			// 					// `${incPath}/**/*.${this.build.source.ext}`,
-			// 					{ cwd: this.build.getBasePath(), ignore: tscConfig.exclude, absolute: true
+			// 					globPattern ? incPath : `${incPath}/**/*.${build.source.ext}`,
+			// 					// `${incPath}/**/*.${build.source.ext}`,
+			// 					{ cwd: build.getBasePath(), ignore: tscConfig.exclude, absolute: true
 			// 				});
 			// 				files.push(...incFiles);
 			// 			}
@@ -295,11 +297,11 @@ class WpwTypesPlugin extends WpwTscPlugin
 			// 		logger.write("   input files list modification complete", 2);
 			// 	}
 			// }
-			this.build.source.createProgram(options, files);
-			const result = this.build.source.emit(undefined, undefined, undefined, true);
+			build.source.createProgram(options, files);
+			const result = build.source.emit(undefined, undefined, undefined, true);
 			if (!result)
 			{
-				this.build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
+				build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
 				return;
 			}
 			rc = !result.emitSkipped ? result.diagnostics.length : -1;
@@ -309,7 +311,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), 1, outputDir);
 		}
 		else {
-			this.build.addMessage({
+			build.addMessage({
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: `configured build method is '${method}'`
@@ -318,10 +320,12 @@ class WpwTypesPlugin extends WpwTscPlugin
 
 		if (rc === 0)
 		{
-			const outputDirAbs = resolve(this.build.getBasePath(), outputDir);
+			logger.write("   types build successful, process assets", 2);
+
+			const outputDirAbs = resolve(build.getBasePath(), outputDir);
 			if (!(await existsAsync(outputDirAbs)))
 			{
-				this.build.addMessage({
+				build.addMessage({
 					code: WpwError.Msg.ERROR_TYPES_FAILED,
 					compilation: this.compilation,
 					message: "output directory does not exist"
@@ -331,6 +335,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 
 			const _emit = async (fileAbs) =>
 			{
+				console.log(fileAbs);
 				const info = /** @type {typedefs.WebpackAssetInfo} */({
 					immutable: false,
 					javascriptModule: false,
@@ -357,14 +362,14 @@ class WpwTypesPlugin extends WpwTscPlugin
 					for (const file of source.config.files){
 						this.compilation.fileDependencies.add(file);
 					}
-					await _emit(resolvePath(basePath, options.outFile));
+					await _emit(resolvePath(basePath, `${options.outFile}.d.ts`));
 				}
 			}
 			else
 			{
 				const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
 				for (const file of files){
-					await _emit(relativePath(basePath, file));
+					await _emit(file);
 				}
 			}
 

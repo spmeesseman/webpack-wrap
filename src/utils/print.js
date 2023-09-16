@@ -77,13 +77,13 @@ const printBuildProperties = (build, wrapper) =>
     l.write("Source Code Configuration:", 1, "", 0, l.colors.white);
     l.value("   source code ext", build.source.ext, 1);
     l.value("   source code type", build.source.type, 1);
-    l.value("   ts/js config file", build.source.configFile.file, 2);
-    l.value("   ts/js config directory", build.source.configFile.dir, 2);
-    l.value("   ts/js config path", build.source.configFile.path, 2);
-    l.value("   source configured options", JSON.stringify(pickNot(build.source.configFile, "raw")), 3);
-    l.value("   ts/js configured options", JSON.stringify(pickNot(build.source.config, "compilerOptions", "files")), 3);
-    l.value("   ts/js configured compiler options", JSON.stringify(build.source.config.compilerOptions), 3);
-    l.value("   ts/js configured files", JSON.stringify(build.source.config.files), 4);
+    l.value("   config file", build.source.configFile.file, 2);
+    l.value("   config directory", build.source.configFile.dir, 2);
+    l.value("   config path", build.source.configFile.path, 2);
+    l.value("   config file info", JSON.stringify(pickNot(build.source.configFile, "raw")), 3);
+    l.value("   tsc options", JSON.stringify(pickNot(build.source.config, "compilerOptions", "files")), 3);
+    l.value("   tsc compiler options", JSON.stringify(build.source.config.compilerOptions), 3);
+    l.value("   tsc auto-generated files list", JSON.stringify(build.source.config.files), 3);
     l.sep();
 };
 

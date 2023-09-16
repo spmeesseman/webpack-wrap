@@ -381,9 +381,28 @@ class WpwWrapper extends WpwBase
     touchBuildOptionsEnabled(options)
     {
         if (!options) { return; }
-        Object.keys(options).filter(k => isObject(options[k])).forEach((k) =>
+        Object.keys(options).forEach((k) =>
         {
-            options[k].enabled = options[k].enabled !== false ? true : false;
+            applySchemaDefaults(options[k], "WpwBuildOptions", k);
+            if (isObject(options[k]))
+            {
+                if (options[k].enabled === false) {
+                    delete options[k];
+                }
+                else {
+                    options[k].enabled = true;
+                }
+            }
+            else if (options[k] === true)
+            {
+                options[k].enabled = { enabled: true };
+            }
+            else if (options[k] === false) {
+                delete options[k];
+            }
+            else {
+                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: `invalid build options [${k}]` });
+            }
         });
     }
 
