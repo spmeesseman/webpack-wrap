@@ -346,6 +346,15 @@ class WpwBuild extends WpwBase
 
 
     /**
+     * @template {typedefs.WpwGetRcPathOptions | undefined} P
+     * @template {P extends { stat: true } ? string | undefined : string} R
+     * @param {P} [options]
+     * @returns {R}
+     */
+    getTempPath = (options) => this.getRcPath("temp", options);
+
+
+    /**
      * @private
      */
     getType()
@@ -374,7 +383,6 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, config);
         objUtils.applyIf(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-        // this.mergeDefaultOptions();
         this.configureDependencyOptions();
     }
 
@@ -386,43 +394,6 @@ class WpwBuild extends WpwBase
     {
         this.logger = new WpwLogger(this.log);
         this.logger.write(`initializing configured build '${this.name}'`, 1);
-    }
-
-
-    /**
-     * @private
-     * @throws {WpwError}
-     */
-    mergeDefaultOptions()
-    {
-        const options = this.options,
-              initialOptions = this.initialConfig.options;
-        Object.keys(options).forEach((k) =>
-        {
-            applySchemaDefaults(options[k], "WpwBuildOptions", k);
-            if (options[k] === true) {
-                options[k] = { enabled: true };
-            }
-            else if (options[k] === false) {
-                delete options[k];
-            }
-            else if (typeUtils.isObject(options[k]))
-            {
-                if (options[k].enabled === false || options[k].enabled !== true)
-                {
-                    if (!initialOptions[k] || initialOptions[k].enabled === false) {
-                        delete options[k];
-                    }
-                    else { options[k].enabled = true; }
-                }
-                else if (typeUtils.isObjectEmpty(options[k]) || typeUtils.isEmpty(options[k].enabled)) {
-                    options[k].enabled = true;
-                }
-            }
-            else {
-                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA_VALIDATION, message: `build options [${this.name}]` });
-            }
-        });
     }
 
 

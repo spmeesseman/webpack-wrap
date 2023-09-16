@@ -153,8 +153,7 @@ class WpwWrapper extends WpwBase
 
 
     /**
-     * Base entry function to initialize builds in the compilation and provide the webpack
-     * configuration export(s) to the calling module i.e. webpack.config.js or wpwrap.js.
+     * Base entry function on startup
      *
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpwRuntimeEnvArgs} arge
@@ -168,17 +167,11 @@ class WpwWrapper extends WpwBase
      */
     createBuilds()
     {
-        this.builds.push(
-            ...this.buildConfigs.filter(
-                (b) => (!this.arge.build || b.name === this.arge.build)).map((b) => new WpwBuild(b, this)
-            )
-        );
+        this.builds.push(...this.buildConfigs.filter(
+            (b) => (!this.arge.build || b.name === this.arge.build)).map(b => new WpwBuild(b, this)
+        ));
         this.maybeAddTypesBuild();
-        this.builds.forEach((b) =>
-        {
-            const wpConfig = b.webpackExports();
-            merge(wpConfig, this.overrides, this[this.mode].overrides, b.overrides);
-        });
+        this.builds.forEach(b => { merge(b.webpackExports(), this.overrides, this[this.mode].overrides, b.overrides); });
     }
 
 
@@ -195,9 +188,7 @@ class WpwWrapper extends WpwBase
               modeBuildConfigs = modeConfig.builds,
               emptyConfig = () => /** @type {typedefs.IWpwBuildConfig} */({});
         //
-        // First loop all builds that werw defeined in sechema.builds `baseBuildConfigs`. Then merge
-        // in both thw base configuration properties in the root level schema/rc, and then the build
-        // configuration itself
+        // First loop all builds that were defined in wpwrc.builds
         //
         baseBuildConfigs.forEach((config) =>
         {
@@ -206,8 +197,8 @@ class WpwWrapper extends WpwBase
         });
         //
         // Process the current environment's config.  Add all builds defined in the env config that
-        // aren't defined at root level, and pply the root base config and mode base cconfig to each.
-        // If the build "is" defined already at root level, then merge in the environment config.
+        // aren't defined at root level, and apply the base config and mode cconfig to each. If the
+        // build "is" defined already at root level, merge in the environment config.
         //
         modeBuildConfigs.forEach((config) =>
         {
@@ -221,9 +212,7 @@ class WpwWrapper extends WpwBase
             merge(rootBuildConfig, config);
         });
         //
-        // Resolve all defined paths in all root level build config to an absolute path.  If the build
-        // config defines `log.color`, then apply that color to some of the base color properties if
-        // they are not specifically defined already.
+        // Resolve all configured paths to absolute and apply color transformations
         //
         this.buildConfigs.forEach((config) =>
         {
@@ -335,9 +324,7 @@ class WpwWrapper extends WpwBase
     printBanner()
     {
         const name = this.pkgJson.displayName || this.pkgJson.scopedName.name;
-        WpwLogger.printBanner(
-            name, this.pkgJson.version || "1.0.0",
-            ` Start Webpack Build for ${this.pkgJson.name}`,
+        WpwLogger.printBanner(name, this.pkgJson.version || "1.0.0", ` Start Webpack Build for ${this.pkgJson.name}`,
             (l) => {
                 l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
                 l.write("   Argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);
@@ -393,15 +380,14 @@ class WpwWrapper extends WpwBase
                     options[k].enabled = true;
                 }
             }
-            else if (options[k] === true)
-            {
+            else if (options[k] === true) {
                 options[k].enabled = { enabled: true };
             }
             else if (options[k] === false) {
                 delete options[k];
             }
             else {
-                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: `invalid build options [${k}]` });
+                throw new WpwError({ code: WpwError.Msg.ERROR_SCHEMA, message: `invalid build options [${k}]` });
             }
         });
     }

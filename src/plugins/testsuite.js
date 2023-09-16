@@ -87,7 +87,7 @@ class WpwTestSuitePlugin extends WpwTscPlugin
 		}
 
 		const relTsConfigPath = relative(this.build.getBasePath(), this.build.source.configFile.path);
-		await this.execTsBuild(this.build.source.configFile, [ "-p", relTsConfigPath ], 2, testsDir);
+		await this.execTsBuild(this.build.source.configFile, [ "-p", relTsConfigPath ], testsDir);
 	}
 
 }

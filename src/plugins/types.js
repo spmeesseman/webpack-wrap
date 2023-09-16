@@ -10,14 +10,15 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { resolve, join } = require("path");
+const { resolve, join, dirname } = require("path");
 const WpwTscPlugin = require("./tsc");
-const { unlink, readFile } = require("fs/promises");
+const { unlink, readFile, rmdir } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { existsSync } = require("fs");
 const { existsAsync, apply, findFiles, relativePath, resolvePath, isDirectory, isBoolean, isObject } = require("../utils");
 const { writeFile } = require("fs/promises");
+const { rm } = require("fs/promises");
 
 
 /**
@@ -25,6 +26,8 @@ const { writeFile } = require("fs/promises");
  */
 class WpwTypesPlugin extends WpwTscPlugin
 {
+	/** @type {string} @private */
+	buildPathTemp;
     /** @type {typedefs.WpwBuildOptionsConfig<"types">} @protected */
     buildOptions;
 	/** @type {string} @private */
@@ -38,6 +41,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 	constructor(options)
 	{
 		super(options);
+		this.buildPathTemp = join(this.build.getTempPath(), "types", "build");
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
 	}
@@ -96,6 +100,10 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
 		}
+		const tempBuildDIr = join(this.build.getTempPath(), "types", "build");
+		if (await existsAsync(tempBuildDIr)) {
+			await rm(tempBuildDIr, { recursive: true, force: true });
+		}
 	};
 
 
@@ -103,7 +111,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 	 * @private
 	 * @returns {typedefs.WpwSourceConfigCompilerOptions}
 	 */
-	getCompilerOptions()
+	compilerOptions()
 	{
 		const build = this.build,
 			  source = build.source,
@@ -115,7 +123,8 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  //
 			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
 			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
-			  declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true });
+			  // declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true }),
+			  declarationDir = this.buildPathTemp;
 
 		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
 		const programOptions = {
@@ -138,9 +147,9 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
 		{
 			programOptions.declarationDir = undefined;
-			programOptions.outFile = join(declarationDir, build.name);
+			programOptions.outFile = join(declarationDir, build.name); // don't specify an extension
 		}
-		if (!configuredOptions.incremental && !!configuredOptions.composite)
+		if (!configuredOptions.incremental && !configuredOptions.composite)
 		{
 			programOptions.incremental = true;
 		}
@@ -175,6 +184,37 @@ class WpwTypesPlugin extends WpwTscPlugin
 	{
 		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
 	}
+
+
+	async emit()
+	{
+		const files = await findFiles("**/*.d.ts", { cwd: this.buildPathTemp, absolute: true });
+		for (const file of files)
+		{
+			const assetPath = relativePath(this.buildPathTemp, file),
+				  dirPathRealAbs = dirname(file),
+				  data = await readFile(file),
+				  source = new this.compiler.webpack.sources.RawSource(data);
+			const info = /** @type {typedefs.WebpackAssetInfo} */({
+				immutable: false,
+				javascriptModule: false,
+				types: true
+			});
+			try
+			{   await unlink(file);
+				if ((await findFiles("*.*", { cwd: dirPathRealAbs })).length === 0) {
+					await rm(dirPathRealAbs, { recursive: true, force: true });
+				}
+			}
+			catch (e)
+			{   this.build.addMessage({
+					code: WpwError.Msg.WARNING_GENERAL,
+					message: `failed to remove temp files, asset '${assetPath}' will still be emitted` }
+				);
+			}
+			this.compilation.emitAsset(assetPath, source, info);
+		}
+	};
 
 
 	/**
@@ -221,17 +261,20 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  method = this.buildOptions.method,
 			  tscConfig = source.config,
 			  compilerOptions = tscConfig.compilerOptions,
-			  typesSrcDir = build.getSrcPath(),
-			  typesDistDir = build.getDistPath({ rel: true, psx: true, fallback: true }),
-			  outputDir = compilerOptions.declarationDir ?? typesDistDir;
+			  srcDir = build.getSrcPath(),
+			  // distDirAbs = build.getDistPath({ fallback: true }),
+			  distDirRel = build.getDistPath({ rel: true, psx: true, fallback: true }),
+			  outputDirRel = compilerOptions.declarationDir ?? distDirRel,
+			  outputDirAbs = resolvePath(basePath, outputDirRel);
 
 		logger.write("start types build", 1);
 		logger.value("   method", method, 2);
 		logger.value("   mode", this.buildOptions.mode, 2);
 		logger.value("   entry", this.buildOptions.entry, 2);
 		logger.value("   base path", basePath, 3);
-		logger.value("   source path", typesSrcDir, 3);
-		logger.value("   output directory", outputDir, 2);
+		logger.value("   source path", srcDir, 3);
+		logger.value("   dist directory", distDirRel, 2);
+		logger.value("   output directory", outputDirRel, 2);
 		logger.value("   build options", this.buildOptions, 4);
 
 		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
@@ -241,14 +284,14 @@ class WpwTypesPlugin extends WpwTscPlugin
 		}
 
 		let rc;
-		const options = this.getCompilerOptions();
-		this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDir);
+		const options = this.compilerOptions();
+		this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDirRel);
 
 		if (method === "program")
 		{
-			const ignore = tscConfig.exclude || [],
-				  files = build.source.config.files,
-				  typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
+			const // ignore = tscConfig.exclude || [],
+				  files = build.source.config.files; // ,
+				  // typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
 			// if (typesExcludeIdx !== -1) {
 			// 	ignore.splice(typesExcludeIdx, 1);
 			// }
@@ -308,7 +351,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 		}
 		else if (method === "tsc")
 		{
-			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), 1, outputDir);
+			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), this.buildPathTemp);
 		}
 		else {
 			build.addMessage({
@@ -321,59 +364,25 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (rc === 0)
 		{
 			logger.write("   types build successful, process assets", 2);
-
-			const outputDirAbs = resolve(build.getBasePath(), outputDir);
-			if (!(await existsAsync(outputDirAbs)))
-			{
-				build.addMessage({
-					code: WpwError.Msg.ERROR_TYPES_FAILED,
-					compilation: this.compilation,
-					message: "output directory does not exist"
-				});
-				return;
-			}
-
-			const _emit = async (fileAbs) =>
-			{
-				console.log(fileAbs);
-				const info = /** @type {typedefs.WebpackAssetInfo} */({
-					immutable: false,
-					javascriptModule: false,
-					types: true
-				});
-				const data = await readFile(fileAbs),
-				      source = new this.compiler.webpack.sources.RawSource(data);
-				this.compilation.emitAsset(relativePath(basePath, fileAbs), source, info);
-			};
-
 			const bundleOptions = this.buildOptions.bundle,
-			      isBundleEnabled = bundleOptions === true || isObject(bundleOptions);
+				  bundleOptionsIsCfg = isObject(bundleOptions),
+			      isBundleEnabled = bundleOptions === true || bundleOptionsIsCfg;
 			if (isBundleEnabled)
 			{
-				const bundler = isObject(bundleOptions) ? bundleOptions.bundler : "tsc";
-				if (bundler === "dts-bundle")
+				if (bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
 				{
 					await this.dtsBundle("types");
-				}
-				else
-				{   // const files = await findFiles(
-					// 	"**/*.ts", { cwd: outputDirAbs, absolute: true, ignore: [ "**/" + options.outFile ] }
-					// );
-					for (const file of source.config.files){
-						this.compilation.fileDependencies.add(file);
-					}
-					await _emit(resolvePath(basePath, `${options.outFile}.d.ts`));
+				}     //
+				else // for `tsc` bundler, `outFile` is simply set in transpilation, so no extra step...
+				{	//
+					// await this.emit(`${options.outFile}.d.ts`);
+					await this.emit();
 				}
 			}
-			else
-			{
-				const files = await findFiles("**/*.d.ts", { cwd: outputDirAbs, absolute: true });
-				for (const file of files){
-					await _emit(file);
-				}
+			else {
+				await this.emit();
 			}
-
-			logger.write("type definitions created successfully @ " + outputDir, 1);
+			logger.write("type definitions created successfully @ " + outputDirRel, 1);
 		}
 		else {
 			logger.write(`type definitions compilation completed with failure [code:${rc}]`, 1);

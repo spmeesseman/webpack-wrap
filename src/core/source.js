@@ -52,11 +52,11 @@ class WpwSource
     constructor(sourceConfig, build)
     {
         this.logger = build.logger;
-        const configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build);
         apply(this, {
             type: sourceConfig.type || "javascript",
             ext: sourceConfig.type === "typescript" ? "ts" : "js"
         }, sourceConfig);
+        const configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build);
         if (configFileInfo)
         {
             const configFile = /** @type {typedefs.WpwSourceTsConfigFile} */(pickNot(configFileInfo, "config")),

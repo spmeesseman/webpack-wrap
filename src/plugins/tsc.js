@@ -145,13 +145,12 @@ class WpwTscPlugin extends WpwPlugin
 	 * @protected
 	 * @param {typedefs.WpwSourceTsConfigFile} configFile
 	 * @param {string[]} args
-	 * @param {number} identifier Unique group identifier to associate with the file path
 	 * @param {string} outputDir Output directory of build
 	 * @param {boolean} [alias] Write alias paths with ``
 	 * @returns {Promise<number | null>}
 	 * @throws {typedefs.WpwError}
 	 */
-	async execTsBuild(configFile, args, identifier, outputDir, alias)
+	async execTsBuild(configFile, args, outputDir, alias)
 	{
 		if (!configFile || !configFile.path) {
 			this.build.addMessage({
@@ -166,10 +165,14 @@ class WpwTscPlugin extends WpwPlugin
 		// 	"--presets=@babel/preset-env,@babel/preset-typescript",
 		// ];
 		const logger = this.build.logger,
-			  relativeOutputPath = relativePath(this.build.paths.base, configFile.path);
+			  baseBuildDir = this.build.getBasePath(),
+			  declarationDir = this.build.source.config.compilerOptions.declarationDir,
+			  configFilePathRel = relativePath(this.build.getBasePath(), configFile.path),
+			  dtsFilesOutputDir = resolvePath(baseBuildDir, outputDir);
+			  // dtsFilesOutputDir = resolvePath(baseBuildDir, declarationDir ?? this.build.getDistPath({ fallback: true }));
 
-		let command = `npx tsc -p ./${relativeOutputPath} ${args.join(" ")}`;
-		logger.write(`   execute tsc command using config file @ [${configFile.path}]`, 1);
+		let command = `npx tsc -p ./${configFilePathRel} ${args.join(" ")}`;
+		logger.write(`   execute tsc command [ config file @ ${configFile.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);
 
 		let result = await this.exec(command, "tsc");
@@ -186,7 +189,7 @@ class WpwTscPlugin extends WpwPlugin
 		// Ensure target directory exists
 		//
 		try {
-			await access(outputDir);
+			await access(dtsFilesOutputDir);
 		}
 		catch (e) {
 			this.build.addMessage({
@@ -218,12 +221,12 @@ class WpwTscPlugin extends WpwPlugin
 		//
 		// Process output files
 		//
-		const files = await findFiles("**/*.{js,d.ts}", { cwd: outputDir, absolute: true });
-		for (const filePath of files)
-		{
-			// let data, source, hash, newHash, cacheEntry, persistedCache;
-			const filePathRel = relativePath(outputDir, filePath);
-			logger.value("   process types output file", filePathRel, 4);
+		// const files = await findFiles("**/*.{js,d.ts}", { cwd: outputDir, absolute: true });
+		// for (const filePath of files)
+		// {
+		// 	// let data, source, hash, newHash, cacheEntry, persistedCache;
+		// 	const filePathRel = relativePath(outputDir, filePath);
+		// 	logger.value("   process types output file", filePathRel, 4);
 		// 	logger.write("      check compilation cache for snapshot", 4);
 		// 	try {
 		// 		persistedCache = this.cache.get();
@@ -316,8 +319,8 @@ class WpwTscPlugin extends WpwPlugin
 
 		// logger.value("      add to compilation build dependencies", filePathRel, 5);
 		// this.compilation.buildDependencies.add(filePathRel);
-		logger.write("      add to compilation file dependencies", 5);
-		this.compilation.fileDependencies.add(filePath);
+		// logger.write("      add to compilation file dependencies", 5);
+		// this.compilation.fileDependencies.add(filePath);
 		// this.compilation.compilationDependencies.add();this.compilation.
 		// this.compilation.contextDependencies.add();
 
@@ -344,7 +347,7 @@ class WpwTscPlugin extends WpwPlugin
 		// 		this.compilation.comparedForEmitAssets.add(filePathRel);
 		// 		this.compilation.compilationDependencies.add(filePathRel);
 		// 	}
-		}
+		// }
 
 		logger.write("   finished execution of tsc command", 3);
 		return 0;
