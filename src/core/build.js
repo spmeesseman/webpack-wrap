@@ -118,6 +118,11 @@ class WpwBuild extends WpwBase
             utils.pushIfNotExists(messages, "tscheck");
         }
 
+        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
+        {
+            this.options.experiments = { enabled: true };
+        }
+
         if (this.options.sourcemaps)
         {
             if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)

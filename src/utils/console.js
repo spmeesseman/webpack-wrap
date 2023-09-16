@@ -385,7 +385,7 @@ class WpwLogger
 
     /**
      * Write / log a message and an aligned value to the console.  The message pad space is defined
-     * by .wpbuildrc.`log.pad.value` (defaults to 45)
+     * by ..wpwrc.`log.pad.value` (defaults to 45)
      * @param {string} msg
      * @param {any} val
      * @param {typedefs.WpwLoggerLevel} [level]

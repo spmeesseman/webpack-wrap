@@ -12,30 +12,24 @@
  *
  * When adding a new extending plugin, perform the following tasks:
  *
- *     1. Add the plugin filename (w/o extnsion) to the `WpBuildPluginName` type near the
- *        top of the WpBuild types file
- *        file:///c:\Projects\vscode-taskexplorer\webpack\types\wpbuild.d.ts
+ *     1. Add the plugin filename (w/o extnsion) to the `WpwPluginName` type near the
+ *        top of the types file
+ *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\types\wpwbuild.ts
  *
- *     2. Adjust the default application object's plugins hash by adding the plugin filename
- *        (w/o/ extension) as a key of the `plugins()` return object
- *        file:///:\Projects\vscode-taskexplorer\webpack\utils\environment.js
+ *     2. Adjust the schema file by adding the plugin name to relevant areas, and adding a
+ *        new config definition object.
+ *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\schema\spm.schema.wpw.json
  *
- *     3. Adjust the rc configuration files by adding the plugin filename (w/o/ extension)
- *        as a key of the `plugins` object in both the schema json file and the defaults file
- *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.schema.json
- *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.defaults.json
+ *     3. Run the `generate-rc-types` script / npm task to rebuild rc.ts definition file
+ *        file:///c:\Projects\@spmeesseman\webpack-wrap\script\generate-rc-types.js
  *
- *     4. Run the `generate-wpbuild-types` script / npm task to rebyuild rc.d.ts definition file
- *        file:///c:\Projects\vscode-taskexplorer\webpack\.wpbuildrc.json
- *        file:///c:\Projects\vscode-taskexplorer\webpack\schema\.wpbuildrc.schema.json
+ *     4. Add a module reference to plugin directory index file and add to it's module.exports
+ *        file://c:\Projects\@spmeesseman\webpack-wrap\src\plugin\index.js
  *
- *     5. Add a module reference to plugin directory index file and add to it's module.exports
- *        file://c:\Projects\vscode-taskexplorer\webpack\plugin\index.js
- *
- *     6.  Add the module into the module in the webpack exports byt importing and placing it
- *         in an appropriate position in the configuraation plugin array.
- *         file:///c:\Projects\vscode-taskexplorer\webpack\exports\plugins.js
- */
+ *     5.  Add the plugin into the webpack exports by importing and placing it in an appropriate
+ *         position in the exports.plugins array.
+ *         file:///c:\Projects\@spmeesseman\webpack-wrap\src\exports\plugins.js
+ *//** */
 
 const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");

@@ -1,9 +1,7 @@
 // @ts-check
 
-const WpwBase = require("../core/base");
-
 /**
- * @file exports/devtool.js
+ * @file src/exports/devtool.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023

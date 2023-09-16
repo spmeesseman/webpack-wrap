@@ -1,8 +1,8 @@
 {
-    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/.wpbuildrc.schema.json",
-    "name": "vscode-taskexplorer",
-    "displayName": "Task Explorer",
-    "detailedDisplayName": "Task Explorer VSCode Extension",
+    "$schema": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/spm.schema.wpw.json",
+    "name": "vscode-taskexplorer-sample",
+    "displayName": "Task Explorer [Sample]",
+    "detailedDisplayName": "Task Explorer VSCode Extension [Sample]",
     "publicInfoProject": true,
     "builds": [
         {

@@ -1,5 +1,13 @@
 // @ts-check
 
+/**
+ * @file src/exports/base.js
+ * @version 0.0.1
+ * @license MIT
+ * @copyright Scott P Meesseman 2023
+ * @author Scott Meesseman @spmeesseman
+ *//** */
+
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseModule = require("../core/basemodule");

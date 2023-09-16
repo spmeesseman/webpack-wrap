@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json",
+    "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json",
     "description": "Webpack-Wrap configuration file schema",
     "title": "WpwSchema",
     "type": "object",
@@ -11,7 +11,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/wpbuild\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/\\.wpbuildrc\\.schema\\.json(?:.*?)$"
+            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app1\\.spmeesseman\\.com\\/res\\/app\\/webpack\\-wrap\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/\\.spm\\.schema\\.json(?:.*?)$"
         },
         "builds": {
             "$ref": "#/definitions/WpwBuildConfigs"

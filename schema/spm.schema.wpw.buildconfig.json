@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.buildconfig.json",
+    "description": "WpBuild build configuration schema",
+    "type": "object",
+    "properties": {
+        "build": {
+            "$ref": "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json#/WpwBuildConfig"
+        }
+    }
+}

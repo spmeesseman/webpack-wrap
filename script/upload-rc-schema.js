@@ -11,14 +11,14 @@
 
 const { resolve } = require("path");
 const { execAsync } = require("../src/utils/utils");
-const WpBuildConsoleLogger = require("../src/utils/console");
+const WpwLogger = require("../src/utils/console");
 
 
 //
 // Run from script directtory so we work regardless of where cwd is set
 //
 
-/** @type {WpBuildConsoleLogger} */
+/** @type {WpwLogger} */
 let logger;
 
 const remotePath = resolve(__dirname, "..", "schema");
@@ -46,16 +46,14 @@ cliWrap(async () =>
         throw new Error("Required environment variables for upload are not set");
     }
 
-    logger = new WpBuildConsoleLogger({
-        envTag1: "wpbuild", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
-    });
+    logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "upload", level: 5 });
     logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
 
     const plinkCmds = [
-        `mkdir ${rBasePath}/wpbuild`,
-        `mkdir ${rBasePath}/wpbuild/v${version}`,
-        `mkdir ${rBasePath}/wpbuild/v${version}/schema`,
-        `rm -f ${rBasePath}/wpbuild/v${version}/schema/.wpbuildrc.*.json"`
+        `mkdir ${rBasePath}/webpack-wrap`,
+        `mkdir ${rBasePath}/webpack-wrap/v${version}`,
+        `mkdir ${rBasePath}/webpack-wrap/v${version}/schema`,
+        `rm -f ${rBasePath}/webpack-wrap/v${version}/schema/spm.schema.*.json"`
     ];
 
     const plinkArgs = [
@@ -73,7 +71,7 @@ cliWrap(async () =>
         "-q",         // quiet, don't show statistics
         "-r",         // copy directories recursively
         remotePath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
-        `${user}@${host}:"${rBasePath}/wpbuild/v${version}"` // uploaded, and created if not exists
+        `${user}@${host}:"${rBasePath}/webpack-wrap/v${version}"` // uploaded, and created if not exists
     ];
 
     logger.log("   plink: create / clear remmote directory");

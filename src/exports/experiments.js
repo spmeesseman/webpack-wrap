@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file exports/experimental.js
+ * @file src/exports/experimental.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023

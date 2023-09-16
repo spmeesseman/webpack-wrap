@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file plugin/entry.js
+ * @file src/exports/entry.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -11,7 +11,7 @@
  *
  * @see {@link https://webpack.js.org/configuration/entry-context/}
  *
- */
+ *//** */
 
 const { glob } = require("glob");
 const { basename } = require("path");

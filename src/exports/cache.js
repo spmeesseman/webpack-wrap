@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file exports/cache.js
+ * @file src/exports/cache.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -38,7 +38,7 @@ const cache = (build) =>
                 ]
             }
         });
-        let rcPath = join(basePath, ".wpbuildrc.json");
+        let rcPath = join(basePath, ".wpwrc.json");
         if (existsSync(rcPath)) {
             cache.buildDependencies.config.push(rcPath);
         }
@@ -49,13 +49,13 @@ const cache = (build) =>
                 cache.buildDependencies.config.push(rcPath);
             }
             else {
-                rcPath = join(basePath, ".wpw.json");
+                rcPath = join(basePath, ".webpackwraprc.json");
                 if (existsSync(rcPath)) {
                     cache.buildDependencies.config.push(rcPath);
                 }
             }
         }
-        const projectSchemaPath = join(basePath, "schema", ".wpbuildrc.schema.json");
+        const projectSchemaPath = join(basePath, "schema", "spm.schema.wpw.json");
         if (existsSync(projectSchemaPath)) {
             cache.buildDependencies.config.push(projectSchemaPath);
         }

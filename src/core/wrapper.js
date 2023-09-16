@@ -3,7 +3,7 @@
 // @ts-check
 
 /**
- * @file utils/app.js
+ * @file src/core/wrapper.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -289,7 +289,7 @@ class WpwWrapper extends WpwBase
             wpwVersion: JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version
         });
         applySchemaDefaults(this, "WpwSchema");
-        this.applyJsonFromFile(this, ".wpbuildrc.json");
+        this.applyJsonFromFile(this, ".wpwrc.json");
         this.applyPackageJson();
     }
 

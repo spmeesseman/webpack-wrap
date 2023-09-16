@@ -12,15 +12,15 @@
 
 const { EOL } = require("os");
 const { existsSync } = require("fs");
+const WpwLogger = require("../src/utils/console");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
-const WpBuildConsoleLogger = require("../src/utils/console");
 
 const DTS_MODE = false;
 const RUN_VALIDATION = true;
 
-const description = "Provides types macthing the .wpbuildrc.json configuration file schema";
+const description = "Provides types macthing the .wpwrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const classTypes = [
@@ -118,7 +118,7 @@ const lines = [];
 /** @type {[ string, "type" | "enum", string ][]} */
 const typedefs = [];
 
-/** @type {WpBuildConsoleLogger} */
+/** @type {WpwLogger} */
 let logger;
 
 // @ts-ignore
@@ -582,12 +582,12 @@ const writeTypedefsJs = async () =>
 
 cliWrap(async () =>
 {
-    logger = new WpBuildConsoleLogger({
+    logger = new WpwLogger({
         envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
     logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
 
-    const inputFile = ".wpbuildrc.schema.json",
+    const inputFile = "spm.schema.wpw.json",
           schemaDir = resolve(__dirname, "..", "schema"),
           indexPath = resolve(__dirname, "..", "src", "types", "index" + extension()),
           jsontotsFlags = "-f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties";

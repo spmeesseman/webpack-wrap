@@ -147,8 +147,8 @@ const getSchema = (key) =>
         try {
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
             // const schema = {
-            //    $ref: key ? `https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/${key}` :
-            //                "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json"
+            //    $ref: key ? `https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json#/${key}` :
+            //                "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json"
             // };
             // const ajv = new Ajv({loadSchema: loadSchema})
             // ajv.compileAsync(schema).then(function (validate) {
@@ -177,7 +177,7 @@ const getSchema = (key) =>
  * @returns {string}
  */
 const getSchemaFile = (key) =>
-    join(SchemaDirectory, `.wpbuildrc.schema.${key && key !== "WpwSchema" ? `${key.replace(/^Wpw/, "").toLowerCase()}.` : ""}json`);
+    join(SchemaDirectory, `spm.schema.wpw.${key && key !== "WpwSchema" ? `${key.replace(/^Wpw/, "").toLowerCase()}.` : ""}json`);
 
 
 /**

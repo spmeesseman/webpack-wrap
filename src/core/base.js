@@ -3,7 +3,7 @@
 // @ts-check
 
 /**
- * @file core/base.js
+ * @file src/core/base.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023

@@ -33,7 +33,7 @@
         "build-types-tsc": "tsc --declaration --emitDeclarationOnly --allowJs --strict false --strictNullChecks false --tsBuildInfoFile ./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo -p ./jsconfig.json && cmd /c xcopy .\\src\\types\\*.d.ts .\\src\\types\\build\\types /i /y",
         "build-types-bundle": "dts-bundle --name @spmeesseman/webpack-wrap-types --baseDir src/types --main src/types/build/core/rc.d.ts --out types.d.ts --outputAsModuleFolder",
         "build-types-schema": "npm run schema-build_types",
-        "build-types-test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./types/.wpbuildrc.schema.json -o types/rc.base.tmp.d.ts",
+        "build-types-test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./schema/spm.schema.wpw.json -o types/rc.tmp.d.ts",
         "clean-all": "rimraf dist && rimraf %TEMP%\\webpack-wrap && rimraf node_modules/.cache/wpbuild && rimraf node_modules/.cache/wpwrap && npm run clean-docs && npm run clean-examples && npm run clean-types-all",
         "clean-docs": "rimraf res/docs && rimraf dist/docs",
         "clean-examples": "rimraf examples/vscode && rimraf dist/examples",

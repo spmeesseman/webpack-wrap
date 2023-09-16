@@ -107,7 +107,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 	dtsBundle = () =>
 	{   //
 		// DTS-BUNDLE
-		// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+		// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\ts-loader\dist\index.js
 		// Bug fix on line 29
 		//
 		const dtsBundle = join(this.build.getBasePath(), "node_modules", "dts-bundle", "lib", "index.js");
@@ -143,8 +143,8 @@ class WpBuildVendorModPlugin extends WpwPlugin
     	//    at Function.getCompilationHooks (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\javascript\JavascriptModulesPlugin.js:164:10)
     	//    at SourceMapDevToolModuleOptionsPlugin.apply (C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolModuleOptionsPlugin.js:54:27)
     	//    at C:\Projects\@spmeesseman\webpack-wrap\node_modules\webpack\lib\SourceMapDevToolPlugin.js:184:53
-    	//    at Hook.eval [as call] (eval at create (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
-    	//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\vscode-taskexplorer\node_modules\tapable\lib\Hook.js:14:14)
+    	//    at Hook.eval [as call] (eval at create (C:\Projects\@spmeesseman\webpack-wrap\node_modules\tapable\lib\HookCodeFactory.js:19:10), <anonymous>:106:1)
+    	//    at Hook.CALL_DELEGATE [as _call] (C:\Projects\@spmeesseman\webpack-wrap\node_modules\tapable\lib\Hook.js:14:14)
 		//	  ....
 		//
 		// Seeing it's a module resolution issue, this was patched for this plugin using 'require.resolve'
@@ -173,7 +173,7 @@ class WpBuildVendorModPlugin extends WpwPlugin
 	tsLoader = () =>
 	{   //
 		// TS-LOADER
-		// file:///c:\Projects\vscode-taskexplorer\node_modules\ts-loader\dist\index.js
+		// file:///c:\Projects\@spmeesseman\webpack-wrap\node_modules\ts-loader\dist\index.js
 		//
 		// A hck to allow just a straight up types 'declarations only' build.
 		//

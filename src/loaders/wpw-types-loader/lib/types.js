@@ -13,7 +13,7 @@ let logger;
 /** @type {import("schema-utils/declarations/validate").Schema} */
 const schema = {
     type: "object",
-    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.loader.types.json",
+    $id: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.loader.types.json",
     properties: {
         test: {
             type: "string"
@@ -28,7 +28,7 @@ const schema = {
                     type: "string"
                 },
                 typesConfig: {
-                    $ref: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/.wpbuildrc.schema.json#/WpwPluginConfigTypes"
+                    $ref: "https://app1.spmeesseman.com/res/app/wpbuild/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
                 }
             }
         }
@@ -62,7 +62,7 @@ async function typesLoader(source, map, meta)
 
     // __webpack_public_path__
 
-    let newSource = source;
+    // let newSource = source;
     // if (new RegExp(options.test).test(this.resourcePath))
     // {
     //     // const dummySource = new webpack.sources.RawSource("console.log('dummy source');");
@@ -77,7 +77,8 @@ async function typesLoader(source, map, meta)
     // return source;
     // this.callback(null, source, map, meta);
     // this.callback(null, dummySource, null, null);
-    return [ newSource, map, meta ];
+    // return [ newSource, map, meta ];
+    return [ source, map, meta ];
 }
 
 
