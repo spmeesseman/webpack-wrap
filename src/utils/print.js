@@ -18,7 +18,7 @@ let buildCount = 0;
 
 /**
  * @param {typedefs.WpwBuild} build
- * @param {typedefs.WpwRc} wrapper
+ * @param {typedefs.WpwWrapper} wrapper
  */
 const printBuildProperties = (build, wrapper) =>
 {

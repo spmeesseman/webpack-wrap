@@ -28,7 +28,7 @@ const {
  * @extends {WpwBase}
  * @implements {typedefs.IWpwSchema}
  */
-class WpwRc extends WpwBase
+class WpwWrapper extends WpwBase
 {
     /** @type {typedefs.WpwRuntimeEnvArgs} */
     arge;
@@ -160,7 +160,7 @@ class WpwRc extends WpwBase
      * @param {typedefs.WpwRuntimeEnvArgs} arge
      * @returns {typedefs.WpwWebpackConfig[]} arge
      */
-    static create = (argv, arge) => new WpwRc(argv, arge).builds.map(b => b.wpc);
+    static create = (argv, arge) => new WpwWrapper(argv, arge).builds.map(b => b.wpc);
 
 
     /**
@@ -390,4 +390,4 @@ class WpwRc extends WpwBase
 }
 
 
-module.exports = WpwRc;
+module.exports = WpwWrapper;

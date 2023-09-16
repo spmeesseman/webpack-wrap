@@ -239,7 +239,7 @@
  * BASE
  ***********************************************************************************************************************/
 
-/** @typedef {import("../core/rc")} WpwRc */
+/** @typedef {import("../core/wrapper")} WpwWrapper */
 /** @typedef {import("../core/base")} WpwBase */
 /** @typedef {import("../core/build")} WpwBuild */
 /** @typedef {import("./base").IWpwBase} IWpwBase */

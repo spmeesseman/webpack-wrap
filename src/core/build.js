@@ -63,13 +63,13 @@ class WpwBuild extends WpwBase
     warnings;
     /** @type {typedefs.WpwWebpackConfig} */
     wpc;
-    /** @type {typedefs.WpwRc}} @private */
+    /** @type {typedefs.WpwWrapper}} @private */
     wrapper;
 
 
     /**
      * @param {typedefs.IWpwBuildConfig} config
-     * @param {typedefs.WpwRc} wrapper
+     * @param {typedefs.WpwWrapper} wrapper
      */
     constructor(config, wrapper)
     {
