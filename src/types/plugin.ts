@@ -53,6 +53,8 @@ type WpwPluginOptions =
     wrapPlugin?: boolean;
 } & WpwBaseModuleOptions;
 
+type WpwPluginBaseTaskOptions = WpwPluginOptions;
+
 type WpwPluginWaitOptions = WpwPluginConfigWaitItem & { callback: WpwPluginWrappedHookHandler };
 
 type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
@@ -93,6 +95,7 @@ interface IWpwPlugin extends IWpwBaseModule, WebpackPluginInstance
 export {
     IWpwPlugin,
     WpwPluginBaseTapOptions,
+    WpwPluginBaseTaskOptions,
     WpwPluginCompilationTapOptions,
     WpwPluginHookHandler,
     WpwPluginHookWaitStage,

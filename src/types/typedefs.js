@@ -282,6 +282,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./export").IWpwExport} IWpwExport */
+/** @typedef {import("./export").WpwExportPlugin} WpwExportPlugin */
 /** @typedef {import("./export").WpwExportOptions} WpwExportOptions */
 
 
@@ -338,22 +339,22 @@
 
 
 /***********************************************************************************************************************
- * PLUGINS PLUGIN
+ * PLUGINS
  ***********************************************************************************************************************/
-
 
 /** @typedef {import("./plugin").IWpwPlugin} IWpwPlugin */
 /** @typedef {import("./plugin").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */
 /** @typedef {import("./plugin").WpwPluginTapOptions} WpwPluginTapOptions */
+/** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */
 /** @typedef {import("./plugin").WpwPluginWaitOptions} WpwPluginWaitOptions */
-/** @typedef {import("./plugin").WpwPluginWrappedHookHandler} WpwPluginWrappedHookHandler */
 /** @typedef {import("./plugin").WpwPluginBaseTapOptions} WpwPluginBaseTapOptions */
+/** @typedef {import("./plugin").WpwPluginBaseTaskOptions} WpwPluginBaseTaskOptions */
 /** @typedef {import("./plugin").WpwPluginMultiWaitOptions} WpwPluginMultiWaitOptions */
+/** @typedef {import("./plugin").WpwPluginWrappedHookHandler} WpwPluginWrappedHookHandler */
+/** @typedef {import("./plugin").WpwPluginCompilationTapOptions} WpwPluginCompilationTapOptions */
 /** @typedef {import("./plugin").WpwPluginWrappedHookHandlerSync} WpwPluginWrappedHookHandlerSync */
 /** @typedef {import("./plugin").WpwPluginWrappedHookHandlerAsync} WpwPluginWrappedHookHandlerAsync */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
-/** @typedef {import("./plugin").WpwPluginCompilationTapOptions} WpwPluginCompilationTapOptions */
 
 
 /***********************************************************************************************************************

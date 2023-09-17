@@ -18,6 +18,7 @@
  *
  *//** */
 
+import { IDisposable } from "./generic";
 import { WpwBuildOptionsKey } from "./rc";
 
 
@@ -45,7 +46,7 @@ interface IWpwBaseModule extends IWpwBase
     build: WpwBuildInstance;
 }
 
-interface IWpwBase
+interface IWpwBase extends IDisposable
 {
     readonly name: string;
     readonly initialConfig: any;

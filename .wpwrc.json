@@ -33,7 +33,7 @@
                 "bundle": {
                     "bundler": "tsc"
                 },
-                "method": "tsc"
+                "method": "program"
             },
             "vendormod":{
                 "clean_plugin": true,

@@ -31,11 +31,11 @@
  *         file:///c:\Projects\@spmeesseman\webpack-wrap\src\exports\plugins.js
  *//** */
 
+ const WpwCache = require("../utils/cache");
 const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const WpwCache = require("../utils/cache");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
@@ -49,10 +49,10 @@ const { isFunction, execAsync, applyIf, asArray } = require("../utils");
  */
 class WpwPlugin extends WpwBaseModule
 {
-    /**  @private  */
+    /**  @type {WpwPluginWaitManager}  @private  */
     static eventManager = new WpwPluginWaitManager();
 
-    /** @protected */
+    /** @type {WpwCache} @protected */
     cache;
     /** @type {typedefs.WebpackCompilation} */
     compilation;
@@ -78,7 +78,6 @@ class WpwPlugin extends WpwBaseModule
         super(options);
         this.plugins = [];
         this.validatePluginOptions(options);
-        this.options = applyIf(this.options, options);
         this.cache = new WpwCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
     }
 

@@ -30,7 +30,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.build.options.jsdoc);
+        // this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.build.options.jsdoc);
 	}
 
 
@@ -53,6 +53,7 @@ class WpwJsDocPlugin extends WpBuilPlugin
             }
         });
     }
+
 
 	/**
 	 * @param {typedefs.WebpackCompilationAssets} compilationAssets

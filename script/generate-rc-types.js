@@ -526,7 +526,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         data += `// @ts-check${EOL}${EOL}`;
         data += `${hdr}${EOL}${EOL}`;
         // below line resolvrs werid issue where all "v in *" imports resolves as import9'types") instead of import("types/rc")
-        data += `/** @typedef {import("./rc")} rc */${EOL}`;
+        // data += `/** @typedef {import("./rc")} rc */${EOL}`;
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
         data += `/**${EOL} * @enum {string[]}${EOL} */${EOL}const WpwKeysEnum =${EOL}{${EOL}${enumKeys.join("," + EOL)}${EOL}};${EOL}`;

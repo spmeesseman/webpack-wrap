@@ -11,7 +11,7 @@
 
 const WpwBase = require("./base");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, WpwError } = require("../utils");
+const { lowerCaseFirstChar, WpwError, clone } = require("../utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 
 
@@ -56,7 +56,7 @@ class WpwBaseModule extends WpwBase
         this.options = options;
         this.wpc = this.build.wpc;
         this.logger = this.build.logger;
-        this.buildOptions = this.build.options[this.key];
+        this.buildOptions = clone(this.build.options[this.key]);
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
         this.build.disposables.push(this);

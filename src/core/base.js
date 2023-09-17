@@ -33,7 +33,7 @@ class WpwBase
     logger;
     /**  @type {string} */
     name;
-    /** @type {any} @abstract @protected */
+    /** @type {Record<string, any>} @protected */
     options;
 
 
@@ -46,6 +46,7 @@ class WpwBase
             disposables: [],
             global: globalEnv,
             name: this.constructor.name,
+            options,
             initialConfig: merge({}, pickNot(options, "build"))
         });
 

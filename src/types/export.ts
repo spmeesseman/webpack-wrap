@@ -16,10 +16,11 @@
 
 
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
-
+import { WebpackPluginInstance, WebpackCompiler } from "./webpack";
 
 type WpwExportOptions = WpwBaseModuleOptions;
 
+type WpwExportPlugin = WebpackPluginInstance | ((this: WebpackCompiler, compiler: WebpackCompiler) => void) | undefined;
 
 interface IWpwExport extends IWpwBaseModule
 {
@@ -28,5 +29,6 @@ interface IWpwExport extends IWpwBaseModule
 
 export {
     IWpwExport,
-    WpwExportOptions
+    WpwExportOptions,
+    WpwExportPlugin
 };

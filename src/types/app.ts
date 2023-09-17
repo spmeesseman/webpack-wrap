@@ -20,14 +20,13 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
+import { IWpwPlugin } from "./plugin";
+import { WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension } from "./rc";
 import {
-    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
-    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackPluginInstance, WebpackCompiler, WebpackInfrastructureLogging,
-    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
+    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
+    WebpackResolveOptions, WebpackInfrastructureLogging, WebpackMode, WebpackOutput, WebpackFileCacheOptions,
+    WebpackMemoryCacheOptions, WebpackStatsOptions
 } from "./webpack";
-import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
-} from "./rc";
 
 
 declare const __WPWRAP__: any;
@@ -59,11 +58,7 @@ interface IWpwWebpackConfig extends WebpackConfig
     entry: WpwWebpackEntry & WebpackEntry;
     infrastructureLogging: WebpackInfrastructureLogging;
     output: WebpackOutput;
-    plugins: (
-		| undefined
-		| ((this: WebpackCompiler, compiler: WebpackCompiler) => void)
-		| WebpackPluginInstance
-	)[];
+    plugins: IWpwPlugin[];
     resolve: WebpackResolveOptions;
     stats: WebpackStatsOptions;
     target: WebpackTarget;

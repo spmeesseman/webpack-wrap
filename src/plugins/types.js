@@ -10,15 +10,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { resolve, join, dirname } = require("path");
+const { existsSync } = require("fs");
 const WpwTscPlugin = require("./tsc");
-const { unlink, readFile, rmdir } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { existsSync } = require("fs");
-const { existsAsync, apply, findFiles, relativePath, resolvePath, isDirectory, isBoolean, isObject } = require("../utils");
-const { writeFile } = require("fs/promises");
-const { rm } = require("fs/promises");
+const { resolve, join, dirname } = require("path");
+const { rm, unlink, readFile, writeFile } = require("fs/promises");
+const { existsAsync, apply, findFiles, relativePath, isObject } = require("../utils");
 
 
 /**
@@ -38,7 +36,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 	virtualFilePath;
 
     /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options
      */
 	constructor(options)
 	{
