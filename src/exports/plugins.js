@@ -28,6 +28,7 @@ const {
  */
 const plugins = (build) =>
 {
+	/** @type {(IWpwPlugin | undefined)[]} */
 	const plugins = [];
 	build.logger.start("create plugins configuration", 2);
 	// Object.keys(wpwPlugins).forEach((p) =>
@@ -72,7 +73,7 @@ const plugins = (build) =>
 	);
 
 	build.wpc.plugins.push(.../** @type {IWpwPlugin[]} */(plugins.filter(p => !!p)));
-	build.disposables.push(...build.wpc.plugins);
+	// build.disposables.push(...build.wpc.plugins);
 	build.logger.write("   plugins configuration created successfully", 2);
 };
 
