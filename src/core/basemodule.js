@@ -84,7 +84,7 @@ class WpwBaseModule extends WpwBase
 
 
 	/**
-	 * @protect
+	 * @protected
 	 * @param {string} file
 	 * @param {boolean} [rmvExt] Remove file extension
 	 * @returns {string}

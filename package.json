@@ -79,7 +79,6 @@
     "engines": {
         "node": ">=14.16.0"
     },
-    "types": "dist/types.d.ts",
     "peerDependencies": {
         "typescript": ">3.6.0"
     },

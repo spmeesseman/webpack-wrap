@@ -51,7 +51,6 @@ type WpwCombinedRuntimeArgs =
 
 type WpwSourceDotExtensionApp = `.${WpwSourceExtension}`;
 
-
 interface IWpwWebpackConfig extends WebpackConfig
 {
     cache: WebpackFileCacheOptions | WebpackMemoryCacheOptions;

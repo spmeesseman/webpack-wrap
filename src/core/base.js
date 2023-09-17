@@ -12,7 +12,8 @@
 
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const { merge, isObject, WpwLogger, apply, pickNot, isPromise } = require("../utils");
+const WpwLogger = require("../utils/console");
+const { apply, isObject, isPromise, merge, pickNot } = require("../utils");
 
 
 /**
@@ -28,7 +29,7 @@ class WpwBase
     global;
     /** @type {typedefs.WpwBaseOptions} */
     initialConfig;
-    /** @type {typedefs.WpwLogger} @abstract */
+    /** @type {WpwLogger} @abstract */
     logger;
     /**  @type {string} */
     name;

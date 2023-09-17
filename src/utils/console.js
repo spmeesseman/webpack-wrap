@@ -4,9 +4,9 @@
 
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
+const { applySchemaDefaults } = require("./schema");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
 const { isString, isObject, isPrimitive, merge, isArray, apply } = require("@spmeesseman/type-utils");
-const { applySchemaDefaults } = require("./schema");
 
 const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
 const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
@@ -55,6 +55,7 @@ class WpwLogger
     };
 
 
+    /** @returns {typedefs.WpwLoggerLevel} */
     get level() { return this.options.level; }
     get valuePad() { return WpwLogger.valuePadLen; }
 

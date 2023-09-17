@@ -31,6 +31,8 @@ class WpwTypesPlugin extends WpwTscPlugin
     /** @type {typedefs.WpwBuildOptionsConfig<"types">} @protected */
     buildOptions;
 	/** @type {string} @private */
+	statsTag = "types";
+	/** @type {string} @private */
 	virtualFile;
 	/** @type {string} @private */
 	virtualFilePath;
@@ -69,7 +71,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 				async: true,
                 hook: "compilation",
 				stage: "ADDITIONAL",
-				statsProperty: "types",
+				statsProperty: this.statsTag,
                 callback: this.types.bind(this)
             },
 			cleanTempFiles: {
@@ -100,9 +102,8 @@ class WpwTypesPlugin extends WpwTscPlugin
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
 		}
-		const tempBuildDIr = join(this.build.getTempPath(), "types", "build");
-		if (await existsAsync(tempBuildDIr)) {
-			await rm(tempBuildDIr, { recursive: true, force: true });
+		if (await existsAsync(this.buildPathTemp)) {
+			await rm(this.buildPathTemp, { recursive: true, force: true });
 		}
 	};
 
@@ -264,8 +265,8 @@ class WpwTypesPlugin extends WpwTscPlugin
 			  srcDir = build.getSrcPath(),
 			  // distDirAbs = build.getDistPath({ fallback: true }),
 			  distDirRel = build.getDistPath({ rel: true, psx: true, fallback: true }),
-			  outputDirRel = compilerOptions.declarationDir ?? distDirRel,
-			  outputDirAbs = resolvePath(basePath, outputDirRel);
+			  outputDirRel = compilerOptions.declarationDir ?? distDirRel; // ,
+			  // outputDirAbs = resolvePath(basePath, outputDirRel);
 
 		logger.write("start types build", 1);
 		logger.value("   method", method, 2);
@@ -367,17 +368,9 @@ class WpwTypesPlugin extends WpwTscPlugin
 			const bundleOptions = this.buildOptions.bundle,
 				  bundleOptionsIsCfg = isObject(bundleOptions),
 			      isBundleEnabled = bundleOptions === true || bundleOptionsIsCfg;
-			if (isBundleEnabled)
+			if (isBundleEnabled && bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
 			{
-				if (bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
-				{
-					await this.dtsBundle("types");
-				}     //
-				else // for `tsc` bundler, `outFile` is simply set in transpilation, so no extra step...
-				{	//
-					// await this.emit(`${options.outFile}.d.ts`);
-					await this.emit();
-				}
+				await this.dtsBundle(this.statsTag);
 			}
 			else {
 				await this.emit();

@@ -115,6 +115,9 @@ const properties = [];
 /** @type {string[]} */
 const lines = [];
 
+/** @type {string[]} */
+const moduleExports = [];
+
 /** @type {[ string, "type" | "enum", string ][]} */
 const typedefs = [];
 
@@ -159,6 +162,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
           .wpwreplace("mappedTypeToAnyOrUndef")
           .wpwreplace("trailingSemiColons")
           .wpwreplace("trailingSpaces")
+          .wpwreplace("formatModuleExports")
           .replace(/\n/g, EOL);
     classTypes.forEach((cls) =>
     {
@@ -170,6 +174,9 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
         data = data.replace(new RegExp(`: ${cls};$`, "gm"), ": " + cfg + ";");
         data = data.replace(new RegExp(`: ${cls}$`, "gm"), ": " + cfg);
     });
+    data += `${EOL}export {`;
+    moduleExports.forEach((ex) => { data += `${EOL}    ${ex},`; });
+    data = data.slice(0, data.length - 1) + `${EOL}};${EOL}`;
     await writeFile(outputDtsPath, `${EOL}${hdr}${EOL}${EOL}${EOL}${data.trim()}${EOL}`);
     logger?.success(`   created ${outputDtsFile} (${outputDtsPath})`);
     return data;
@@ -323,6 +330,15 @@ const wpwreplace =
                 return src.replace(/\n\};?\n/g, "\n}\n");
             }
         );
+    },
+    formatModuleExports: (data) =>
+    {
+        let match;
+        const rgx = /^export (?:interface|type) (.*?)\n|=|;|$/gm;
+        while((match = rgx.exec(data)) !== null) {
+            moduleExports.push(match[1]);
+        }
+        return data.replace(/^export /g, "");
     },
     formatPackageJsonAuthor: (data) =>
     {
@@ -509,6 +525,8 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         data += `/* eslint-disable @typescript-eslint/naming-convention */${EOL}`;
         data += `// @ts-check${EOL}${EOL}`;
         data += `${hdr}${EOL}${EOL}`;
+        // below line resolvrs werid issue where all "v in *" imports resolves as import9'types") instead of import("types/rc")
+        data += `/** @typedef {import("./rc")} rc */${EOL}`;
         data += `const typedefs = require(\"../types/typedefs\");${EOL}${EOL}`;
         data += lines.join(EOL) + EOL;
         data += `/**${EOL} * @enum {string[]}${EOL} */${EOL}const WpwKeysEnum =${EOL}{${EOL}${enumKeys.join("," + EOL)}${EOL}};${EOL}`;
@@ -615,7 +633,7 @@ cliWrap(async () =>
 
     const hdr =  match[0]
           .replace(" with `WpWrap`", " with `WpwRc`")
-          .replace(`@file types/index${extension()}`, `@file types/${outputDtsFile}`)
+          .replace(`@file src/types/index${extension()}`, `@file src/types/${outputDtsFile}`)
           .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
           .replace("Collectively exports all Wpw types", description);
 
