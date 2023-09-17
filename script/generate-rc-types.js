@@ -20,7 +20,7 @@ const DTS_MODE = false;           // if `true`, output as .d.ts. and "declare" a
 const DISABLE_VALIDATION = false; // if `true`, don't run tsc --noEmit on output files
 const DISABLE_WPW_LOGGER = false; // if `true`, don't init a WpwLogger (necessary when constants.js does not previously exist)
 
-const description = "Provides types macthing the .wpwrc.json configuration file schema";
+const outputFileDesc = "Provides implementation types matching the .wpwrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
 
 const classTypes = [
@@ -191,7 +191,7 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
     const promptSchema = {
         properties: {
             result: {
-                description: "Restore previous content? : yes (y) or no (n)",
+                outputFileDesc: "Restore previous content? : yes (y) or no (n)",
                 pattern: /^(?:yes|no|y|n)$/i,
                 default: "no",
                 message: "Must enter yes (y) or no (n)",
@@ -334,11 +334,11 @@ const wpwreplace =
     formatModuleExports: (data) =>
     {
         let match;
-        const rgx = /^export (?:interface|type) (.*?)\n|=|;|$/gm;
-        while((match = rgx.exec(data)) !== null) {
-            moduleExports.push(match[1]);
-        }
-        return data.replace(/^export /g, "");
+        const rgx = /^export (?:declare )?(?:interface|type) (.*?)(?:\n|=| |;)/gm;
+        while ((match = rgx.exec(data)) !== null) { moduleExports.push(match[1]); }
+        moduleExports.sort((a, b) => a.localeCompare(b));
+        // moduleExports.sort((a, b) => (a.length - b.length || a.localeCompare(b)));
+        return data.replace(/^export /gm, "");
     },
     formatPackageJsonAuthor: (data) =>
     {
@@ -422,9 +422,9 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
 
     const _proc = (data, baseSrc) =>
     {
-        const rgxPropEnum = DTS_MODE ? /export declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g :
-                                       /export type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
-              rgxType = new RegExp(`export ${declare()}interface I(${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?)${EOL}\\}${EOL}`, "g");
+        const rgxPropEnum = DTS_MODE ? /declare type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g :
+                                       /type (\w*?) = ((?:"|WpwLogTrueColor).*?(?:"|));\r?\n/g,
+              rgxType = new RegExp(`${declare()}interface I(${constantObjectKeyProperties.join("|")}) *${EOL}\\{\\s*([^]*?)${EOL}\\}${EOL}`, "g");
 
         while ((match = rgxPropEnum.exec(data)) !== null)
         {
@@ -454,7 +454,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
             }
         }
 
-        const rgx3 = DTS_MODE ? /export declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g : /export type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
+        const rgx3 = DTS_MODE ? /declare type (\w*?) = (\w*?) \& (\w*?);\r?\n/g : /type (\w*?) = (\w*?) \& (\w*?);\r?\n/g;
         while ((match = rgx3.exec(data)) !== null)
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
@@ -471,7 +471,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
         const source = addFile.replace(extension(), "");
         const addData = (await readFile(join(outputDtsDir, addFile), "utf8")).replace(/\r\n/g, "\n").replace(/\n/g, EOL);
         _proc(addData, source);
-        const rgxKeys = DTS_MODE ? /export declare type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g : /export type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g;
+        const rgxKeys = DTS_MODE ? /declare type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g : /type (\w*?) = keyof (?:typeof |)(\w*?);\r?\n/g;
         while ((match = rgxKeys.exec(addData)) !== null)
         {
             if (!exclueConstants.includes(match[1]) && !excludeTypedefs.includes(match[1])) {
@@ -635,7 +635,7 @@ cliWrap(async () =>
           .replace(" with `WpWrap`", " with `WpwRc`")
           .replace(`@file src/types/index${extension()}`, `@file src/types/${outputDtsFile}`)
           .replace("Scott Meesseman @spmeesseman", (v) => `${v}\n *\n * ${autoGenMessage}`)
-          .replace("Collectively exports all Wpw types", description);
+          .replace("Collectively exports all Wpw types", outputFileDesc);
 
     logger?.log("creating rc configuration file types and typings from schema");
     logger?.log("   executing json2ts");

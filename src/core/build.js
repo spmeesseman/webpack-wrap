@@ -171,7 +171,6 @@ class WpwBuild extends WpwBase
     get buildCount() { return this.wrapper.buildCount; }
     get cmdLine() { return this.wrapper.args; }
     get isOnlyBuild() { return this.wrapper.isSingleBuild; }
-    /** @type {typedefs.WpwPackageJson} */
     get pkgJson() { return this.wrapper.pkgJson; }
 
 
