@@ -3,6 +3,7 @@
 const WpwRegex = require("./regex");
 const WpwError = require("./message");
 const WpwLogger = require("./console");
+const dtsBundle = require("./dtsbundle");
 const { applySchemaDefaults, getSchemaVersion, validateSchema } = require("./schema");
 const { printBuildProperties, printBuildStart, printNonFatalIssue, printWpcProperties } = require("./print");
 
@@ -22,7 +23,7 @@ const {
 } = require("./utils");
 
 module.exports = {
-    apply, applyExt, applyIf, applySchemaDefaults, asArray, capitalize, clone, createEntryObjFromDir, execAsync, existsAsync,
+    apply, applyExt, applyIf, applySchemaDefaults, asArray, capitalize, clone, createEntryObjFromDir, dtsBundle, execAsync, existsAsync,
     findExPath, findExPathSync, findFiles, findFilesSync, findFileUp, getExcludes, getSchemaVersion, isArray, isBoolean, isClass,
     isDirectory, isDate, isEmpty, isError, isFunction, isJsTsConfigPath, isNulled, isNumber, isNumeric, isObject, typeUtils,
     isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeExt, mergeExt2, mergeIf, mergeWeak,

@@ -13,7 +13,7 @@
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
-const { apply, isObject, isPromise, merge, pickNot } = require("../utils");
+const { apply, isObject, isPromise, pickNot, clone } = require("../utils");
 
 
 /**
@@ -47,16 +47,17 @@ class WpwBase
             global: globalEnv,
             name: this.constructor.name,
             options,
-            initialConfig: merge({}, pickNot(options, "build"))
+            initialConfig: clone(pickNot(options, "build"))
         });
 
-        if (isObject(options.logger))
+        const logger = options.logger || options.build?.logger;
+        if (isObject(logger))
         {
-            if (options.logger instanceof WpwLogger) {
-                this.logger = options.logger;
+            if (logger instanceof WpwLogger) {
+                this.logger = logger;
             }
             else {
-                this.logger = new WpwLogger(options.logger);
+                this.logger = new WpwLogger(logger);
             }
         }
     }

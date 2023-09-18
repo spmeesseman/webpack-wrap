@@ -11,39 +11,32 @@
  *//** */
 
 const { existsSync } = require("fs");
-const WpwTscPlugin = require("./tsc");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const WpwBaseTaskPlugin = require("./basetask");
 const { resolve, join, dirname } = require("path");
-const { rm, unlink, readFile, writeFile } = require("fs/promises");
-const { existsAsync, apply, findFiles, relativePath, isObject } = require("../utils");
+const { rm, unlink, readFile, writeFile, access } = require("fs/promises");
+const { dtsBundle, existsAsync, apply, findFiles, relativePath, isObject, resolvePath } = require("../utils");
 
 
 /**
- * @extends WpwTscPlugin
+ * @extends WpwBaseTaskPlugin
  */
-class WpwTypesPlugin extends WpwTscPlugin
+class WpwTypesPlugin extends WpwBaseTaskPlugin
 {
-	/** @type {string} @private */
-	buildPathTemp;
-    /** @type {typedefs.WpwBuildOptionsConfig<"types">} @protected */
-    buildOptions;
-	/** @type {string} @private */
+    /** @type {string} @private */
 	statsTag = "types";
-	/** @type {string} @private */
-	virtualFile;
-	/** @type {string} @private */
-	virtualFilePath;
+
 
     /**
      * @param {typedefs.WpwPluginOptions} options
      */
 	constructor(options)
 	{
-		super(options);
-		this.buildPathTemp = join(this.build.getTempPath(), "types", "build");
-		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
-		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
+		super(apply({ taskHandler: "buildTypes", hooks: {
+			clean: WpwTypesPlugin.compilerHookConfig("done", "cleanTempFiles", true)
+		} }, options));
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.buildOptions); // reset for typings
 	}
 
 
@@ -55,203 +48,11 @@ class WpwTypesPlugin extends WpwTscPlugin
 	static create = (build) => WpwTypesPlugin.wrap(WpwTypesPlugin, build, "types", undefined, [[ "mode", "plugin" ]]);
 
 
-    /**
-     * Called by webpack runtime to initialize this plugin
-	 *
-     * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     */
-    apply(compiler)
-    {
-		this.onApply(compiler,
-        {
-			buildTypes: {
-				async: true,
-                hook: "compilation",
-				stage: "ADDITIONAL",
-				statsProperty: this.statsTag,
-                callback: this.types.bind(this)
-            },
-			cleanTempFiles: {
-				async: true,
-				hook: "done",
-				callback: this.cleanTempFiles.bind(this)
-			},
-			injectVirtualEntryFile: {
-				async: true,
-				hook: "beforeRun",
-				callback: this.injectVirtualEntryFile.bind(this)
-			}
-        });
-    }
-
-
 	/**
-	 * @private
-	 * @param {typedefs.WebpackStats} _stats
-	 */
-	async cleanTempFiles(_stats)
-	{
-		const tmpFiles = await findFiles("**/dts-bundle.tmp.*", { cwd: this.build.getBasePath(), absolute: true });
-		for (const file of tmpFiles)
-		{
-			await unlink(file);
-		}
-		if (await existsAsync(this.virtualFilePath)) {
-			await unlink(this.virtualFilePath);
-		}
-		if (await existsAsync(this.buildPathTemp)) {
-			await rm(this.buildPathTemp, { recursive: true, force: true });
-		}
-	};
-
-
-	/**
-	 * @private
-	 * @returns {typedefs.WpwSourceConfigCompilerOptions}
-	 */
-	compilerOptions()
-	{
-		const build = this.build,
-			  source = build.source,
-			  configuredOptions = build.source.config.compilerOptions,
-			  basePath = build.getBasePath(),
-			  //
-			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
-			  //        if separate, use buildinfofile specified in config file
-			  //
-			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
-			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
-			  // declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true }),
-			  declarationDir = this.buildPathTemp;
-
-		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
-		const programOptions = {
-			declaration: true,
-			declarationDir,
-			declarationMap: false,
-			emitDeclarationOnly: true,
-			noEmit: false,
-			skipLibCheck: true,
-			tsBuildInfoFile
-		};
-		if (source.type === "javascript")
-		{
-			apply(programOptions, {
-				allowJs: true,
-				strictNullChecks: false
-			});
-		}
-		const bundleOptions = this.buildOptions.bundle;
-		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
-		{
-			programOptions.declarationDir = undefined;
-			programOptions.outFile = join(declarationDir, build.name); // don't specify an extension
-		}
-		if (!configuredOptions.incremental && !configuredOptions.composite)
-		{
-			programOptions.incremental = true;
-		}
-		// if (!configuredOptions.target)
-		// {
-		// 	programOptions.target = "es2020";
-		// }
-		if (!configuredOptions.moduleResolution)
-		{   //
-			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
-			//
-			if (build.target !== "node") {
-				programOptions.moduleResolution = "node";
-			}
-			// else if (build.nodeVersion < 12) {
-			//	programOptions.moduleResolution = "node10";
-			// }
-			else {
-				programOptions.moduleResolution = "node";
-				// programOptions.moduleResolution = "node16";
-			}
-		}
-		return programOptions;
-	};
-
-
-	/**
-	 * @param {typedefs.WpwSourceConfigCompilerOptions} options
-	 * @returns {string[]}
-	 */
-	compilerOptionsToArgs(options)
-	{
-		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
-	}
-
-
-	async emit()
-	{
-		const files = await findFiles("**/*.d.ts", { cwd: this.buildPathTemp, absolute: true });
-		for (const file of files)
-		{
-			const assetPath = relativePath(this.buildPathTemp, file),
-				  dirPathRealAbs = dirname(file),
-				  data = await readFile(file),
-				  source = new this.compiler.webpack.sources.RawSource(data);
-			const info = /** @type {typedefs.WebpackAssetInfo} */({
-				immutable: false,
-				javascriptModule: false,
-				types: true
-			});
-			try
-			{   await unlink(file);
-				if ((await findFiles("*.*", { cwd: dirPathRealAbs })).length === 0) {
-					await rm(dirPathRealAbs, { recursive: true, force: true });
-				}
-			}
-			catch (e)
-			{   this.build.addMessage({
-					code: WpwError.Msg.WARNING_GENERAL,
-					message: `failed to remove temp files, asset '${assetPath}' will still be emitted` }
-				);
-			}
-			this.compilation.emitAsset(assetPath, source, info);
-		}
-	};
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WebpackCompiler} _compiler
-	 */
-	async injectVirtualEntryFile(_compiler)
-	{
-		const dummyCode = "console.log('dummy source');",
-			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
-        await writeFile(this.virtualFilePath, source);
-	}
-
-
-	/**
-	 * @private
-	 * @param {string | undefined} tsBuildInfoFile
-	 * @param {string} outputDir
-	 */
-	async maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir)
-	{
-		if (tsBuildInfoFile)
-		{
-			const typesDirDistAbs = resolve(this.build.getBasePath(), outputDir);
-			if (!existsSync(typesDirDistAbs) && tsBuildInfoFile)
-			{
-				this.logger.write("   force clean tsbuildinfo file", 2);
-				try { await unlink(tsBuildInfoFile); } catch {}
-			}
-		}
-	}
-
-
-	/**
-	 * @private
+	 * @protected
 	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
-	async types(assets)
+	async buildTypes(assets)
 	{
 		const build = this.build,
 			  source = build.source,
@@ -368,7 +169,7 @@ class WpwTypesPlugin extends WpwTscPlugin
 			      isBundleEnabled = bundleOptions === true || bundleOptionsIsCfg;
 			if (isBundleEnabled && bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
 			{
-				await this.dtsBundle(this.statsTag);
+				await dtsBundle(this.build, this.compilation, this.statsTag);
 			}
 			else {
 				await this.emit();
@@ -379,6 +180,211 @@ class WpwTypesPlugin extends WpwTscPlugin
 			logger.write(`type definitions compilation completed with failure [code:${rc}]`, 1);
 		}
 	}
+
+
+	/**
+	 * @protected
+	 * @param {typedefs.WebpackStats} _stats
+	 */
+	async cleanTempFiles(_stats)
+	{
+		const tmpFiles = await findFiles("**/dts-bundle.tmp.*", { cwd: this.build.getBasePath(), absolute: true });
+		for (const file of tmpFiles)
+		{
+			await unlink(file);
+		}
+	};
+
+
+	/**
+	 * @private
+	 * @returns {typedefs.WpwSourceConfigCompilerOptions}
+	 */
+	compilerOptions()
+	{
+		const build = this.build,
+			  source = build.source,
+			  configuredOptions = build.source.config.compilerOptions,
+			  basePath = build.getBasePath(),
+			  //
+			  // TODO - does project have separate cfg files for ttpes build?  or using main config file?
+			  //        if separate, use buildinfofile specified in config file
+			  //
+			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
+			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
+			  // declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true }),
+			  declarationDir = this.buildPathTemp;
+
+		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
+		const programOptions = {
+			declaration: true,
+			declarationDir,
+			declarationMap: false,
+			emitDeclarationOnly: true,
+			noEmit: false,
+			skipLibCheck: true,
+			tsBuildInfoFile
+		};
+		if (source.type === "javascript")
+		{
+			apply(programOptions, {
+				allowJs: true,
+				strictNullChecks: false
+			});
+		}
+		const bundleOptions = this.buildOptions.bundle;
+		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
+		{
+			programOptions.declarationDir = undefined;
+			programOptions.outFile = join(declarationDir, build.name); // don't specify an extension
+		}
+		if (!configuredOptions.incremental && !configuredOptions.composite)
+		{
+			programOptions.incremental = true;
+		}
+		// if (!configuredOptions.target)
+		// {
+		// 	programOptions.target = "es2020";
+		// }
+		if (!configuredOptions.moduleResolution)
+		{   //
+			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
+			//
+			if (build.target !== "node") {
+				programOptions.moduleResolution = "node";
+			}
+			// else if (build.nodeVersion < 12) {
+			//	programOptions.moduleResolution = "node10";
+			// }
+			else {
+				programOptions.moduleResolution = "node";
+				// programOptions.moduleResolution = "node16";
+			}
+		}
+		return programOptions;
+	};
+
+
+	/**
+	 * @param {typedefs.WpwSourceConfigCompilerOptions} options
+	 * @returns {string[]}
+	 */
+	compilerOptionsToArgs(options)
+	{
+		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
+	}
+
+
+	/**
+	 * @private
+	 */
+	async emit()
+	{
+		const files = await findFiles("**/*.d.ts", { cwd: this.buildPathTemp, absolute: true });
+		for (const file of files)
+		{
+			const assetPath = relativePath(this.buildPathTemp, file),
+				  dirPathRealAbs = dirname(file),
+				  data = await readFile(file),
+				  source = new this.compiler.webpack.sources.RawSource(data);
+			const info = /** @type {typedefs.WebpackAssetInfo} */({
+				immutable: false,
+				javascriptModule: false,
+				types: true
+			});
+			try
+			{   await unlink(file);
+				if ((await findFiles("*.*", { cwd: dirPathRealAbs })).length === 0) {
+					await rm(dirPathRealAbs, { recursive: true, force: true });
+				}
+			}
+			catch (e)
+			{   this.build.addMessage({
+					code: WpwError.Msg.WARNING_GENERAL,
+					message: `failed to remove temp files, asset '${assetPath}' will still be emitted` }
+				);
+			}
+			this.compilation.emitAsset(assetPath, source, info);
+		}
+	};
+
+
+	/**
+	 * @private
+	 * @param {typedefs.WpwSourceTsConfigFile} configFile
+	 * @param {string[]} args
+	 * @param {string} outputDir Output directory of build`
+	 * @returns {Promise<number | null>}
+	 * @throws {typedefs.WpwError}
+	 */
+	async execTsBuild(configFile, args, outputDir)
+	{
+		if (!configFile || !configFile.path) {
+			this.build.addMessage({
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				compilation: this.compilation,
+				message: "invalid source code configured path"
+			});
+			return -1;
+		}
+
+		const logger = this.build.logger,
+			  baseBuildDir = this.build.getBasePath(),
+			  configFilePathRel = relativePath(this.build.getBasePath(), configFile.path),
+			  outputDirAbs = resolvePath(baseBuildDir, outputDir);
+
+		const command = `npx tsc -p ./${configFilePathRel} ${args.join(" ")}`;
+		logger.write(`   execute tsc command [ config file @ ${configFile.path}]`, 1);
+		logger.write("      command: " + command.slice(4), 2);
+
+		const result = await this.exec(command, "tsc");
+		if (result !== 0)
+		{
+			this.build.addMessage({
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				compilation: this.compilation,
+				message: "tsc returned error code " + result
+			});
+			return result;
+		}
+		//
+		// Ensure target directory exists
+		//
+		try {
+			await access(outputDirAbs);
+		}
+		catch (e) {
+			this.build.addMessage({
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				compilation: this.compilation,
+				message: "output directory does not exist @ " + outputDirAbs
+			});
+			return -2;
+		}
+
+		logger.write("   finished execution of tsc command", 3);
+		return 0;
+	}
+
+
+	/**
+	 * @private
+	 * @param {string | undefined} tsBuildInfoFile
+	 * @param {string} outputDir
+	 */
+	async maybeDeleteTsBuildInfoFile(tsBuildInfoFile, outputDir)
+	{
+		if (tsBuildInfoFile)
+		{
+			const typesDirDistAbs = resolve(this.build.getBasePath(), outputDir);
+			if (!existsSync(typesDirDistAbs) && tsBuildInfoFile)
+			{
+				this.logger.write("   force clean tsbuildinfo file", 2);
+				try { await unlink(tsBuildInfoFile); } catch {}
+			}
+		}
+	}
+
 }
 
 

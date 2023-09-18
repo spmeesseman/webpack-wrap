@@ -18,8 +18,6 @@ const {
 	imageminimizer, htmlinlinechunks, testsuite, types, vendormod, webviewapps, scm
 } = require("../plugins");
 
-/** @typedef {import("../types").IWpwPlugin} IWpwPlugin */
-/** @typedef {import("../types").WpwExportPlugin} WpwExportPlugin */
 /** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
 
 
@@ -28,8 +26,6 @@ const {
  */
 const plugins = (build) =>
 {
-	/** @type {(IWpwPlugin | undefined)[]} */
-	const plugins = [];
 	build.logger.start("create plugins configuration", 2);
 	// Object.keys(wpwPlugins).forEach((p) =>
 	// {
@@ -46,7 +42,7 @@ const plugins = (build) =>
 	// 		});
 	// 	}
 	// });
-	plugins.push(
+	build.wpc.plugins.push(
 		loghooks(build),           // n/a - logs all compiler.hooks.* when they run
 		environment(build),        // compiler.hooks.environment
 		vendormod(build),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
@@ -72,8 +68,7 @@ const plugins = (build) =>
 		dispose(build)             // perform cleanup, dispose registred disposables
 	);
 
-	build.wpc.plugins.push(.../** @type {IWpwPlugin[]} */(plugins.filter(p => !!p)));
-	// build.disposables.push(...build.wpc.plugins);
+	build.wpc.plugins.slice().reverse().forEach((p, i, a) => { if (!p) { build.wpc.plugins.splice(a.length - 1 - i, 1); }});
 	build.logger.write("   plugins configuration created successfully", 2);
 };
 

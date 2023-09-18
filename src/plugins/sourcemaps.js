@@ -38,7 +38,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
 	 */
 	constructor(options)
 	{
-        super(apply(options, { registerVendorPluginsFirst: true }));
+        super(options);
 	}
 
 

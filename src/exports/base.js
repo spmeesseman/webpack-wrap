@@ -12,6 +12,9 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseModule = require("../core/basemodule");
 
+const ABSTRACT_ERROR = WpwError.Msg.ERROR_ABSTRACT_FUNCTION;
+
+
 /**
  * @abstract
  * @extends {WpwBaseModule}
@@ -30,7 +33,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     app()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][app]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][app]` });
     }
 
     /**
@@ -41,7 +44,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     create()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build]` });
     }
 
     /**
@@ -50,7 +53,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     jsdoc()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][jsdoc]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][jsdoc]` });
     }
 
     /**
@@ -59,7 +62,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     tests()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][tests]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][tests]` });
     }
 
     /**
@@ -68,7 +71,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     types()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][types]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][types]` });
     }
 
     /**
@@ -77,7 +80,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
     webapp()
     {
-        this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][build][webapp]` });
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][webapp]` });
     }
 
 }

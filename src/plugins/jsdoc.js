@@ -9,50 +9,25 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpBuilPlugin = require("./base");
 const { join, posix } = require("path");
 const typedefs = require("../types/typedefs");
+const WpwBaseTaskPlugin = require("./basetask");
 const { isBoolean, pick, isObject, relativePath, apply, asArray } = require("../utils");
 
 
 /**
- * @extends WpBuilPlugin
+ * @extends WpwBaseTaskPlugin
  */
-class WpwJsDocPlugin extends WpBuilPlugin
+class WpwJsDocPlugin extends WpwBaseTaskPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} @protected */
-    buildOptions;
-
-
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
-		super(options);
-        // this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.build.options.jsdoc);
+		super(apply({ taskHandler: "generateJsDocs" }, options));
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.buildOptions); // reset for typings
 	}
-
-
-    /**
-     * Called by webpack runtime to initialize this plugin
-     * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     */
-    apply(compiler)
-    {
-        this.onApply(compiler,
-        {
-            generateJsDocs: {
-                async: true,
-                hook: "compilation",
-                stage: "REPORT",
-                hookCompilation: "processAssets",
-                statsProperty: "jsdoc",
-                callback: this.generateJsDocs.bind(this)
-            }
-        });
-    }
 
 
 	/**
@@ -71,8 +46,8 @@ class WpwJsDocPlugin extends WpBuilPlugin
               options = this.build.options.jsdoc,
               currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
               outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
-                            this.buildOptions.destination ||
-                            join(this.build.paths.dist, "doc") ;
+                                            this.buildOptions.destination ||
+                                            join(this.build.paths.dist, "doc") ;
 
 		logger.write("create jsdoc documentation", 1);
 		logger.value("   output directory", outDir, 1);

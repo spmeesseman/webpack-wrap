@@ -29,7 +29,6 @@ type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
 interface IWpwBaseModuleOptions extends IWpwBaseOptions
 {
     build: WpwBuildInstance;
-    key?: WpwBuildOptionsKey;
     globalCacheProps?: string[];
 };
 type WpwBaseModuleOptions = IWpwBaseModuleOptions;

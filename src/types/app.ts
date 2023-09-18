@@ -20,12 +20,14 @@
  * All types exported from this definition file are prepended with `WpwPlugin`.
  *//** */
 
-import { IWpwPlugin } from "./plugin";
-import { WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension } from "./rc";
+ import {WpwExportPlugin } from "./export";
 import {
-    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs, WebpackRuntimeEnvArgs,
-    WebpackResolveOptions, WebpackInfrastructureLogging, WebpackMode, WebpackOutput, WebpackFileCacheOptions,
-    WebpackMemoryCacheOptions, WebpackStatsOptions
+    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
+} from "./rc";
+import {
+    WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
+    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackInfrastructureLogging,
+    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
 } from "./webpack";
 
 
@@ -58,7 +60,7 @@ interface IWpwWebpackConfig extends WebpackConfig
     entry: WpwWebpackEntry & WebpackEntry;
     infrastructureLogging: WebpackInfrastructureLogging;
     output: WebpackOutput;
-    plugins: IWpwPlugin[];
+    plugins: WpwExportPlugin[];
     resolve: WebpackResolveOptions;
     stats: WebpackStatsOptions;
     target: WebpackTarget;
@@ -67,10 +69,7 @@ interface IWpwWebpackConfig extends WebpackConfig
 type WpwWebpackConfig = IWpwWebpackConfig;
 
 type WpwWebpackAliasValue = string | string[];
-interface IWpwWebpackAliasConfig
-{
-    [k: string]: WpwWebpackAliasValue | undefined;
-}
+interface IWpwWebpackAliasConfig { [k: string]: WpwWebpackAliasValue | undefined }
 type WpwWebpackAliasConfig = IWpwWebpackAliasConfig;
 
 

@@ -39,7 +39,7 @@ const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
-const { isFunction, execAsync, applyIf, asArray } = require("../utils");
+const { isFunction, execAsync, applyIf, asArray, isString } = require("../utils");
 
 
 /**
@@ -56,10 +56,8 @@ class WpwPlugin extends WpwBaseModule
     cache;
     /** @type {typedefs.WebpackCompilation} */
     compilation;
-    /** @type {typedefs.WebpackCompiler} compiler */
+    /** @type {typedefs.WebpackCompiler} */
     compiler;
-    /** @type {typedefs.WpwPluginOptions} @override @protected */
-    options;
     /**  @type {typedefs.WebpackPluginInstance[]} @private */
     plugins;
     /** @type {typedefs.WebpackCacheFacade} @protected */
@@ -77,7 +75,6 @@ class WpwPlugin extends WpwBaseModule
     {
         super(options);
         this.plugins = [];
-        this.validatePluginOptions(options);
         this.cache = new WpwCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
     }
 
@@ -219,6 +216,30 @@ class WpwPlugin extends WpwBaseModule
 			this.compilation.fileSystemInfo.checkSnapshotValid(snapshot, (e, isValid) => { if (e) { reject(e); } else { resolve(isValid); }});
 		});
 	};
+
+
+    /**
+     * @protected
+     * @param {typedefs.WebpackCompilationHookName} hook
+     * @param {typedefs.WebpackCompilationHookStage} stage
+     * @param {typedefs.WpwPluginHookHandler} callback
+     * @param {boolean} [async]
+     * @param {string} [statsProperty]
+     * @returns {typedefs.WpwPluginCompilationTapOptions} WpwPluginTapOptions
+     */
+    static compilationHookConfig = (hook, stage, callback, async, statsProperty) =>
+        ({ async: !!async, hook: "compilation", stage, hookCompilation: hook, callback, statsProperty });
+
+
+    /**
+     * @protected
+     * @param {typedefs.WebpackCompilerHookName} hook
+     * @param {typedefs.WpwPluginHookHandler} callback
+     * @param {boolean} [async]
+     * @param {string} [statsProperty]
+     * @returns {typedefs.WpwPluginBaseTapOptions} WpwPluginTapOptions
+     */
+    static compilerHookConfig = (hook, callback, async, statsProperty) => ({ async: !!async, hook, callback, statsProperty });
 
 
 	/**
@@ -557,16 +578,6 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * @private
-     * @param {typedefs.WpwPluginOptions} _options Plugin options to be applied
-     * @throws {typedefs.WpwError}
-     */
-	validatePluginOptions(_options)
-    {
-    }
-
-
-    /**
      * Wraps a vendor plugin to give it access to the WpwBuild instance. vendor plugin instantiation
      * is done via the constructor's call to the override function {@link WpwPlugin.getVendorPlugin getVendorPlugin()}
      * @template {WpwPlugin} T
@@ -582,7 +593,7 @@ class WpwPlugin extends WpwBaseModule
         const buildOptions = build.options[buildOptionsKey];
         if (buildOptions && buildOptions.enabled !== false && asArray(addOptionsKeysCheck).every(o => buildOptions[o[0]] === o[1]))
         {
-            const plugin = new clsType(applyIf({ build, wrapPlugin: true }, pluginOptions));
+            const plugin = new clsType(applyIf({ build }, pluginOptions));
             plugin.plugins.push(...asArray(plugin.getVendorPlugin()));
             plugin.buildOptions = buildOptions;
             return plugin;
@@ -603,7 +614,7 @@ class WpwPlugin extends WpwBaseModule
     {
         let cb;
         const logger = this.logger,
-              callback = options.callback,
+              callback = isString(options.callback) ? this[options.callback] : options.callback,
               logMsg = this.breakProp(message),
               eMgr= WpwPlugin.eventManager,
               wait = this.build.options.wait;
@@ -642,7 +653,7 @@ class WpwPlugin extends WpwBaseModule
                 cb = () => {
                     eMgr.register({
                         mode: waitConfig.mode,
-                        source: this.key,
+                        source: this.buildOptionsKey,
                         name: waitConfig.name,
                         callback: () => delayedCb
                     });

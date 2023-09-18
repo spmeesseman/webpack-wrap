@@ -2,19 +2,19 @@
 // @ts-check
 
 /**
- * @file plugin/tscheck.js
+ * @file src/plugins/tscheck.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpwTscPlugin = require("./tsc");
-const { merge, isString } = require("../utils");
-const typedefs = require("../types/typedefs");
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const WpwPlugin = require("./base");
 const { resolve } = require("path");
 const { existsSync } = require("fs");
+const typedefs = require("../types/typedefs");
+const { dtsBundle, merge, isString } = require("../utils");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 /** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
@@ -23,9 +23,9 @@ const { existsSync } = require("fs");
 
 
 /**
- * @extends WpwTscPlugin
+ * @extends WpwPlugin
  */
-class WpwTsCheckPlugin extends WpwTscPlugin
+class WpwTsCheckPlugin extends WpwPlugin
 {
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -59,7 +59,7 @@ class WpwTsCheckPlugin extends WpwTscPlugin
 						hook: "compilation",
 						stage: "DERIVED",
 						statsProperty: "tsbundle",
-						callback: () => this.dtsBundle("tsbundle")
+						callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
 					}
 				});
 			}
@@ -71,7 +71,7 @@ class WpwTsCheckPlugin extends WpwTscPlugin
 						async: true,
 						hook: "afterEmit",
 						statsProperty: "tsbundle",
-						callback: () => this.dtsBundle("tsbundle")
+						callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
 					}
 				});
 			}

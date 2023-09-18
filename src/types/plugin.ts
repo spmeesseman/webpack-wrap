@@ -41,19 +41,14 @@ import { RequireKeys } from "./generic";
 import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
 import {
-    WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance, WebpackCompilationHookStage, WebpackCompilation
+    WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance,
+    WebpackCompilationHookStage, WebpackCompilation
 } from "./webpack";
 
 
-type WpwPluginOptions =
-{
-    apps?: string[];
-    registerVendorPluginsFirst?: boolean;
-    registerVendorPluginsOnly?: boolean;
-    wrapPlugin?: boolean;
-} & WpwBaseModuleOptions;
+type WpwPluginOptions = WpwBaseModuleOptions;
 
-type WpwPluginBaseTaskOptions = WpwPluginOptions;
+type WpwPluginBaseTaskOptions = { taskHandler: string; hooks?: WpwPluginTapOptions } & WpwPluginOptions;
 
 type WpwPluginWaitOptions = WpwPluginConfigWaitItem & { callback: WpwPluginWrappedHookHandler };
 
@@ -61,15 +56,15 @@ type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
 
 type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
-type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void;
+type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void | Promise<void>;
 
-type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => void;
+type WpwPluginWrappedHookHandlerSync = (...args: any[]) => void;
 
-type WpwPluginWrappedHookHandlerSync = (...args: any[]) => Promise<void>;
+type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => Promise<void>;
 
 type WpwPluginWrappedHookHandler = WpwPluginWrappedHookHandlerAsync | WpwPluginWrappedHookHandlerSync;
 
-type WpwPluginHookHandler = (...args: any[]) => WpwPluginHookHandlerResult | Promise<WpwPluginHookHandlerResult>;
+type WpwPluginHookHandler = string | ((...args: any[]) => WpwPluginHookHandlerResult) | Promise<WpwPluginHookHandlerResult>;
 
 type WpwPluginTapOptions  = Record<string, WpwPluginBaseTapOptions | WpwPluginCompilationTapOptions>;
 
@@ -98,6 +93,7 @@ export {
     WpwPluginBaseTaskOptions,
     WpwPluginCompilationTapOptions,
     WpwPluginHookHandler,
+    WpwPluginHookHandlerResult,
     WpwPluginHookWaitStage,
     WpwPluginMultiWaitOptions,
     WpwPluginOptions,

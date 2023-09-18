@@ -18,7 +18,6 @@ const { isWpwBuildOptionsKey } = require("../types/constants");
 /**
  * @abstract
  * @extends {WpwBase}
- * @implements {typedefs.IDisposable}
  * @implements {typedefs.IWpwBaseModule}
  */
 class WpwBaseModule extends WpwBase
@@ -33,10 +32,6 @@ class WpwBaseModule extends WpwBase
     globalBaseProperty;
     /** @protected */
     hashDigestLength;
-    /** @type {typedefs.WpwBuildOptionsKey} @protected */
-    key;
-    /** @type {typedefs.WpwBaseModuleOptions} @abstract @protected */
-    options;
     /** @private */
     pluginsNoOpts = [ "dispose" ];
     /** @protected */
@@ -49,18 +44,18 @@ class WpwBaseModule extends WpwBase
 	constructor(options)
     {
         super(options);
-        options.key = /** @type {typedefs.WpwBuildOptionsKey} */(options.key || this.baseName.toLowerCase());
         this.validateOptions(options);
-        this.key = options.key;
-        this.build = options.build;
-        this.options = options;
-        this.wpc = this.build.wpc;
-        this.logger = this.build.logger;
-        this.buildOptions = clone(this.build.options[this.key]);
-        this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.initGlobalCache();
+        this.build = options.build;
+        this.wpc = this.build.wpc;
+        this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
+        this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
         this.build.disposables.push(this);
     }
+
+
+    get baseName() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, ""); }
+    get buildOptionsKey() { return /** @type {typedefs.WpwBuildOptionsKey} */(this.baseName.toLowerCase()); }
 
 
 	/**
@@ -69,18 +64,7 @@ class WpwBaseModule extends WpwBase
 	 * @returns {WpwBase | undefined | never}
 	 * @throws {typedefs.WpwError}
      */
-	static create(..._args)
-    {
-        throw WpwError.getAbstractFunction(`[${this.name}[create][static]`);
-    }
-
-
-    /**
-     * @returns {typedefs.WpwBuildOptionsKey}
-     */
-    get baseName() { return /** @type {typedefs.WpwBuildOptionsKey} */(
-        this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, "")
-    ); }
+	static create(..._args) { throw WpwError.getAbstractFunction(`[${this.name}[create][static]`); }
 
 
 	/**
@@ -114,16 +98,6 @@ class WpwBaseModule extends WpwBase
         );
     }
 
-
-    /**
-     * @private
-     * @template {string | undefined} K
-     * @param {K} key
-     * @returns {K is typedefs.WpwBuildOptionsKey}
-     */
-    isValidOptionsKey = (key) =>
-        !!key && (this.pluginsNoOpts.includes(key) || isWpwBuildOptionsKey(key));
-
     /**
      * @private
      * @param {typedefs.WpwBaseModuleOptions} options Plugin options to be applied
@@ -134,8 +108,9 @@ class WpwBaseModule extends WpwBase
         if (!options.build) {
             throw WpwError.getErrorMissing("app", this.wpc, "invalid option[app]");
         }
-        if (!this.isValidOptionsKey(options.key)) {
-            throw WpwError.getErrorProperty("key", this.wpc, `invalid option[key], '${options.key}' does not exist in build options`);
+        const key = this.buildOptionsKey;
+        if (!key || (!this.pluginsNoOpts.includes(key) && !isWpwBuildOptionsKey(key))) {
+            throw WpwError.getErrorProperty("key", this.wpc, `invalid option[key], '${key}' does not exist in build options`);
         }
     }
 

@@ -23,9 +23,9 @@
 
 const { join } = require("path");
 const WpwPlugin = require("./base");
-const { existsAsync } = require("../utils");
 const typedefs = require("../types/typedefs");
 const { rm, unlink, writeFile } = require("fs/promises");
+const { existsAsync, WpwError, applyIf } = require("../utils");
 
 
 /**
@@ -33,12 +33,13 @@ const { rm, unlink, writeFile } = require("fs/promises");
  */
 class WpwBaseTaskPlugin extends WpwPlugin
 {
-	/** @type {string} @private */
+	/** @type {string} @protected */
 	buildPathTemp;
-    /** @type {string} @private */
+    /** @type {string} @protected */
 	virtualFile;
-	/** @type {string} @private */
+	/** @type {string} @protected */
 	virtualFilePath;
+
 
     /**
      * @param {typedefs.WpwPluginBaseTaskOptions} options
@@ -46,6 +47,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
+		this.buildTask = this[options.taskHandler];
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
 		this.buildPathTemp = join(this.build.getTempPath(), this.build.type, "virtual");
@@ -60,27 +62,44 @@ class WpwBaseTaskPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		this.onApply(compiler,
+		this.onApply(compiler, applyIf(
         {
-			cleanTempFiles: {
+			build: {
+				async: true,
+                hook: "compilation",
+				stage: "ADDITIONAL",
+				statsProperty: this.buildOptionsKey,
+                callback: this.buildTask.bind(this)
+            },
+			clean: {
 				async: true,
 				hook: "done",
-				callback: this.cleanTempFiles.bind(this)
+				callback: this.clean.bind(this)
 			},
 			injectVirtualEntryFile: {
 				async: true,
 				hook: "beforeRun",
 				callback: this.injectVirtualEntryFile.bind(this)
 			}
-        });
+        }, this.options.hooks));
     }
+
+
+	/**
+	 * @abstract
+	 * @param {typedefs.WebpackCompilationAssets} _assets
+	 */
+	async buildTask(_assets)
+	{
+		this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][buildTask]` });
+	};
 
 
 	/**
 	 * @private
 	 * @param {typedefs.WebpackStats} _stats
 	 */
-	async cleanTempFiles(_stats)
+	async clean(_stats)
 	{
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
@@ -101,6 +120,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
         await writeFile(this.virtualFilePath, source);
 	}
+
 }
 
 
