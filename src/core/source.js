@@ -39,8 +39,6 @@ class WpwSource
     logger;
     /** @type {typedefs.WpwSourceOptions} */
     options;
-    /** @type {typedefs.TypeScriptProgram | undefined} @private */
-    program;
     /** @type {typedefs.WpwSourceType} */
     type;
 
@@ -66,119 +64,127 @@ class WpwSource
     };
 
 
-    dispose() { this.cleanupProgram(); }
+    dispose() {}
 
 
     get dotext() { return /** @type {typedefs.WpwSourceDotExtensionApp} */(`.${this.ext}`); }
 
 
-    cleanupProgram()
+    /**
+	 * @private
+     * @param {any} host
+     * @param {any} directoryStructureHost
+     * @throws {WpwError}
+     */
+    createConfigHost(host, directoryStructureHost)
     {
-        if (this.program)
-        {   //
-            // TODO - cleanup program ??
+        if (directoryStructureHost === void 0) { directoryStructureHost = host; }
+        return {
+            fileExists: (f) => directoryStructureHost.fileExists(f),
+            readDirectory: (root, extensions, excludes, includes, depth) => {
+                // ts.Debug.assertIsDefined(directoryStructureHost.readDirectory, "'CompilerHost.readDirectory' must be implemented to correctly process 'projectReferences'");
+                return directoryStructureHost.readDirectory(root, extensions, excludes, includes, depth);
+            },
+            readFile: (f) => directoryStructureHost.readFile(f),
+            useCaseSensitiveFileNames: host.useCaseSensitiveFileNames(),
+            getCurrentDirectory: () => host.getCurrentDirectory(),
+            onUnRecoverableConfigFileDiagnostic: host.onUnRecoverableConfigFileDiagnostic || (() => undefined),
+            trace: host.trace ? (s) => host.trace(s) : undefined
+        };
+    }
+
+
+    /**
+     * @private
+     * @param {typedefs.WpwSourceConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
+     * @param {string[]} [files]
+     * @returns {typedefs.TypeScriptProgram} TypeScriptProgram
+	 */
+    createProgram(compilerOptions, files)
+    {
+        const ts = WpwSource.typescript = /** @type {typedefs.TypeScript} */(WpwSource.typescript || require(require.resolve("typescript")));
+        if (!ts) {
+            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
         }
+
+        const specOptions = merge({}, this.config.compilerOptions, compilerOptions);
+		Object.keys(specOptions).forEach((k) => {
+			if (isString(specOptions[k]) && specOptions[k].includes("\\")) {
+				specOptions[k] = specOptions[k].replace(/\\/g, "/");
+			}
+		});
+
+        const baseDir = /** @type {string} */(this.configFile.dir),
+              programOptions = ts.convertCompilerOptionsFromJson(specOptions, baseDir),
+              options = apply(programOptions.options, { project: this.configFile.path.replace(/\\/g, "/"), configFilePath: this.configFile.path.replace(/\\/g, "/") }),
+              host = ts.createCompilerHost(options);
+
+        let rootNames = files?.slice();
+        if (!rootNames)
+        {
+            const parseConfigFileHost = this.createConfigHost(host, host),
+                  parsedCmdLine = ts.getParsedCommandLineOfConfigFile(this.configFile.path, options, parseConfigFileHost);
+            if (!parsedCmdLine) {
+                throw new WpwError({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "could not set rootNames" });
+            }
+            rootNames = parsedCmdLine.fileNames;
+        }
+        else {
+            rootNames = rootNames.map(f => resolvePath(baseDir, f).replace(/\\/g, "/"));
+        }
+
+        return ts.createProgram({ options, /* TODO */projectReferences: undefined, host, rootNames });
     }
 
 
     /**
      * @param {typedefs.WpwSourceConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
+     * @param {boolean} [emitOnlyDts]
      * @param {string[]} [files]
-	 */
-    createProgram(compilerOptions, files)
-    {
-        const ts = WpwSource.typescript = WpwSource.typescript || require(require.resolve("typescript"));
-        if (!ts) {
-            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
-        }
-        this.cleanupProgram();
-        const programOptions = merge({}, this.config.compilerOptions, compilerOptions),
-              options = this.wpwToTsCompilerOptions(programOptions, ts);
-        this.program = ts.createProgram(
-        {
-            options,
-            // options: {
-            //     configFilePath: this.config.path
-            // },
-            //
-            // TODO - support project references
-            //
-            projectReferences: undefined,
-            host: this.createCompilerHost(options, ts),
-            // rootNames: [ "src" ]
-            rootNames: files || this.config.files
-            // rootNames: []
-        });
-    }
-
-
-    /**
-	 * @private
-     * @param {typedefs.TypeScriptCompilerOptions} options typescript compiler options
-     * @param {typedefs.TypeScript} ts
-     * @throws {WpwError}
-     */
-    createCompilerHost(options, ts)
-    {
-        const baseCompilerHost = ts.createCompilerHost(options);
-        return merge({}, baseCompilerHost,
-        {
-            realpath: resolve,
-            fileExists: fileExistsSync,
-            getDirectories: readdirSync,
-            directoryExists: fileExistsSync,
-            readFile: (f) => readFileSync(f, "utf8")
-        });
-    }
-
-
-    /**
      * @param {typedefs.TypeScriptSourceFile} [file]
      * @param {typedefs.TypeScriptWriteFileCallback} [writeFileCb]
      * @param {typedefs.TypeScriptCancellationToken} [cancellationToken]
-     * @param {boolean} [emitOnlyDts]
      * @param {typedefs.TypeScriptCustomTransformers} [transformers]
      * @throws {WpwError}
      */
-    emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers)
+    emit(compilerOptions, emitOnlyDts, files, file, writeFileCb, cancellationToken, transformers)
     {
-        if (!this.program) {
-            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is not initialized" });
-        }
+        /** @type {typedefs.TypeScriptProgram} */
+        const program = this.createProgram(compilerOptions, files);
 
         const logger = this.logger;
-        logger.start("typescript.emit", 1);
-        logger.value("   source file", file, 2);
-        logger.value("   emit types only", emitOnlyDts, 2);
-        logger.value("   compiler options", JSON.stringify(this.program.getCompilerOptions()), 3);
+        logger.write("   source.typescript.emit", 1);
+        logger.value("      source file", file, 2);
+        logger.value("      emit types only", !!emitOnlyDts, 2);
+        logger.value("      compiler options", program.getCompilerOptions(), 3);
+        logger.value("      root files", program.getRootFileNames(), 4);
 
-        const result = this.program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
-
+        const result = program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
         if (result.emittedFiles)
         {
-            logger.value(`  emitted ${result.emittedFiles.length} files`, 1);
+            logger.write(`     emitted ${result.emittedFiles.length} files`, 2);
         }
-        if (result.emitSkipped)
+        else if (result.emitSkipped)
         {
-            logger.value("  emit skipped", 1);
+            logger.value("     emit skipped", result.emitSkipped, 2);
         }
         if (result.diagnostics)
         {
             let dCount = 0;
             const diagMsgCt = logger.withColor(result.diagnostics.length.toString(), logger.colors.bold);
-            logger.write(`emit request produced ${diagMsgCt} diagnostic messages`);
+            logger.write(`      emit request produced ${diagMsgCt} diagnostic messages`, 2);
             result.diagnostics.forEach((d) =>
             {
-                logger.write(`diagnostic ${++dCount}`, undefined, "", logger.icons.color.warning);
-                logger.write(`   code: ${d.code}`, undefined, "", logger.icons.color.warning);
-                logger.write(`   category: ${d.category}`, undefined, "", logger.icons.color.warning);
-                logger.write(`   message: ${d.messageText}`, undefined, "", logger.icons.color.warning);
-                logger.write(`   start: ${d.start}`, undefined, "", logger.icons.color.warning);
-                logger.write(`   file: ${d.file}`, undefined, "", logger.icons.color.warning);
+                logger.write(`      diagnostic ${++dCount}`, undefined, "", logger.icons.color.warning);
+                logger.write(`         code      : ${d.code}`, undefined, "", logger.icons.color.warning);
+                logger.write(`         category  : ${d.category}`, undefined, "", logger.icons.color.warning);
+                logger.write(`         message   : ${d.messageText}`, undefined, "", logger.icons.color.warning);
+                logger.write(`         start     : ${d.start}`, undefined, "", logger.icons.color.warning);
+                logger.write(`         file      : ${d.file?.fileName}`, undefined, "", logger.icons.color.warning);
             });
         }
 
-        logger.write("typescript.emit completed");
+        logger.write("   source.typescript.emit complete", 2);
         return result;
     }
 
@@ -337,25 +343,6 @@ class WpwSource
 
             return { dir, file, path, config: json, raw: buildJson.raw };
         }
-    }
-
-
-    /**
-     * @private
-     * @param {typedefs.WpwSourceConfigCompilerOptions} options typescript compiler options
-     * @param {typedefs.TypeScript} ts
-     * @returns {typedefs.TypeScriptCompilerOptions}
-     */
-    wpwToTsCompilerOptions(options, ts)
-    {
-        return mergeIf({
-            configFilePath: this.configFile.path,
-            jsx: ts.JsxEmit[options.jsx || 0],
-            module: options.module ? ts.ModuleKind[options.module] : ts.ModuleKind.CommonJS,
-            target: options.target ? ts.ScriptTarget[options.target] : ts.ScriptTarget.ES2020,
-            moduleResolution: (options.moduleResolution ?
-                ts.ModuleResolutionKind[options.moduleResolution] : null) || ts.ModuleResolutionKind.NodeJs
-        }, options);
     }
 
 }

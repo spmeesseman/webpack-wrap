@@ -3,7 +3,7 @@
 // @ts-check
 
 /**
- * @file plugin/types.js
+ * @file src/plugin/types.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -15,8 +15,8 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { resolve, join, dirname } = require("path");
-const { rm, unlink, readFile, writeFile, access } = require("fs/promises");
-const { dtsBundle, existsAsync, apply, findFiles, relativePath, isObject, resolvePath } = require("../utils");
+const { rm, unlink, readFile, access } = require("fs/promises");
+const { dtsBundle, apply, findFiles, relativePath, isObject, resolvePath, isDirectory, isString, clone } = require("../utils");
 
 
 /**
@@ -50,16 +50,16 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 
 	/**
 	 * @protected
-	 * @param {typedefs.WebpackCompilationAssets} assets
+	 * @param {typedefs.WebpackCompilationAssets} _assets
 	 */
-	async buildTypes(assets)
+	async buildTypes(_assets)
 	{
 		const build = this.build,
 			  source = build.source,
 			  logger = this.logger,
 			  basePath = build.getBasePath(),
 			  method = this.buildOptions.method,
-			  tscConfig = source.config,
+			  tscConfig = clone(source.config),
 			  compilerOptions = tscConfig.compilerOptions,
 			  srcDir = build.getSrcPath(),
 			  // distDirAbs = build.getDistPath({ fallback: true }),
@@ -77,27 +77,20 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		logger.value("   output directory", outputDirRel, 2);
 		logger.value("   build options", this.buildOptions, 4);
 
-		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
-		if (virtualEntryFile) {
-			logger.write(`   delete virtual entry asset '${virtualEntryFile}'`, 3);
-			this.compilation.deleteAsset(virtualEntryFile);
-		}
-
 		let rc;
 		const options = this.compilerOptions();
 		this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDirRel);
 
 		if (method === "program")
 		{
-			const // ignore = tscConfig.exclude || [],
-				  files = build.source.config.files; // ,
-				  // typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
-			// if (typesExcludeIdx !== -1) {
+			// const // ignore = tscConfig.exclude || [],
+			// 	  files = build.source.config.files;
+			// let typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
+			// while (typesExcludeIdx !== -1) {
 			// 	ignore.splice(typesExcludeIdx, 1);
+			// 	typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
 			// }
-			// const srcDtsFiles = await findFiles(
-			// 	`${typesSrcDir}/**/*.ts`, { cwd: typesSrcDir, ignore, absolute: true }
-			// );
+			// const srcDtsFiles = await findFiles("**/*.ts", { cwd: srcDir, ignore, absolute: true });
 			// if (srcDtsFiles.length)
 			// {
 			// 	logger.write(`   adding ${srcDtsFiles.length} .ts files found in source directory`, 2);
@@ -105,12 +98,20 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			// }
 			// if (tscConfig.include && tscConfig.exclude)
 			// {
-			// 	const typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
+			// 	let typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
 			// 	if (typesExcludeIdx !== -1)
 			// 	{
-			// 		logger.write("   types exclude found in tsconfig, modify input files list", 2);
 			// 		const origFiles = files.splice(0);
-			// 		tscConfig.exclude.splice(typesExcludeIdx, 1);
+			// 		logger.write("   types exclude found in tsconfig, modify input files list", 2);
+			// 		logger.value("      current # of input files", origFiles.length, 2);
+			//
+			// 		while (typesExcludeIdx !== -1)
+			// 		{
+			// 			const removedExclude = tscConfig.exclude.splice(typesExcludeIdx, 1);
+			// 			logger.value("   types exclude found in tsconfig, modify input files list", removedExclude, 2);
+			// 			typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
+			// 		}
+			//
 			// 		for (const incPath of tscConfig.include)
 			// 		{
 			// 			let globPattern;
@@ -121,9 +122,10 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			// 			const fullPath = resolvePath(build.getBasePath(), !globPattern ? incPath : incPath.replace(globPattern, ""));
 			// 			if (globPattern || isDirectory(fullPath))
 			// 			{
-			// 				logger.value("      add files from include path", incPath, 4);
+			// 				logger.value("      add files from include path", incPath, 3);
 			// 				const incFiles = await findFiles(
 			// 					// incPath,
+			// 					// globPattern ? incPath : `${incPath}/**/*.{js,ts}`,
 			// 					globPattern ? incPath : `${incPath}/**/*.${build.source.ext}`,
 			// 					// `${incPath}/**/*.${build.source.ext}`,
 			// 					{ cwd: build.getBasePath(), ignore: tscConfig.exclude, absolute: true
@@ -131,23 +133,38 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			// 				files.push(...incFiles);
 			// 			}
 			// 			else {
-			// 				logger.value("      add include file", incPath, 4);
+			// 				logger.value("      add include file", incPath, 3);
 			// 				files.push(fullPath);
 			// 			}
 			// 		}
-			// 		logger.value("      # of new input files", files.length, 2);
-			// 		logger.value("      # of previous input files", origFiles.length, 2);
-			// 		logger.write("   input files list modification complete", 2);
+			//
+			// 		// const srcDtsFiles = await findFiles("**/*.ts", { cwd: srcDir, ignore, absolute: true });
+			// 		// if (srcDtsFiles.length)
+			// 		// {
+			// 		// 	logger.write(`   adding ${srcDtsFiles.length} .ts files found in source directory`, 2);
+			// 		// 	files.push(...srcDtsFiles);
+			// 		// }
+			//
+			// 		logger.value("      new # of input files", files.length, 2);
 			// 	}
 			// }
-			build.source.createProgram(options, files);
-			const result = build.source.emit(undefined, undefined, undefined, true);
-			if (!result)
+			// if (build.source.type === "javascript")
+			// {
+			// 	const incFiles = await findFiles(`${srcDir}/**/*.ts`, { cwd: srcDir, ignore: tscConfig.exclude, absolute: true });
+			// 	files.push(...incFiles);
+			// }
+
+			const result = build.source.emit(options, true);
+			rc = !result.emitSkipped && result.diagnostics.length === 0 ? 0 : -1;
+			if (rc !== 0)
 			{
-				build.addMessage({ code: WpwError.Msg.ERROR_TYPES_FAILED, compilation: this.compilation, message: "" });
-				return;
+				build.addMessage({
+					pad: "   ",
+					compilation: this.compilation,
+					code: WpwError.Msg.ERROR_TYPES_FAILED,
+					message: "check program returned diagnostics in log output"
+				});
 			}
-			rc = !result.emitSkipped ? result.diagnostics.length : -1;
 		}
 		else if (method === "tsc")
 		{
@@ -155,8 +172,9 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		}
 		else {
 			build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				pad: "   ",
 				compilation: this.compilation,
+				code: WpwError.Msg.ERROR_TYPES_FAILED,
 				message: `configured build method is '${method}'`
 			});
 		}
@@ -242,10 +260,10 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		{
 			programOptions.incremental = true;
 		}
-		// if (!configuredOptions.target)
-		// {
-		// 	programOptions.target = "es2020";
-		// }
+		if (!configuredOptions.target)
+		{
+			programOptions.target = "es2020";
+		}
 		if (!configuredOptions.moduleResolution)
 		{   //
 			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution

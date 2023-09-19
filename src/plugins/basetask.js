@@ -25,7 +25,7 @@ const { join } = require("path");
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { rm, unlink, writeFile } = require("fs/promises");
-const { existsAsync, WpwError, applyIf } = require("../utils");
+const { existsAsync, WpwError, applyIf, isFunction, isPromise } = require("../utils");
 
 
 /**
@@ -47,7 +47,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
-		this.buildTask = this[options.taskHandler];
+		this.validateBaseTaskOptions();
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
 		this.buildPathTemp = join(this.build.getTempPath(), this.build.type, "virtual");
@@ -74,7 +74,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 			clean: {
 				async: true,
 				hook: "done",
-				callback: this.clean.bind(this)
+				callback: this.cleanTask.bind(this)
 			},
 			injectVirtualEntryFile: {
 				async: true,
@@ -86,12 +86,20 @@ class WpwBaseTaskPlugin extends WpwPlugin
 
 
 	/**
-	 * @abstract
-	 * @param {typedefs.WebpackCompilationAssets} _assets
+	 * @private
+	 * @param {typedefs.WebpackCompilationAssets} assets
 	 */
-	async buildTask(_assets)
+	async buildTask(assets)
 	{
-		this.build.addMessage({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, message: `name[${this.name}][buildTask]` });
+		const result = this[this.options.taskHandler](assets);
+		if (isPromise(result)) {
+			await result;
+		}
+		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
+		if (virtualEntryFile) {
+			this.logger.write(`delete virtual entry asset '${virtualEntryFile}' from compilation`, 3);
+			this.compilation.deleteAsset(virtualEntryFile);
+		}
 	};
 
 
@@ -99,7 +107,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	 * @private
 	 * @param {typedefs.WebpackStats} _stats
 	 */
-	async clean(_stats)
+	async cleanTask(_stats)
 	{
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
@@ -120,6 +128,18 @@ class WpwBaseTaskPlugin extends WpwPlugin
 			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
         await writeFile(this.virtualFilePath, source);
 	}
+
+
+    /**
+     * @private
+     * @throws {typedefs.WpwError}
+     */
+	validateBaseTaskOptions()
+    {
+        if (!isFunction(this[this.options.taskHandler])) {
+            throw WpwError.getErrorMissing("options.taskHandler", this.wpc, "invalid option [basetask]");
+        }
+    }
 
 }
 

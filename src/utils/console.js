@@ -388,19 +388,19 @@ class WpwLogger
      * Write / log a message and an aligned value to the console.  The message pad space is defined
      * by ..wpwrc.`log.pad.value` (defaults to 45)
      * @param {string} msg
-     * @param {any} val
+     * @param {any} value
      * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad] Message pre-padding
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null} [color]
      */
-    value(msg, val, level, pad, icon, color)
+    value(msg, value, level, pad, icon, color)
     {
         if (level !== undefined && level > this.options.level) {
             return;
         }
 
-        let vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
+        let val = value, vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
         const vPad = WpwLogger.valuePadLen,
               rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
 
@@ -412,8 +412,26 @@ class WpwLogger
         if (val || isPrimitive(val))
         {
             const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
-                    maxLine = this.options.valueMaxLineLength || 100;
+                  maxLine = this.options.valueMaxLineLength || 100;
             vMsg += (!isString(val) || !rgxColorStart.test(val) ? ": " : "");
+            if (isArray(val))
+            {
+                val = "array [ " + val.join(" | ") + " ]";
+            }
+            else if (isObject(val))
+            {
+                try {
+                    val = JSON.stringify(val);
+                }
+                catch
+                {   try {
+                        val = val.toString?.();
+                    }
+                    catch {
+                        val = "object[object]";
+                    }
+                }
+            }
             if (isString(val) && val.replace(rgxColorStart, "").length > maxLine && !val.trim().includes("\n"))
             {
                 let xPad, clrLen,
@@ -472,24 +490,6 @@ class WpwLogger
                     this.write(vMsg, level, pad, icon, color);
                 }
                 return;
-            }
-            else if (isArray(val))
-            {
-                vMsg += "array[ " + val.join(" | ") + " ]";
-            }
-            else if (isObject(val))
-            {
-                try {
-                    vMsg += JSON.stringify(val);
-                }
-                catch
-                {   try {
-                        vMsg += val.toString?.();
-                    }
-                    catch {
-                        vMsg += "object[object]";
-                    }
-                }
             }
             else {
                 vMsg += val;

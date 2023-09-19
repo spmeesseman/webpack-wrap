@@ -52,11 +52,8 @@ interface IWpwBase extends IDisposable
     logger: WpwLoggerInstance;
 }
 
-interface IWpwBaseOptions
-{
-    logger?: WpwLoggerInstance;
-    [key: string]: any;
-};
+interface IWpwBaseOptions extends Record<string, any> { logger?: WpwLoggerInstance };
+
 type WpwBaseOptions = IWpwBaseOptions;
 
 

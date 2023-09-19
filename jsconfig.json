@@ -2,23 +2,14 @@
     "compilerOptions": {
       "allowSyntheticDefaultImports": true,
       "alwaysStrict": false,
-      // "allowJs": true,
       "allowUnreachableCode": false,
       "allowUnusedLabels": false,
-      // "baseUrl": "..",
-      // "experimentalDecorators": true,
       "incremental": true,
       "lib": [
         "es2020"
       ],
-      // "noLib": true,
       "module": "commonjs",
       "moduleResolution": "node",
-      // "declaration": true,
-      // "emitDeclarationOnly": true,
-      // "declarationMap": false,
-      // "declarationDir": "dist/types",
-      // "outFile": "dist/types/output",
       "noEmit": false,
       "noFallthroughCasesInSwitch": false,
       "noImplicitAny": false,
@@ -41,7 +32,6 @@
       "strictFunctionTypes": true,
       "strictNullChecks": true,
       "strictPropertyInitialization": false,
-      // "stripInternal": true,
       "suppressImplicitAnyIndexErrors": true,
       "suppressExcessPropertyErrors": true,
       "target": "es2020",
@@ -55,14 +45,13 @@
         ".*",
         "bin",
         "dist",
-        "doc",
         "examples",
         "node_modules",
         "res",
         "schema",
+        "script",
         "test-fixture",
         "src/types/**",
-        "src/types/constants.js",
         "src/plugins/analyze/visualizer.js"
     ]
 }

@@ -150,7 +150,7 @@ class WpwBuild extends WpwBase
     {
         const l = this.logger;
         if (this.info.length > 0) {
-            l.warning("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:");
+            l.write("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
             this.info.splice(0).forEach(e => printNonFatalIssue(this, e, l.warning));
         }
         if (this.warnings.length > 0) {
@@ -158,7 +158,7 @@ class WpwBuild extends WpwBase
             this.warnings.splice(0).forEach(w => printNonFatalIssue(this, w, l.warning));
         }
         if (this.errors.length > 0) {
-            l.warning("REPORTED ERRORS FOR THIS BUILD:");
+            l.write("REPORTED ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
             this.errors.splice(0).forEach(e => printNonFatalIssue(this, e, l.error));
         }
         for (const d of this.disposables.splice(0)) {
