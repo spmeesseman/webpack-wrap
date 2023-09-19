@@ -54,6 +54,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 	 */
 	async buildTypes(_assets)
 	{
+		let rc;
 		const build = this.build,
 			  source = build.source,
 			  logger = this.logger,
@@ -62,10 +63,8 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			  tscConfig = clone(source.config),
 			  compilerOptions = tscConfig.compilerOptions,
 			  srcDir = build.getSrcPath(),
-			  // distDirAbs = build.getDistPath({ fallback: true }),
 			  distDirRel = build.getDistPath({ rel: true, psx: true, fallback: true }),
-			  outputDirRel = compilerOptions.declarationDir ?? distDirRel; // ,
-			  // outputDirAbs = resolvePath(basePath, outputDirRel);
+			  outputDirRel = compilerOptions.declarationDir ?? distDirRel;
 
 		logger.write("start types build", 1);
 		logger.value("   method", method, 2);
@@ -77,83 +76,11 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		logger.value("   output directory", outputDirRel, 2);
 		logger.value("   build options", this.buildOptions, 4);
 
-		let rc;
 		const options = this.compilerOptions();
 		this.maybeDeleteTsBuildInfoFile(options.tsBuildInfoFile, outputDirRel);
 
 		if (method === "program")
 		{
-			// const // ignore = tscConfig.exclude || [],
-			// 	  files = build.source.config.files;
-			// let typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
-			// while (typesExcludeIdx !== -1) {
-			// 	ignore.splice(typesExcludeIdx, 1);
-			// 	typesExcludeIdx = ignore.findIndex(e => e.includes("types"));
-			// }
-			// const srcDtsFiles = await findFiles("**/*.ts", { cwd: srcDir, ignore, absolute: true });
-			// if (srcDtsFiles.length)
-			// {
-			// 	logger.write(`   adding ${srcDtsFiles.length} .ts files found in source directory`, 2);
-			// 	files.push(...srcDtsFiles);
-			// }
-			// if (tscConfig.include && tscConfig.exclude)
-			// {
-			// 	let typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
-			// 	if (typesExcludeIdx !== -1)
-			// 	{
-			// 		const origFiles = files.splice(0);
-			// 		logger.write("   types exclude found in tsconfig, modify input files list", 2);
-			// 		logger.value("      current # of input files", origFiles.length, 2);
-			//
-			// 		while (typesExcludeIdx !== -1)
-			// 		{
-			// 			const removedExclude = tscConfig.exclude.splice(typesExcludeIdx, 1);
-			// 			logger.value("   types exclude found in tsconfig, modify input files list", removedExclude, 2);
-			// 			typesExcludeIdx = tscConfig.exclude.findIndex(e => e.includes("types"));
-			// 		}
-			//
-			// 		for (const incPath of tscConfig.include)
-			// 		{
-			// 			let globPattern;
-			// 			const globMatch = incPath.match(new RegExp(`.*?(\\*\\*?(?:[\\\\\\/]\\*(?:\\*|\\.${build.source.ext})))`));
-			// 			if (globMatch) {
-			// 				globPattern = globMatch[1];
-			// 			}
-			// 			const fullPath = resolvePath(build.getBasePath(), !globPattern ? incPath : incPath.replace(globPattern, ""));
-			// 			if (globPattern || isDirectory(fullPath))
-			// 			{
-			// 				logger.value("      add files from include path", incPath, 3);
-			// 				const incFiles = await findFiles(
-			// 					// incPath,
-			// 					// globPattern ? incPath : `${incPath}/**/*.{js,ts}`,
-			// 					globPattern ? incPath : `${incPath}/**/*.${build.source.ext}`,
-			// 					// `${incPath}/**/*.${build.source.ext}`,
-			// 					{ cwd: build.getBasePath(), ignore: tscConfig.exclude, absolute: true
-			// 				});
-			// 				files.push(...incFiles);
-			// 			}
-			// 			else {
-			// 				logger.value("      add include file", incPath, 3);
-			// 				files.push(fullPath);
-			// 			}
-			// 		}
-			//
-			// 		// const srcDtsFiles = await findFiles("**/*.ts", { cwd: srcDir, ignore, absolute: true });
-			// 		// if (srcDtsFiles.length)
-			// 		// {
-			// 		// 	logger.write(`   adding ${srcDtsFiles.length} .ts files found in source directory`, 2);
-			// 		// 	files.push(...srcDtsFiles);
-			// 		// }
-			//
-			// 		logger.value("      new # of input files", files.length, 2);
-			// 	}
-			// }
-			// if (build.source.type === "javascript")
-			// {
-			// 	const incFiles = await findFiles(`${srcDir}/**/*.ts`, { cwd: srcDir, ignore: tscConfig.exclude, absolute: true });
-			// 	files.push(...incFiles);
-			// }
-
 			const result = build.source.emit(options, true);
 			rc = !result.emitSkipped && result.diagnostics.length === 0 ? 0 : -1;
 			if (rc !== 0)
@@ -162,7 +89,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 					pad: "   ",
 					compilation: this.compilation,
 					code: WpwError.Msg.ERROR_TYPES_FAILED,
-					message: "check program returned diagnostics in log output"
+					message: "check diagnostics returned by program in log output"
 				});
 			}
 		}
@@ -170,8 +97,8 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		{
 			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), this.buildPathTemp);
 		}
-		else {
-			build.addMessage({
+		else
+		{   build.addMessage({
 				pad: "   ",
 				compilation: this.compilation,
 				code: WpwError.Msg.ERROR_TYPES_FAILED,
@@ -229,8 +156,6 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			  //        if separate, use buildinfofile specified in config file
 			  //
 			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
-			  // tsBuildInfoFile = resolve(basePath, source.config.options.compilerOptions.tsBuildInfoFile || "tsconfig.tsbuildinfo")
-			  // declarationDir = configuredOptions.declarationDir || build.getDistPath({ rel: true, psx: true }),
 			  declarationDir = this.buildPathTemp;
 
 		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
@@ -243,6 +168,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			skipLibCheck: true,
 			tsBuildInfoFile
 		};
+
 		if (source.type === "javascript")
 		{
 			apply(programOptions, {
@@ -250,35 +176,19 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 				strictNullChecks: false
 			});
 		}
+
+		if (!configuredOptions.incremental && !configuredOptions.composite)
+		{
+			programOptions.incremental = true;
+		}
+
 		const bundleOptions = this.buildOptions.bundle;
 		if (bundleOptions && isObject(bundleOptions) && bundleOptions.bundler === "tsc")
 		{
 			programOptions.declarationDir = undefined;
 			programOptions.outFile = join(declarationDir, build.name); // don't specify an extension
 		}
-		if (!configuredOptions.incremental && !configuredOptions.composite)
-		{
-			programOptions.incremental = true;
-		}
-		if (!configuredOptions.target)
-		{
-			programOptions.target = "es2020";
-		}
-		if (!configuredOptions.moduleResolution)
-		{   //
-			// TODO - module resolution (node16?) see https://www.typescriptlang.org/tsconfig#moduleResolution
-			//
-			if (build.target !== "node") {
-				programOptions.moduleResolution = "node";
-			}
-			// else if (build.nodeVersion < 12) {
-			//	programOptions.moduleResolution = "node10";
-			// }
-			else {
-				programOptions.moduleResolution = "node";
-				// programOptions.moduleResolution = "node16";
-			}
-		}
+
 		return programOptions;
 	};
 

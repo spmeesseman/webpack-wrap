@@ -15,12 +15,14 @@
  *//** */
 
 const esbuild = require("esbuild");
-const { existsSync, readdirSync } = require("fs");
+const { existsSync } = require("fs");
 const { resolve, join } = require("path");
 const WpwWebpackExport = require("./base");
+const { getExcludes } = require("../utils");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const { WpwError, uniq, apply, getExcludes, isJsTsConfigPath, isFunction, findFilesSync, isArray, merge } = require("../utils");
+const { apply, isFunction, merge } = require("@spmeesseman/type-utils");
 
 
 /**

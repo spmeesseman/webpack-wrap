@@ -9,16 +9,15 @@
  *//** */
 
 const JSON5 = require("json5");
+const { existsSync, unlinkSync } = require("fs");
 const typedefs = require("../types/typedefs");
+const WpwError = require("../utils/message");
 const WpwLogger = require("../utils/console");
 const { spawnSync } = require("child_process");
-const { readFileSync, existsSync, readdirSync } = require("fs");
-const { fileExistsSync } = require("tsconfig-paths/lib/filesystem");
-const { resolve, basename, join, dirname, isAbsolute } = require("path");
-const {
-    apply, isString, merge, isArray, resolvePath, asArray, findFilesSync, relativePath,
-    isJsTsConfigPath, mergeIf, WpwError, pickNot
-} = require("../utils");
+const { resolve, basename, join, dirname } = require("path");
+const { resolvePath, asArray, findFilesSync } = require("../utils");
+const { apply, isString, merge, pickNot, clone } = require("@spmeesseman/type-utils");
+const { writeFileSync } = require("fs");
 
 
 /**
@@ -29,6 +28,8 @@ class WpwSource
 {
     /** @type {typedefs.TypeScript | undefined} */
     static typescript;
+    /** @type {typedefs.WpwBuild} */
+    build;
     /** @type {typedefs.IWpwSourceTsConfig} */
     config;
     /** @type {typedefs.IWpwSourceTsConfigFile} */
@@ -49,18 +50,22 @@ class WpwSource
      */
     constructor(sourceConfig, build)
     {
-        this.logger = build.logger;
-        apply(this, {
-            type: sourceConfig.type || "javascript",
-            ext: sourceConfig.type === "typescript" ? "ts" : "js"
-        }, sourceConfig);
-        const configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build);
-        if (configFileInfo)
+        apply(this,
         {
-            const configFile = /** @type {typedefs.WpwSourceTsConfigFile} */(pickNot(configFileInfo, "config")),
-                  compilerOptions = sourceConfig.config?.compilerOptions || {};
-            merge(this, { configFile, config: merge({}, configFileInfo.config, { compilerOptions }) });
-        }
+            build,
+            logger: build.logger,
+            type: sourceConfig.type || "javascript",
+            ext: sourceConfig.type === "typescript" ? "ts" : "js",
+            options: clone(sourceConfig.options)
+        });
+
+        const configFileInfo = this.getJsTsConfigFileInfo(sourceConfig, build),
+              compilerOptions = apply({}, sourceConfig.config?.compilerOptions);
+        merge(this,
+        {
+            configFile: pickNot(configFileInfo, "config"),
+            config: merge({}, configFileInfo.config, { compilerOptions })
+        });
     };
 
 
@@ -99,10 +104,14 @@ class WpwSource
      * @param {typedefs.WpwSourceConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
      * @param {string[]} [files]
      * @returns {typedefs.TypeScriptProgram} TypeScriptProgram
+     * @throws {WpwError}
 	 */
     createProgram(compilerOptions, files)
     {
-        const ts = WpwSource.typescript = /** @type {typedefs.TypeScript} */(WpwSource.typescript || require(require.resolve("typescript")));
+        let rootNames = files?.slice();
+        const baseDir = this.configFile.dir || this.build.getBasePath(),
+              ts = WpwSource.typescript = /** @type {typedefs.TypeScript} */(WpwSource.typescript || require(require.resolve("typescript")));
+
         if (!ts) {
             throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
         }
@@ -114,16 +123,21 @@ class WpwSource
 			}
 		});
 
-        const baseDir = /** @type {string} */(this.configFile.dir),
-              programOptions = ts.convertCompilerOptionsFromJson(specOptions, baseDir),
-              options = apply(programOptions.options, { project: this.configFile.path.replace(/\\/g, "/"), configFilePath: this.configFile.path.replace(/\\/g, "/") }),
+        let configFilePath = this.configFile.path;
+        if (!configFilePath) {
+            configFilePath = join(baseDir, `${this.ext}config.wpwtmp.json`);
+            writeFileSync(configFilePath, `{ include: [ "**/*.${this.ext}" ], exclude: [ "node_modules" ] }`);
+        }
+        configFilePath = configFilePath.replace(/\\/g, "/");
+
+        const programOptions = ts.convertCompilerOptionsFromJson(specOptions, baseDir || this.build.getBasePath()),
+              options = apply(programOptions.options, configFilePath ? { project: configFilePath, configFilePath } : {}),
               host = ts.createCompilerHost(options);
 
-        let rootNames = files?.slice();
         if (!rootNames)
         {
             const parseConfigFileHost = this.createConfigHost(host, host),
-                  parsedCmdLine = ts.getParsedCommandLineOfConfigFile(this.configFile.path, options, parseConfigFileHost);
+                  parsedCmdLine = ts.getParsedCommandLineOfConfigFile(configFilePath, options, parseConfigFileHost);
             if (!parsedCmdLine) {
                 throw new WpwError({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "could not set rootNames" });
             }
@@ -141,32 +155,25 @@ class WpwSource
      * @param {typedefs.WpwSourceConfigCompilerOptions | undefined} [compilerOptions] typescript compiler options
      * @param {boolean} [emitOnlyDts]
      * @param {string[]} [files]
-     * @param {typedefs.TypeScriptSourceFile} [file]
-     * @param {typedefs.TypeScriptWriteFileCallback} [writeFileCb]
-     * @param {typedefs.TypeScriptCancellationToken} [cancellationToken]
-     * @param {typedefs.TypeScriptCustomTransformers} [transformers]
-     * @throws {WpwError}
      */
-    emit(compilerOptions, emitOnlyDts, files, file, writeFileCb, cancellationToken, transformers)
+    emit(compilerOptions, emitOnlyDts, files)
     {
-        /** @type {typedefs.TypeScriptProgram} */
-        const program = this.createProgram(compilerOptions, files);
+        const program = this.createProgram(compilerOptions, files),
+              rootFiles = program.getRootFileNames(),
+              logger = this.logger;
 
-        const logger = this.logger;
         logger.write("   source.typescript.emit", 1);
-        logger.value("      source file", file, 2);
         logger.value("      emit types only", !!emitOnlyDts, 2);
-        logger.value("      compiler options", program.getCompilerOptions(), 3);
-        logger.value("      root files", program.getRootFileNames(), 4);
+        logger.value("      # of root files", rootFiles.length, 2);
+        logger.value("      compiler options", program.getCompilerOptions(), 4);
+        logger.value("      root files", rootFiles, 4);
 
-        const result = program.emit(file, writeFileCb, cancellationToken, emitOnlyDts, transformers);
-        if (result.emittedFiles)
-        {
+        const result = program.emit(undefined, undefined, undefined, emitOnlyDts);
+        if (result.emittedFiles) {
             logger.write(`     emitted ${result.emittedFiles.length} files`, 2);
         }
-        else if (result.emitSkipped)
-        {
-            logger.value("     emit skipped", result.emitSkipped, 2);
+        else if (result.emitSkipped) {
+            logger.value("     emit skipped", result.emitSkipped, undefined, "", logger.icons.color.warning);
         }
         if (result.diagnostics)
         {
@@ -184,6 +191,11 @@ class WpwSource
             });
         }
 
+        const tempConfigFile = join(this.build.getBasePath(), `${this.ext}config.wpwtmp.json`);
+        if (existsSync(tempConfigFile)) {
+            unlinkSync(tempConfigFile);
+        }
+
         logger.write("   source.typescript.emit complete", 2);
         return result;
     }
@@ -193,78 +205,64 @@ class WpwSource
      * @private
      * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
-     * @returns {string | undefined}
+     * @returns {{ file: string | undefined; files: string[] }}
      */
     findJsTsConfig(sourceConfig, build)
     {
-        const cfgFiles = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ];
+        const cfgPath = sourceConfig.configFile?.path,
+              cfgFileNames = this.type === "typescript" ? [ "tsconfig", ".tsconfig" ] : [ "jsconfig", ".jsconfig" ],
+              cfgFileSuffixes = [ build.name, build.target, build.mode, build.type, "" ],
+              files = findFilesSync("**/{.,}{ts,js}config.json", { cwd: build.paths.base, dot: true, absolute: true });
         /**
-         * @param {string | undefined} base
+         * @param {string} base
          * @returns {string | undefined}
          */
         const _find = (base) =>
         {
-            let tsCfg;
-            if (base)
+            for (const cfgFile of cfgFileNames)
             {
-                for (const cfgFile of cfgFiles)
+                for (const cfgSuffix of cfgFileSuffixes)
                 {
-                    tsCfg = join(base, `${cfgFile}.${build.name}.json`);
-                    if (!existsSync(tsCfg))
-                    {
-                        tsCfg = join(base, `${cfgFile}.${build.target}.json`);
-                        if (!existsSync(tsCfg))
-                        {
-                            tsCfg = join(base, `${cfgFile}.${build.mode}.json`);
-                            if (!existsSync(tsCfg))
-                            {
-                                tsCfg = join(base, `${cfgFile}.${build.type}.json`);
-                                if (!existsSync(tsCfg))
-                                {
-                                    tsCfg = join(base, build.name, `${cfgFile}.json`);
-                                    if (!existsSync(tsCfg))
-                                    {
-                                        tsCfg = join(base, build.type || build.name, `${cfgFile}.json`);
-                                        if (!existsSync(tsCfg)) {
-                                            tsCfg = join(base, `${cfgFile}.json`);
-                                        }
-                                    } else { break; }
-                                } else { break; }
-                            } else { break; }
-                        } else { break; }
-                    } else { break; }
+                    const tsCfg = join(base, `${cfgFile}.${cfgSuffix}.json`.replace("..", "."));
+                    if (existsSync(tsCfg)) {
+                        return tsCfg;
+                    }
                 }
-                return tsCfg;
             }
         };
 
-        const cfgPath = sourceConfig.configFile?.path;
-        if (isJsTsConfigPath(cfgPath))
+        if (this.isJsTsConfigPath(cfgPath))
         {
             const curPath = resolvePath(build.paths.base, cfgPath);
             if (curPath && existsSync(curPath)) {
-                return curPath;
+                return { file: curPath, files };
             }
         }
+
         const tryPaths = [
             build.paths.src, join(build.paths.ctx, build.name), join(build.paths.base, build.name),
             join(build.paths.ctx, build.type), join(build.paths.base, build.type), build.paths.ctx, build.paths.base
         ];
+
         for (const base of tryPaths)
         {
             const configFile = _find(base);
             if (configFile && existsSync(configFile)) {
-                return configFile;
+                return { file: configFile, files };
             }
         }
-        let globFiles = findFilesSync(`**/${cfgFiles[0]}.${build.mode}.json`, { cwd: build.paths.base, dot: true, absolute: true });
+
+        let globFiles = findFilesSync(`**/${cfgFileNames[0]}.${build.mode}.json`, { cwd: build.paths.base, dot: true, absolute: true });
         if (globFiles.length > 0) {
-            return globFiles[0];
+            return { file: globFiles[0], files };
         }
-        globFiles = findFilesSync(`**/${cfgFiles[0]}.json`, { cwd: build.paths.base, dot: true, absolute: true });
+
+        globFiles = findFilesSync(`**/${cfgFileNames[0]}.json`, { cwd: build.paths.base, dot: true, absolute: true });
         if (globFiles.length === 1) {
-            return globFiles[0];
+            return { file: globFiles[0], files };
         }
+
+        return { file: undefined, files };
     };
 
 
@@ -272,10 +270,14 @@ class WpwSource
      * @private
      * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
-     * @returns {(typedefs.WpwSourceTsConfigFile & { config: typedefs.WpwSourceTsConfig}) | undefined}
+     * @returns {(typedefs.WpwSourceTsConfigFile & { config: typedefs.WpwSourceTsConfig})}
      */
     getJsTsConfigFileInfo(sourceConfig, build)
     {
+        let dir, file, path, raw;
+        const config = /** @type {typedefs.WpwSourceTsConfig} */({}),
+              configFile = this.findJsTsConfig(sourceConfig, build);
+
         const _getData= (/** @type {string} */ file, /** @type {string} */ dir) =>
         {
             const result = spawnSync("npx", [ "tsc", `-p ${file}`, "--showConfig" ], { cwd: dir, encoding: "utf8", shell: true }),
@@ -286,64 +288,34 @@ class WpwSource
             return { raw, json: /** @type {typedefs.WpwSourceTsConfig} */(JSON5.parse(raw)) };
         };
 
-        const path = this.findJsTsConfig(sourceConfig, build);
-        if (path)
+        if (configFile.file)
         {
-            const exclude = [], include = [],
-                  dir = dirname(path),
-                  file = basename(path),
-                  json = /** @type {typedefs.WpwSourceTsConfig} */({});
-
-            asArray(json.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
+            path = configFile.file;
+            dir = dirname(configFile.file);
+            file = basename(configFile.file);
+            asArray(config.extends).map(e => resolve(dir, e)).filter(e => existsSync(e)).forEach((extendFile) =>
             {
-                merge(json, _getData(basename(extendFile), dirname(extendFile)).json);
+                merge(config, _getData(basename(extendFile), dirname(extendFile)).json);
             });
-
             const buildJson = _getData(file, dir);
-            merge(json, buildJson.json);
-
-            if (!json.files) { json.files = []; }
-            if (!json.include) { json.include = []; }
-            if (!json.exclude) { json.exclude = []; }
-            if (!json.compilerOptions) { json.compilerOptions = {}; }
-
-            if (json.compilerOptions.rootDir) {
-                include.push(resolve(dir, json.compilerOptions.rootDir));
-            }
-            if (json.compilerOptions.rootDirs) {
-                json.compilerOptions.rootDirs.forEach(d => include.push(resolve(dir, d)));
-            }
-
-            if (isArray(json.include, false))
-            {
-                include.push(
-                    ...json.include.filter(p => !include.includes(p))
-                       .map((path) => isAbsolute(path) ? path : resolve(dir, path.replace(/\*/g, "")))
-                );
-            }
-            else if (isString(json.include)) {
-                include.push(json.include);
-            }
-
-            if (isArray(json.exclude, false))
-            {
-                exclude.push(...json.exclude.map(
-                	(glob) => {
-                		let base = dir;
-                		glob = glob.replace(/\\/g, "/");
-                		while (glob.startsWith("../")) {
-                			base = resolve(base, "..");
-                			glob = glob.replace("../", "");
-                		}
-                		const rel = relativePath(build.paths.ctx, base);
-                		return ((rel ? rel + "/" : "") + glob).replace(/\*\*/g, "(?:.*?)").replace(/\*/g, "(?:.*?)");
-                	}
-                ));
-            }
-
-            return { dir, file, path, config: json, raw: buildJson.raw };
+            raw = buildJson.raw;
+            merge(config, buildJson.json);
+            if (!config.files) { config.files = []; }
+            if (!config.include) { config.include = []; }
+            if (!config.exclude) { config.exclude = []; }
+            if (!config.compilerOptions) { config.compilerOptions = {}; }
         }
+
+        return { dir, file, path, config, raw, files: configFile.files };
     }
+
+
+    /**
+     * @private
+     * @param {string | undefined} path
+     * @returns {boolean} boolean
+     */
+    isJsTsConfigPath = (path) => !!path && isString(path, true) && /[\\\/]\.?(?:j|t)sconfig\.(?:[\w\-]+?\.)?json/.test(path);
 
 }
 

@@ -124,6 +124,21 @@ const WpwMessageEnum =
     ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
 };
 
+/**
+ * @param {typedefs.WpwMessageCode} code
+ * @returns {string}
+ */
+const getErrorTag = (code) =>
+{
+    for (const [ k, v ] of Object.entries(WpwMessageEnum))
+    {
+        if (v === code) {
+            return k;
+        }
+    }
+    return "ERROR_UNKNOWN";
+};
+
 
 /**
  * @extends {Error}
@@ -166,7 +181,7 @@ class WpwError extends Error
         }
         if (info.code.length === 6 && WpwMessage[info.code])
         {
-            this.details = `[${this.details}]: ${WpwMessage[info.code]}`;
+            this.details = `[${info.code}]:[${getErrorTag(info.code)}]\n${WpwMessage[info.code]}\n${this.details}`;
         }
         WpwError.captureStackTrace(this, this.constructor);
         if (this.stack)

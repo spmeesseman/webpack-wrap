@@ -91,6 +91,7 @@ const requiredProperties = [
     [ "ext", "WpwSourceConfig" ],
     [ "compilerOptions", "WpwSourceTsConfig" ],
     [ "files", "WpwSourceTsConfig" ],
+    [ "files", "WpwSourceTsConfigFile" ],
     [ "scopedName", "WpwPackageJson" ]
 ];
 

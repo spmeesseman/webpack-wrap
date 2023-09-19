@@ -2628,7 +2628,6 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
-            "required": [ "path" ],
             "properties": {
                 "dir": {
                     "type": "string",
@@ -2637,6 +2636,13 @@
                 "file": {
                     "type": "string",
                     "readOnly": true
+                },
+                "files": {
+                    "type": "array",
+                    "readOnly": true,
+                    "items": {
+                        "$ref": "#/definitions/FilePath"
+                    }
                 },
                 "path": {
                     "$ref": "#/definitions/FilePath",
