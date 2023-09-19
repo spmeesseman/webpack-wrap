@@ -139,6 +139,19 @@ const getErrorTag = (code) =>
     return "ERROR_UNKNOWN";
 };
 
+/**
+ * @param {typedefs.WpwMessageInfo} info
+ * @returns {string}
+ */
+const getMessage = (info) =>
+{
+    if (info.code.length === 6 && WpwMessage[info.code])
+    {
+        return `[${info.code}]:[${getErrorTag(info.code)}]\n${WpwMessage[info.code]}\n${info.message}`;
+    }
+    return info.message;
+};
+
 
 /**
  * @extends {Error}
@@ -165,23 +178,23 @@ class WpwError extends Error
      */
     constructor(info)
     {
-        super(info.message);
+        super(getMessage(info));
         const err = info.error,
               hasErrorDetail = isError(err);
 		this.name = "WpwError";
         // Object.setPrototypeOf(this, new.target.prototype);
-        if (hasErrorDetail) {
-            this.details = err.message;
-        }
+        let details = "";
         if (isString(info.detail)) {
-            this.details = info.detail;
+            details += `\n${info.detail}`;
         }
-        else if (isObject(info.detail)) {
-            this.details = JSON.stringify(info.detail);
+        if (isObject(info.detailObject)) {
+            details += `\n${JSON.stringify(info.detailObject)}`;
         }
-        if (info.code.length === 6 && WpwMessage[info.code])
-        {
-            this.details = `[${info.code}]:[${getErrorTag(info.code)}]\n${WpwMessage[info.code]}\n${this.details}`;
+        if (hasErrorDetail) {
+            details += `\n${err.message}`;
+        }
+        if (details) {
+            this.details = details.trim();
         }
         WpwError.captureStackTrace(this, this.constructor);
         if (this.stack)

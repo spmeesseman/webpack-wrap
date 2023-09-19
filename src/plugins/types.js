@@ -16,7 +16,8 @@ const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { resolve, join, dirname } = require("path");
 const { rm, unlink, readFile, access } = require("fs/promises");
-const { dtsBundle, apply, findFiles, relativePath, isObject, resolvePath, isDirectory, isString, clone } = require("../utils");
+const { apply, isObject, clone } = require("@spmeesseman/type-utils");
+const { dtsBundle, findFiles, relativePath, resolvePath } = require("../utils");
 
 
 /**
@@ -24,17 +25,13 @@ const { dtsBundle, apply, findFiles, relativePath, isObject, resolvePath, isDire
  */
 class WpwTypesPlugin extends WpwBaseTaskPlugin
 {
-    /** @type {string} @private */
-	statsTag = "types";
-
-
     /**
      * @param {typedefs.WpwPluginOptions} options
      */
 	constructor(options)
 	{
 		super(apply({ taskHandler: "buildTypes", hooks: {
-			clean: WpwTypesPlugin.compilerHookConfig("done", "cleanTempFiles", true)
+			cleanTypesTemporaryFiles: WpwTypesPlugin.compilerHookConfig("done", "cleanTempFiles", true)
 		} }, options));
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.buildOptions); // reset for typings
 	}
@@ -114,7 +111,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			      isBundleEnabled = bundleOptions === true || bundleOptionsIsCfg;
 			if (isBundleEnabled && bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
 			{
-				await dtsBundle(this.build, this.compilation, this.statsTag);
+				await dtsBundle(this.build, this.compilation, this.buildOptionsKey);
 			}
 			else {
 				await this.emit();

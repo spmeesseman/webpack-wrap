@@ -13,8 +13,9 @@ const WpwPlugin = require("./base");
 const { resolve } = require("path");
 const { existsSync } = require("fs");
 const typedefs = require("../types/typedefs");
-const { dtsBundle, merge, isString } = require("../utils");
+const { dtsBundle, merge, isString, findFiles } = require("../utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const { unlink } = require("fs/promises");
 
 /** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
 /** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
@@ -48,33 +49,37 @@ class WpwTsCheckPlugin extends WpwPlugin
 			  entry = this.build.wpc.entry[this.build.name] || this.build.wpc.entry.index,
 			  entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
 
-		if (this.typesBuildOptions?.bundle)
+		if (this.typesBuildOptions && this.typesBuildOptions.bundle && this.typesBuildOptions.mode === "tscheck")
 		{
+			const applyConfig = /** @type {typedefs.WpwPluginTapOptions} */({});
+
 			if (entryFile && existsSync(entryFile) && this.build.isOnlyBuild)
 			{
-				this.onApply(compiler,
-				{
-					bundleDtsFiles: {
-						async: true,
-						hook: "compilation",
-						stage: "DERIVED",
-						statsProperty: "tsbundle",
-						callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
-					}
-				});
+				applyConfig.bundleDtsFiles = {
+					async: true,
+					hook: "compilation",
+					stage: "DERIVED",
+					statsProperty: "tsbundle",
+					callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
+				};
 			}
 			else
 			{
-				this.onApply(compiler,
-				{
-					bundleDtsFiles: {
-						async: true,
-						hook: "afterEmit",
-						statsProperty: "tsbundle",
-						callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
-					}
-				});
+				applyConfig.bundleDtsFiles = {
+					async: true,
+					hook: "afterEmit",
+					statsProperty: "tsbundle",
+					callback: () => dtsBundle(this.build, this.compilation, "tsbundle")
+				};
 			}
+
+			applyConfig.cleanDtsTempFiles = {
+				async: true,
+				hook: "done",
+				callback: this.cleanTempFiles.bind(this)
+			};
+
+			this.onApply(compiler, applyConfig);
 		}
 		else {
 			this.onApply(compiler);
@@ -96,6 +101,20 @@ class WpwTsCheckPlugin extends WpwPlugin
 			}
 		}
 	}
+
+
+	/**
+	 * @protected
+	 * @param {typedefs.WebpackStats} _stats
+	 */
+	async cleanTempFiles(_stats)
+	{
+		const tmpFiles = await findFiles("**/dts-bundle.tmp.*", { cwd: this.build.getBasePath(), absolute: true });
+		for (const file of tmpFiles)
+		{
+			await unlink(file);
+		}
+	};
 
 
 	/**

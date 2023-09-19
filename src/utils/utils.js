@@ -16,34 +16,11 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { isFunction, isArray, isEmpty, isDirectory, merge } = require("@spmeesseman/type-utils");
+const { asArray, isArray, isDirectory, merge } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
 };
-
-const hasSymbols = require("has-symbols/shams"),
-      hasIteratorTag = () =>  hasSymbols() && !!Symbol.iterator;
-
-
-/**
- * @template T
- * @param {T | Set<T> | Array<T> | IterableIterator<T>} v Variable to check to see if it's an array
- * @param {boolean} [shallow] If `true`, and  `arr` is an array, return a shallow copy
- * @param {boolean} [allowEmpStr] If `false`, return empty array if isString(v) and isEmpty(v)
- * @returns {Array<NonNullable<T>>}
- */
-
-/**
- * @template T
- * @param {T | T[] | IterableIterator<T> | Set<T> | undefined} v Variable to check to see if it's an array
- * @param {boolean} [shallow] If `true`, and  `arr` is an array, return a shallow copy
- * @param {boolean} [allowEmpStr] If `false`, return empty array if isString(v) and isEmpty(v)
- * @returns {T[]}
- */
-const asArray = (v, shallow, allowEmpStr) => /** @type {Array} */(
-    (v instanceof Set || hasIterator(v) ? Array.from(v): (isArray(v) ? (shallow !== true ? v : v.slice()) : (!isEmpty(v, allowEmpStr) ? [ v ] : [])))
-);
 
 
 /**
@@ -267,33 +244,14 @@ const findFileUp = (dir, fileName) =>
 
 /**
  * @param {string[]} paths
- * @param {Function} cb optional callback
  * @returns {Promise<string | false>}
  */
-const findExPath = (paths, cb) =>
+const findExPath = async (paths) =>
 {
-
-    try {
-        isArray(paths);
-    }
-    catch(e)
-    {   if (cb) { cb(e); }
-        return Promise.reject(e);
-    }
-
-    const promises = [];
-    asArray(paths).filter(p => !!p).forEach(p => promises.push(existsAsync(p)));
-
-    return Promise.all(promises)
-    .then(values =>
-    {
-        const path = paths[values.findIndex(b => b === true)] || false;
-        if (cb) {
-            cb(null, path);
-        }
-        return path;
-    });
+    const values = await Promise.all(asArray(paths).map(p => existsAsync(p)));
+    return paths[values.findIndex(b => b === true)] || false;
 };
+
 
 /**
  * @param {string[]} paths
@@ -330,13 +288,6 @@ const getExcludes = (build, allowTest, allowTypes, allowDts) =>
     }
     return ex;
 };
-
-
-/**
- * @param {any} v
- * @returns {v is IterableIterator}
- */
-const hasIterator = (v) => !!v && hasIteratorTag() && isFunction(typeof v[Symbol.iterator]);
 
 
 /**
@@ -420,15 +371,6 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 
 
 /**
- * @template T
- * @param {T[]} arr
- * @param {...T} items
- * @returns {T[]}
- */
-const pushIfNotExists = (arr, ...items) => { items.forEach(item => { if (!arr.includes(item)) arr.push(item); }); return arr; };
-
-
-/**
  * @param {string} b base directory
  * @param {string} p configured path (relative or absolute)
  * @returns {string} a relative path
@@ -453,16 +395,8 @@ const requireResolve = (id) => require(require.resolve(id, { paths: [ require.ma
 const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } return p || b; };
 
 
-/**
- * @template T
- * @param {T[]} a
- * @returns {T[]}
- */
-const uniq = (a) => a.sort().filter((item, pos, arr) => !pos || item !== arr[pos - 1]);
-
-
 module.exports = {
     asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp, getExcludes,
-    lowerCaseFirstChar, createEntryObjFromDir, pushIfNotExists, requireResolve, uniq, relativePath,
+    lowerCaseFirstChar, createEntryObjFromDir, requireResolve, relativePath,
     resolvePath, findExPath, findExPathSync
 };

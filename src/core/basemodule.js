@@ -30,11 +30,11 @@ class WpwBaseModule extends WpwBase
     globalCache;
     /** @type {string}  @protected */
     globalBaseProperty;
-    /** @protected */
+    /** @type {number}  @protected */
     hashDigestLength;
-    /** @private */
+    /** @type {string[]}  @private */
     pluginsNoOpts = [ "dispose" ];
-    /** @protected */
+    /** @type {typedefs.WpwWebpackConfig} @protected */
     wpc;
 
 

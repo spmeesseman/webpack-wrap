@@ -100,7 +100,7 @@ class WpwBuild extends WpwBase
             if (this.options.types?.mode === "tscheck" && !this.options.tscheck)
             {
                 this.options.tscheck = { enabled: true };
-                utils.pushIfNotExists(messages, "tscheck");
+                utils.pushUniq(messages, "tscheck");
             }
         }
         else if (this.type === "tests")
@@ -108,14 +108,14 @@ class WpwBuild extends WpwBase
             if  (!this.options.vendormod || !this.options.vendormod.nyc)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, nyc: true });
-                utils.pushIfNotExists(messages, "vendormod.nyc");
+                utils.pushUniq(messages, "vendormod.nyc");
             }
         }
 
         if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
         {
             this.options.tscheck = { enabled: true };
-            utils.pushIfNotExists(messages, "tscheck");
+            utils.pushUniq(messages, "tscheck");
         }
 
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
@@ -128,12 +128,12 @@ class WpwBuild extends WpwBase
             if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
-                utils.pushIfNotExists(messages, "vendormod.source_map_plugin");
+                utils.pushUniq(messages, "vendormod.source_map_plugin");
             }
             if (this.options.devtool)
             {
                 delete this.options.devtool;
-                utils.pushIfNotExists(messages, "removed option devtool (sourcemaps overrides)");
+                utils.pushUniq(messages, "removed option devtool (sourcemaps overrides)");
             }
         }
 

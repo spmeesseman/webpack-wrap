@@ -12,7 +12,7 @@
 const { existsSync } = require("fs");
 const { EventEmitter } = require("events");
 const typedefs = require("../types/typedefs");
-const { WpwError, merge, isPromise, pushIfNotExists } = require("../utils");
+const { WpwError, merge, isPromise, pushUniq } = require("../utils");
 
 
 class WpwPluginWaitManager
@@ -55,7 +55,7 @@ class WpwPluginWaitManager
      */
     onPluginDone(name, ...args)
     {
-        pushIfNotExists(this.done, name);
+        pushUniq(this.done, name);
         // this.waiting.splice(this.waiting.indexOf(), 1);
         this.onPluginEvent.emit(`${name}_done`, ...args);
         for (const r of this.registered.filter(r => name === r.name))
@@ -106,7 +106,7 @@ class WpwPluginWaitManager
      */
     register(options)
     {
-        pushIfNotExists(this.waiting, options.source);
+        pushUniq(this.waiting, options.source);
         this.registered.push(merge({}, options));
     }
 

@@ -27,7 +27,7 @@ class WpwDisposePlugin extends WpwPlugin
     {
         this.onApply(compiler,
         {
-            cleanupRegisteredDisposables: {
+            buildCleanupOnShutdown: {
                 async: true,
                 hook: "shutdown",
                 callback: this.dispose.bind(this)
@@ -37,7 +37,7 @@ class WpwDisposePlugin extends WpwPlugin
 
     dispose()
     {
-        this.logger.write("cleanup: call all registered disposables", 2);
+        this.logger.write("build complete, perform shutdown stage cleanup", 2);
         return this.build.dispose();
     }
 }

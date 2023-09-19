@@ -11,7 +11,7 @@
 const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const { apply, isFunction, WpwError, pushIfNotExists, isArray, asArray, resolvePath} = require("../utils");
+const { apply, isFunction, WpwError, pushUniq, isArray, asArray, resolvePath} = require("../utils");
 
 
 /**
@@ -150,7 +150,7 @@ class WpwResolveExport extends WpwWebpackExport
         {
             Object.entries(jstsPaths).filter(p => isArray(p)).forEach(([ key, p ]) =>
             {
-            	p.forEach((p) => { alias[key] = pushIfNotExists(asArray(alias[key]), resolvePath(jstsDir, p)); });
+            	p.forEach((p) => { alias[key] = pushUniq(asArray(alias[key]), resolvePath(jstsDir, p)); });
             });
         }
 		return alias;

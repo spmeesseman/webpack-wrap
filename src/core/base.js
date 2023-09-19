@@ -13,7 +13,7 @@
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
-const { apply, isObject, isPromise, pickNot, clone } = require("../utils");
+const { apply, isObject, isPromise, pickNot, clone, pushReturn } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -43,10 +43,10 @@ class WpwBase
 	constructor(options)
     {
         apply(this, {
+            options,
             disposables: [],
             global: globalEnv,
             name: this.constructor.name,
-            options,
             initialConfig: clone(pickNot(options, "build"))
         });
 
@@ -57,7 +57,7 @@ class WpwBase
                 this.logger = logger;
             }
             else {
-                this.logger = new WpwLogger(logger);
+                this.logger = pushReturn(this.disposables, new WpwLogger(logger));
             }
         }
     }
@@ -70,7 +70,6 @@ class WpwBase
             const result = d.dispose();
             if (isPromise(result)) { await result; }
         }
-        this.logger.dispose();
     };
 
 

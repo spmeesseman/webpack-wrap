@@ -614,7 +614,7 @@ class WpwPlugin extends WpwBaseModule
     {
         let cb;
         const logger = this.logger,
-              callback = isString(options.callback) ? this[options.callback] : options.callback,
+              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
               logMsg = this.breakProp(message),
               eMgr= WpwPlugin.eventManager,
               wait = this.build.options.wait;

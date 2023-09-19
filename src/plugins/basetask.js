@@ -25,7 +25,7 @@ const { join } = require("path");
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { rm, unlink, writeFile } = require("fs/promises");
-const { existsAsync, WpwError, applyIf, isFunction, isPromise } = require("../utils");
+const { existsAsync, WpwError, applyIf, isFunction, isPromise, capitalize } = require("../utils");
 
 
 /**
@@ -62,21 +62,22 @@ class WpwBaseTaskPlugin extends WpwPlugin
      */
     apply(compiler)
     {
+		const taskOwner = capitalize(this.buildOptionsKey);
 		this.onApply(compiler, applyIf(
         {
-			build: {
+			[`startBuildFor${taskOwner}`]: {
 				async: true,
                 hook: "compilation",
 				stage: "ADDITIONAL",
 				statsProperty: this.buildOptionsKey,
                 callback: this.buildTask.bind(this)
             },
-			clean: {
+			[`startCleanupFor${taskOwner}`]: {
 				async: true,
 				hook: "done",
 				callback: this.cleanTask.bind(this)
 			},
-			injectVirtualEntryFile: {
+			[`injectVirtualEntryFileFor${taskOwner}`]: {
 				async: true,
 				hook: "beforeRun",
 				callback: this.injectVirtualEntryFile.bind(this)
