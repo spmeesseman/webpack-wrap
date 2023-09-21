@@ -1,10 +1,7 @@
 node_modules
 dist
-types/lib
 .dccache
 res/doc
-src/types/build
 src/types/rc.ts
 src/types/constants.js
-src/types/types.d.ts
 .coverage

@@ -31,7 +31,7 @@ const { apply, isFunction, merge } = require("@spmeesseman/type-utils");
 class WpwRulesExport extends WpwWebpackExport
 {
 	/**
-     * @param {typedefs.WpwExportOptions} options Plugin options to be applied
+     * @param {typedefs.WpwExportOptions} options
      */
 	constructor(options)
 	{

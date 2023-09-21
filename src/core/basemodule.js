@@ -65,7 +65,7 @@ class WpwBaseModule extends WpwBase
 
     get baseName() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, ""); }
     get buildOptionsKey() { return /** @type {typedefs.WpwBuildOptionsKey} */(this.baseName.toLowerCase()); }
-
+    get cacheName() { return `${this.build.name}_${this.build.mode}_${this.build.wpc.target}`.toLowerCase(); }
 
 	/**
      * @abstract

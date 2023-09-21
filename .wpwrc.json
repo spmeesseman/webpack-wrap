@@ -32,7 +32,8 @@
                 "utf-8-validate": "commonjs utf-8-validate",
                 "typescript": "commonjs typescript",
                 "webpack": "commonjs webpack",
-                "webpack/lib": "commonjs webpack/lib"
+                "webpack/lib": "commonjs webpack/lib",
+                "webpack-cli": "commonjs webpack-cli"
             }
         }
     },
