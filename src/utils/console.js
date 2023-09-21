@@ -585,7 +585,8 @@ class WpwLogger
         {
             const opts = this.options,
                   basePad = this.options.pad.base || "",
-                  linePad = isValue !== true ? basePad + pad + "".padStart(WpwLogger.envTagLen + 2) : "",
+                  msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
+                  linePad = isValue !== true ? basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + 2) : "",
                   envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
                   envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
                   envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),

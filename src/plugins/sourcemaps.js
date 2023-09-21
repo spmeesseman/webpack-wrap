@@ -2,11 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/sourcemaps.js
- * IMPORTANT NOTE:
- * This module contains project specifc code and the sync script should be modified
- * if necessary when changes are made to this file.
- * TODO - Make it not project specific somehow
+ * @file src/plugins/sourcemaps.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -14,14 +10,10 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-// const { Compilation } = require("webpack");
 const { apply, requireResolve } = require("../utils");
-// const CopyInMemoryPlugin = require("copy-asset-in-memory-webpack-plugin");
-// const webpack = require("webpack");
-/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
-const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
+// const { SourceMapDevToolPlugin } = require("webpack");
+const { SourceMapDevToolPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
@@ -32,13 +24,11 @@ class WpwSourceMapsPlugin extends WpwPlugin
     /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} @protected */
     buildOptions;
 
+
 	/**
 	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
 	 */
-	constructor(options)
-	{
-        super(options);
-	}
+	constructor(options) { super(options); }
 
 
 	/**
@@ -110,7 +100,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
 	 */
 	getVendorPlugin = () =>
 	{
-		return new webpack.SourceMapDevToolPlugin(
+		return new SourceMapDevToolPlugin(
         {
             test: /\.(js|jsx)($|\?)/i,
             exclude: // !build.isTests ?

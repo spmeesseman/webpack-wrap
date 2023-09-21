@@ -32,7 +32,6 @@
  *//** */
 
  const WpwCache = require("../utils/cache");
-const { WebpackError } = require("webpack");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
@@ -322,7 +321,7 @@ class WpwPlugin extends WpwBaseModule
 	/**
 	 * @private
 	 * @param {string} message
-	 * @param {WpwError | WebpackError | Error | undefined} [error]
+	 * @param {WpwError | typedefs.WebpackError | Error | undefined} [error]
 	 * @throws {WpwError}
 	 */
 	handleError(message, error)
@@ -359,7 +358,6 @@ class WpwPlugin extends WpwBaseModule
      * @protected
      * @param {typedefs.WebpackCompiler} compiler
      * @param {typedefs.WpwPluginTapOptions} [options]
-     * @throws {WebpackError}
      */
     onApply(compiler, options)
     {

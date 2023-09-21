@@ -12,13 +12,13 @@
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { isString, requireResolve } = require("../utils");
-const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
-/** @typedef {import("../core/build")} WpwBuild */
+const { BannerPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+
 /** @typedef {import("webpack").BannerPlugin} BannerPlugin */
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {BannerPlugin | undefined}
  */
 const banner = (build) =>
@@ -37,7 +37,7 @@ const banner = (build) =>
 
 		if (banner)
 		{
-			return new webpack.BannerPlugin({
+			return new BannerPlugin({
 				entryOnly: true,
 				test: WpwPlugin.getEntriesRegex(build.wpc, true, true),
 				banner: banner.replace(new RegExp("#\\{DATE_STAMP_YEAR\\}"), new Date().getFullYear().toString())

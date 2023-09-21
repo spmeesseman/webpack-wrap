@@ -38,7 +38,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 	 */
 	async generateJsDocs(compilationAssets)
 	{
-        const webpack = this.compiler.webpack,
+        const // webpack = this.compiler.webpack,
               compilation = this.compilation,
               assets = [],
               entryNames = asArray(compilation.entrypoints.keys()),

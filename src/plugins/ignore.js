@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/ignore.js
+ * @file src/plugins/ignore.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -11,16 +11,15 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-/*  // const webpack = require("webpack"); */
-/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
-const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
+/*  // const { IgnorePlugin } = require("webpack"); */
+const { IgnorePlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("webpack").IgnorePlugin} IgnorePlugin */
 
 
 /**
  * @param {typedefs.WpwBuild} build
- * @returns {IgnorePlugin | undefined}
+ * @returns {typedefs.WebpackIgnorePlugin | undefined}
  */
 const ignore = (build) =>
 {
@@ -28,7 +27,7 @@ const ignore = (build) =>
     let plugin;
     if (build.options.ignore) //  && build.mode === "production")
     {
-        plugin = new webpack.IgnorePlugin(
+        plugin = new IgnorePlugin(
         {
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/

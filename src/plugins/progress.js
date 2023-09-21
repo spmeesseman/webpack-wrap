@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/progress.js
+ * @file src/plugins/progress.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -11,9 +11,8 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-/*  // const webpack = require("webpack"); */
-/** @typedef {typedefs.WebpackType} WebpackType */
-const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
+// const { ProgressPlugin } = require("webpack"); */
+const { ProgressPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("webpack").ProgressPlugin} ProgressPlugin */
 
@@ -26,7 +25,7 @@ const progress = (build) =>
 {
 	if (build.options.progress)
 	{
-		return new webpack.ProgressPlugin();
+		return new ProgressPlugin();
 	}
 };
 

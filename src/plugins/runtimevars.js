@@ -136,9 +136,10 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
                     }
                 }
                 else {
-                    this.compilation.warnings.push(
-                        new WpwError({ code: WpwError.Msg.ERROR_GENERAL, message: "Non-string content hash not supported yet: " + asset.name })
-                    );
+                    this.build.addMessage({
+                        code: WpwError.Msg.ERROR_GENERAL,
+                        message: "Non-string content hash not supported yet: " + asset.name
+                    });
                 }
             }
         });

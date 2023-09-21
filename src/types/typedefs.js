@@ -432,8 +432,11 @@
 /** @typedef {import("./webpack").WebpackCompilation} WebpackCompilation */
 /** @typedef {import("./webpack").WebpackEntryOptions} WebpackEntryOptions */
 /** @typedef {import("./webpack").WebpackExternalItem} WebpackExternalItem */
+/** @typedef {import("./webpack").WebpackIgnorePlugin} WebpackIgnorePlugin */
+/** @typedef {import("./webpack").WebpackProgressPlugin} WebpackProgressPlugin */
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */
+/** @typedef {import("./webpack").WebpackExternalsPlugin} WebpackExternalsPlugin */
 /** @typedef {import("./webpack").WebpackCompilerHookName} WebpackCompilerHookName */
 /** @typedef {import("./webpack").WebpackFileCacheOptions} WebpackFileCacheOptions */
 /** @typedef {import("./webpack").WebpackCompilationParams} WebpackCompilationParams */
@@ -446,9 +449,11 @@
 /** @typedef {import("./webpack").WebpackContextModuleFactory} WebpackContextModuleFactory */
 /** @typedef {import("./webpack").WebpackCompilationHookStage} WebpackCompilationHookStage */
 /** @typedef {import("./webpack").WebpackCompilerSyncHookName} WebpackCompilerSyncHookName */
+/** @typedef {import("./webpack").WebpackNoEmitOnErrorsPlugin} WebpackNoEmitOnErrorsPlugin */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompiler>} WebpackSyncCompilerHook */
 /** @typedef {import("./webpack").WebpackInfrastructureLogging} WebpackInfrastructureLogging */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHookName} WebpackCompilerAsyncHookName */
+/** @typedef {import("./webpack").WebpackLimitChunkCountPlugin} WebpackLimitChunkCountPlugin */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompiler>} WebpackAsyncCompilerHook */
 /** @typedef {import("./webpack").WebpackObjectSerializerContext} WebpackObjectSerializerContext */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */

@@ -49,9 +49,12 @@ import webpack, {
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats, Module as WebpackModule,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
-    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin, EntryOptions as WebpackEntryOptions, WebpackError,
-    StatsOptions as WebpackStatsOptions
-}from "webpack";
+    MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin as WebpackExternalsPlugin, EntryOptions as WebpackEntryOptions,
+    WebpackError, StatsOptions as WebpackStatsOptions, ProgressPlugin as WebpackProgressPlugin, optimize,
+    NoEmitOnErrorsPlugin as WebpackNoEmitOnErrorsPlugin, IgnorePlugin as WebpackIgnorePlugin
+} from "webpack";
+
+class WebpackLimitChunkCountPlugin extends optimize.LimitChunkCountPlugin {};
 
 import {
     ObjectDeserializerContext as WebpackObjectDeserializerContext, ObjectSerializerContext as WebpackObjectSerializerContext
@@ -101,7 +104,7 @@ type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextMod
 
 type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
 
-type WebpackExternalItem = ArrayInnerType<ExternalsPlugin["externals"]>;
+type WebpackExternalItem = ArrayInnerType<WebpackExternalsPlugin["externals"]>;
 
 type WebpackHookMap<H> = HookMap<H>;
 
@@ -201,19 +204,24 @@ export {
     WebpackError,
     WebpackEtag,
     WebpackExternalItem,
+    WebpackExternalsPlugin,
     WebpackFileCacheOptions,
+    WebpackIgnorePlugin,
     WebpackInfrastructureLogging,
+    WebpackLimitChunkCountPlugin,
     WebpackLogger,
     WebpackMemoryCacheOptions,
     WebpackMode,
     WebpackModule,
     WebpackModuleOptions,
+    WebpackNoEmitOnErrorsPlugin,
     WebpackNormalModuleFactory,
     WebpackObjectDeserializerContext,
     WebpackObjectSerializerContext,
     WebpackOptimization,
     WebpackPathData,
     WebpackPluginInstance,
+    WebpackProgressPlugin,
     WebpackLogLevel,
     WebpackOutput,
     WebpackRawSource,

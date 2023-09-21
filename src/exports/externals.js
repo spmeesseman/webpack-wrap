@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file exports/extenals.js
+ * @file src/exports/extenals.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -10,7 +10,18 @@
  * @description
  *
  * NOTE: The vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be
- * webpack'ed, -> @see {@link https://webpack.js.org/configuration/externals/ webpack.js.org/externals}
+ * webpack'ed, -> @see {@link https://webpack.js.org/configuration/externals/ webpack.js.org/externals}.
+ *
+ * Configurable in .wpwrc:
+ *
+ *    "build": {
+ *       ...
+ *       "overrides": {
+ * 	        "externals": {
+ *             "lodash": "lodash"
+ *          }
+ *       }
+ *    }
  *
  *//** */
 
@@ -54,16 +65,22 @@ const externals = (build) =>
 			];
 		}
 	}
-	else if (build.options.externals && build.name !== "app" && build.name !== "webapp")
+	else if (build.options.externals && build.type !== "app" && build.type !== "webapp")
 	{
 		build.wpc.externals = /** @type {typedefs.WebpackExternalItem} */(nodeExternals());
 	}
+	// else {
+	// 	build.wpc.externals = [
+	// 		(data, callback) => { logAsset(data, build); callback(undefined, true); }
+	// 		// (data, callback) => { logAsset(data, build); callback(undefined, !data.contextInfo?.issuerLayer ? nodeExternals() : undefined); };
+	// 	];
+	// }
 };
 
 
 /**
  * @param {Readonly<ExternalItemFunctionData>} data
- * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build
  */
 const logAsset = (data, build) =>
 {

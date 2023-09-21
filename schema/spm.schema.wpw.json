@@ -46,11 +46,11 @@
         "test": {
             "$ref": "#/definitions/WpwBuildBaseConfig"
         },
-        "vscode": {
-            "$ref": "#/definitions/WpwVsCode"
-        },
         "version": {
             "$ref": "#/definitions/VersionString"
+        },
+        "vscode": {
+            "$ref": "#/definitions/WpwVsCode"
         },
         "wpwVersion": {
             "$ref": "#/definitions/VersionString"
@@ -520,7 +520,7 @@
                     "$ref": "#/definitions/WpwPluginConfigCache"
                 },
                 "clean": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwPluginConfigClean"
                 },
                 "copy": {
                     "$ref": "#/definitions/WpwPluginConfigCopy"
@@ -1295,6 +1295,7 @@
             "minProperties": 1,
             "additionalProperties": false,
             "default": {
+                "enabled": true,
                 "circular": true
             },
             "properties": {
@@ -1310,7 +1311,6 @@
                     }]
                 },
                 "circular": {
-                    "default": true,
                     "oneOf": [{
                         "type": "boolean"
                     },
@@ -1446,6 +1446,42 @@
             {
                 "enabled": false
             }]
+        },
+        "WpwPluginConfigClean": {
+            "$id": "#/WpwPluginConfigClean",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "full": {
+                    "type": "boolean"
+                },
+                "stale": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                }
+            },
+            "if": {
+                "properties": {
+                    "enabled": {
+                        "const": true
+                    }
+                }
+            },
+            "then": {
+                "anyOf": [{
+                    "required": [
+                        "full"
+                    ]
+                },
+                {
+                    "required": [
+                        "stale"
+                    ]
+                }]
+            }
         },
         "WpwPluginConfigCopy": {
             "$id": "#/WpwPluginConfigCopy",
@@ -1729,6 +1765,14 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
+            "description": "hook event logging for increased overview of how webpack stages are executed. enabled by default",
+            "default": {
+                "enabled": true,
+                "compiler": true,
+                "compilation": {
+                    "processAssets": true
+                }
+            },
             "properties": {
                 "enabled": {
                     "type": "boolean"

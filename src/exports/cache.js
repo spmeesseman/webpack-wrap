@@ -8,8 +8,8 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { join } = require("path");
-const { existsSync } = require("fs");
+ const { existsSync } = require("fs");
+const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const { apply, applyIf, findExPathSync } = require("../utils");
@@ -65,7 +65,7 @@ class WpwCacheExport extends WpwWebpackExport
 
             depPath = findExPathSync([ ".wpwrc.json", ".wpwrap.json", ".webpackwraprc.json" ], basePath);
             if (depPath) {
-                cache.buildDependencies.config.push(depPath);
+                cache.buildDependencies.config.push(resolve(basePath, depPath));
             }
 
             depPath = join(basePath, "schema", "spm.schema.wpw.json");

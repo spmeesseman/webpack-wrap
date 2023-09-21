@@ -17,8 +17,12 @@
             }
         },
         "overrides": {
-            "externals": {
-                "bufferutil": "commopnjs bufferutil",
+            "externalsType": "commonjs",
+            "externals": [{
+                "webpack": "webpack"
+            },
+            {
+                "bufferutil": "commonjs bufferutil",
                 "esbuild": "commonjs esbuild",
                 "fsevents": "commonjs fsevents",
                 "imagemin": "commonjs imagemin",
@@ -31,10 +35,8 @@
                 "uglify-js/package.json": "commonjs uglify-js/package.json",
                 "utf-8-validate": "commonjs utf-8-validate",
                 "typescript": "commonjs typescript",
-                "webpack": "commonjs webpack",
-                "webpack/lib": "commonjs webpack/lib",
-                "webpack-cli": "commonjs webpack-cli"
-            }
+                "webpack": "global webpack"
+            }]
         }
     },
     {

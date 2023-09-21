@@ -441,8 +441,6 @@ class WpwBuild extends WpwBase
                 this.errors.splice(0).forEach(e => { l.blank(undefined, l.icons.color.error); l.error(e); });
                 throw new Error("falied to build webpack configuration, check details in log output");
             }
-            console.log("111111");
-            console.log(JSON.stringify(this.overrides || {}));
             merge(wpc, this.wrapper.overrides, this.wrapper[this.wrapper.mode].overrides, this.overrides);
             return wpc;
         }

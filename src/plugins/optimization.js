@@ -11,9 +11,8 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-/*  // const webpack = require("webpack"); */
-/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
-const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
+/*  // const { optimize, NoEmitOnErrorsPlugin } = require("webpack"); */
+const { optimize, NoEmitOnErrorsPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
@@ -27,11 +26,11 @@ const optimization = (build) =>
 	{
 		if (build.target === "web")
 		{
-			plugins.push(new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
+			plugins.push(new optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
 		}
 		if (build.type !== "webapp")
 		{
-			plugins.push(new webpack.NoEmitOnErrorsPlugin());
+			plugins.push(new NoEmitOnErrorsPlugin());
 		}
 	}
 	return plugins;
