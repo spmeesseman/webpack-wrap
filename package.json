@@ -145,7 +145,6 @@
     },
     "dependencies": {
         "@spmeesseman/arg-parser": "^1.2.0",
-        "@spmeesseman/type-utils": "file:../type-utils",
         "babel-loader": "^9.1.2",
         "capture-console": "^1.0.1",
         "dts-bundle": "^0.7.3",
