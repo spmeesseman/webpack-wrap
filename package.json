@@ -18,6 +18,10 @@
         "type": "git",
         "url": "https://github.com/spmeesseman/webpack-wrap.git"
     },
+    "funding": {
+        "type": "paypal",
+        "url": "https://www.paypal.com/donate/?hosted_button_id=VNYX9PP5ZT5F8"
+    },
     "scripts": {
         "build-all": "webpack --mode production --config ./webpack.config.js",
         "build-all_dev": "webpack --mode development --config ./webpack.config.js",
@@ -25,20 +29,21 @@
         "build-docs:jsdoc": "jsdoc --destination res/docs/api --configure .jsdoc.json --recurse ./src",
         "build-examples": "node script/create-examples.js",
         "build-app-development": "webpack --env build=app --mode development --config ./webpack.config.js",
-		"build-app-development:analyze": "webpack --env build=app --mode development --env analyze --config ./webpack.config.js",
-		"build-app-development:analyze2": "webpack --env build=app --mode development --env analyze --config ./webpack.config.js && npm run view-statistics",
+        "build-app-development:analyze": "webpack --env build=app --mode development --env analyze --config ./webpack.config.js",
+        "build-app-development:analyze2": "webpack --env build=app --mode development --env analyze --config ./webpack.config.js && npm run view-statistics",
         "build-app-production": "webpack --env build=app --mode production --config ./webpack.config.js",
+        "build-jsdoc": "webpack --env build=jsdoc --config ./webpack.config.js",
         "build-app-test": "webpack --env build=app --mode none --env mode=test --config ./webpack.config.js",
         "build-types-all": "npm run build-types-schema && npm run build-types-tsc && npm run build-types-bundle",
-        "build-types-app": "npm run build-types-tsc",
         "build-types-wp": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
         "build-types-tsc": "tsc --declaration --emitDeclarationOnly --allowJs --strict false --strictNullChecks false --tsBuildInfoFile ./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo -p ./jsconfig.json && cmd /c xcopy .\\src\\types\\*.d.ts .\\src\\types\\build\\types /i /y",
         "build-types-bundle": "dts-bundle --name @spmeesseman/webpack-wrap-types --baseDir src/types --main src/types/build/core/rc.d.ts --out types.d.ts --outputAsModuleFolder",
         "build-types-schema": "npm run schema-build_types",
-        "build-types-test": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./schema/spm.schema.wpw.json -o types/rc.tmp.d.ts",
-        "clean-all": "npm run clean-app && npm run clean-docs && npm run clean-examples && npm run clean-types-app && rimraf dist && rimraf %TEMP%\\webpack-wrap && rimraf node_modules/.cache/wpwrap",
+        "build-types-test_json2ts": "json2ts -f --unreachableDefinitions --style.tabWidth 4 --no-additionalProperties -i ./schema/spm.schema.wpw.json -o types/rc.tmp.d.ts",
+        "clean-all_w_schema": "npm run clean-all && npm run clean-types-schema",
+        "clean-all": "npm run clean-app && npm run clean-docs && npm run clean-examples && rimraf dist && rimraf node_modules/.cache/wpwrap/webpack",
         "clean-app": "rimraf dist/webpack-wrap.*js && rimraf dist/vendor.*js && rimraf dist/runtime.*js && rimraf node_modules/.cache/wpwrap/webpack/webpack-wrap*",
-        "clean-docs": "rimraf res/docs && rimraf dist/docs",
+        "clean-jsdoc": "rimraf dist/docs && rimraf node_modules/.cache/wpwrap/webpack/docs*",
         "clean-examples": "rimraf examples/vscode && rimraf dist/examples",
         "clean-types-all": "npm run clean-types-app && npm run clean-types-schema",
         "clean-types-app": "rimraf src/types/build && rimraf dist/types && rimraf dist/types.d.ts && rimraf node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo && rimraf node_modules/.cache/wpwrap/webpack/types*",
@@ -57,7 +62,7 @@
         "schema-upload": "node script/upload-rc-schema.js",
         "schema-build_types": "node script/generate-rc-types.js",
         "schema-build_types_and_upload": "npm run build-types-schema && npm run build-types && npm run upload_schema",
-		"view-statistics": "cmd /c \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" file://c:/Projects/vscode-taskexplorer/.coverage/visualizer.html"
+        "view-statistics": "cmd /c \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" file://c:/Projects/vscode-taskexplorer/.coverage/visualizer.html"
     },
     "files": [
         "bin",
@@ -86,7 +91,9 @@
         "node": ">=14.16.0"
     },
     "peerDependencies": {
-        "typescript": ">3.6.0"
+        "typescript": ">3.6.0",
+        "webpack": ">5.60.0",
+        "webpack-cli": ">5.1.0"
     },
     "optionalDependencies": {
         "circular-dependency-plugin": "^5.2.2",
@@ -122,7 +129,9 @@
         "eslint-plugin-prettier": "^3.3.1",
         "json-schema-to-typescript": "^13.0.2",
         "rimraf": "^3.0.2",
-        "typescript": "^4.5.5"
+        "typescript": "^4.5.5",
+        "webpack": "^5.88.2",
+        "webpack-cli": "^5.1.4"
     },
     "dependencies": {
         "@babel/cli": "^7.20.7",
@@ -154,8 +163,6 @@
         "source-map-support": "^0.5.21",
         "ts-loader": "^8.0.17",
         "tsc-alias": "^1.8.2",
-        "tsconfig-paths": "^4.1.2",
-        "webpack": "^5.88.2",
-        "webpack-cli": "^5.1.4"
+        "tsconfig-paths": "^4.1.2"
     }
 }

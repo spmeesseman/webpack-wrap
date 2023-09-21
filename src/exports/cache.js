@@ -12,7 +12,7 @@ const { join } = require("path");
 const { existsSync } = require("fs");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const { apply, applyIf } = require("../utils");
+const { apply, applyIf, findExPathSync } = require("../utils");
 
 
 /**
@@ -44,40 +44,37 @@ class WpwCacheExport extends WpwWebpackExport
         const build = this.build;
         if (build.options.cache)
         {
+            let depPath;
             const basePath = build.getBasePath();
-            const cache = apply(build.wpc.cache, {
+            const cache = apply(build.wpc.cache, /** @type {typedefs.WebpackFileCacheOptions} */({
                 type: "filesystem",
                 cacheDirectory: join(build.global.cacheDir, "webpack"),
                 name: this.cacheName,
-                version: build.pkgJson.version, // `${process.env.GIT_REV}`
-                buildDependencies:
-                {
-                    defaultWebpack: [ "webpack/lib/" ],
-                    config: [
-                        join(basePath, "webpack.config.js")
-                    ]
-                }
-            });
-            let rcPath = join(basePath, ".wpwrc.json");
-            if (existsSync(rcPath)) {
-                cache.buildDependencies.config.push(rcPath);
+                version: build.pkgJson.version
+            }));
+
+            cache.buildDependencies = {
+                defaultWebpack: [ "webpack/lib/" ],
+                config: []
+            };
+
+            depPath = join(basePath, "webpack.config.js");
+            if (existsSync(depPath)) {
+                cache.buildDependencies.config.push(depPath);
             }
-            else
-            {
-                rcPath = join(basePath, ".wpwrap.json");
-                if (existsSync(rcPath)) {
-                    cache.buildDependencies.config.push(rcPath);
-                }
-                else {
-                    rcPath = join(basePath, ".webpackwraprc.json");
-                    if (existsSync(rcPath)) {
-                        cache.buildDependencies.config.push(rcPath);
-                    }
-                }
+
+            depPath = findExPathSync([ ".wpwrc.json", ".wpwrap.json", ".webpackwraprc.json" ], basePath);
+            if (depPath) {
+                cache.buildDependencies.config.push(depPath);
             }
-            const projectSchemaPath = join(basePath, "schema", "spm.schema.wpw.json");
-            if (existsSync(projectSchemaPath)) {
-                cache.buildDependencies.config.push(projectSchemaPath);
+
+            depPath = join(basePath, "schema", "spm.schema.wpw.json");
+            if (existsSync(depPath)) {
+                cache.buildDependencies.config.push(depPath);
+            }
+
+            if (cache.buildDependencies.config.length === 0) {
+                delete cache.buildDependencies.config;
             }
 
             if (!build.wpc.infrastructureLogging.debug && (build.logger.level === 5 || build.options.cache.verbose)) {

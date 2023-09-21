@@ -221,33 +221,38 @@ const findFileUp = (dir, fileName) =>
 
 /**
  * @param {string[]} paths
- * @returns {Promise<string | false>}
+ * @param {string | undefined} [dir]
+ * @returns {Promise<string | undefined>}
  */
-const findExPath = async (paths) =>
+const findExPath = async (paths, dir) =>
 {
-    const values = await Promise.all(asArray(paths).map(p => existsAsync(p)));
-    return paths[values.findIndex(b => b === true)] || false;
+    const values = await Promise.all(
+        paths.map(p => existsAsync(!dir ? resolve(p) : resolve(dir, p)))
+    );
+    const existsIdx = values.findIndex(b => b === true);
+    if (existsIdx !== -1) {
+        return paths[existsIdx];
+    }
 };
 
 
 /**
  * @param {string[]} paths
- * @returns {string | boolean} the founded path or false
+ * @param {string | undefined} [dir]
+ * @returns {string | undefined} the founded path or false
  */
-const findExPathSync = (paths) =>
+const findExPathSync = (paths, dir) =>
 {
-    for (const p of asArray(paths).filter(p => !!p))
-    {
-        if (existsSync(p)) { return p; }
+    for (const p of paths) {
+        if (existsSync(!dir ? resolve(p) : resolve(dir, p))) { return p; }
     }
-    return false;
 };
 
 
-const forwardSlash = (path) => path.replace(/\\/g, "/");
+const forwardSlash = (/** @type {string} */ path) => path.replace(/\\/g, "/");
 
 
-  /**
+/**
  * @param {typedefs.WpwBuild} build
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]

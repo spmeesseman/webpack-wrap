@@ -90,6 +90,9 @@
                     "destination": "res/docs/api",
                     "title": "Webpack-Wrap Source Documentation"
                 }
+            },
+            "paths": {
+                "dist": "dist/docs"
             }
         }],
         "options": {
