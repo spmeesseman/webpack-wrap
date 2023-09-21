@@ -141,7 +141,7 @@ const output = (build) =>
 
 	outputEnvironment(build);
 
-	build.logger.write("   output configuration created successfully", 2);
+	build.logger.success("   create output configuration", 2);
 };
 
 

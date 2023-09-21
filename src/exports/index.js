@@ -36,6 +36,7 @@ const webpackDefaultExports = (build) =>
         cache: { type: "memory" },
         context: build.paths.ctx || build.paths.base,
         entry: {},
+        externals: [],
         infrastructureLogging: {},
         mode: build.mode === "test" ? "none" : build.mode,
         module: { rules: [] },

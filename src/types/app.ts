@@ -22,7 +22,8 @@
 
  import {WpwExportPlugin } from "./export";
 import {
-    WpwWebpackEntryImport, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
+    WpwWebpackEntryImport, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension,
+    WebpackLibraryType
 } from "./rc";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
@@ -58,6 +59,7 @@ interface IWpwWebpackConfig extends WebpackConfig
     context: string;
     mode: Exclude<WebpackConfig["mode"], undefined>;
     entry: WpwWebpackEntryImport & WebpackEntry;
+    externalsType?: WebpackLibraryType;
     infrastructureLogging: WebpackInfrastructureLogging;
     output: WebpackOutput;
     plugins: WpwExportPlugin[];

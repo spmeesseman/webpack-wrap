@@ -136,7 +136,7 @@
             "minLength": 3,
             "maxLength": 150,
             "pattern": "^[\\w\\.\\-]+\\.(?:[cm]?jsx?|tsx?|d\\.ts|[a-z0-9]{2,4})$",
-            "descriptiont": "a valid filname, without path, e.g 'main.js', 'app.tsx', etc",
+            "descriptiont": "a valid filename, without path, e.g 'main.js', 'app.tsx', etc",
             "examples": [
                 "filename.js",
                 "filename.ts"
@@ -538,7 +538,7 @@
                     "$ref": "#/definitions/WpwOptionsConfigBase"
                 },
                 "externals": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwExportConfigExternals"
                 },
                 "html": {
                     "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
@@ -913,6 +913,100 @@
                 "type": "types"
             }]
         },
+        "WpwExportConfigExternals": {
+            "$id": "#/WpwExportConfigExternals",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "all": {
+                    "type": "boolean",
+                    "description": "applies nodeExternals() plugin"
+                },
+                "defaults": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "modules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/WpwModuleName"
+                    }
+                },
+                "presets": {
+                    "type": "boolean"
+                },
+                "raw": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "propertyNames": {
+                        "$ref": "#/definitions/WpwModuleName"
+                    },
+                    "additionalProperties": {
+                        "$ref": "#/definitions/WpwModuleNameWithType"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/WebpackLibraryType"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "defaults": true
+            },
+            {
+                "enabled": true,
+                "defaults": true,
+                "modules": [
+                    "esbuild", "@spmeesseman/type-utils"
+                ]
+            },
+            {
+                "enabled": true,
+                "raw": {
+                    "esbuild": "esbuild"
+                }
+            },
+            {
+                "enabled": true,
+                "raw": {
+                    "esbuild": "commonjs esbuild"
+                }
+            },
+            {
+                "enabled": false
+            }],
+            "dependencies": {
+                "all": {
+                    "if": {
+                        "properties": {
+                            "all": true
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "defaults": false,
+                            "modules": false,
+                            "raw": false
+                        }
+                    }
+                },
+                "enabled": {
+                    "if": {
+                        "properties": {
+                            "enabled": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "minProperties": 2
+                    }
+                }
+            }
+        },
         "WpwLog": {
             "$id": "#/WpwLog",
             "type": "object",
@@ -1084,6 +1178,30 @@
             {
                 "const": "yellow"
             }]
+        },
+        "WpwModuleName": {
+            "$id": "#/WpwModuleName",
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "pattern": "^(?:@[a-z0-9\\-_]{2,}\\/)?[a-z0-9\\-\\.\\/_]{3,}$",
+            "descriptiont": "node module package name (with scope if applicable)",
+            "examples": [
+                "webpack",
+                "@spmeesseman/type-utils"
+            ]
+        },
+        "WpwModuleNameWithType": {
+            "$id": "#/WpwModuleNameWithType",
+            "type": "string",
+            "minLength": 7,
+            "maxLength": 70,
+            "pattern": "^(?:[a-z\\-]{2,}2? )?(?:@[a-z0-9\\-\\.\\/_]{2,}\\/)?[a-z0-9\\-\\.\\/_]{3,}$",
+            "descriptiont": "node module package export type, plus package name (with scope if applicable)",
+            "examples": [
+                "commonjs webpack",
+                "commonjs @spmeesseman/type-utils"
+            ]
         },
         "WpwPackageJson": {
             "$id": "#/WpwPackageJson",
@@ -3423,6 +3541,7 @@
         "WebpackLibraryType": {
             "$id": "#/WebpackLibraryType",
             "default": "commonjs2",
+            "description": "type of export",
             "oneOf": [{
                 "const": "var"
             },
@@ -3431,9 +3550,6 @@
             },
             {
                 "const": "assign"
-            },
-            {
-                "const": "assign-properties"
             },
             {
                 "const": "this"
@@ -3457,7 +3573,7 @@
                 "const": "commonjs-module"
             },
             {
-                "const": "commonjs-static'"
+                "const": "commonjs-static"
             },
             {
                 "const": "amd"
@@ -3466,7 +3582,7 @@
                 "const": "amd-require"
             },
             {
-                "const": "umd'"
+                "const": "umd"
             },
             {
                 "const": "umd2"

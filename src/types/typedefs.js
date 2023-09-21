@@ -27,6 +27,7 @@
 /** @typedef {import("./rc").WpwLogPadKey} WpwLogPadKey */
 /** @typedef {import("./rc").WpwVsCodeKey} WpwVsCodeKey */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
+/** @typedef {import("./rc").WpwModuleName} WpwModuleName */
 /** @typedef {import("./rc").WpwRcPathsKey} WpwRcPathsKey */
 /** @typedef {import("./rc").WpwSourceType} WpwSourceType */
 /** @typedef {import("./rc").WpwBuildConfig} WpwBuildConfig */
@@ -100,6 +101,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigTypes} IWpwPluginConfigTypes */
 /** @typedef {import("./rc").WebpackConfigOverride} WebpackConfigOverride */
 /** @typedef {import("./rc").WpwBuildBaseConfigKey} WpwBuildBaseConfigKey */
+/** @typedef {import("./rc").WpwModuleNameWithType} WpwModuleNameWithType */
 /** @typedef {import("./rc").WpwPackageJsonScripts} WpwPackageJsonScripts */
 /** @typedef {import("./rc").WpwPluginConfigBanner} WpwPluginConfigBanner */
 /** @typedef {import("./rc").WpwPluginConfigUpload} WpwPluginConfigUpload */
@@ -146,6 +148,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigLogHooks} IWpwPluginConfigLogHooks */
 /** @typedef {import("./rc").IWpwPluginConfigWaitItem} IWpwPluginConfigWaitItem */
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
+/** @typedef {import("./rc").WpwExportConfigExternals} WpwExportConfigExternals */
 /** @typedef {import("./rc").WpwPackageJsonRepository} WpwPackageJsonRepository */
 /** @typedef {import("./rc").WpwPackageJsonScopedName} WpwPackageJsonScopedName */
 /** @typedef {import("./rc").WpwPackageJsonScriptsKey} WpwPackageJsonScriptsKey */
@@ -156,6 +159,7 @@
 /** @typedef {import("./rc").WpwSourceTsConfigFileKey} WpwSourceTsConfigFileKey */
 /** @typedef {import("./rc").WpwWebpackEntryImportKey} WpwWebpackEntryImportKey */
 /** @typedef {import("./rc").WpwWebpackEntryObjectKey} WpwWebpackEntryObjectKey */
+/** @typedef {import("./rc").IWpwExportConfigExternals} IWpwExportConfigExternals */
 /** @typedef {import("./rc").IWpwPackageJsonScopedName} IWpwPackageJsonScopedName */
 /** @typedef {import("./rc").IWpwPackageJsonTypescript} IWpwPackageJsonTypescript */
 /** @typedef {import("./rc").IWpwPluginConfigVendorMod} IWpwPluginConfigVendorMod */
@@ -185,6 +189,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigWebFilename} IWpwPluginConfigWebFilename */
 /** @typedef {import("./rc").IWpwSourceJavascriptOptions} IWpwSourceJavascriptOptions */
 /** @typedef {import("./rc").IWpwSourceTypescriptOptions} IWpwSourceTypescriptOptions */
+/** @typedef {import("./rc").WpwExportConfigExternalsKey} WpwExportConfigExternalsKey */
 /** @typedef {import("./rc").WpwPackageJsonScopedNameKey} WpwPackageJsonScopedNameKey */
 /** @typedef {import("./rc").WpwPackageJsonTypescriptKey} WpwPackageJsonTypescriptKey */
 /** @typedef {import("./rc").WpwPluginConfigTypesBundler} WpwPluginConfigTypesBundler */

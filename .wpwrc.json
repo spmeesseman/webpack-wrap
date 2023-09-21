@@ -14,26 +14,12 @@
             },
             "licensefiles": {
                 "enabled": true
+            },
+            "externals": {
+                "enabled": true,
+                "type": "commonjs",
+                "defaults": true
             }
-        },
-        "overrides": {
-            "externalsType": "commonjs",
-            "externals": [{
-                "bufferutil": "bufferutil",
-                "esbuild": "esbuild",
-                "fsevents": "fsevents",
-                "imagemin": "imagemin",
-                "sharp": "sharp",
-                "@squoosh/lib": "@squoosh/lib",
-                "@swc/core": "@swc/core",
-                "@swc/core/package.json": "@swc/core/package.json",
-                "totalist/sync": "totalist/sync",
-                "uglify-js": "uglify-js",
-                "uglify-js/package.json": "uglify-js/package.json",
-                "utf-8-validate": "utf-8-validate",
-                "typescript": "typescript",
-                "webpack": "webpack"
-            }]
         }
     },
     {

@@ -152,7 +152,7 @@ class WpwRulesExport extends WpwWebpackExport
 			build.wpc.module.rules.push({
 				use: loader,
 				test: /\.tsx?$/,
-				include: this.build.getSrcPath(),
+				include,
 				exclude: getExcludes(build, false, true, true)
 			});
 		}
@@ -163,14 +163,14 @@ class WpwRulesExport extends WpwWebpackExport
 				test: /\.tsx?$/,
 				use: this.getSourceLoader("babel", true),
 				// exclude: /\.d\.ts$/,
-				// include: resolve(__dirname, "../../node_modules"),
-				exclude: getExcludes(build, false, false, true, true)
+				include: resolve(__dirname, "../../node_modules"),
+				exclude: [ new RegExp(this.build.getSrcPath({ rel: true, psx: true })), ...getExcludes(build, false, false, true, true) ]
 			},
 			{
 				use: loader,
 				test: /\.jsx?$/,
-				include: this.build.getSrcPath(),
-				exclude: getExcludes(build, false, false, false)
+				include,
+				exclude: getExcludes(build)
 			});
 		}
 	}
@@ -189,11 +189,27 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
 			this[build.type]();
+			// if (build.logger.level >= 3)
+			// {
+			// 	build.wpc.module.rules.push({
+			// 		include: this.build.getSrcPath(),
+			// 		exclude: getExcludes(build),
+			// 		test: (path) => {
+			// 			console.log(path);
+			// 			return false; // (/\.(j|t)sx?$/).test(path);
+			// 		},
+			// 		// loader: resolve(__dirname, "../loaders/dts.js"),
+			// 		// loader: "wpw-logrequest-loader",
+			// 		// options: {
+			// 		// 	inputDir: build.getSrcPath()
+			// 		// }
+			// 	});
+			// }
 		}
 		else {
 			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${build.type}]` });
 		}
-		build.logger.success("create rules", 2);
+		build.logger.success("   create rules", 2);
 	}
 
 

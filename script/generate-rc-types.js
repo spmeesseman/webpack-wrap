@@ -370,7 +370,9 @@ const wpwreplace =
     {
         return data.replace(
             /export interface WebpackConfigOverride *(?:[^]*?)\n\}/g,
-            "import { Configuration as IWebpackConfigOverride } from \"webpack\";\nexport type WebpackConfigOverride = IWebpackConfigOverride;"
+            "// eslint-disable-next-line import/no-extraneous-dependencies\n" +
+                "import { Configuration as IWebpackConfigOverride } from \"webpack\";\n" +
+                "export type WebpackConfigOverride = IWebpackConfigOverride;"
         );
     },
     justifyInnerObjects: (data) =>

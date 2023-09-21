@@ -81,7 +81,7 @@ class WpwResolveExport extends WpwWebpackExport
 			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
 			this.base();
 			this[build.type]();
-			build.logger.success("create resolve configuration", 2);
+			build.logger.success("   create resolve configuration", 2);
 		}
 		else {
 			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${build.type}]` });

@@ -108,7 +108,7 @@ type WebpackExternalItem = ArrayInnerType<WebpackExternalsPlugin["externals"]>;
 
 type WebpackHookMap<H> = HookMap<H>;
 
- type WebpackInfrastructureLogging = Exclude<WebpackConfig["infrastructureLogging"], undefined>;
+type WebpackInfrastructureLogging = Exclude<WebpackConfig["infrastructureLogging"], undefined>;
 
 type WebpackLogger = ReturnType<WebpackCompilation["getLogger"]>;
 

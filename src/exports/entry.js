@@ -170,7 +170,7 @@ class WpwEntryExport extends WpwWebpackExport
 			_create();
 		}
 
-		build.logger.success("create entry points", 2);
+		build.logger.success("   create entry points", 2);
 	}
 
 

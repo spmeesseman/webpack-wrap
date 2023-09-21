@@ -147,10 +147,10 @@ class WpwBuild extends WpwBase
             }
         }
 
-        if (this.vscode && !this.options.externals)
+        if ((this.options.analyze?.analyzer || this.cmdLine.analyze) && !this.options.devtool && !this.options.sourcemaps)
         {
-            this.options.externals = { enabled: true };
-            pushUniq(messages, "externals");
+            this.options.sourcemaps = { enabled: true };
+            pushUniq(messages, "sourcemaps");
         }
 
         messages.forEach((m) => {
@@ -167,7 +167,7 @@ class WpwBuild extends WpwBase
         const l = this.logger;
         if (this.info.length > 0) {
             l.write("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
-            this.info.splice(0).forEach(e => printNonFatalIssue(this, e, l.warning));
+            this.info.splice(0).forEach(e => printNonFatalIssue(this, e, l.write));
         }
         if (this.warnings.length > 0) {
             l.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
