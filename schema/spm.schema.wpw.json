@@ -1452,8 +1452,15 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
+            "default": {
+                "enabled": true,
+                "stale": true
+            },
             "properties": {
                 "enabled": {
+                    "type": "boolean"
+                },
+                "cache": {
                     "type": "boolean"
                 },
                 "full": {
@@ -1472,6 +1479,11 @@
             },
             "then": {
                 "anyOf": [{
+                    "required": [
+                        "cache"
+                    ]
+                },
+                {
                     "required": [
                         "full"
                     ]

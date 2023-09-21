@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/optimization.js
+ * @file src/plugins/optimization.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -11,8 +11,7 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-/*  // const { optimize, NoEmitOnErrorsPlugin } = require("webpack"); */
-const { optimize, NoEmitOnErrorsPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
@@ -26,11 +25,11 @@ const optimization = (build) =>
 	{
 		if (build.target === "web")
 		{
-			plugins.push(new optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
+			plugins.push(new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
 		}
 		if (build.type !== "webapp")
 		{
-			plugins.push(new NoEmitOnErrorsPlugin());
+			plugins.push(new webpack.NoEmitOnErrorsPlugin());
 		}
 	}
 	return plugins;

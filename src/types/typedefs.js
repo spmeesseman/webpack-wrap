@@ -85,6 +85,7 @@
 /** @typedef {import("./rc").WpwOptionsConfigBase} WpwOptionsConfigBase */
 /** @typedef {import("./rc").WpwPackageJsonAuthor} WpwPackageJsonAuthor */
 /** @typedef {import("./rc").WpwPluginConfigCache} WpwPluginConfigCache */
+/** @typedef {import("./rc").WpwPluginConfigClean} WpwPluginConfigClean */
 /** @typedef {import("./rc").WpwPluginConfigJsDoc} WpwPluginConfigJsDoc */
 /** @typedef {import("./rc").WpwPluginConfigMocha} WpwPluginConfigMocha */
 /** @typedef {import("./rc").WpwPluginConfigTypes} WpwPluginConfigTypes */
@@ -93,6 +94,7 @@
 /** @typedef {import("./constants").isWpwLogTrueColor} isWpwLogTrueColor */
 /** @typedef {import("./rc").IWpwOptionsConfigBase} IWpwOptionsConfigBase */
 /** @typedef {import("./rc").IWpwPluginConfigCache} IWpwPluginConfigCache */
+/** @typedef {import("./rc").IWpwPluginConfigClean} IWpwPluginConfigClean */
 /** @typedef {import("./rc").IWpwPluginConfigJsDoc} IWpwPluginConfigJsDoc */
 /** @typedef {import("./rc").IWpwPluginConfigMocha} IWpwPluginConfigMocha */
 /** @typedef {import("./rc").IWpwPluginConfigTypes} IWpwPluginConfigTypes */
@@ -128,6 +130,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigAnalyze} IWpwPluginConfigAnalyze */
 /** @typedef {import("./rc").WpwOptionsConfigBaseKey} WpwOptionsConfigBaseKey */
 /** @typedef {import("./rc").WpwPluginConfigCacheKey} WpwPluginConfigCacheKey */
+/** @typedef {import("./rc").WpwPluginConfigCleanKey} WpwPluginConfigCleanKey */
 /** @typedef {import("./rc").WpwPluginConfigCopyItem} WpwPluginConfigCopyItem */
 /** @typedef {import("./rc").WpwPluginConfigIstanbul} WpwPluginConfigIstanbul */
 /** @typedef {import("./rc").WpwPluginConfigJsDocKey} WpwPluginConfigJsDocKey */
@@ -430,9 +433,10 @@
 /** @typedef {import("./webpack").WebpackRuntimeArgs} WebpackRuntimeArgs */
 /** @typedef {import("./webpack").WebpackCacheFacade} WebpackCacheFacade */
 /** @typedef {import("./webpack").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("./webpack").WebpackBannerPlugin} WebpackBannerPlugin */
+/** @typedef {import("./webpack").WebpackIgnorePlugin} WebpackIgnorePlugin */
 /** @typedef {import("./webpack").WebpackEntryOptions} WebpackEntryOptions */
 /** @typedef {import("./webpack").WebpackExternalItem} WebpackExternalItem */
-/** @typedef {import("./webpack").WebpackIgnorePlugin} WebpackIgnorePlugin */
 /** @typedef {import("./webpack").WebpackProgressPlugin} WebpackProgressPlugin */
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */

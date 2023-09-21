@@ -12,8 +12,7 @@
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { apply, requireResolve } = require("../utils");
-// const { SourceMapDevToolPlugin } = require("webpack");
-const { SourceMapDevToolPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
@@ -100,7 +99,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
 	 */
 	getVendorPlugin = () =>
 	{
-		return new SourceMapDevToolPlugin(
+		return new webpack.SourceMapDevToolPlugin(
         {
             test: /\.(js|jsx)($|\?)/i,
             exclude: // !build.isTests ?

@@ -3,16 +3,16 @@
 // @ts-check
 
 /**
- * @file plugin/analyze.js
+ * @file src/plugins/analyze/circular.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const { isObject } = require("@spmeesseman/type-utils");
 const { getExcludes, WpwError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
-const { isObject } = require("@spmeesseman/type-utils");
 
 
 /**

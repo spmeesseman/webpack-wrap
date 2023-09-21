@@ -11,10 +11,7 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-/*  // const { IgnorePlugin } = require("webpack"); */
-const { IgnorePlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
-
-/** @typedef {import("webpack").IgnorePlugin} IgnorePlugin */
+const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
@@ -23,11 +20,11 @@ const { IgnorePlugin } = /** @type {typedefs.WebpackType} */(requireResolve("web
  */
 const ignore = (build) =>
 {
-    /** @type {IgnorePlugin | undefined} */
+    /** @type {typedefs.WebpackIgnorePlugin | undefined} */
     let plugin;
     if (build.options.ignore) //  && build.mode === "production")
     {
-        plugin = new IgnorePlugin(
+        plugin = new webpack.IgnorePlugin(
         {
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/

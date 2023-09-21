@@ -11,21 +11,18 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-// const { ProgressPlugin } = require("webpack"); */
-const { ProgressPlugin } = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
-
-/** @typedef {import("webpack").ProgressPlugin} ProgressPlugin */
+const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
 
 
 /**
  * @param {typedefs.WpwBuild} build
- * @returns {ProgressPlugin | undefined}
+ * @returns {typedefs.WebpackProgressPlugin | undefined}
  */
 const progress = (build) =>
 {
 	if (build.options.progress)
 	{
-		return new ProgressPlugin();
+		return new webpack.ProgressPlugin();
 	}
 };
 

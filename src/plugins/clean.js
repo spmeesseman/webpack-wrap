@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/clean.js
+ * @file src/plugins/clean.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -27,9 +27,14 @@ const { existsAsync, apply, resolvePath } = require("../utils");
 class WpwCleanPlugin extends WpwPlugin
 {
     /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"clean">} */(this.buildOptions); // reset for typings
+	}
+
 
     /**
      * Called by webpack runtime to initialize this plugin
@@ -40,37 +45,49 @@ class WpwCleanPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		const options = /** @type {typedefs.WpwPluginTapOptions} */(
-		{
-			cleanStaleAssets: {
-				async: true,
-				hook: "done",
-				callback: this.staleAssets.bind(this)
-			},
-			cleanBuildAssets: {
-				async: true,
-				hook: "emit",
-				callback: this.buildAssets.bind(this)
-			},
-			cleanBuildCaches: {
-				async: true,
-				hook: "emit",
-				callback: this.buildCaches.bind(this)
-			}
-		});
+		const options = /** @type {typedefs.WpwPluginTapOptions} */({});
 
-		if (this.build.options.cache)
+		if (this.buildOptions.enabled)
 		{
-			apply(options, {
-				cleanWebpackCache: {
+			if (this.buildOptions.stale)
+			{
+				options.cleanStaleAssets = {
+					async: true,
+					hook: "done",
+					callback: this.staleAssets.bind(this)
+				};
+			}
+
+			if (this.buildOptions.full)
+			{
+				apply(options, {
+					cleanBuildAssets: {
+						async: true,
+						hook: "emit",
+						callback: this.buildAssets.bind(this)
+					},
+					cleanBuildCaches: {
+						async: true,
+						hook: "emit",
+						callback: this.buildCaches.bind(this)
+					}
+				});
+			}
+
+			if (this.buildOptions.cache)
+			{
+				options.cleanWebpackCache = {
 					async: true,
 					hook: "beforeRun",
 					callback: this.webpackCache.bind(this)
-				}
-			});
-		}
+				};
+			}
 
-		this.onApply(compiler, options);
+			this.onApply(compiler, options);
+		}
+		else {
+			this.onApply(compiler);
+		}
 	}
 
 
@@ -79,7 +96,7 @@ class WpwCleanPlugin extends WpwPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwCleanPlugin | undefined}
      */
-	static create = (build) => WpwCleanPlugin.wrap(this, build, "copy");
+	static create = (build) => WpwCleanPlugin.wrap(this, build, "clean");
 
 
 	/**
@@ -88,7 +105,6 @@ class WpwCleanPlugin extends WpwPlugin
      */
 	async buildAssets(compilation)
 	{
-		this.compilation = compilation;
 		const distPath = this.build.getDistPath(),
 			  compilerOptions = this.build.source.config.compilerOptions;
 		if (await existsAsync(distPath))
@@ -120,7 +136,6 @@ class WpwCleanPlugin extends WpwPlugin
      */
 	async buildCaches(compilation)
 	{
-		this.compilation = compilation;
 		const compilerOptions = this.build.source.config.compilerOptions,
 			  buildInfoFile = compilerOptions.tsBuildInfoFile;
 		if (buildInfoFile && await existsAsync(buildInfoFile))
@@ -132,17 +147,19 @@ class WpwCleanPlugin extends WpwPlugin
 			const buildOptions = this.build.options;
 			await Promise.all([
 				WpwBuildOptionsKeys
-				.filter((plugin => !!buildOptions[plugin]))
-				.map(
-					(plugin) => join(
-						this.global.cacheDir, WpwPlugin.cacheFilename(this.build.mode, plugin)
-					)
-				)
+				.filter((p => !!buildOptions[p]))
+				.map(p => join(this.global.cacheDir, this.cacheFilename(this.build.mode, p)))
 				.filter(path => existsSync(path))
 				.map(path => unlink(path))
 			]);
 		}
 	}
+
+
+	/**
+	 * @returns {RegExp}
+	 */
+    fileNameHashRegex = () => new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`);
 
 
 	/**
@@ -158,6 +175,7 @@ class WpwCleanPlugin extends WpwPlugin
 
 
     /**
+	 * Removes stale hashed assets (un-hashed assets are not included)
      * @param {typedefs.WebpackStats} stats the compiler instance
 	 * @returns {Promise<void>}
      */
@@ -197,7 +215,7 @@ class WpwCleanPlugin extends WpwPlugin
 
 	/**
 	 * @override
-	 * @returns {typedefs.WebpackPluginInstance}
+	 * @returns {typedefs.WebpackPluginInstance | undefined}
 	 */
 	getVendorPlugin()
 	{
@@ -205,30 +223,33 @@ class WpwCleanPlugin extends WpwPlugin
 			  outputPath = this.wpc.output.path;
 		/** @type {CleanWebpackPluginOptions} */
 		let options;
-		if (this.build.type === "webapp")
+		if (this.buildOptions.full)
 		{
-			options = {
-				dry: false,
-				verbose: this.logger.level >= 3,
-				cleanOnceBeforeBuildPatterns: [
-					posix.join(contextPath, "css", "**"),
-					posix.join(contextPath, "js", "**"),
-					posix.join(contextPath, "page", "**")
-				]
-			};
+			if (this.build.type === "webapp")
+			{
+				options = {
+					dry: false,
+					verbose: this.logger.level >= 3,
+					cleanOnceBeforeBuildPatterns: [
+						posix.join(contextPath, "css", "**"),
+						posix.join(contextPath, "js", "**"),
+						posix.join(contextPath, "page", "**")
+					]
+				};
+			}
+			else {
+				options = {
+					dry: false,
+					cleanStaleWebpackAssets: true,
+					verbose: this.logger.level >= 3,
+					dangerouslyAllowCleanPatternsOutsideProject: true,
+					cleanOnceBeforeBuildPatterns: [
+						`${this.build.paths.temp}/**`
+					]
+				};
+			}
+			return new CleanWebpackPlugin(options);
 		}
-		else {
-			options = {
-				dry: false,
-				cleanStaleWebpackAssets: true,
-				verbose: this.logger.level >= 3,
-				dangerouslyAllowCleanPatternsOutsideProject: true,
-				cleanOnceBeforeBuildPatterns: [
-					`${this.build.paths.temp}/**`
-				]
-			};
-		}
-		return new CleanWebpackPlugin(options);
 	};
 
 }

@@ -9,12 +9,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { join, posix, relative } = require("path");
+const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { isBoolean, pick, isObject, relativePath, apply, asArray, existsAsync, findFiles } = require("../utils");
-const { readFile } = require("fs/promises");
+const { join, posix, relative } = require("path");
+const { relativePath, existsAsync, findFiles } = require("../utils");
+const { isBoolean, pick, isObject, apply, asArray } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -23,7 +24,7 @@ const { readFile } = require("fs/promises");
 class WpwJsDocPlugin extends WpwBaseTaskPlugin
 {
     /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options
      */
 	constructor(options)
 	{
@@ -45,7 +46,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
               // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
               // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
               logger = this.build.logger,
-              options = this.build.options.jsdoc,
+              options = this.buildOptions,
               currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
               outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
                                             this.buildOptions.destination ||

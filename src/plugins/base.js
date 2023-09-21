@@ -74,7 +74,7 @@ class WpwPlugin extends WpwBaseModule
     {
         super(options);
         this.plugins = [];
-        this.cache = new WpwCache(this.build, WpwPlugin.cacheFilename(this.build.mode, this.baseName));
+        this.cache = new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName));
     }
 
 
@@ -98,8 +98,14 @@ class WpwPlugin extends WpwBaseModule
                               .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
 
 
-    /**  @protected  */
-    static cacheFilename = (/** @type {string} */ mode, /** @type {string} */ name) => `plugincache_${mode}_${name}.json`;
+    /**
+     * Wpw plugin cache  name ("not" webpack cache)
+     *
+     * @protected
+     * @param {string} mode
+     * @param {string} name
+     */
+    cacheFilename = (mode, name) => `plugincache_${mode}_${name}.json`;
 
 
     /**
@@ -275,13 +281,6 @@ class WpwPlugin extends WpwBaseModule
 
 	/**
 	 * @protected
-	 * @returns {RegExp}
-	 */
-    fileNameHashRegex = () => new RegExp(`\\.[a-z0-9]{${this.hashDigestLength},}`);
-
-
-	/**
-	 * @protected
 	 * @param {Buffer} source
 	 * @returns {string} string
 	 */
@@ -313,9 +312,9 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @abstract
 	 * @protected
-     * @returns {typedefs.WebpackPluginInstance | typedefs.WebpackPluginInstance[]} WebpackPluginInstance
+     * @returns {typedefs.WebpackPluginInstance | typedefs.WebpackPluginInstance[] | undefined} WebpackPluginInstance
      */
-    getVendorPlugin() { return []; };
+    getVendorPlugin() { return undefined; }
 
 
 	/**
@@ -365,6 +364,14 @@ class WpwPlugin extends WpwBaseModule
         this.wpCache = compiler.getCache(this.name);
         this.wpLogger = compiler.getInfrastructureLogger(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
+
+        // this.tapCompilationHooks([[ "setCompilationInstance", {
+        //     hook: "compilation",
+        //     stage: "PRE_PROCESS",
+        //     callback: this.onCompilation.bind(this),
+        //     hookCompilation: "processAssets"
+        // }]]);
+        compiler.hooks.compilation.tap("setCompilationInstance", (c) => { this.compilation = c; });
 
         if (options)
         {
@@ -416,7 +423,7 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compilation = compilation;
         this.wpLogger = compilation.getLogger(this.name);
-        this.wpCacheCompilation = compilation.getCache(this.name);
+        this.wpCacheCompilation = compilation.getCache(this.cacheName);
         return !compilation.getStats().hasErrors();
     }
 
@@ -576,8 +583,9 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Wraps a vendor plugin to give it access to the WpwBuild instance. vendor plugin instantiation
-     * is done via the constructor's call to the override function {@link WpwPlugin.getVendorPlugin getVendorPlugin()}
+     * Wraps a vendor plugin to give it access to the WpwBuild instance, and couples it with
+     * the the WpwPlugin instance.
+     *
      * @template {WpwPlugin} T
      * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper

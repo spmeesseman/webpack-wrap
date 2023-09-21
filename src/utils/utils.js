@@ -369,9 +369,9 @@ const relativePath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } retu
 
 // * @returns {import("../../package.json").dependencies[T]}
 /**
- * @template {string} T
- * @param {T} id
- * @returns {any}
+ * @template T
+ * @param {string} id
+ * @returns {T}
  */
 const requireResolve = (id) => require(require.resolve(id, { paths: [ require.main?.path || process.cwd() ] }));
 

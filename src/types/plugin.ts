@@ -56,7 +56,7 @@ type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
 
 type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
-type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void | Promise<void>;
+type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void | Promise<void> | Promise<WpwPluginHookWaitStage>;
 
 type WpwPluginWrappedHookHandlerSync = (...args: any[]) => void;
 
