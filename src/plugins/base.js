@@ -108,7 +108,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} filePath
      * @param {string} identifier
      * @param {string} outputDir Output directory of build
-     * @param {typedefs.WebpackRawSource | undefined} source
+     * @param {typedefs.WebpackRawSource | undefined} [source]
      * @returns {Promise<typedefs.CacheResult>} Promise<CacheResult>
      */
     checkSnapshot = async (filePath, identifier, outputDir, source) =>

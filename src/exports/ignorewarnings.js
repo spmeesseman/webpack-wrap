@@ -13,14 +13,14 @@
  *
  */
 
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 
 
 /**
  * @see {@link https://webpack.js.org/configuration/other-options/#ignorewarnings webpack.js.org/ignorewarnings}
  *
  * @function ignorewarnings
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const ignorewarnings = (build) =>
 {

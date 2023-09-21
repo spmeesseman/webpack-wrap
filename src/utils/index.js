@@ -18,13 +18,13 @@ const {
 
 const utils = require("./utils");
 const {
-    capitalize, createEntryObjFromDir, execAsync, existsAsync, findExPath, findExPathSync, findFiles, findFilesSync,
-    findFileUp, getExcludes, lowerCaseFirstChar, requireResolve, relativePath, resolvePath
+    capitalize, execAsync, existsAsync, findExPath, findExPathSync, findFiles, findFilesSync,
+    findFileUp, forwardSlash, getExcludes, lowerCaseFirstChar, requireResolve, relativePath, resolvePath
 } = require("./utils");
 
 module.exports = {
-    apply, applyExt, applyIf, applySchemaDefaults, arrUtils, asArray, capitalize, clone, createEntryObjFromDir, dtsBundle,
-    execAsync, existsAsync, findExPath, findExPathSync, findFiles, findFilesSync, findFileUp, getExcludes, getSchemaVersion,
+    apply, applyExt, applyIf, applySchemaDefaults, arrUtils, asArray, capitalize, clone, dtsBundle,
+    execAsync, existsAsync, findExPath, findExPathSync, findFiles, findFilesSync, findFileUp, forwardSlash, getExcludes, getSchemaVersion,
     isArray, isBoolean, isClass, isDirectory, isDate, isEmpty, isError, isFunction, isNulled, isNumber, isNumeric, isObject,
     typeUtils, isObjectEmpty, isPrimitive, isPromise, isString, lowerCaseFirstChar, merge, mergeExt, mergeExt2, mergeIf,
     mergeWeak, mergeIfWeak, objUtils, pick, pickBy, pickNot, printBuildProperties, printBuildStart, printNonFatalIssue,

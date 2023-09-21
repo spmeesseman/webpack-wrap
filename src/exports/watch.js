@@ -9,12 +9,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 
 
 /**
  * @function target
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const watch = (build) =>
 {

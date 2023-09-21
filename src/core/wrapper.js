@@ -157,7 +157,7 @@ class WpwWrapper extends WpwBase
      *
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpwRuntimeEnvArgs} arge
-     * @returns {typedefs.WpwWebpackConfig[]} arge
+     * @returns {typedefs.WpwWebpackConfig[]} WpwWebpackConfig[] array of webpack configuration exports
      */
     static create = (argv, arge) => new WpwWrapper(argv, arge).builds.map(b => b.wpc);
 
@@ -167,11 +167,20 @@ class WpwWrapper extends WpwBase
      */
     createBuilds()
     {
-        this.builds.push(...this.buildConfigs.filter(
-            (b) => (!this.arge.build || b.name === this.arge.build)).map(b => new WpwBuild(b, this)
-        ));
+        this.builds.push(
+            ...this.buildConfigs.filter(
+                (b) => (!this.arge.build || b.name === this.arge.build || b.type === this.arge.build)
+            )
+            .map(b => new WpwBuild(b, this))
+        );
         this.maybeAddTypesBuild();
-        this.builds.forEach(b => { merge(b.webpackExports(), this.overrides, this[this.mode].overrides, b.overrides); });
+        this.builds.forEach(b => b.webpackExports());
+        if (this.builds.length === 0)
+        {
+            this.logger.warning("no builds created, dumping configurations:");
+            this.logger.write(JSON.stringify(this.buildConfigs, null, 4), undefined, "", this.logger.icons.color.warning);
+            this.logger.write("exit");
+        }
     }
 
 

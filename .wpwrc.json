@@ -4,6 +4,7 @@
         "name": "webpack-wrap",
         "target": "node",
         "type": "app",
+        "entry": "./src/core/wrapper.js",
         "log": {
             "color": "cyan"
         },
@@ -13,6 +14,25 @@
             },
             "licensefiles": {
                 "enabled": true
+            }
+        },
+        "overrides": {
+            "externals": {
+                "bufferutil": "commopnjs bufferutil",
+                "esbuild": "commonjs esbuild",
+                "fsevents": "commonjs fsevents",
+                "imagemin": "commonjs imagemin",
+                "sharp": "commonjs sharp",
+                "@squoosh/lib": "commonjs @squoosh/lib",
+                "@swc/core": "commonjs @swc/core",
+                "@swc/core/package.json": "commonjs @swc/core/package.json",
+                "totalist/sync": "esm totalist/sync",
+                "uglify-js": "commonjs uglify-js",
+                "uglify-js/package.json": "commonjs uglify-js/package.json",
+                "utf-8-validate": "commonjs utf-8-validate",
+                "typescript": "commonjs typescript",
+                "webpack": "commonjs webpack",
+                "webpack/lib": "commonjs webpack/lib"
             }
         }
     },
@@ -65,7 +85,7 @@
             },
             "options": {
                 "jsdoc": {
-                    "type": "plugin",
+                    "mode": "plugin",
                     "destination": "res/docs/api",
                     "title": "Webpack-Wrap Source Documentation"
                 }

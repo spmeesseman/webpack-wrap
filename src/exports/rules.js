@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file exports/rules.js
+ * @file src/exports/rules.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -43,7 +43,7 @@ class WpwRulesExport extends WpwWebpackExport
      * @override
      * @param {typedefs.WpwBuild} build
      */
-	static create = (build) => { const e = new this({ build}); e.create(); return e; };
+	static create = (build) => { const e = new this({ build }); e.create(); return e; };
 
 
 	/**
@@ -113,9 +113,10 @@ class WpwRulesExport extends WpwWebpackExport
 			});
 		}
 
+		const loader = this.getSourceLoader();
+
 		if (build.source.type === "typescript")
 		{
-			const loader = this.getSourceLoader();
 			// mainSrcPath = build.getSrcPath({ build: mainApp.build.name, rel: true, ctx: true, dot: true, psx: true });
 			// tsConfig.include.push(typesDir);
 			if (loader.loader === "ts-loader" && build.options.types)
@@ -150,10 +151,26 @@ class WpwRulesExport extends WpwWebpackExport
 
 			build.wpc.module.rules.push({
 				use: loader,
-				test: build.source.ext !== "ts" ?  /\.js$/ : /\.ts$/,
-				// include: uniq([ mainSrcPath, typesSrcPath ]),
+				test: /\.tsx?$/,
 				include: this.build.getSrcPath(),
 				exclude: getExcludes(build, false, true, true)
+			});
+		}
+		else
+		{
+			build.wpc.module.rules.push(
+			{
+				test: /\.tsx?$/,
+				use: this.getSourceLoader("babel", true),
+				// exclude: /\.d\.ts$/,
+				// include: resolve(__dirname, "../../node_modules"),
+				exclude: getExcludes(build, false, false, true, true)
+			},
+			{
+				use: loader,
+				test: /\.jsx?$/,
+				include: this.build.getSrcPath(),
+				exclude: getExcludes(build, false, false, false)
 			});
 		}
 	}
@@ -183,9 +200,10 @@ class WpwRulesExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {"esbuild" | "babel" | "ts"} [loader]
+		 * @param {boolean} [ts]
 	 * @returns {typedefs.WebpackRuleSetUseItem}
 	 */
-	getSourceLoader = (loader) =>
+	getSourceLoader = (loader, ts) =>
 	{
 		const build= this.build;
 		if (build.cmdLine.esbuild || loader === "esbuild")
@@ -196,11 +214,11 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			if (build.cmdLine.babel || loader === "babel")
 			{
-				return this.sourceLoaders.babel();
+				return this.sourceLoaders.babel(true);
 			}
 			return this.sourceLoaders.ts();
 		}
-		return this.sourceLoaders.babel();
+		return this.sourceLoaders.babel(ts);
 	};
 
 
@@ -211,38 +229,31 @@ class WpwRulesExport extends WpwWebpackExport
 	jsdoc()
 	{
 		const build = this.build,
-			  jsdocOptions = build.options.jsdoc;
-		if (jsdocOptions && jsdocOptions.type === "entry")
-		{
-			const exclude = getExcludes(build),
-				include = build.getSrcPath();
+			  jsdocConfig = build.options.jsdoc;
 
-			if (existsSync(include))
-			{
-				build.wpc.module.rules.push(
-				{
-					include, // : jsdocSrcPath,
-					exclude,
-					test: new RegExp(`\\.(?:c|m)?${build.source.ext}x?$`),
-					generator: {
-						emit: false
-					},
-					use:
-					{
-						loader: "wpw-jsdoc-loader",
-						options: {
-							outDir: build.getDistPath(),
-							rootDir: include
-						}
-					}
-				});
-			}
-			else {
-				build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "rules[jsdoc]" });
-			}
+		if (!build.wpc.entry[build.name]) {
+			build.addMessage({
+				code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
+			});
+			return;
 		}
-		else {
-			build.addMessage({ code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS, message: "rules[jsdoc]" });
+
+		if (jsdocConfig && jsdocConfig.mode === "plugin")
+		{
+			const fakeEntryFile = /** @type {string} */(build.wpc.entry[this.build.name]).replace(/^\.[\/\\]/, "");
+			build.logger.write(`   add rule for virtual entry file '${fakeEntryFile}'`, 2);
+			build.wpc.module.rules.push(
+			{
+				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
+				// loader: resolve(__dirname, "../loaders/dts.js"),
+				loader: "wpw-jsdoc-loader",
+				options: merge({
+					outDir: build.getDistPath(),
+					inputDir: build.getSrcPath(),
+					virtualFile: this.virtualFilePath
+				}, { jsdocConfig })
+			});
 		}
 	}
 
@@ -253,24 +264,30 @@ class WpwRulesExport extends WpwWebpackExport
 	sourceLoaders =
 	{
 		/**
+		 * @param {boolean} [ts]
 		 * @returns {typedefs.WebpackRuleSetUseItem}
 		 */
-		babel: () =>
+		babel: (ts) =>
 		{
-			return {
+			const config = {
 				loader: "babel-loader",
 				options: {
-					cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
+					// cwd: resolve(__dirname, "..", ".."), // resolve node_mdules/presets in wpw base dir
 					presets: [
 						[ "@babel/preset-env", {
-							targets: {
+							/* targets: {
 								node: "16.20.0"
-							} /* { targets: "defaults" }*/}
-						],
-						this.build.source.type === "typescript" ? [ "@babel/preset-typescript" ] : []
+							}*/
+							targets: "defaults"
+						}]
 					]
 				}
 			};
+			if (ts)
+			{
+				config.options.presets.push([ "@babel/preset-typescript" ]);
+			}
+			return config;
 		},
 
 		/**
@@ -410,7 +427,7 @@ class WpwRulesExport extends WpwWebpackExport
 				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
 				// loader: resolve(__dirname, "../loaders/dts.js"),
 				loader: "wpw-types-loader",
-				options: merge({ virtualFile: `${build.global.cacheDir}/${build.name}${build.source.dotext}` }, { typesConfig })
+				options: merge({ virtualFile: this.virtualFilePath }, { typesConfig })
 			});
 		}
 	}

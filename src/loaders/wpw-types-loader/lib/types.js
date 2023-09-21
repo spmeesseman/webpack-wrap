@@ -1,10 +1,18 @@
 // @ts-check
 
-const { resolve } = require("path");
+/**
+ * @file src/loaders/wpw-types-loader/lib/types.js
+ * @version 0.0.1
+ * @license MIT
+ * @copyright Scott P Meesseman 2023
+ * @author Scott Meesseman @spmeesseman
+ *
+ *//** */
+
 const { validate } = require("schema-utils");
-const { writeFile } = require("fs/promises");
 const { urlToRequest } = require("loader-utils");
 const WpwLogger = require("../../../utils/console");
+const { forwardSlash } = require("../../../utils/utils");
 
 /** @type {WpwLogger} */
 let logger;
@@ -37,12 +45,13 @@ const schema = {
 
 async function typesLoader(source, map, meta)
 {
+    const resourcePath = forwardSlash(urlToRequest(this.resourcePath));
     logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "dts", level: 5 });
-    logger.write("process request", 3);
-    logger.value("   path", urlToRequest(this.resourcePath), 3);
+    logger.write("process loader request", 3);
+    logger.value("   path", resourcePath, 3);
 
     const options = this.getOptions();
-    logger.object("options", options, 4, "   ");
+    logger.object("options", options, 5, "   ");
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
 
     // const filename = loaderUtils.interpolateName(this, `[name]-page${i}-[contenthash].png`, {content: file});

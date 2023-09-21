@@ -106,6 +106,9 @@ const output = (build) =>
 			umdNamedDefine: true
 		});
 	}
+	else if (build.type === "jsdoc")
+	{
+	}
 	else if (build.type === "types")
 	{
 		// apply(build.wpc.output,

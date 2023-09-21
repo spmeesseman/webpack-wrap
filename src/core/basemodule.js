@@ -11,7 +11,7 @@
 
 const WpwBase = require("./base");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, WpwError, clone } = require("../utils");
+const { lowerCaseFirstChar, WpwError, clone, relativePath } = require("../utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 
 
@@ -34,6 +34,12 @@ class WpwBaseModule extends WpwBase
     hashDigestLength;
     /** @type {string[]}  @private */
     pluginsNoOpts = [ "dispose" ];
+    /** @type {string} @protected */
+	virtualFile;
+	/** @type {string} @protected */
+	virtualFilePath;
+	/** @type {string} @protected */
+	virtualFileRelPath;
     /** @type {typedefs.WpwWebpackConfig} @protected */
     wpc;
 
@@ -50,6 +56,9 @@ class WpwBaseModule extends WpwBase
         this.wpc = this.build.wpc;
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
         this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
+		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
+		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
+        this.virtualFileRelPath = relativePath(this.build.getBasePath(), this.virtualFilePath);
         this.build.disposables.push(this);
     }
 

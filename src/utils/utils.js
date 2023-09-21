@@ -75,29 +75,6 @@ const capitalize = (value) =>
 
 
 /**
- * @param {string} dir
- * @param {typedefs.WpwSourceExtension | typedefs.WpwSourceDotExtensionApp} ext
- * @returns {typedefs.WpwWebpackEntry}
- */
-const createEntryObjFromDir = (dir, ext) =>
-{
-    if (!ext.startsWith(".")) {
-        ext = /** @type {typedefs.WpwSourceDotExtensionApp} */("." + ext);
-    }
-    return glob.sync(
-        `*${ext}`, {
-            absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: 1
-        }
-    )
-    .reduce((obj, e)=>
-    {
-        obj[e.replace(ext, "")] = `./${e}`;
-        return obj;
-    }, {});
-};
-
-
-/**
  * Executes node.eXec() wrapped in a promise via util.promisify()
  * @async
  * @param {typedefs.ExecAsyncOptions} options
@@ -267,16 +244,23 @@ const findExPathSync = (paths) =>
 };
 
 
+const forwardSlash = (path) => path.replace(/\\/g, "/");
+
+
   /**
  * @param {typedefs.WpwBuild} build
  * @param {boolean} [allowTest]
  * @param {boolean} [allowTypes]
  * @param {boolean} [allowDts]
+ * @param {boolean} [allowNodeModules]
  * @returns {RegExp[]}
  */
-const getExcludes = (build, allowTest, allowTypes, allowDts) =>
+const getExcludes = (build, allowTest, allowTypes, allowDts, allowNodeModules) =>
 {
-    const ex = [ /node_modules/, /\\.vscode[\\\/]/ ];
+    const ex = [ /\\.vscode[\\\/]/ ];
+    if (allowNodeModules !== true) {
+        ex.push(/node_modules/);
+    }
     if (allowTest !== true) {
         ex.push(/test[\\\/]/);
     }
@@ -397,6 +381,5 @@ const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } 
 
 module.exports = {
     asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp, getExcludes,
-    lowerCaseFirstChar, createEntryObjFromDir, requireResolve, relativePath,
-    resolvePath, findExPath, findExPathSync
+    lowerCaseFirstChar, requireResolve, relativePath, resolvePath, findExPath, findExPathSync, forwardSlash
 };

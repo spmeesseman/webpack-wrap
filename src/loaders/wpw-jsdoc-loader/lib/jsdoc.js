@@ -1,15 +1,21 @@
-/* eslint-disable import/no-extraneous-dependencies */
+// @ts-check
 
-const { posix } = require("path");
-const jsdoc = require("jsdoc-api");
-const capcon = require("capture-console");
-const { readFile } = require("fs/promises");
-const loaderUtils = require("loader-utils");
+/**
+ * @file src/loaders/wpw-jsdoc-loader/lib/jsdoc.js
+ * @version 0.0.1
+ * @license MIT
+ * @copyright Scott P Meesseman 2023
+ * @author Scott Meesseman @spmeesseman
+ *
+ *//** */
+
 const { validate } = require("schema-utils");
-const { RawSource } = require("webpack").sources;
 const { urlToRequest } = require("loader-utils");
-const WpwLogger = require("../utils/console");
-const { WpwError, relativePath, pick } = require("../utils");
+const WpwLogger = require("../../../utils/console");
+const { forwardSlash } = require("../../../utils/utils");
+
+/** @type {WpwLogger} */
+let logger;
 
 
 /** @type {import("schema-utils/declarations/validate").Schema} */
@@ -27,66 +33,74 @@ const schema = {
                 },
                 inputDir: {
                     type: "string"
+                },
+                virtualFile: {
+                    type: "string"
+                },
+                jsdocConfig: {
+                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
                 }
             }
         }
     }
 };
 
-const logger = new WpwLogger({
-    envTag1: "loader", envTag2: "jsdoc", colors: { default: "grey" }, level: 5
-});
-
 
 async function jsdocLoader(source, map, meta)
 {
-    let data = source, hash, newHash, cacheEntry, persistedCache;
-    const options = this.getOptions(),
-            identifier = 3;
+    // let data = source, hash, newHash, cacheEntry, persistedCache;
+    // const options = this.getOptions(),
+    //         identifier = 3;
+    const resourcePath = forwardSlash(urlToRequest(this.resourcePath));
+    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "jsdoc", level: 5 });
+    logger.write("process loader request", 3);
+    logger.value("   path", resourcePath, 3);
 
+    const options = this.getOptions();
+    logger.object("options", options, 5, "   ");
     validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
 
-    const traceMethod = (obj) =>
-    {
-        return new Proxy(obj,
-        {
-            get(target, methodName, receiver)
-            {
-                const originMethod = target[methodName];
-                return (...args) =>
-                {
-                    data += args[0];
-                    return originMethod.apply(this, args);
-                };
-            }
-        });
-    };
+    // const traceMethod = (obj) =>
+    // {
+    //     return new Proxy(obj,
+    //     {
+    //         get(target, methodName, receiver)
+    //         {
+    //             const originMethod = target[methodName];
+    //             return (...args) =>
+    //             {
+    //                 data += args[0];
+    //                 return originMethod.apply(this, args);
+    //             };
+    //         }
+    //     });
+    // };
 
-    const resourcePath = urlToRequest(this.resourcePath),
-            resourcePathRel = posix.normalize(relativePath(options.outDir, resourcePath));
+    // const resourcePath = loaderUtils.urlToRequest(this.resourcePath),
+    //         resourcePathRel = posix.normalize(relativePath(options.outDir, resourcePath));
 
-    logger.value("process input file @ ", resourcePathRel, 3);
-    logger.write("   full path @ " + resourcePath, 3);
+    // logger.value("process input file @ ", resourcePathRel, 3);
+    // logger.write("   full path @ " + resourcePath, 3);
 
-    const jsdocOptions = {
-        source,
-        destination: "console",
-        ...pick(options, "debug", "private", "readme", "package", "configure", "verbose")
-    };
+    // const jsdocOptions = {
+    //     source,
+    //     destination: "console",
+    //     ...pick(options, "debug", "private", "readme", "package", "configure", "verbose")
+    // };
 
-    if (jsdocOptions.readme) {
-        jsdocOptions.readme = posix.normalize(relativePath(options.outDir, jsdocOptions.readme));
-    }
+    // if (jsdocOptions.readme) {
+    //     jsdocOptions.readme = posix.normalize(relativePath(options.outDir, jsdocOptions.readme));
+    // }
 
-    if (jsdocOptions.package) {
-        jsdocOptions.package = posix.normalize(relativePath(options.outDir, jsdocOptions.package));
-    }
+    // if (jsdocOptions.package) {
+    //     jsdocOptions.package = posix.normalize(relativePath(options.outDir, jsdocOptions.package));
+    // }
 
-    if (jsdocOptions.configure) {
-        jsdocOptions.configure = posix.normalize(relativePath(options.outDir, jsdocOptions.configure));
-    }
+    // if (jsdocOptions.configure) {
+    //     jsdocOptions.configure = posix.normalize(relativePath(options.outDir, jsdocOptions.configure));
+    // }
 
-    logger.value("   jsdoc execution options", JSON.stringify(jsdocOptions), 5);
+    // logger.value("   jsdoc execution options", JSON.stringify(jsdocOptions), 5);
 
     // const stderr = capcon.captureStderr(function scope() {
     //
@@ -102,22 +116,22 @@ async function jsdocLoader(source, map, meta)
     // });
 
     // const origConsole = console;
-    try {
-        // logger.write("   tracing console for jsdoc output", 5);
-        // console = traceMethod(console);
-        logger.write("   execute jsdoc", 4);
-        data = "";
-        capcon.startCapture(process.stdout, (stdout) => { data += stdout; });
-        jsdoc.renderSync(jsdocOptions);
-    }
-    catch (e) {
-        throw new WpwError("jsdoc loader failed: " + e.message, "loaders/jsdoc.js");
-    }
-    finally {
-        // console = origConsole;
-        capcon.stopCapture(process.stdout);
-
-    }
+    // try {
+    //     // logger.write("   tracing console for jsdoc output", 5);
+    //     // console = traceMethod(console);
+    //     logger.write("   execute jsdoc", 4);
+    //     data = "";
+    //     capcon.startCapture(process.stdout, (stdout) => { data += stdout; });
+    //     jsdoc.renderSync(jsdocOptions);
+    // }
+    // catch (e) {
+    //     throw new WpwError({ code: WpwError.Msg.ERROR_LOADER, message: "jsdoc loader renderSync failed", error: e });
+    // }
+    // finally {
+    //     // console = origConsole;
+    //     capcon.stopCapture(process.stdout);
+    //
+    // }
     // logger.write("   check compilation cache for snapshot", 4);
     // try {
     //     persistedCache = this.cache.get();
@@ -240,7 +254,8 @@ async function jsdocLoader(source, map, meta)
     // }
 
     // return `export default ${JSON.stringify(results)}`;
-    return [ data ]; //  new RawSource(data);
+    // return [ data ]; //  new RawSource(data);
+    return [ source, map, meta ];
 }
 
 

@@ -11,7 +11,6 @@
 
  const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
-const WpwBuild = require("../core/build");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { unlink, access } = require("fs/promises");
@@ -307,7 +306,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwTestSuitePlugin | undefined}
  */
 const testsuite = (build) => build.options.testsuite ? new WpwTestSuitePlugin({ build }) : undefined;

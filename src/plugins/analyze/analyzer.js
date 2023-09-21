@@ -2,6 +2,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
+const { isObject } = require("@spmeesseman/type-utils");
+
 /**
  * @file plugin/analyze.js
  * @version 0.0.1
@@ -23,15 +25,18 @@ const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPl
 const analyzer = (build) =>
 {
     let plugin;
-	if (build.cmdLine.analyze)
+    const buildOptions = build.options.analyze;
+    if (build.cmdLine.analyze || (buildOptions && buildOptions.analyzer && (buildOptions.analyzer === true || buildOptions.analyzer.enabled === true)))
 	{
+        const buildOptionsAnalyzer = buildOptions?.analyzer;
 		plugin = new BundleAnalyzerPlugin({
 			analyzerPort: "auto",
 			analyzerMode: "static",
 			generateStatsFile: true,
 			statsFilename: "../.coverage/analyzer-stats.json",
 			reportFilename: "../.coverage/analyzer.html",
-			openAnalyzer: true
+			openAnalyzer: isObject(buildOptionsAnalyzer) ? !!buildOptionsAnalyzer.open : true
+			// logLevel?: 'info' | 'warn' | 'error' | 'silent' | undefined;
 		});
 	}
 	return plugin;

@@ -10,11 +10,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpwBuild = require("../core/build");
-
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
+const typedefs = require("../types/typedefs");
 
 
 /**
@@ -25,7 +21,7 @@ class WpwEnvironmentPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -63,7 +59,7 @@ class WpwEnvironmentPlugin extends WpwPlugin
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwEnvironmentPlugin | undefined}
  */
 const environment = (build) => build.mode === "production" ? new WpwEnvironmentPlugin({ build }) : undefined;

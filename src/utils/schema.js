@@ -17,7 +17,7 @@ const { resolve, join } = require("path");
 const { validate } = require("schema-utils");
 const typedefs = require("../types/typedefs");
 const { WpwKeysEnum, requiredProperties } = require("../types/constants");
-const { isDefined, isString, isObject, isArray, pick, isNulled, isObjectEmpty } = require("@spmeesseman/type-utils");
+const { isDefined, isString, isObject, isArray, pick, isNulled, isObjectEmpty, clone } = require("@spmeesseman/type-utils");
 
 const schemas = {};
 const SchemaDirectory = resolve(__dirname, "..", "..", "schema");
@@ -70,7 +70,7 @@ const _applySchemaDefaults = (config, schemaObj, definitions) =>
             }
             if (isDefined(def.default))
             {
-                config[key] = def.default; // apply(config, { [key]: def.default });
+                config[key] = clone(def.default); // apply(config, { [key]: def.default });
             }
             else
             {

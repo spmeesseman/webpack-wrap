@@ -10,10 +10,7 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpwBuild = require("../core/build");
-
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
+const typedefs = require("../types/typedefs");
 
 
 /**
@@ -22,7 +19,7 @@ const WpwBuild = require("../core/build");
 class WpwScmPlugin extends WpwPlugin
 {
     /**
-     * @param {WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options) { super(options); }
 
@@ -30,7 +27,7 @@ class WpwScmPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -85,7 +82,7 @@ class WpwScmPlugin extends WpwPlugin
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwScmPlugin | undefined}
  */
 const scm = (build) => build.options.scm ? new WpwScmPlugin({ build }) : undefined;

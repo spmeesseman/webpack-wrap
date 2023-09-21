@@ -19,7 +19,7 @@ const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
 const {
     applySchemaDefaults, objUtils, printNonFatalIssue, printBuildStart, printBuildProperties,
-    printWpcProperties, typeUtils, utils, validateSchema, WpwError, WpwLogger
+    printWpcProperties, typeUtils, utils, validateSchema, WpwError, WpwLogger, pushUniq, merge
 } = require("../utils");
 
 
@@ -79,6 +79,7 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, { info: [], errors: [], warnings: [], wrapper });
         this.initConfig(config);
         this.initLogger();
+        this.configureDependencyOptions();
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.source = new WpwSource(objUtils.clone(config.source), this);
         this.disposables.push(this.source, this.logger);
@@ -95,12 +96,20 @@ class WpwBuild extends WpwBase
         const optionMessage = (/** @type {string} */o) =>
               `the ${o} option was auto-enabled, enable this option for the ${this.name} build in .wpwraprc to bury this message`;
 
-        if (this.type === "types")
+        if (this.type === "app")
+        {
+            if (!this.options.optimization)
+            {
+                this.options.optimization = { enabled: true };
+                pushUniq(messages, "optimization");
+            }
+        }
+        else if (this.type === "types")
         {
             if (this.options.types?.mode === "tscheck" && !this.options.tscheck)
             {
                 this.options.tscheck = { enabled: true };
-                utils.pushUniq(messages, "tscheck");
+                pushUniq(messages, "tscheck");
             }
         }
         else if (this.type === "tests")
@@ -108,19 +117,20 @@ class WpwBuild extends WpwBase
             if  (!this.options.vendormod || !this.options.vendormod.nyc)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, nyc: true });
-                utils.pushUniq(messages, "vendormod.nyc");
+                pushUniq(messages, "vendormod.nyc");
             }
         }
 
         if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
         {
             this.options.tscheck = { enabled: true };
-            utils.pushUniq(messages, "tscheck");
+            pushUniq(messages, "tscheck");
         }
 
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
         {
             this.options.experiments = { enabled: true };
+            pushUniq(messages, "experiments");
         }
 
         if (this.options.sourcemaps)
@@ -128,13 +138,19 @@ class WpwBuild extends WpwBase
             if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
-                utils.pushUniq(messages, "vendormod.source_map_plugin");
+                pushUniq(messages, "vendormod.source_map_plugin");
             }
             if (this.options.devtool)
             {
                 delete this.options.devtool;
-                utils.pushUniq(messages, "removed option devtool (sourcemaps overrides)");
+                pushUniq(messages, "removed option devtool (sourcemaps overrides)");
             }
+        }
+
+        if (this.vscode && !this.options.externals)
+        {
+            this.options.externals = { enabled: true };
+            pushUniq(messages, "externals");
         }
 
         messages.forEach((m) => {
@@ -186,13 +202,13 @@ class WpwBuild extends WpwBase
               hasCompilation = compilation && typeUtils.isClass(compilation);
         if (/WPW[0-2][0-9][0-9]/.test(info.code))
         {
-            const i = WpwError.get(objUtils.apply({ wpc: this.wpc }, info));
+            const i = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
             l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
             this.info.push(i);
         }
         else if (/WPW[3-5][0-9][0-9]/.test(info.code))
         {
-            const w = WpwError.get(objUtils.apply({ wpc: this.wpc }, info));
+            const w = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
             l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
             if (hasCompilation) {
@@ -201,13 +217,12 @@ class WpwBuild extends WpwBase
         }
         else if (/WPW[6-8][0-9][0-9]/.test(info.code))
         {
-            const e = WpwError.get(objUtils.apply({ wpc: this.wpc }, info));
+            const e = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
             this.errors.push(e);
-            l.write(e.message, undefined, pad, icons.color.error, l.colors.red);
+            l.write(info.message, undefined, pad, icons.color.error, l.colors.red);
             if (hasCompilation) {
                 compilation.errors.push(e);
             }
-            else { throw e; }
         }
         else if (/WPW9[0-9][0-9]/.test(info.code)) {
             l.write("reserved message type", undefined, pad, icons.color.warning);
@@ -383,7 +398,6 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, config);
         objUtils.applyIf(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-        this.configureDependencyOptions();
     }
 
 
@@ -412,24 +426,39 @@ class WpwBuild extends WpwBase
 
     /**
      * @returns {typedefs.WpwWebpackConfig}
+     * @throws {WpwError}
      */
     webpackExports()
     {
+        const l = this.logger;
+        let logIcon = this.logger.icons.color.info;
         printBuildStart(this);
         try
         {   const wpc = webpackExports(this);
-            printBuildProperties(this, this.wrapper);
-            printWpcProperties(this);
+            if (this.errors.length > 0)
+            {
+                l.write("webpack configuration builder reported errors for this build", undefined, "", l.icons.color.error);
+                this.errors.splice(0).forEach(e => { l.blank(undefined, l.icons.color.error); l.error(e); });
+                throw new Error("falied to build webpack configuration, check details in log output");
+            }
+            console.log("111111");
+            console.log(JSON.stringify(this.overrides || {}));
+            merge(wpc, this.wrapper.overrides, this.wrapper[this.wrapper.mode].overrides, this.overrides);
             return wpc;
         }
         catch (e)
-        {   this.logger.blank(undefined, this.logger.icons.color.error);
-            this.logger.error("An error was encountered while creating the webpack configuration export");
-            this.logger.error("Using the following build parameters:");
-            this.logger.blank(undefined, this.logger.icons.color.error);
-            printBuildProperties(this, this.wrapper);
-            this.logger.blank(undefined, this.logger.icons.color.error);
+        {   l.blank(undefined, l.icons.color.error);
+            l.error("An error was encountered while creating the webpack configuration export");
+            l.error("   dumping build and webpack configurations:");
+            logIcon = l.icons.color.error;
             throw e;
+        }
+        finally
+        {   l.blank(undefined, logIcon);
+            printBuildProperties(this, this.wrapper);
+            l.blank(undefined, logIcon);
+            printWpcProperties(this);
+            l.blank(undefined, logIcon);
         }
     }
 

@@ -17,9 +17,7 @@
 const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
 const { WpwRegex } = require("../utils");
-const WpwBuild = require("../core/build");
 const { join, basename } = require("path");
-const { WebpackError } = require("webpack");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { copyFile, rm, readdir, rename, mkdir } = require("fs/promises");
@@ -165,7 +163,11 @@ class WpwUploadPlugin extends WpwPlugin
 
         if (!host || !user || !rBasePath ||  !sshAuth || !sshAuthFlag)
         {
-            this.compilation.errors.push(new WebpackError("Required environment variables for upload are not set"));
+            this.build.addMessage({
+                compilation: this.compilation,
+                code: WpwError.Msg.ERROR_CONFIG_INVALID,
+                message: "Required environment variables for upload are not set"
+            });
             return;
         }
 
@@ -235,7 +237,7 @@ class WpwUploadPlugin extends WpwPlugin
  * Returns a `WpBuildUploadPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.upload`
  * property to a boolean value of `true` or `false`
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwUploadPlugin | undefined} plugin instance
  */
 const upload = (build) => build.options.upload?.enabled ? new WpwUploadPlugin({ build }) : undefined;

@@ -8,7 +8,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+ const typedefs = require("../types/typedefs");
 
 /**
  * Adds library mode webpack config `output` object.
@@ -28,7 +28,7 @@
  *     source-map:                  : Recommended for prod builds w/ high quality SourceMaps
  *
  * @private
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const devtool = (build) =>
 {   //

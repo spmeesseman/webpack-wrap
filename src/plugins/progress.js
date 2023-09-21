@@ -9,17 +9,17 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
-/** @typedef {import("../types/typedefs").WebpackType} WebpackType */
+/** @typedef {typedefs.WebpackType} WebpackType */
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 /** @typedef {import("webpack").ProgressPlugin} ProgressPlugin */
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {ProgressPlugin | undefined}
  */
 const progress = (build) =>

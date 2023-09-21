@@ -10,15 +10,8 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
-
-/** @typedef {import("../types").WebpackSource} WebpackSource */
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackAssetInfo} WebpackAssetInfo */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
-/** @typedef {import("../types").WebpackCompilation} WebpackCompilation */
-/** @typedef {import("../types").WebpackCompilationAssets} WebpackCompilationAssets */
 
 
 /**
@@ -27,7 +20,7 @@ const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
 class WpwRuntimeVarsPlugin extends WpwPlugin
 {
     /**
-     * @param {WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
     {
@@ -38,7 +31,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
     apply(compiler)
     {
@@ -65,8 +58,8 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackAssetInfo} info
-     * @returns {WebpackAssetInfo}
+     * @param {typedefs.WebpackAssetInfo} info
+     * @returns {typedefs.WebpackAssetInfo}
      */
     info = (info) => apply({ ...(info || {}) }, { runtimeVars: true });
 
@@ -117,7 +110,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 
     /**
      * Collects content hashes from compiled assets
-     * @param {WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationAssets} assets
      */
     preprocess = (assets) =>
     {
@@ -171,7 +164,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 
     /**
      * @private
-     * @param {WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationAssets} assets
      */
     runtimeVars(assets)
     {
@@ -214,8 +207,8 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      * Performs all source code modifications
      * @private
      * @param {string} file
-     * @param {WebpackSource} sourceInfo
-     * @returns {WebpackSource}
+     * @param {typedefs.WebpackSource} sourceInfo
+     * @returns {typedefs.WebpackSource}
      */
     source(file, sourceInfo)
     {
@@ -229,8 +222,8 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      * @private
      * @param {string} file
      * @param {string | Buffer} content
-     * @param {WebpackSource} sourceInfo
-     * @returns {WebpackSource}
+     * @param {typedefs.WebpackSource} sourceInfo
+     * @returns {typedefs.WebpackSource}
      */
     sourceObj(file, content, sourceInfo)
     {
@@ -264,7 +257,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
  * Returns a `WpwRuntimeVarsPlugin` instance if appropriate for the current build
  * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.runtimevars`
  * property to a boolean value of  `true` or `false`
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {WpwRuntimeVarsPlugin | undefined}
  */
 const runtimevars = (build) => build.options.runtimevars ? new WpwRuntimeVarsPlugin({ build }) : undefined;

@@ -28,6 +28,8 @@ type ConvertType<T, Type, NewType> = { [P in keyof T]: T[P] extends Type | undef
 type ConvertTypeExcludeNon<T, Type, NewType> = { [P in keyof T as T[P] extends Type | undefined ? P : never]: NewType };
 type ConvertType2<T, Type, NewType, Type2, NewType2> = { [P in keyof T]: T[P] extends Type | undefined ? NewType :  { [P in keyof T]: T[P] extends Type2 | undefined ? NewType2 : T[P] }};
 type ConvertType3<T, K extends keyof T, NewType> = { [P in keyof T]: P extends K ? NewType : T[P] };
+type Impossible<K extends keyof any> = { [P in K]: never; };
+type NoExtraProperties<T, U extends T = T> = U extends (infer V)[] ? NoExtraProperties<V>[] : U & Impossible<Exclude<keyof U, keyof T>>;
 
 interface IDisposable { dispose: () => Required<void | PromiseLike<void>> }
 
@@ -52,7 +54,9 @@ export {
     ExecAsynResult,
     // ExtractTypings,
     IDisposable,
+    Impossible,
     MergeOptions,
+    NoExtraProperties,
     PartialSome,
     PickByType,
     RequireKeys

@@ -14,7 +14,7 @@ const typedefs = require("../types/typedefs");
 const inspect = require("util").inspect.custom;
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
 const makeSerializable = require("webpack/lib//util/makeSerializable");
-const { isString, isError, isObject } = require("@spmeesseman/type-utils");
+const { isString, isError, isObject, asArray, pick, applyIf } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -35,6 +35,7 @@ const WpwMessage =
     // WARNINGS (300-499)
     //
     WPW300: "general warning issued",
+    WPW350: "circular dependency detected",
     //
     // WARNINGS (400-499)
     //
@@ -54,7 +55,9 @@ const WpwMessage =
     WPW615: "typescript module error",
     WPW605: "build failed - output directory does not exist",
     WPW630: "abstract function must be overridden",
-    WPW660: "types build: general failure",
+    WPW650: "jsdoc build failure",
+    WPW660: "types build failure",
+    WPW680: "loader error",
     //
     // ERRORS (700 - 799)
     //
@@ -88,6 +91,7 @@ const WpwMessageEnum =
     // WARNINGS (300 - 399)
     //
     WARNING_GENERAL: /** @type {typedefs.WpwWarningCode} */("WPW300"),
+    WARNING_CIRCULAR: /** @type {typedefs.WpwWarningCode} */("WPW350"),
     //
     // WARNINGS (400 - 499)
     //
@@ -107,7 +111,9 @@ const WpwMessageEnum =
     ERROR_TYPESCRIPT: /** @type {typedefs.WpwErrorCode} */("WPW615"),
     ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW630"),
     ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
+    ERROR_JSDOC_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW650"),
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
+    ERROR_LOADER: /** @type {typedefs.WpwErrorCode} */("WPW680"),
     //
     // ERROR (700 - 799)
     //
@@ -147,10 +153,30 @@ const getMessage = (info) =>
 {
     if (info.code.length === 6 && WpwMessage[info.code])
     {
-        return `[${info.code}]:[${getErrorTag(info.code)}]\n${WpwMessage[info.code]}\n${info.message}`;
+        let code = `[${info.code}]`;
+        if (/WPW[0-2][0-9][0-9]/.test(info.code))
+        {
+            code = colorOutput("[", 34) + info.code + colorOutput("]", 34);
+        }
+        else if (/WPW[3-5][0-9][0-9]/.test(info.code))
+        {
+            code = colorOutput("[", 33) + info.code + colorOutput("]", 33);
+        }
+        else if (/WPW[6-8][0-9][0-9]/.test(info.code))
+        {
+            code = colorOutput("[", 31) + info.code + colorOutput("]", 31);
+        }
+        return `${code}: ${getErrorTag(info.code)}\n${WpwMessage[info.code]}\n${info.message}`;
     }
     return info.message;
 };
+
+/**
+ * @param {string} msg
+ * @param {number} color
+ * @returns {string}
+ */
+const colorOutput = (msg, color) => ("\x1B[" + color + "m" + msg + "\x1B[90m");
 
 
 /**
@@ -193,10 +219,25 @@ class WpwError extends Error
         if (hasErrorDetail) {
             details += `\n${err.message}`;
         }
+        if (info.build)
+        {
+            details += "\nbuild properties:";
+            Object.entries(pick(info.build, "name", "type")).forEach(([ k, v ]) =>
+            {
+                details += `\n   ${k} = ${v}`;
+            });
+        }
+        if (info.suggest)
+        {
+            let ct = 0;
+            details += "\n";
+            details += colorOutput("suggesstions:", 36);
+            asArray(info.suggest).forEach((s) => { details += `\n   ${colorOutput(`(${++ct})`, 37)} ${s}`; });
+        }
         if (details) {
             this.details = details.trim();
         }
-        WpwError.captureStackTrace(this, this.constructor);
+        WpwError.captureStackTrace(this, info.capture || this.constructor);
         if (this.stack)
         {
             const lines = this.stack?.split("\n") || [],
@@ -205,7 +246,9 @@ class WpwError extends Error
                   method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
                   fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
             this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;
-            this.details = (this.details ? this.details + "\n" : "") + cleanUp(this.stack, this.message);
+            let stack = this.stack.replace(`${this.name}: `, "");
+            this.message.split("\n").forEach((m) => { stack = cleanUp(stack, m); });
+            this.details = (this.details ? this.details + "\n" : "") + "call stack:\n" + stack;
             this.loc = {
                 end: { line: line + 1, column: 0 },
                 start: {line, column },
@@ -249,7 +292,7 @@ class WpwError extends Error
      * @param {typedefs.WpwMessageInfo} info
      * @returns {WpwError}
      */
-    static get(info) {return new WpwError(info); }
+    static get(info) {return new WpwError(applyIf(info, { capture: this.get })); }
 
 
     /**
@@ -259,7 +302,7 @@ class WpwError extends Error
      * @returns {WpwError}
      */
     static getErrorMissing = (property, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_RESOURCE_MISSING, wpc, message: `[${property}] ` + (detail || "") });
+        this.get({ code: this.Msg.ERROR_RESOURCE_MISSING, wpc, message: `[${property}] ` + (detail || ""), capture: this.getErrorMissing });
 
 
     /**
@@ -269,7 +312,7 @@ class WpwError extends Error
      * @returns {WpwError}
      */
     static getErrorProperty = (property, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_CONFIG_PROPERTY, wpc, message: `[${property}] ` + (detail || "") });
+        this.get({ code: this.Msg.ERROR_CONFIG_PROPERTY, wpc, message: `[${property}] ` + (detail || ""), capture: this.getErrorProperty });
 
 
     /**
@@ -279,7 +322,7 @@ class WpwError extends Error
      * @returns {WpwError}
      */
     static getAbstractFunction = (fnName, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || "") });
+        this.get({ code: this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture: this.getAbstractFunction });
 
 }
 

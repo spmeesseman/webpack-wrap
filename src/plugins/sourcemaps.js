@@ -14,7 +14,6 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const WpwBuild = require("../core/build");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 // const { Compilation } = require("webpack");
@@ -44,7 +43,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {WpwBuild} build
+     * @param {typedefs.WpwBuild} build
 	 * @returns {WpwSourceMapsPlugin | undefined}
      */
 	static create = (build) => WpwSourceMapsPlugin.wrap(WpwSourceMapsPlugin, build, "sourcemaps");

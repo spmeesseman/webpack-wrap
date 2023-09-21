@@ -14,12 +14,13 @@
  *//** */
 
 const { glob } = require("glob");
-const { basename } = require("path");
+const { basename, isAbsolute, normalize } = require("path");
 const WpwWebpackExport = require("./base");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const {
-	apply, WpwError, isObjectEmpty, isString, isDirectory, relativePath, createEntryObjFromDir, isFunction
-} = require("../utils");
+const { relativePath, forwardSlash, resolvePath } = require("../utils");
+const { apply, isObjectEmpty, isString, isDirectory, isFunction, isObject } = require("@spmeesseman/type-utils");
+const { existsSync, exists } = require("fs");
 
 
 /**
@@ -42,26 +43,78 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	app()
 	{
+		let entryPathAbs;
 		const build = this.build,
-			  srcPath = build.getSrcPath({ build: build.name, rel: true, ctx: true, dot: true, psx: true });
-		apply(build.wpc.entry,
+			  entry = build.entry;
+
+		if (isString(entry)) // guaranteed to be a string, or undefined.  object type handled in create()
 		{
-			[build.name]: {
-				import: `${srcPath}/${build.name}${build.source.dotext}`
+			entryPathAbs = entry;
+			if (!isAbsolute(entry)) {
+				entryPathAbs = resolvePath(build.getContextPath(), entryPathAbs);
 			}
+			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
+			if (!existsSync(entryPathAbs)) {
+				entryPathAbs = undefined;
+			}
+		}
+
+		if (!entryPathAbs && build.pkgJson.main)
+		{
+			entryPathAbs = build.pkgJson.main;
+			if (!isAbsolute(entryPathAbs)) {
+				entryPathAbs = resolvePath(build.getBasePath(), entryPathAbs);
+			}
+			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
+			if (!existsSync(entryPathAbs)) {
+				entryPathAbs = undefined;
+			}
+		}
+
+		if (!entryPathAbs)
+		{
+			entryPathAbs = normalize(`${build.getSrcPath()}/${build.name}${build.source.dotext}`);
+			if (!existsSync(entryPathAbs)) {
+				entryPathAbs = undefined;
+			}
+		}
+
+		if (!entryPathAbs)
+		{
+			build.addMessage({
+				code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+				message: "could not determine entry point",
+				suggest: "set the 'entry' property in the wpw build configuration",
+				detail: `build details: [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
+			});
+			return;
+		}
+
+		let entryPath = relativePath(build.getContextPath(), entryPathAbs);
+		entryPath = `./${forwardSlash(entryPath.replace(/^\.\//, "").replace(/\.js$/, ""))}.js`;
+
+		if (entryPathAbs.includes(build.getDistPath()))
+		{
+			build.addMessage({
+				code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+				message: "entry point cannot be a descendent of 'dist' path",
+				suggest: "set a valid 'entry' property in the wpw build configuration",
+				detail: `build details: [entry=${entryPath}] [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
+			});
+			return;
+		}
+
+		apply(build.wpc.entry, {
+			[build.name]: { import: entryPath }
 		});
+
 		if (build.debug)
 		{
-			/** @type {typedefs.IWpwWebpackEntryObject} */
-			(build.wpc.entry[build.name]).layer = "release";
-			apply(build.wpc.entry,
-			{
-				[`${build.name}.debug`]:
-				{
-					import: `${srcPath}/${build.name}${build.source.dotext}`,
-					layer: "debug"
-				}
+			apply(build.wpc.entry, {
+				[`${build.name}.debug`]: { import: entryPath, layer: "debug" }
 			});
+			const releaseEntry = /** @type {typedefs.IWpwWebpackEntryObject} */(build.wpc.entry[build.name]);
+			releaseEntry.layer = "release";
 		}
 	};
 
@@ -81,49 +134,43 @@ class WpwEntryExport extends WpwWebpackExport
 	create()
 	{
 		const build= this.build;
+		const _create = () =>
+		{
+			if (isFunction(this[build.type]))
+			{
+				this[build.type]();
+			}
+			else {
+				this.build.addMessage({
+					code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER,
+					message: `exports.entry.build[${build.type}]`
+				});
+				return;
+			}
+		};
+
 		build.logger.start("create entry points", 1);
 
-		//
-		// If the build rc defined `entry` itself, apply and we're done...
-		//
-		if (!isObjectEmpty(build.entry))
+		if (isObject(build.entry)) // If the build rc defined `entry` itself, apply and we're done...
 		{
-			build.logger.write(`   add defined entry points for build '${build.name}' [ type: ${build.type} ]`, 2);
-			apply(build.wpc.entry, build.entry);
-		}
-		else if (isFunction(this[build.type]))
-		{
-			build.logger.write(`   create entry points for build '${build.name}' [ type: ${build.type} ]`, 2);
-			this[build.type]();
+			if (isObjectEmpty(build.entry))
+			{
+				build.addMessage({
+					code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS,
+					message: "entry target is invalid (empty object not allowed)"
+				});
+				_create();
+			}
+			else {
+				build.logger.write("   rc defined entry point paths are not validted", 3);
+				apply(build.wpc.entry, build.entry);
+			}
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.entry.build[${build.type}]` });
+			_create();
 		}
 
-		//
-		// Validate entry pont paths
-		//
-		const result = Object.values(build.wpc.entry).every((e) =>
-		{
-			if (!e || (!isString(e) && !e.import))
-			{
-				throw WpwError.getErrorProperty("entry", build.wpc, "entry target is invalid");
-			}
-			const ep = isString(e) ? e : e.import;
-			if (!ep.startsWith("./"))
-			{
-				build.logger.warning(`entry target should contain a leading './' in path, found [${ep}]`, build.logger.level !== 0 ? "   " : "");
-				return false;
-			}
-			return true;
-		});
-
-		if (result) {
-			build.logger.success("create entry points", 2);
-		}
-		else {
-			build.logger.write("entry points created, but with warnings", 2, "", build.logger.icons.color.warning);
-		}
+		build.logger.success("create entry points", 2);
 	}
 
 
@@ -133,21 +180,12 @@ class WpwEntryExport extends WpwWebpackExport
 	jsdoc()
 	{
 		const build = this.build,
-			  jsdocOptions = build.options.jsdoc;
-		if (jsdocOptions && jsdocOptions.type === "entry")
+			  jsdocConfig = build.options.jsdoc;
+		if (jsdocConfig && jsdocConfig.mode === "plugin")
 		{
-			const mainBuild = build.getBuildConfig("app"),
-				  jsdocSrcPath = build.getSrcPath({ rel: true, ctx: true, dot: true, psx: true });
-			if (mainBuild && jsdocSrcPath)
-			{
-				const mainSrcPath = build.getSrcPath({ build: mainBuild.name, rel: true, ctx: true, dot: true, psx: true });
-				apply(build.wpc.entry, {
-					[ build.name ]: `${mainSrcPath}/${mainBuild.name}${build.source.dotext}`
-				});
-			}
-		}
-		else {
-			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "app entry[jsdoc]" });
+			apply(build.wpc.entry, {
+				[ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}`
+			});
 		}
 	}
 
@@ -173,12 +211,12 @@ class WpwEntryExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.IWpwWebpackEntry}
+	 * @returns {typedefs.IWpwWebpackEntryImport}
 	 */
 	testRunner(testsPathAbs)
 	{
 		return glob.sync(
-			"**/*.ts", {
+			`**/*${this.build.source.dotext}`, {
 				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true, ignore: [ this.globTestSuiteFiles ]
 			}
 		)
@@ -195,7 +233,7 @@ class WpwEntryExport extends WpwWebpackExport
 	/**
 	 * @private
 	 * @param {string} testsPathAbs
-	 * @returns {typedefs.IWpwWebpackEntry}
+	 * @returns {typedefs.IWpwWebpackEntryImport}
 	 */
 	testSuite(testsPathAbs)
 	{
@@ -221,9 +259,8 @@ class WpwEntryExport extends WpwWebpackExport
 			  typesConfig = build.options.types;
 		if (typesConfig && typesConfig.mode === "plugin")
 		{
-			const virtualRelPath = relativePath(build.getBasePath(), `${build.global.cacheDir}/${build.name}${build.source.dotext}`);
 			apply(build.wpc.entry, {
-				[ build.name ]: `./${virtualRelPath.replace(/\\/g, "/")}`
+				[ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}`
 			});
 		}
 	}
@@ -238,7 +275,7 @@ class WpwEntryExport extends WpwWebpackExport
 			  appPath = build.getSrcPath();
 		if (isDirectory(appPath))
 		{
-			apply(build.wpc.entry, createEntryObjFromDir(appPath, build.source.dotext));
+			apply(build.wpc.entry, this.createEntryObjFromDir(appPath, build.source.dotext));
 		}
 		else
 		{

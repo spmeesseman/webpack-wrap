@@ -12,6 +12,7 @@
 
 const { getExcludes, WpwError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
+const { isObject } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -21,16 +22,19 @@ const CircularDependencyPlugin = require("circular-dependency-plugin");
 const circular = (build) =>
 {
     let plugin;
-    if (build.cmdLine.analyze)
+    const buildOptions = build.options.analyze;
+    if (build.cmdLine.analyze || (buildOptions && buildOptions.circular !== false))
     {
+        const buildOptionsCircular = buildOptions?.circular;
+        const excludes = getExcludes(build).map(e => e.toString()).map(e => e.slice(1, e.length - 1));
         plugin = new CircularDependencyPlugin(
         {
             cwd: build.getBasePath(),
-            exclude: new RegExp(getExcludes(build).join("|"), "gi"),
-            failOnError: false,
+            exclude: new RegExp(excludes.join("|")),
+            failOnError: isObject(buildOptionsCircular) ? !!buildOptionsCircular.fail : false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                build.addMessage({ code: WpwError.Msg.WARNING_GENERAL, compilation, message: paths.join(" -> ") });
+                build.addMessage({ code: WpwError.Msg.WARNING_CIRCULAR, compilation, message: paths.join(" -> ") });
             }
         });
     }

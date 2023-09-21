@@ -14,15 +14,14 @@
  *
  *//** */
 
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const nodeExternals = require("webpack-node-externals");
 
-/** @typedef {import("../types").WebpackExternalItem} WebpackExternalItem */
 /** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */
 
 
 /**
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const externals = (build) =>
 {
@@ -51,20 +50,20 @@ const externals = (build) =>
 			build.wpc.externals = [
 				{ vscode: "commonjs vscode" },
 				// { nyc: "commonjs nyc" },
-				/** @type {WebpackExternalItem}*/(nodeExternals())
+				/** @type {typedefs.WebpackExternalItem}*/(nodeExternals())
 			];
 		}
 	}
 	else if (build.options.externals && build.name !== "app" && build.name !== "webapp")
 	{
-		build.wpc.externals = /** @type {WebpackExternalItem} */(nodeExternals());
+		build.wpc.externals = /** @type {typedefs.WebpackExternalItem} */(nodeExternals());
 	}
 };
 
 
 /**
  * @param {Readonly<ExternalItemFunctionData>} data
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const logAsset = (data, build) =>
 {

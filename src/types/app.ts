@@ -22,12 +22,12 @@
 
  import {WpwExportPlugin } from "./export";
 import {
-    WpwWebpackEntry, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
+    WpwWebpackEntryImport, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension
 } from "./rc";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
-    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackInfrastructureLogging,
-    WebpackMode, WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
+    WebpackRuntimeEnvArgs, WebpackResolveOptions, WebpackInfrastructureLogging, WebpackMode,
+    WebpackOutput, WebpackFileCacheOptions, WebpackMemoryCacheOptions, WebpackStatsOptions
 } from "./webpack";
 
 
@@ -57,7 +57,7 @@ interface IWpwWebpackConfig extends WebpackConfig
     cache: WebpackFileCacheOptions | WebpackMemoryCacheOptions;
     context: string;
     mode: Exclude<WebpackConfig["mode"], undefined>;
-    entry: WpwWebpackEntry & WebpackEntry;
+    entry: WpwWebpackEntryImport & WebpackEntry;
     infrastructureLogging: WebpackInfrastructureLogging;
     output: WebpackOutput;
     plugins: WpwExportPlugin[];

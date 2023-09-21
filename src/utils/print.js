@@ -132,10 +132,16 @@ const printWpcProperties = (build) =>
     l.value("   infrastructure logging level", build.wpc.infrastructureLogging?.level || "none", 2);
     l.value("   context directory", build.wpc.context, 1);
     l.value("   output directory", build.wpc.output.path, 1);
+    l.value("   cache", JSON.stringify(build.wpc.cache), 3);
+    l.value("   devtool", JSON.stringify(build.wpc.devtool), 3);
     l.value("   entry", JSON.stringify(build.wpc.entry), 3);
-    l.value("   resolve", JSON.stringify(build.wpc.resolve), 3);
+    l.value("   experiments", JSON.stringify(build.wpc.experiments), 3);
+    l.value("   externals", JSON.stringify(build.wpc.externals), 3);
+    l.value("   optimization", JSON.stringify(build.wpc.optimization), 3);
     l.value("   output", JSON.stringify(build.wpc.output), 3);
+    l.value("   resolve", JSON.stringify(build.wpc.resolve), 3);
     l.value("   rules", JSON.stringify(build.wpc.module.rules), 3);
+    l.value("   stats", JSON.stringify(build.wpc.stats), 3);
     l.sep();
 };
 

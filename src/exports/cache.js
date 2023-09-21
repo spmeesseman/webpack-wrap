@@ -9,16 +9,14 @@
  *//** */
 
 const { join } = require("path");
-const { apply, applyIf } = require("../utils");
-const WpwBuild = require("../core/build");
 const { existsSync } = require("fs");
-
-/** @typedef {import("../types").WebpackFileCacheOptions} WebpackFileCacheOptions */
+const typedefs = require("../types/typedefs");
+const { apply, applyIf } = require("../utils");
 
 
 /**
  * @function
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build
  */
 const cache = (build) =>
 {

@@ -12,23 +12,19 @@
 const { join } = require("path");
 const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const { rename, unlink, readdir } = require("fs/promises");
-
-/** @typedef {import("../types").WebpackCompiler} WebpackCompiler */
-/** @typedef {import("../types").WebpackStatsAsset} WebpackStatsAsset */
-/** @typedef {import("../types").WpwPluginOptions} WpwPluginOptions */
 
 
 /**
  * @extends WpwPlugin
  */
-class WpwLicenseFilePlugin extends WpwPlugin
+class WpwLicenseFilesPlugin extends WpwPlugin
 {
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {WebpackCompiler} compiler the compiler instance
+     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      * @returns {void}
      */
     apply(compiler)
@@ -68,11 +64,11 @@ class WpwLicenseFilePlugin extends WpwPlugin
 
 
 /**
- * @param {WpwBuild} build
- * @returns {WpwLicenseFilePlugin | undefined}
+ * @param {typedefs.WpwBuild} build
+ * @returns {WpwLicenseFilesPlugin | undefined}
  */
 const licensefiles = (build) =>
-    (build.options.licensefiles ? new WpwLicenseFilePlugin({ build }) : undefined);
+    (build.options.licensefiles ? new WpwLicenseFilesPlugin({ build }) : undefined);
 
 
 module.exports = licensefiles;

@@ -9,7 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
@@ -19,7 +19,7 @@ const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {IgnorePlugin | undefined}
  */
 const ignore = (build) =>

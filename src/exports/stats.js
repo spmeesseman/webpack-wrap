@@ -1,5 +1,6 @@
 // @ts-check
 
+const typedefs = require("../types/typedefs");
 const { isString, apply } = require("../utils");
 
 /**
@@ -9,8 +10,6 @@ const { isString, apply } = require("../utils");
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */
-
- const WpwBuild = require("../core/build");
 
 
 /**
@@ -45,7 +44,7 @@ const level = (loglevel) =>
 
 /**
  * @function stats
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const stats = (build) =>
 {

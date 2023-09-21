@@ -9,18 +9,16 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
 /*  // const webpack = require("webpack"); */
 /** @typedef {import("../types/typedefs").WebpackType} WebpackType */
 const webpack = /** @type {WebpackType} */(requireResolve("webpack"));
 
-/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
-
 
 /**
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
- * @returns {WebpackPluginInstance[]}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @returns {typedefs.WebpackPluginInstance[]}
  */
 const optimization = (build) =>
 {

@@ -6,7 +6,8 @@ const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { applySchemaDefaults } = require("./schema");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
-const { isString, isObject, isPrimitive, merge, isArray, apply } = require("@spmeesseman/type-utils");
+const { isString, isObject, isPrimitive, merge, isArray, apply, isEmpty } = require("@spmeesseman/type-utils");
+const WpwError = require("./message");
 
 const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
 const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
@@ -140,8 +141,11 @@ class WpwLogger
             else if (msg instanceof Error)
             {
                 sMsg = msg.message.trim();
-                if (msg.stack) {
-                    sMsg += `\n${msg.stack.trim()}`;
+                if (msg instanceof WpwError && msg.details) {
+                   sMsg += `\n${msg.details}`;
+                }
+                else if (msg.stack) {
+                  sMsg += `\n${msg.stack.trim()}`;
                 }
             }
             else if (isObject<{}>(msg))
@@ -150,8 +154,8 @@ class WpwLogger
                 if (msg.message) {
                     sMsg = msg.message;
                 }
-                if (msg.messageX) {
-                    sMsg += `\n${msg.messageX}`;
+                if (msg.details) {
+                    sMsg += `\n${msg.details}`;
                 }
                 sMsg = sMsg || msg.toString();
             }
@@ -416,7 +420,15 @@ class WpwLogger
             vMsg += (!isString(val) || !rgxColorStart.test(val) ? ": " : "");
             if (isArray(val))
             {
-                val = "array [ " + val.join(" | ") + " ]";
+                if (!isEmpty(val) && isObject(val[0])) {
+                    val = JSON.stringify(val);
+                }
+                else if (isEmpty(val)) {
+                    val = "empty array []";
+                }
+                else {
+                    val = "array [ " + val.join(", ") + " ]";
+                }
             }
             else if (isObject(val))
             {
@@ -501,7 +513,7 @@ class WpwLogger
         else {
             vMsg += ": null";
         }
-        this.write(vMsg, level, pad, icon, color);
+        this.write(vMsg, level, pad, icon, color, true);
     }
 
     /**
@@ -565,22 +577,26 @@ class WpwLogger
      * @param {string} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
+     * @param {boolean | null | undefined} [isValue]
      */
-    write(msg, level, pad = "", icon, color)
+    write(msg, level, pad = "", icon, color, isValue)
     {
         if (level === undefined || level <= this.options.level)
         {
             const opts = this.options,
+                  basePad = this.options.pad.base || "",
+                  linePad = isValue !== true ? basePad + pad + "".padStart(WpwLogger.envTagLen + 2) : "",
                   envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
                   envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
                   envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
                   envMsgClr = color || this.colors[opts.colors.default || "grey"],
                   envMsg = color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
                             this.withColor(this.format(msg), envMsgClr) : this.format(msg),
+                  envTagLen = WpwLogger.envTagLen + envTagClrLen,
                   envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                            this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd((WpwLogger.envTagLen || 25) + envTagClrLen) : "",
+                            this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
                   envIcon = !opts.envTagDisable ? (isString(icon) ? icon + " " : this.infoIcon + " ") : "";
-            console.log(`${this.options.pad.base || ""}${envIcon}${envTag}${pad}${envMsg.trimEnd()}`);
+            console.log(`${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
         }
     }
 

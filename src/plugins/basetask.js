@@ -35,10 +35,6 @@ class WpwBaseTaskPlugin extends WpwPlugin
 {
 	/** @type {string} @protected */
 	buildPathTemp;
-    /** @type {string} @protected */
-	virtualFile;
-	/** @type {string} @protected */
-	virtualFilePath;
 
 
     /**
@@ -48,8 +44,6 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	{
 		super(options);
 		this.validateBaseTaskOptions();
-		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
-		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
 		this.buildPathTemp = join(this.build.getTempPath(), this.build.type, "virtual");
 	}
 

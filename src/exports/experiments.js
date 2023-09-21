@@ -1,19 +1,19 @@
 // @ts-check
 
 /**
- * @file src/exports/experimental.js
+ * @file src/exports/experiments.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 
 
 /**
  * @function entry
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const experiments = (build) =>
 {

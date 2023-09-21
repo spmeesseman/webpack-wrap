@@ -2,6 +2,7 @@
 // @ts-check
 
 const { merge } = require("../utils");
+const typedefs = require("../types/typedefs");
 const TerserPlugin = require("terser-webpack-plugin");
 
 /**
@@ -12,12 +13,10 @@ const TerserPlugin = require("terser-webpack-plugin");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwBuild = require("../core/build");
-
 
 /**
  * @function
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const minification = (build) =>
 {   //

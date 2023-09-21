@@ -13,7 +13,6 @@
 const { existsSync } = require("fs");
 const { apply } = require("../utils");
 const { join, posix } = require("path");
-const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 const CopyPlugin = require("copy-webpack-plugin");
 
@@ -66,7 +65,7 @@ class WpwdCopyPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {WpwBuild} build
+     * @param {typedefs.WpwBuild} build
      * @param {Partial<typedefs.WpwPluginOptions>} [options]
 	 * @returns {WpwdCopyPlugin | undefined}
      */

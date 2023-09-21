@@ -11,7 +11,6 @@
 
 const WpwPlugin = require("./base");
 const { apply } = require("../utils");
-const WpwBuild = require("../core/build");
 const typedefs = require("../types/typedefs");
 
 

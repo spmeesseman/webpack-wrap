@@ -247,6 +247,26 @@
                     "$ref": "#/definitions/WpwVsCode"
                 }
             },
+            "examples": [{
+                "name": "main",
+                "type": "app"
+            },
+            {
+                "name": "types",
+                "type": "types",
+                "options": {
+                    "mode": "tsc",
+                    "method": "tsc"
+                }
+            },
+            {
+                "name": "docs",
+                "type": "jsdoc",
+                "options": {
+                    "outDir": "dist/docs",
+                    "title": "Project Documentation"
+                }
+            }],
             "dependencies": {
                 "debug": {
                     "if": {
@@ -404,6 +424,46 @@
                             }
                         }
                     }]
+                },
+                "options": {
+                    "properties": {
+                        "options": {
+                            "propertyNames": {
+                                "enum": [
+                                    "analyze",
+                                    "banner",
+                                    "cache",
+                                    "clean",
+                                    "copy",
+                                    "devtool",
+                                    "environment",
+                                    "externals",
+                                    "html",
+                                    "ignore",
+                                    "ignorewarnings",
+                                    "istanbul",
+                                    "jsdoc",
+                                    "licensefiles",
+                                    "loghooks",
+                                    "minification",
+                                    "mocha",
+                                    "optimization",
+                                    "progress",
+                                    "runscripts",
+                                    "runtimevars",
+                                    "scm",
+                                    "sourcemaps",
+                                    "stats",
+                                    "testsuite",
+                                    "tscheck",
+                                    "types",
+                                    "upload",
+                                    "vendormod",
+                                    "wait"
+                                ]
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -842,34 +902,15 @@
         "WpwBuildType": {
             "$id": "#/WpwBuildType",
             "type": "string",
+            "default": "app",
             "enum": [
-                "ecma", "jsdoc", "app", "tests", "types", "webapp"
+                "app", "jsdoc", "tests", "types", "webapp"
             ],
             "examples": [{
-                "builds": [{
-                    "name": "webpack-wrap",
-                    "type": "app"
-                },
-                {
-                    "name": "wpw-types",
-                    "type": "types"
-                }],
-                "production": {
-                    "builds": [{
-                        "name": "documentation",
-                        "type": "jsdoc",
-                        "options": {
-                            "outDir": "dist/docs",
-                            "title": "Project Documentation"
-                        }
-                    }]
-                },
-                "test": {
-                    "builds": [{
-                        "name": "wpw-tests",
-                        "type": "tests"
-                    }]
-                }
+                "type": "app"
+            },
+            {
+                "type": "types"
             }]
         },
         "WpwLog": {
@@ -1253,15 +1294,29 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
+            "default": {
+                "circular": true
+            },
             "properties": {
                 "enabled": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "analyzer": {
-                    "type": "boolean"
+                    "oneOf": [{
+                        "type": "boolean"
+                    },
+                    {
+                        "$ref": "#/definitions/WpwPluginConfigAnalyzeAnalyzer"
+                    }]
                 },
                 "circular": {
-                    "type": "boolean"
+                    "default": true,
+                    "oneOf": [{
+                        "type": "boolean"
+                    },
+                    {
+                        "$ref": "#/definitions/WpwPluginConfigAnalyzeCircular"
+                    }]
                 },
                 "visualizer": {
                     "type": "boolean"
@@ -1298,6 +1353,48 @@
                     ]
                 }]
             }
+        },
+        "WpwPluginConfigAnalyzeAnalyzer": {
+            "$id": "#/WpwPluginConfigAnalyzeAnalyzer",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "open": {
+                    "type": "boolean"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "open": true
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwPluginConfigAnalyzeCircular": {
+            "$id": "#/WpwPluginConfigAnalyzeCircular",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "fail": {
+                    "type": "boolean"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "fail": false
+            },
+            {
+                "enabled": false
+            }]
         },
         "WpwPluginConfigBanner": {
             "$id": "#/WpwPluginConfigBanner",
@@ -1531,13 +1628,13 @@
                     "maxLength": 100,
                     "minLength": 3
                 },
-                "type": {
+                "mode": {
                     "default": "plugin",
                     "oneOf": [{
-                        "const": "entry"
+                        "const": "plugin"
                     },
                     {
-                        "const": "plugin"
+                        "const": "reserved"
                     }]
                 },
                 "destination": {
@@ -1610,11 +1707,11 @@
             },
             "then": {
                 "required": [
-                    "type"
+                    "mode"
                 ]
             },
             "examples": [{
-                "type": "plugin",
+                "mode": "plugin",
                 "title": "API DOcumentation",
                 "configure": ".jsdoc.json",
                 "destination": "dist/docs/api",
@@ -2963,6 +3060,15 @@
         },
         "WpwWebpackEntry": {
             "$id": "#/WpwWebpackEntry",
+            "oneOf": [{
+                "$ref": "#/definitions/FilePathRelativeLeadingDot"
+            },
+            {
+                "$ref": "#/definitions/WpwWebpackEntryImport"
+            }]
+        },
+        "WpwWebpackEntryImport": {
+            "$id": "#/WpwWebpackEntryImport",
             "type": "object",
             "description": "mapping of module names to respective entry point file, relative to context directory",
             "minProperties": 1,
@@ -3233,12 +3339,9 @@
         "WebpackConfigOverride": {
             "$id": "#/WebpackConfigOverride",
             "type": "object",
-            "minProperties": 0,
             "additionalProperties": true,
             "patternProperties": {
-                "^[a-z][\\w]+$": {
-                    "$ref": "#"
-                }
+                "^[a-z][\\w]+$": true
             },
             "propertyNames": {
                 "maxLength": 20
@@ -3246,12 +3349,15 @@
             "description": "An object that is directly applied to the webpack configurqtion before it is returned to the wp engine",
             "examples": [
             {
-                "context": "/usr/lib/projectname/src",
+                "externals": [{
+                    "webpack": "commonjs webpack"
+                }]
+            },
+            {
+                "context": "/usr/lib/projectname/src"
+            },
+            {
                 "resolve": {
-                    "alias": {
-                        ":env/*": "src/lib/env/node/*",
-                        ":types": "types"
-                    },
                     "extensions": [
                         ".ts", ".tsx", ".js", ".jsx", ".json"
                     ]

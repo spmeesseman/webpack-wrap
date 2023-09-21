@@ -1,7 +1,7 @@
 // @ts-check
 
 const { apply } = require("../utils");
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 
 /**
  * @file exports/optimization.js
@@ -16,7 +16,7 @@ const WpwBuild = require("../core/build");
 
 
 /**
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const optimization = (build) =>
 {
@@ -30,7 +30,7 @@ const optimization = (build) =>
 				runtimeChunk: "single",
 				splitChunks: false
 			};
-			if (build.target !== "web"|| build.type === "app")
+			if (build.target !== "web")
 			{
 				build.wpc.optimization.splitChunks =
 				{

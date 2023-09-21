@@ -10,18 +10,16 @@
  *//** */
 
 const { posix } = require("path");
-const WpwBuild = require("../core/build");
+const typedefs = require("../types/typedefs");
 const HtmlPlugin = require("html-webpack-plugin");
 const CspHtmlPlugin = require("csp-html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
-/** @typedef {import("../types").WebpackPluginInstance} WebpackPluginInstance */
-
 
 /**
  * @param { string } name
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {HtmlPlugin | undefined}
  */
 const html = (name, build) =>
@@ -57,7 +55,7 @@ const html = (name, build) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {MiniCssExtractPlugin}
  */
 const cssextract = (build) =>
@@ -77,7 +75,7 @@ const cssextract = (build) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {CspHtmlPlugin}
  */
 const htmlcsp = (build) =>
@@ -131,7 +129,7 @@ const htmlcsp = (build) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {InlineChunkHtmlPlugin | undefined}
  */
 const htmlinlinechunks = (build) =>
@@ -147,7 +145,7 @@ const htmlinlinechunks = (build) =>
 
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {ImageMinimizerPlugin | undefined}
  */
 const imageminimizer = (build) =>
@@ -166,7 +164,7 @@ const imageminimizer = (build) =>
 
 /**
  * @param {string[]} apps
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {HtmlPlugin[]}
  */
 const webviewapps = (apps, build) =>

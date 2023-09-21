@@ -9,10 +9,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { join, posix } = require("path");
+const { join, posix, relative } = require("path");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { isBoolean, pick, isObject, relativePath, apply, asArray } = require("../utils");
+const { isBoolean, pick, isObject, relativePath, apply, asArray, existsAsync, findFiles } = require("../utils");
+const { readFile } = require("fs/promises");
 
 
 /**
@@ -34,7 +36,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 	 * @param {typedefs.WebpackCompilationAssets} compilationAssets
 	 * @returns {Promise<void>}
 	 */
-	generateJsDocs = async (compilationAssets) =>
+	async generateJsDocs(compilationAssets)
 	{
         const webpack = this.compiler.webpack,
               compilation = this.compilation,
@@ -82,11 +84,12 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             }
         }
 
-//         if (!(await existsAsync(outDir)))
-//         {
-//             await this.rebuildJsDoc(jsdocOptions, compilationAssets);
-//             return;
-//         }
+        if (!(await existsAsync(outDir)))
+        {
+            await this.buildJsDoc(jsdocOptions, compilationAssets);
+            return;
+        }
+    }
 //
 //         const templateResult = options.templateContent ? { mainCompilationHash: compilation.hash } :
 //                                childCompilerPlugin.getCompilationEntryResult(options.template);
@@ -174,198 +177,134 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 // 	};
 //
 //
-//     /**
-//      * @param {string[]} jsdocParams
-// 	 * @param {typedefs.WebpackCompilationAssets} compilationAssets
-// 	 * @returns {Promise<void>}
-// 	 */
-//     rebuildJsDoc = async (jsdocParams, compilationAssets) =>
-//     {
-//         const webpack = this.compiler.webpack,
-//               compilation = this.compilation,
-//               assets = [],
-//               entryNames = Array.from(compilation.entrypoints.keys()),
-//               // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
-//               // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
-//               identifier = this.name,
-//               logger = this.build.logger,
-//               options = this.build.options.jsdoc,
-//               srcDir = this.build.getSrcPath({ build: "app", rel: true, psx: true, dot: true}),
-//               outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
-//                             /** @type {typedefs.WpwBuildOptionsJsDocItem} */(options).destination ||
-//                             join(this.build.paths.dist, "doc") ;
-//
-//         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
-//         if (code !== 0)
-//         {
-//             this.compilation.errors.push(new WpwError("jsdoc build failed with exit code " + code, "plugins/jsdoc.js"));
-//             return;
-//         }
-//
-// 		//
-// 		// Ensure output directory exists
-// 		//
-// 		if (!(await existsAsync(outDir))) {
-// 			this.handleError("jsdoc build failed - output directory doesn't exist", e);
-// 			return;
-// 		}
-//
-//         const isCacheValidPromise = this.isCacheValid(previousFileSystemSnapshot, mainCompilation);
-//
-//         let cachedResult = childCompilationResultPromise;
-//         childCompilationResultPromise = isCacheValidPromise.then((isCacheValid) => {
-//             // Reuse cache
-//             if (isCacheValid) {
-//             return cachedResult;
-//             }
-//             // Start the compilation
-//             const compiledEntriesPromise = this.compileEntries(
-//             mainCompilation,
-//             this.compilationState.entries
-//             );
-//             // Update snapshot as soon as we know the filedependencies
-//             // this might possibly cause bugs if files were changed inbetween
-//             // compilation start and snapshot creation
-//             compiledEntriesPromise.then((childCompilationResult) => {
-//             return fileWatcherApi.createSnapshot(childCompilationResult.dependencies, mainCompilation, compilationStartTime);
-//             }).then((snapshot) => {
-//             previousFileSystemSnapshot = snapshot;
-//             });
-//             return compiledEntriesPromise;
-//         });
-//
-//         //
-//         // Remove dummy entry points
-//         //
-//         // this.compilation.entrypoints.forEach(e => { if (e.name) this.compilation.deleteAsset(e.name); });
-// 		//
-// 		// Process output files
-// 		//
-// 		const files = await findFiles("**/*.{html,css,js}", { cwd: outDir, absolute: true });
-// 		for (const filePath of files)
-// 		{
-// 			let data, /** @type {typedefs.WebpackSource | undefined} */source, hash, newHash, cacheEntry, persistedCache;
-// 			const filePathRel = relative(outDir, filePath);
-//
-//             logger.value("   process jsdoc output files", filePathRel, 3);
-//             logger.write("      check compilation cache for snapshot", 4);
-//             try {
-//                 persistedCache = this.cache.get();
-//                 cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-//             }
-//             catch (e) {
-//                 this.handleError("failed while checking cache", e);
-//                 return;
-//             }
-//
-//             if (cacheEntry)
-//             {
-//                 let isValidSnapshot;
-//                 logger.write("      check snapshot valid", 4);
-//                 try {
-//                     isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
-//                 }
-//                 catch (e) {
-//                     this.handleError("failed while checking snapshot", e);
-//                     return;
-//                 }
-//                 if (isValidSnapshot)
-//                 {
-//                     logger.write("      snapshot is valid", 4);
-//                     ({ hash, source } = cacheEntry);
-//                     data = data || await readFile(filePath);
-//                     newHash = newHash || this.getContentHash(data);
-//                     if (newHash === hash)
-//                     {
-//                         logger.write("      asset is unchanged since last snapshot", 4);
-//                     }
-//                     else {
-//                         logger.write("      asset has changed since last snapshot", 4);
-//                     }
-//                 }
-//                 else {
-//                     logger.write("      snapshot is invalid", 4);
-//                 }
-//             }
-//
-//             if (!source)
-//             {
-//                 let snapshot;
-//                 const startTime = Date.now();
-//                 data = data || await readFile(filePath);
-//                 source = new this.compiler.webpack.sources.RawSource(data);
-//                 logger.write("      create snapshot", 4);
-//                 try {
-//                     snapshot = await this.createSnapshot(startTime, filePath);
-//                 }
-//                 catch (e) {
-//                     this.handleError("failed while creating snapshot for " + filePathRel, e);
-//                     return;
-//                 }
-//                 if (snapshot)
-//                 {
-//                     logger.write("      cache snapshot", 4);
-//                     try {
-//                         newHash = newHash || this.getContentHash(source.buffer());
-//                         snapshot.setFileHashes(hash);
-//                         await this.wpCacheCompilation.storePromise(`${filePath}|${identifier}`, null, { source, snapshot, hash });
-//                         cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-//                     }
-//                     catch (e) {
-//                         this.handleError("failed while caching snapshot " + filePathRel, e);
-//                         return;
-//                     }
-//                 }
-//             }
-//
-//             data = data || await readFile(filePath);
-//             newHash = newHash || this.getContentHash(data);
-//             if (newHash === persistedCache[filePathRel])
-//             {
-//                 logger.write("      asset is unchanged", 4);
-//             }
-//             else {
-//                 logger.write("      asset has changed, update hash in persistent cache", 4);
-//                 persistedCache[filePathRel] = newHash;
-//                 this.cache.set(persistedCache);
-//             }
-//
-//             const info = /** @type {typedefs.WebpackAssetInfo} */({
-//                 // contenthash: newHash,
-//                 immutable: true, // newHash === persistedCache[filePathRel],
-//                 javascriptModule: false,
-//                 jsdoc: true
-//             });
-//             // this.compilation.buildDependencies.add(filePathRel);
-//             // this.compilation.buildDependencies.add(filePath);
-// 		    // this.compilation.compilationDependencies.add();
-// 		    // this.compilation.contextDependencies.add();
-//
-//             this.compilation.fileDependencies.add(filePath);
-//
-//             assets[filePathRel] = source;
-//
-//             // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
-//
-//             // this.compilation.emitAsset(filePathRel, source, info);
-//
-//             // this.compilation.additionalChunkAssets.push(filePathRel);
-//
-//             const existingAsset = this.compilation.getAsset(filePathRel);
-//             if (!existingAsset)
-//             {
-//                 logger.write("      emit asset", 3);
-//                 this.compilation.emitAsset(filePathRel, source, info);
-//             }
-//             else {
-//                 logger.write("      asset compared for emit", 3);
-//                 // this.compilation.buildDependencies.add(filePath);
-//                 // this.compilation.comparedForEmitAssets.add(filePath);
-//                 // this.compilation.compilationDependencies.add(filePath);
-//                 this.compilation.comparedForEmitAssets.add(filePath);
-//                 // this.compilation.updateAsset(filePathRel, source, info);
-//           }
-// 		}
+    /**
+     * @param {string[]} jsdocParams
+	 * @param {typedefs.WebpackCompilationAssets} compilationAssets
+	 * @returns {Promise<void>}
+	 */
+    async buildJsDoc(jsdocParams, compilationAssets)
+    {
+        const build = this.build,
+              // webpack = this.compiler.webpack,
+              // compilation = this.compilation,
+              // assets = [],
+              // entryNames = Array.from(compilation.entrypoints.keys()),
+              // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
+              // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
+              // identifier = this.name,
+              logger = build.logger,
+              srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true }),
+              outDir = this.buildOptions.destination || join(build.getDistPath()) ;
+
+        const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
+        if (code !== 0)
+        {
+            build.addMessage({
+                code: WpwError.Msg.ERROR_JSDOC_FAILED,
+                compilation: this.compilation ,
+                message: "jsdoc build failed - jsdoc command exited with error code " + code
+            });
+            return;
+        }
+
+        //
+        // Ensure output directory exists
+        //
+        if (!(await existsAsync(outDir)))
+        {
+            build.addMessage({
+                code: WpwError.Msg.ERROR_NO_OUTPUT_DIR,
+                compilation: this.compilation ,
+                message: "jsdoc build failed - output directory doesn't exist"
+            });
+            return;
+        }
+
+		//
+		// Process output files
+		//
+        // const persistedCache = this.cache.get();
+		const files = await findFiles("**/*.{html,css,js}", { cwd: outDir, absolute: true });
+		for (const filePath of files)
+		{
+            const data = await readFile(filePath),
+                  filePathRel = relative(outDir, filePath),
+                  source = new this.compiler.webpack.sources.RawSource(data);
+
+            const info = /** @type {typedefs.WebpackAssetInfo} */({
+                // contenthash: this.getContentHash(data),
+                immutable: false, // newHash === persistedCache[filePathRel],
+                javascriptModule: false,
+                jsdoc: true
+            });
+            logger.value("      emit asset", filePathRel, 3);
+            this.compilation.emitAsset(filePathRel, source, info);
+
+			// let /** @type {typedefs.WebpackSource | undefined} */source, hash, cacheEntry;
+			// const filePathRel = relative(outDir, filePath);
+
+            // logger.value("   process jsdoc output files", filePathRel, 3);
+            // logger.write("      check compilation cache for snapshot", 4);
+            // try {
+            //     cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
+            // }
+            // catch (e)
+            // {   this.build.addMessage({
+            //         error: e,
+            //         compilation: this.compilation ,
+            //         code: WpwError.Msg.ERROR_JSDOC_FAILED,
+            //         message: "jsdoc build failed - failed while checking cache"
+            //     });
+            //     return;
+            // }
+            // const result = await this.checkSnapshot(filePath, "__", outDir); // , data);
+            // const data = result.source?.buffer() || await readFile(filePath);
+            // const newHash = this.getContentHash(data);
+            // if (newHash === persistedCache[filePathRel])
+            // {
+            //     logger.write("      asset is unchanged", 4);
+            // }
+            // else {
+            //     logger.write("      asset has changed, update hash in persistent cache", 4);
+            //     persistedCache[filePathRel] = newHash;
+            //     this.cache.set(persistedCache);
+            // }
+            // const info = /** @type {typedefs.WebpackAssetInfo} */({
+            //     // contenthash: newHash,
+            //     immutable: true, // newHash === persistedCache[filePathRel],
+            //     javascriptModule: false,
+            //     jsdoc: true
+            // });
+            // this.compilation.buildDependencies.add(filePathRel);
+            // this.compilation.buildDependencies.add(filePath);
+		    // this.compilation.compilationDependencies.add();
+		    // this.compilation.contextDependencies.add();
+
+            // this.compilation.fileDependencies.add(filePath);
+
+            // assets[filePathRel] = source;
+
+            // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
+
+            // this.compilation.emitAsset(filePathRel, source, info);
+
+            // this.compilation.additionalChunkAssets.push(filePathRel);
+
+            // const existingAsset = this.compilation.getAsset(filePathRel);
+            // if (!existingAsset)
+            // {
+            //     logger.write("      emit asset", 3);
+            //     this.compilation.emitAsset(filePathRel, source, info);
+            // }
+            // else {
+            //     logger.write("      asset compared for emit", 3);
+            //     // this.compilation.buildDependencies.add(filePath);
+            //     // this.compilation.comparedForEmitAssets.add(filePath);
+            //     // this.compilation.compilationDependencies.add(filePath);
+            //     this.compilation.comparedForEmitAssets.add(filePath);
+            //     // this.compilation.updateAsset(filePathRel, source, info);
+            // }
+		}
     };
 
 
@@ -384,7 +323,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 const jsdoc = (build) =>
     build.options.jsdoc &&
     build.options.jsdoc.enabled !== false &&
-    build.options.jsdoc.type === "plugin" ? new WpwJsDocPlugin({ build }) : undefined;
+    build.options.jsdoc.mode === "plugin" ? new WpwJsDocPlugin({ build }) : undefined;
 
 
 module.exports = jsdoc;
