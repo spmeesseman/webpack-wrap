@@ -286,29 +286,26 @@
                             }
                         },
                         {
-                            "anyOf": [
-                            {
-                                "properties": {
-                                    "plugins": {
+                            "properties": {
+                                "options": {
+                                    "allOf": [{
                                         "properties": {
-                                            "sourcemaps": {
-                                                "const": true
-                                            }
+                                            "devtool": true
                                         }
-                                    }
-                                }
-                            },
-                            {
-                                "properties": {
-                                    "exports": {
+                                    },
+                                    {
                                         "properties": {
                                             "devtool": {
-                                                "const": true
+                                                "not": {
+                                                    "enabled": {
+                                                        "const": false
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
+                                    }]
                                 }
-                            }]
+                            }
                         }]
                     }
                 },
@@ -430,36 +427,14 @@
                         "options": {
                             "propertyNames": {
                                 "enum": [
-                                    "analyze",
-                                    "banner",
-                                    "cache",
-                                    "clean",
-                                    "copy",
-                                    "devtool",
-                                    "environment",
-                                    "externals",
-                                    "html",
-                                    "ignore",
-                                    "ignorewarnings",
-                                    "istanbul",
-                                    "jsdoc",
-                                    "licensefiles",
-                                    "loghooks",
-                                    "minification",
-                                    "mocha",
-                                    "optimization",
-                                    "progress",
-                                    "runscripts",
-                                    "runtimevars",
-                                    "scm",
-                                    "sourcemaps",
-                                    "stats",
-                                    "testsuite",
-                                    "tscheck",
-                                    "types",
-                                    "upload",
-                                    "vendormod",
-                                    "wait"
+                                    "analyze", "banner", "cache", "clean", "copy",
+                                    "devtool", "entry", "environment", "experiments",
+                                    "externals", "html", "ignore", "ignorewarnings",
+                                    "istanbul", "jsdoc", "licensefiles", "loghooks",
+                                    "minification", "mocha", "optimization", "progress",
+                                    "resolve", "rules", "runscripts", "runtimevars",
+                                    "scm", "stats", "testsuite", "tscheck", "types",
+                                    "upload", "vendormod", "wait"
                                 ]
                             }
                         }
@@ -517,7 +492,7 @@
                     "$ref": "#/definitions/WpwPluginConfigBanner"
                 },
                 "cache": {
-                    "$ref": "#/definitions/WpwPluginConfigCache"
+                    "$ref": "#/definitions/WpwExportConfigCache"
                 },
                 "clean": {
                     "$ref": "#/definitions/WpwPluginConfigClean"
@@ -526,28 +501,28 @@
                     "$ref": "#/definitions/WpwPluginConfigCopy"
                 },
                 "devtool": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwExportConfigDevTool"
                 },
                 "entry": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "environment": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "experiments": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "externals": {
                     "$ref": "#/definitions/WpwExportConfigExternals"
                 },
                 "html": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "ignore": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "ignorewarnings": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "istanbul": {
                     "$ref": "#/definitions/WpwPluginConfigIstanbul"
@@ -556,55 +531,49 @@
                     "$ref": "#/definitions/WpwPluginConfigJsDoc"
                 },
                 "licensefiles": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "loghooks": {
                     "$ref": "#/definitions/WpwPluginConfigLogHooks"
                 },
                 "minification": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "mocha": {
                     "$ref": "#/definitions/WpwPluginConfigMocha"
                 },
                 "optimization": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "output": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwExportConfigOutput"
                 },
                 "plugins": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "progress": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "resolve": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "rules": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "runscripts": {
                     "$ref": "#/definitions/WpwPluginConfigRunScripts"
                 },
                 "runtimevars": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "scm": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
-                },
-                "sourcemaps": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "testsuite": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
-                },
-                "tsc": {
-                    "$ref": "#/definitions/WpwOptionsConfigBaseInternal"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "tscheck": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "types": {
                     "$ref": "#/definitions/WpwPluginConfigTypes"
@@ -619,44 +588,13 @@
                     "$ref": "#/definitions/WpwPluginConfigWait"
                 },
                 "watch": {
-                    "$ref": "#/definitions/WpwOptionsConfigBase"
+                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "web": {
                     "$ref": "#/definitions/WpwPluginConfigWeb"
                 }
             },
             "dependencies": {
-                "devtool": {
-                    "if": {
-                        "not": {
-                            "properties": {
-                                "devtool": {
-                                    "properties": {
-                                        "enabled": false
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "then": {
-                        "anyOf": [{
-                            "properties": {
-                                "sourcemaps": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "sourcemaps": {
-                                    "properties": {
-                                        "enabled": {
-                                            "const": false
-                                        }
-                                    }
-                                }
-                            }
-                        }]
-                    }
-                },
                 "runtimevars": {
                     "if": {
                         "not": {
@@ -681,37 +619,6 @@
                             "properties": {
                                 "types": {
                                     "const": false
-                                }
-                            }
-                        }]
-                    }
-                },
-                "sourcemaps": {
-                    "if": {
-                        "not": {
-                            "properties": {
-                                "sourcemaps": {
-                                    "properties": {
-                                        "enabled": false
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "then": {
-                        "anyOf": [{
-                            "properties": {
-                                "devtool": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "devtool": {
-                                    "properties": {
-                                        "enabled": {
-                                            "const": false
-                                        }
-                                    }
                                 }
                             }
                         }]
@@ -913,6 +820,116 @@
                 "type": "types"
             }]
         },
+        "WpwExportConfigCache": {
+            "$id": "#/WpwExportConfigCache",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "verbose": {
+                    "type": "boolean"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "verbose": false
+            },
+            {
+                "verbose": true
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwExportConfigDevTool": {
+            "$id": "#/WpwExportConfigDevTool",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "$ref": "#/definitions/WpwExportConfigDevToolMode"
+                },
+                "type": {
+                    "$ref": "#/definitions/WpwExportConfigDevToolType"
+                }
+            },
+            "examples": [{
+                "enabled": true,
+                "mode": "plugin",
+                "type": "source-map"
+            },
+            {
+                "enabled": true,
+                "mode": "devtool",
+                "verbose": true
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwExportConfigDevToolMode": {
+            "$id": "#/WpwExportConfigDevToolType",
+            "default": "plugin",
+            "oneOf": [{
+                "const": "devtool",
+                "description": "use webpack 'devtool' configuration export for sourcemaps"
+            },
+            {
+                "const": "plugin",
+                "description": "use webpack 'sourcemaps' plugin for sourcemaps"
+            }]
+        },
+        "WpwExportConfigDevToolType": {
+            "$id": "#/WpwExportConfigDevToolMapType",
+            "default": "plugin",
+            "oneOf": [
+            {
+                "const": "none"
+            },
+            {
+                "const": "cheap-source-map"
+            },
+            {
+                "const": "cheap-module-source-map"
+            },
+            {
+                "const": "eval",
+                "description": "recommended for dev builds w/ max performance"
+            },
+            {
+                "const": "eval-source-map",
+                "description": "recommended for dev builds w/ high quality sourcemaps"
+            },
+            {
+                "const": "eval-cheap-module-source-map",
+                "description": "tradeoff for dev builds"
+            },
+            {
+                "const": "eval-cheap-source-map",
+                "description": "tradeoff for dev builds"
+            },
+            {
+                "const": "inline-source-map",
+                "description": "recommended for prod builds w/ max performance"
+            },
+            {
+                "const": "inline-cheap-source-map"
+            },
+            {
+                "const": "inline-cheap-module-source-map"
+            },
+            {
+                "const": "source-map",
+                "description": "recommended for prod builds w/ high quality sourcemaps"
+            }]
+        },
         "WpwExportConfigExternals": {
             "$id": "#/WpwExportConfigExternals",
             "type": "object",
@@ -1003,6 +1020,35 @@
                     },
                     "then": {
                         "minProperties": 2
+                    }
+                }
+            }
+        },
+        "WpwExportConfigOutput": {
+            "$id": "#/WpwExportConfigOutput",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "$ref": "#/definitions/BooleanDefaultTrue",
+                    "readOnly": true
+                },
+                "immutable": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                }
+            },
+            "if": {
+                "properties": {
+                    "enabled": {
+                        "const": false
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "enabled": {
+                        "const": true
                     }
                 }
             }
@@ -1203,6 +1249,40 @@
                 "commonjs @spmeesseman/type-utils"
             ]
         },
+        "WpwModuleConfig": {
+            "$id": "#/WpwModuleConfig",
+            "type": "object",
+            "required": [ "enabled" ],
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "examples": [{
+                "enabled": true
+            },
+            {
+                "enabled": false
+            }]
+        },
+        "WpwModuleConfigInternal": {
+            "$id": "#/WpwModuleConfigInternal",
+            "type": "object",
+            "additionalProperties": false,
+            "maxProperties": 0,
+            "minProperties": 0,
+            "readOnly": true,
+            "required": [ "enabled" ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "readOnly": true
+                }
+            }
+        },
         "WpwPackageJson": {
             "$id": "#/WpwPackageJson",
             "type": "object",
@@ -1378,35 +1458,6 @@
                 "definition"
             ]
         },
-        "WpwRcPaths": {
-            "$id": "#/WpwRcPaths",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-                "base": {
-                    "$ref": "#/definitions/DirectoryPath",
-                    "default": ".",
-                    "description": "path to the base project directory, a full path containing project's package.json"
-                },
-                "ctx": {
-                    "$ref": "#/definitions/DirectoryPath",
-                    "description": "path to the base context directory as defined by Webpack, full path or relative to the project directory containing package.json"
-                },
-                "dist": {
-                    "$ref": "#/definitions/DirectoryPath",
-                    "description": "path to the distribution / output directory, full path or relative to the project directory containing package.json"
-                },
-                "src": {
-                    "$ref": "#/definitions/DirectoryPath",
-                    "description": "path to the base source directory, full path or relative to the project directory containing package.json"
-                },
-                "temp": {
-                    "$ref": "#/definitions/DirectoryPath",
-                    "default": "node_modules/.cache/wpwrap/temp",
-                    "description": "path to a temporary directory, full path or relative to the project directory containing package.json"
-                }
-            }
-        },
         "WpwPluginConfigAnalyze": {
             "$id": "#/WpwPluginConfigAnalyze",
             "type": "object",
@@ -1536,30 +1587,6 @@
             {
                 "enabled": true,
                 "text": "Copyright #{DATE_STAMP_YEAR} [--My Name or Co.--], All RIghts Reserved"
-            },
-            {
-                "enabled": false
-            }]
-        },
-        "WpwPluginConfigCache": {
-            "$id": "#/WpwPluginConfigCache",
-            "type": "object",
-            "minProperties": 1,
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "type": "boolean"
-                },
-                "verbose": {
-                    "type": "boolean"
-                }
-            },
-            "examples": [{
-                "enabled": true,
-                "verbose": false
-            },
-            {
-                "verbose": true
             },
             {
                 "enabled": false
@@ -1721,40 +1748,6 @@
                     "from": {
                         "$ref": "#/definitions/FilePath"
                     }
-                }
-            }
-        },
-        "WpwOptionsConfigBase": {
-            "$id": "#/WpwOptionsConfigBase",
-            "type": "object",
-            "required": [ "enabled" ],
-            "additionalProperties": false,
-            "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "default": false
-                }
-            },
-            "examples": [{
-                "enabled": true
-            },
-            {
-                "enabled": false
-            }]
-        },
-        "WpwOptionsConfigBaseInternal": {
-            "$id": "#/WpwOptionsConfigBaseInternal",
-            "type": "object",
-            "additionalProperties": false,
-            "maxProperties": 0,
-            "minProperties": 0,
-            "readOnly": true,
-            "required": [ "enabled" ],
-            "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "readOnly": true
                 }
             }
         },
@@ -2748,6 +2741,35 @@
                     "type": "boolean",
                     "default": false,
                     "$comment": "Output all root directory javascript files into a 'js' subdirectory"
+                }
+            }
+        },
+        "WpwRcPaths": {
+            "$id": "#/WpwRcPaths",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "base": {
+                    "$ref": "#/definitions/DirectoryPath",
+                    "default": ".",
+                    "description": "path to the base project directory, a full path containing project's package.json"
+                },
+                "ctx": {
+                    "$ref": "#/definitions/DirectoryPath",
+                    "description": "path to the base context directory as defined by Webpack, full path or relative to the project directory containing package.json"
+                },
+                "dist": {
+                    "$ref": "#/definitions/DirectoryPath",
+                    "description": "path to the distribution / output directory, full path or relative to the project directory containing package.json"
+                },
+                "src": {
+                    "$ref": "#/definitions/DirectoryPath",
+                    "description": "path to the base source directory, full path or relative to the project directory containing package.json"
+                },
+                "temp": {
+                    "$ref": "#/definitions/DirectoryPath",
+                    "default": "node_modules/.cache/wpwrap/temp",
+                    "description": "path to a temporary directory, full path or relative to the project directory containing package.json"
                 }
             }
         },

@@ -20,14 +20,14 @@ const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
  */
 class WpwSourceMapsPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"sourcemaps">} @protected */
-    buildOptions;
-
-
-	/**
-	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
-	 */
-	constructor(options) { super(options); }
+    /**
+     * @param {typedefs.WpwPluginOptions} options
+     */
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"devtool">} */(this.buildOptions); // reset for typings
+	}
 
 
 	/**
@@ -35,7 +35,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwSourceMapsPlugin | undefined}
      */
-	static create = (build) => WpwSourceMapsPlugin.wrap(WpwSourceMapsPlugin, build, "sourcemaps");
+	static create = (build) => WpwSourceMapsPlugin.wrap(WpwSourceMapsPlugin, build, "devtool", undefined, [[ "mode", "plugin" ]]);
 
 
     /**

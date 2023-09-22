@@ -107,7 +107,7 @@ class WpwBuild extends WpwBase
             if (!this.options.optimization)
             {
                 this.options.optimization = { enabled: true };
-                pushUniq(messages, "optimization");
+                pushUniq(messages, "optimization.enabled");
             }
         }
         else if (this.type === "types")
@@ -115,7 +115,7 @@ class WpwBuild extends WpwBase
             if (this.options.types?.mode === "tscheck" && !this.options.tscheck)
             {
                 this.options.tscheck = { enabled: true };
-                pushUniq(messages, "tscheck");
+                pushUniq(messages, "tscheck.enabled");
             }
         }
         else if (this.type === "tests")
@@ -130,33 +130,28 @@ class WpwBuild extends WpwBase
         if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
         {
             this.options.tscheck = { enabled: true };
-            pushUniq(messages, "tscheck");
+            pushUniq(messages, "tscheck.enabled");
         }
 
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
         {
             this.options.experiments = { enabled: true };
-            pushUniq(messages, "experiments");
+            pushUniq(messages, "experiments.enabled");
         }
 
-        if (this.options.sourcemaps)
+        if (this.options.devtool && this.options.devtool.mode === "plugin")
         {
             if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
                 pushUniq(messages, "vendormod.source_map_plugin");
             }
-            if (this.options.devtool)
-            {
-                delete this.options.devtool;
-                pushUniq(messages, "removed option devtool (sourcemaps overrides)");
-            }
         }
 
-        if ((this.options.analyze?.analyzer || this.cmdLine.analyze) && !this.options.devtool && !this.options.sourcemaps)
+        if ((this.options.analyze?.analyzer || this.cmdLine.analyze) && !this.options.devtool && !this.options.devtool)
         {
-            this.options.sourcemaps = { enabled: true };
-            pushUniq(messages, "sourcemaps");
+            this.options.devtool = { enabled: true };
+            pushUniq(messages, "devtool.enabled");
         }
 
         messages.forEach((m) => {

@@ -229,7 +229,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
     sourceObj(file, content, sourceInfo)
     {
         const { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.build.options.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.build.options.devtool?.enabled) ?
                new this.compiler.webpack.sources.SourceMapSource(content, file, map, source) :
                new this.compiler.webpack.sources.RawSource(content);
     }

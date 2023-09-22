@@ -87,7 +87,7 @@ class WpwIstanbulPlugin extends WpwPlugin
         const regex = /\n[ \t]*module\.exports \= require\(/gm,
               sourceCode = sourceInfo.source().toString().replace(regex, (v) => "/* istanbul ignore next */" + v),
               { source, map } = sourceInfo.sourceAndMap();
-        return map && (this.compiler.options.devtool || this.build.options.sourcemaps) ?
+        return map && (this.compiler.options.devtool || this.build.options.devtool?.enabled) ?
                new this.compiler.webpack.sources.SourceMapSource(sourceCode, file, map, source) :
                new this.compiler.webpack.sources.RawSource(sourceCode);
     }

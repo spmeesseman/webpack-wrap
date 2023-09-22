@@ -136,7 +136,7 @@ const WpwMessageEnum =
  * @extends {WebpackError}
  * @implements {typedefs.IWpwMessage}
  */
-class WpwError extends WebpackError
+class WpwMessage extends WebpackError
 {
     /** @type {typedefs.WpwMessageCode} */
     code;
@@ -149,10 +149,10 @@ class WpwError extends WebpackError
      */
     constructor(info)
     {
-        super(WpwError.getMessage(info));
+        super(WpwMessage.getMessage(info));
 		this.name = "WpwError";
         this.code = info.code;
-        this.type = WpwError.isErrorCode(info.code) ? "error" : WpwError.isWarningCode(info.code) ? "warning": "info";
+        this.type = WpwMessage.isErrorCode(info.code) ? "error" : WpwMessage.isWarningCode(info.code) ? "warning": "info";
         // Object.setPrototypeOf(this, new.target.prototype);
         WpwError.captureStackTrace(this, info.capture || this.constructor);
         this.setDetails(info);
@@ -179,14 +179,8 @@ class WpwError extends WebpackError
 	 */
 	deserialize({ read })
     {
-		this.name = read();
-		this.type = read();
-		this.code = read();
-		this.message = read();
-		this.stack = read();
-		this.details = read();
-		this.loc = read();
-		this.hideStack = read();
+		this.name = read(); this.type = read(); this.code = read(); this.message = read();
+        this.stack = read(); this.details = read(); this.loc = read(); this.hideStack = read();
 	}
 
 
@@ -194,11 +188,11 @@ class WpwError extends WebpackError
      * @param {typedefs.WpwMessageInfo} info
      * @returns {WpwError}
      */
-    static get(info) {return new WpwError(applyIf(info, { capture: this.get })); }
+    static get(info) {return new WpwMessage(applyIf(info, { capture: this.get })); }
 
 
     /**
-     * @private
+     * @protected
      * @param {typedefs.WpwMessageInfo} info
      * @returns {string}
      */
@@ -207,15 +201,15 @@ class WpwError extends WebpackError
         if (info.code.length === 6 && WpwMessageMap[info.code])
         {
             let code = `[${info.code}]`;
-            if (WpwError.isErrorCode(info.code))
+            if (WpwMessage.isErrorCode(info.code))
             {
                 code = this.colorOutput("[", 31) + info.code + this.colorOutput("]", 31);
             }
-            else if (WpwError.isWarningCode(info.code))
+            else if (WpwMessage.isWarningCode(info.code))
             {
                 code = this.colorOutput("[", 33) + info.code + this.colorOutput("]", 33);
             }
-            else if (WpwError.isInfoCode(info.code))
+            else if (WpwMessage.isInfoCode(info.code))
             {
                 code = this.colorOutput("[", 37) + info.code + this.colorOutput("]", 37);
             }
@@ -268,14 +262,8 @@ class WpwError extends WebpackError
 	 */
 	serialize({ write })
     {
-		write(this.name);
-		write(this.type);
-		write(this.code);
-		write(this.message);
-		write(this.stack);
-		write(this.details);
-		write(this.loc);
-		write(this.hideStack);
+		write(this.name); write(this.type); write(this.code); write(this.message);
+		write(this.stack); write(this.details); write(this.loc); write(this.hideStack);
 	}
 
 
@@ -288,7 +276,7 @@ class WpwError extends WebpackError
         let details = "";
         const err = info.error,
               hasErrorDetail = isError(err),
-              isInfo = WpwError.isInfoCode(info.code);
+              isInfo = WpwMessage.isInfoCode(info.code);
 
         if (isString(info.detail)) {
             details += `\n${info.detail}`;
@@ -313,15 +301,15 @@ class WpwError extends WebpackError
         {
             let ct = 0;
             details += "\n";
-            details += WpwError.colorOutput("suggesstions:", 36);
-            asArray(info.suggest).forEach((s) => { details += `\n   ${WpwError.colorOutput(`(${++ct})`, 37)} ${s}`; });
+            details += WpwMessage.colorOutput("suggesstions:", 36);
+            asArray(info.suggest).forEach((s) => { details += `\n   ${WpwMessage.colorOutput(`(${++ct})`, 37)} ${s}`; });
         }
 
         this.details = details ? details.trim() : undefined;
 
         this.setFileProperties(isInfo);
 
-        if (hasErrorDetail && err.stack && !isInfo) {
+        if (hasErrorDetail && err.stack && !isInfo) { // only set stacktrace into details if this is an 'info' type WpwMessage
             this.details = (this.details ? this.details + "\n" : "") + "extended call stack:\n" + err.stack.trim();
         }
     }
@@ -336,8 +324,8 @@ class WpwError extends WebpackError
         if (this.stack)
         {
             const lines = this.stack.split("\n") || [],
-                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "" ])[1]),
-                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "" ])[1],
+                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "1" ])[1]),
+                  column = parseInt((lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "0" ])[1]),
                   method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
                   fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
 
@@ -347,14 +335,30 @@ class WpwError extends WebpackError
             this.loc = { end: { line: line + 1, column: 0 }, start: {line, column }, name: method };
             this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;
 
-            if (!isInfo) {
+            if (!isInfo) { // only set stacktrace into details if this is an 'info' type WpwMessage
                 this.details = (this.details ? this.details + "\n" : "") + "call stack:\n" + stack.trim();
             }
         }
     }
+
 }
 
 
+/**
+ * @extends {WpwMessage}
+ */
+class WpwError extends WpwMessage
+{
+    /**
+     * @param {typedefs.WpwMessageInfo} info
+     */
+    constructor(info) { super(info); this.name = "WpwError"; }
+}
+
+
+/**
+ * @extends {WpwError}
+ */
 class WpwAbstractFunctionError extends WpwError
 {
     /**
@@ -371,10 +375,12 @@ class WpwAbstractFunctionError extends WpwError
 }
 
 
+makeSerializable(WpwMessage, "src/utils/WpwMessage");
 makeSerializable(WpwError, "src/utils/WpwError");
 makeSerializable(WpwAbstractFunctionError, "src/utils/WpwAbstractFunctionError");
 
 
-// exports.default = WpwError;
-module.exports = WpwError;
+// exports.default = WpwMessage;
+module.exports = WpwMessage;
+module.exports.WpwError = WpwError;
 module.exports.WpwAbstractFunctionError = WpwAbstractFunctionError;

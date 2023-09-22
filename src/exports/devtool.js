@@ -35,22 +35,22 @@ const devtool = (build) =>
 	// Disabled for this build - Using source-map-plugin - see webpack.plugin.js#sourcemaps
 	// ann the plugins() function below
 	//
-	if (build.options.devtool?.enabled)
+	if (build.options.devtool && build.options.devtool.enabled)
 	{
-		if (build.options.sourcemaps?.enabled)
+		if (build.options.devtool.mode === "plugin")
 		{
 			build.wpc.devtool = false;
 		}
 		else
 		{
 			if (build.mode === "production") {
-				build.wpc.devtool = "source-map";
+				build.wpc.devtool = build.options.devtool.type || "source-map";
 			}
 			else if (build.mode === "development") {
-				build.wpc.devtool = "eval-source-map";
+				build.wpc.devtool = build.options.devtool.type || "eval-source-map";
 			}
 			else {
-				build.wpc.devtool = "eval";
+				build.wpc.devtool = build.options.devtool.type || "eval";
 			}
 		}
 	}
