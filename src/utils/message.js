@@ -62,12 +62,7 @@ const getMessage = (info) =>
  */
 const getMessageTag = (code) =>
 {
-    for (const [ k, v ] of Object.entries(WpwMessageEnum))
-    {
-        if (v === code) {
-            return k;
-        }
-    }
+    for (const [ k, v ] of Object.entries(WpwMessageEnum)) { if (v === code) { return k; } }
     return "ERROR_UNKNOWN";
 };
 
@@ -91,7 +86,6 @@ const isInfoCode = (code) => (/WPW[0-2][0-9][0-9]/).test(code);
  * @returns {boolean}
  */
 const isWarningCode = (code) => (/WPW[3-5][0-9][0-9]/).test(code);
-
 
 
 /**
