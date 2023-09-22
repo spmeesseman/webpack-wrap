@@ -340,10 +340,11 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../utils/message")} WpwError */
-/** @typedef {import("./message").IWpwMessage} IWpwMessage */
+/** @typedef {import("./message").IWpwError} IWpwMessage */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
 /** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
+/** @typedef {import("./message").IWpwMessageMap} IWpwMessageMap */
 /** @typedef {import("./message").WpwMessageCode} WpwMessageCode */
 /** @typedef {import("./message").WpwMessageInfo} WpwMessageInfo */
 /** @typedef {import("./message").WpwMessageText} WpwMessageText */
@@ -466,8 +467,9 @@
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompiler>} WebpackAsyncCompilerHook */
 /** @typedef {import("./webpack").WebpackObjectSerializerContext} WebpackObjectSerializerContext */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */
-/** @typedef {import("./webpack").WebpackObjectDeserializerContext} WebpackObjectDeserializerContext */
+/** @typedef {import("./webpack").WebpackExternalItemFunctionData} WebpackExternalItemFunctionData */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompilation>} WebpackAsyncCompilationHook */
+/** @typedef {import("./webpack").WebpackObjectDeserializerContext} WebpackObjectDeserializerContext */
 
 
 /**

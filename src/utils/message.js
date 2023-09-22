@@ -10,6 +10,7 @@
  *//** */
 
 const WpwRegex = require("./regex");
+const { WebpackError } = require("webpack");
 const typedefs = require("../types/typedefs");
 const inspect = require("util").inspect.custom;
 const { cleanUp } = require("webpack/lib/ErrorHelpers");
@@ -18,9 +19,9 @@ const { isString, isError, isObject, asArray, pick, applyIf } = require("@spmees
 
 
 /**
- * @type {typedefs.IWpwMessage}
+ * @type {typedefs.IWpwMessageMap}
  */
-const WpwMessage =
+const WpwMessageMap =
 {   //
     // INFO (000 - 099)
     //
@@ -130,62 +131,18 @@ const WpwMessageEnum =
     ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
 };
 
+
 /**
- * @param {typedefs.WpwMessageCode} code
- * @returns {string}
+ * @extends {WebpackError}
+ * @implements {typedefs.IWpwMessage}
  */
-const getErrorTag = (code) =>
+class WpwError extends WebpackError
 {
-    for (const [ k, v ] of Object.entries(WpwMessageEnum))
-    {
-        if (v === code) {
-            return k;
-        }
-    }
-    return "ERROR_UNKNOWN";
-};
-
-/**
- * @param {typedefs.WpwMessageInfo} info
- * @returns {string}
- */
-const getMessage = (info) =>
-{
-    if (info.code.length === 6 && WpwMessage[info.code])
-    {
-        let code = `[${info.code}]`;
-        if (/WPW[0-2][0-9][0-9]/.test(info.code))
-        {
-            code = colorOutput("[", 34) + info.code + colorOutput("]", 34);
-        }
-        else if (/WPW[3-5][0-9][0-9]/.test(info.code))
-        {
-            code = colorOutput("[", 33) + info.code + colorOutput("]", 33);
-        }
-        else if (/WPW[6-8][0-9][0-9]/.test(info.code))
-        {
-            code = colorOutput("[", 31) + info.code + colorOutput("]", 31);
-        }
-        return `${code}: ${getErrorTag(info.code)}\n${WpwMessage[info.code]}\n${info.message}`;
-    }
-    return info.message;
-};
-
-/**
- * @param {string} msg
- * @param {number} color
- * @returns {string}
- */
-const colorOutput = (msg, color) => ("\x1B[" + color + "m" + msg + "\x1B[90m");
-
-
-/**
- * @extends {Error}
- */
-class WpwError extends Error
-{
+    static M = WpwMessageEnum;
     static Msg = WpwMessageEnum;
 
+    /** @type {typedefs.WpwMessageCode} */
+    code;
     /** @type {string | undefined} */
     details;
     /** @type {typedefs.WebpackModule | undefined | null} */
@@ -198,95 +155,52 @@ class WpwError extends Error
     chunk;
     /** @type {string | undefined} */
     file;
+    /** @type {typedefs.WpwMessageType} */
+    type;
+
 
     /**
      * @param {typedefs.WpwMessageInfo} info
      */
     constructor(info)
     {
-        super(getMessage(info));
-        const err = info.error,
-              hasErrorDetail = isError(err);
+        super(WpwError.getMessage(info));
 		this.name = "WpwError";
+        this.code = info.code;
+        this.type = WpwError.isErrorCode(info.code) ? "error" : WpwError.isWarningCode(info.code) ? "warning": "info";
         // Object.setPrototypeOf(this, new.target.prototype);
-        let details = "";
-        if (isString(info.detail)) {
-            details += `\n${info.detail}`;
-        }
-        if (isObject(info.detailObject)) {
-            details += `\n${JSON.stringify(info.detailObject)}`;
-        }
-        if (hasErrorDetail) {
-            details += `\n${err.message}`;
-        }
-        if (info.build)
-        {
-            details += "\nbuild properties:";
-            Object.entries(pick(info.build, "name", "type")).forEach(([ k, v ]) =>
-            {
-                details += `\n   ${k} = ${v}`;
-            });
-        }
-        if (info.suggest)
-        {
-            let ct = 0;
-            details += "\n";
-            details += colorOutput("suggesstions:", 36);
-            asArray(info.suggest).forEach((s) => { details += `\n   ${colorOutput(`(${++ct})`, 37)} ${s}`; });
-        }
-        if (details) {
-            this.details = details.trim();
-        }
         WpwError.captureStackTrace(this, info.capture || this.constructor);
-        if (this.stack)
-        {
-            const lines = this.stack?.split("\n") || [],
-                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "" ])[1]),
-                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "" ])[1],
-                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
-                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
-            this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;
-            let stack = this.stack.replace(`${this.name}: `, "");
-            this.message.split("\n").forEach((m) => { stack = cleanUp(stack, m); });
-            this.details = (this.details ? this.details + "\n" : "") + "call stack:\n" + stack;
-            this.loc = {
-                end: { line: line + 1, column: 0 },
-                start: {line, column },
-                name: method
-            };
-        }
-        if (hasErrorDetail && err.stack) {
-            this.details = (this.details ? this.details + "\n" : "") + err.stack.trim();
-        }
+        this.setDetails(info);
     }
 
-	[inspect]() {
-		return this.stack + (this.details ? `\n${this.details}` : "");
-	}
 
-	/**
-	 * @param {typedefs.WebpackObjectSerializerContext} context
-	 */
-	serialize({ write }) {
-		write(this.name);
-		write(this.message);
-		write(this.stack);
-		write(this.details);
-		write(this.loc);
-		write(this.hideStack);
-	}
+	[inspect]() { return this.stack + (this.details ? `\n${this.details}` : ""); }
+
+
+    /**
+     * @private
+     * @param {string} msg
+     * @param {number} color
+     * @returns {string}
+     */
+    static colorOutput(msg, color) { return "\x1B[" + color + "m" + msg + "\x1B[90m"; }
+
 
 	/**
 	 * @param {typedefs.WebpackObjectDeserializerContext} context
 	 */
-	deserialize({ read }) {
+	deserialize({ read })
+    {
 		this.name = read();
+		this.type = read();
+		this.code = read();
 		this.message = read();
 		this.stack = read();
 		this.details = read();
 		this.loc = read();
 		this.hideStack = read();
 	}
+
 
     /**
      * @param {typedefs.WpwMessageInfo} info
@@ -296,37 +210,182 @@ class WpwError extends Error
 
 
     /**
-     * @param {string} property
-     * @param {Partial<typedefs.WpwWebpackConfig> | undefined | null} [wpc]
-     * @param {string | Record<string, any> | undefined | null} [detail]
-     * @returns {WpwError}
+     * @private
+     * @param {typedefs.WpwMessageInfo} info
+     * @returns {string}
      */
-    static getErrorMissing = (property, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_RESOURCE_MISSING, wpc, message: `[${property}] ` + (detail || ""), capture: this.getErrorMissing });
+    static getMessage(info)
+    {
+        if (info.code.length === 6 && WpwMessageMap[info.code])
+        {
+            let code = `[${info.code}]`;
+            if (WpwError.isErrorCode(info.code))
+            {
+                code = this.colorOutput("[", 31) + info.code + this.colorOutput("]", 31);
+            }
+            else if (WpwError.isWarningCode(info.code))
+            {
+                code = this.colorOutput("[", 33) + info.code + this.colorOutput("]", 33);
+            }
+            else if (WpwError.isInfoCode(info.code))
+            {
+                code = this.colorOutput("[", 34) + info.code + this.colorOutput("]", 34);
+            }
+            return `${code}: ${this.getMessageTag(info.code)}\n${WpwMessageMap[info.code]}\n${info.message}`;
+        }
+        return info.message;
+    };
 
 
     /**
-     * @param {string} property
-     * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
-     * @param {string | undefined | null} [detail]
-     * @returns {WpwError}
+     * @private
+     * @param {typedefs.WpwMessageCode} code
+     * @returns {string}
      */
-    static getErrorProperty = (property, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_CONFIG_PROPERTY, wpc, message: `[${property}] ` + (detail || ""), capture: this.getErrorProperty });
+    static getMessageTag(code)
+    {
+        for (const [ k, v ] of Object.entries(WpwMessageEnum))
+        {
+            if (v === code) {
+                return k;
+            }
+        }
+        return "ERROR_UNKNOWN";
+    };
 
 
+    /**
+     * @param {typedefs.WpwMessageCode} code
+     * @returns {boolean}
+     */
+    static isErrorCode(code) { return (/WPW[6-8][0-9][0-9]/).test(code); }
+
+
+    /**
+     * @param {typedefs.WpwMessageCode} code
+     * @returns {boolean}
+     */
+    static isInfoCode(code) { return (/WPW[0-2][0-9][0-9]/).test(code); }
+
+
+    /**
+     * @param {typedefs.WpwMessageCode} code
+     * @returns {boolean}
+     */
+    static isWarningCode(code) { return (/WPW[3-5][0-9][0-9]/).test(code); }
+
+
+	/**
+	 * @param {typedefs.WebpackObjectSerializerContext} context
+	 */
+	serialize({ write })
+    {
+		write(this.name);
+		write(this.type);
+		write(this.code);
+		write(this.message);
+		write(this.stack);
+		write(this.details);
+		write(this.loc);
+		write(this.hideStack);
+	}
+
+
+    /**
+     * @private
+     * @param {typedefs.WpwMessageInfo} info
+     */
+    setDetails(info)
+    {
+        let details = "";
+        const err = info.error,
+              hasErrorDetail = isError(err),
+              isInfo = WpwError.isInfoCode(info.code);
+
+        if (isString(info.detail)) {
+            details += `\n${info.detail}`;
+        }
+        if (isObject(info.detailObject, true)) {
+            details += `\n${JSON.stringify(info.detailObject)}`;
+        }
+        if (hasErrorDetail && !isInfo) {
+            details += `\n${err.message}`;
+        }
+
+        if (info.build)
+        {
+            details += "\nbuild properties:";
+            Object.entries(pick(info.build, "name", "type")).forEach(([ k, v ]) =>
+            {
+                details += `\n   ${k} = ${v}`;
+            });
+        }
+
+        if (info.suggest)
+        {
+            let ct = 0;
+            details += "\n";
+            details += WpwError.colorOutput("suggesstions:", 36);
+            asArray(info.suggest).forEach((s) => { details += `\n   ${WpwError.colorOutput(`(${++ct})`, 37)} ${s}`; });
+        }
+
+        this.details = details ? details.trim() : undefined;
+
+        this.setFileProperties(isInfo);
+
+        if (hasErrorDetail && err.stack && !isInfo) {
+            this.details = (this.details ? this.details + "\n" : "") + "extended call stack:\n" + err.stack.trim();
+        }
+    }
+
+
+    /**
+     * @private
+     * @param {boolean} isInfo
+     */
+    setFileProperties(isInfo)
+    {
+        if (this.stack)
+        {
+            const lines = this.stack.split("\n") || [],
+                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "" ])[1]),
+                  column = (lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "" ])[1],
+                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
+                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
+
+            let stack = this.stack.replace(`${this.name}: `, "");
+            this.message.split("\n").forEach((m) => { stack = cleanUp(stack, m); });
+
+            this.loc = { end: { line: line + 1, column: 0 }, start: {line, column }, name: method };
+            this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;
+
+            if (!isInfo) {
+                this.details = (this.details ? this.details + "\n" : "") + "call stack:\n" + stack.trim();
+            }
+        }
+    }
+}
+
+class WpwAbstractFunctionError extends WpwError
+{
     /**
      * @param {string} fnName
+     * @param {any} [capture]
      * @param {Partial<typedefs.WpwWebpackConfig> | Record<string, any> | undefined | null} [wpc]
      * @param {string | Record<string, any> | undefined | null} [detail]
-     * @returns {WpwError}
      */
-    static getAbstractFunction = (fnName, wpc, detail) =>
-        this.get({ code: this.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture: this.getAbstractFunction });
-
+    constructor(fnName, capture, wpc, detail)
+    {
+        super({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture });
+		this.name = "WpwAbstractFunctionError";
+    }
 }
 
 
 makeSerializable(WpwError, "src/utils/WpwError");
+makeSerializable(WpwAbstractFunctionError, "src/utils/WpwAbstractFunctionError");
 
+
+// exports.default = WpwError;
 module.exports = WpwError;
+module.exports.WpwAbstractFunctionError = WpwAbstractFunctionError;

@@ -14,7 +14,7 @@
  *
  *//** */
 
-import { WpwLoggerLevel, WpwLogTrueColor, WpwLogColor, WpwLog } from "./rc";
+import { WpwLoggerLevel, WpwLogTrueColor, WpwLogColor } from "./rc";
 
 type WpwLoggerIcon = keyof Omit<WpwLoggerIconSet, "blue" | "color">;
 // type WpwLoggerBlueIcon = keyof WpwLoggerIconBlueSet;

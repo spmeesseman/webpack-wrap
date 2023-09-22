@@ -121,7 +121,10 @@ const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
             schemaObj = getDefinitionSchema(schemaObj[key], definitions);
         }
         else {
-            throw WpwError.getErrorProperty("schema error - could not locate specified schema key");
+            throw new WpwError({
+                code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+                message: "schema error - could not locate specified schema key"
+            });
         }
     });
     _applySchemaDefaults(config, schemaObj, definitions);

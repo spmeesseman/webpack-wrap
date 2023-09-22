@@ -29,9 +29,7 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { isWebpackLibraryType } = require("../utils");
 const nodeExternals = require("webpack-node-externals");
-const { merge, apply, isObject, isObjectEmpty, isArray, isString, isEmpty } = require("@spmeesseman/type-utils");
-
-/** @typedef {import("webpack").ExternalItemFunctionData} ExternalItemFunctionData */
+const { isObject, isArray, isString, isEmpty } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -40,66 +38,47 @@ const { merge, apply, isObject, isObjectEmpty, isArray, isString, isEmpty } = re
 const externals = (build) =>
 {
 	const extCfg = build.options.externals,
-		  externals = build.wpc.externals = /** @type {typedefs.WebpackExternalItem[]}*/([]);
-
-	if (!isArray(externals)) {
-		delete build.wpc.externals;
-		return;
-	}
+	      extEnabled = extCfg && extCfg.enabled !== false,
+		  externals = /** @type {typedefs.WebpackExternalItem[]}*/(build.wpc.externals);
 
 	build.logger.start("create externals configuration", 2);
 
-	if (extCfg && extCfg.enabled !== false && extCfg.presets)
+	if (build.vscode && (build.type === "app" || build.type === "webapp"))
 	{
-		if (build.target.startsWith("web")) {
-			build.logger.write("   set externals preset to 'web'", 2);
-			build.wpc.externalsPresets = { web: true };
-		}
-		else {
-			build.logger.write("   set externals preset to 'node'", 2);
-			build.wpc.externalsPresets = { node: true };
-		}
+		build.logger.write("   add externals module 'vscode'", 2);
+		externals.push({ vscode: "commonjs vscode" });
 	}
 
-	if (build.vscode)
+	if (extEnabled)
 	{
-		if (build.type === "app" || build.type === "webapp")
+		if (extCfg.presets)
 		{
-			// build.wpc.externals = [
-			// 	(data, callback) => { logAsset(data, app); callback(undefined, { vscode: "commonjs vscode" }); },
-			// 	(data, callback) => { logAsset(data, app); callback(undefined, !data.contextInfo?.issuerLayer ? nodeExternals() : undefined); }
-			// ];
-			build.logger.write("   add externals 'vscode'", 2);
-			externals.push({ vscode: "commonjs vscode" });
+			if (build.target.startsWith("web")) {
+				build.logger.write("   set externals preset to 'web'", 2);
+				build.wpc.externalsPresets = { web: true };
+			}
+			else {
+				build.logger.write("   set externals preset to 'node'", 2);
+				build.wpc.externalsPresets = { node: true };
+			}
 		}
-		else {
-			build.logger.write("   add all externals 'vscode' & nodeExternals()", 2);
-			externals.push(
-				{ vscode: "commonjs vscode" },
-				// { nyc: "commonjs nyc" },
-				/** @type {typedefs.WebpackExternalItem}*/(nodeExternals())
-			);
-			build.logger.success("   create externals configuration", 2);
-			return;
-		}
-	}
 
-	if (extCfg && extCfg.enabled !== false)
-	{
-		if (isWebpackLibraryType(extCfg.type)) {
+		if (isWebpackLibraryType(extCfg.type))
+		{
+			build.logger.write("   set externals modules type to " + extCfg.type, 2);
 			build.wpc.externalsType = extCfg.type;
 		}
 
 		if (extCfg.all) // if (build.type !== "app" && build.type !== "webapp")
 		{
-			build.logger.write("   add externals 'all' & nodeExternals()", 2);
+			build.logger.write("   add externals modules 'all' & nodeExternals()", 2);
 			externals.push(/** @type {typedefs.WebpackExternalItem}*/(nodeExternals()));
 		}
 		else
 		{
 			if (extCfg.defaults !== false)
 			{
-				build.logger.write("   add externals 'defaults'", 2);
+				build.logger.write("   add externals modules 'defaults'", 2);
 				externals.push(
 					/[\\\/\-]?webpack|typescript/
 				);
@@ -109,7 +88,7 @@ const externals = (build) =>
 			{
 				if (isArray(extCfg.modules, false) && isString(extCfg.modules[0]))
 				{
-					build.logger.write("   add externals 'modules'", 2);
+					build.logger.write("   add externals modulea 'modules'", 2);
 					const external = /** @type {typedefs.WebpackExternalItem}*/({});
 					extCfg.modules.forEach(m => { external[m] = (extCfg.type ? extCfg.type + " " : "") + m; });
 					externals.push(external);
@@ -127,7 +106,7 @@ const externals = (build) =>
 				if (isObject(extCfg.raw))
 				{
 					externals.push(extCfg.raw);
-					build.logger.write("   add externals 'raw'", 2);
+					build.logger.write("   add externals modules 'raw'", 2);
 				}
 				else
 				{   build.addMessage({
@@ -136,6 +115,11 @@ const externals = (build) =>
 					});
 				}
 			}
+		}
+
+		if (build.logger.level >= 5)
+		{
+			externals.push((data, cb) => { logAsset(data, build); cb(undefined, undefined); });
 		}
 	}
 
@@ -148,23 +132,23 @@ const externals = (build) =>
 
 
 /**
- * @param {Readonly<ExternalItemFunctionData>} data
+ * @param {Readonly<typedefs.WebpackExternalItemFunctionData>} data
  * @param {typedefs.WpwBuild} build
  */
 const logAsset = (data, build) =>
 {
 	if (data && data.request)
 	{
-		build.logger.write(`set externals for asset italic(${data.request.substring(2)})`, 1);
-		build.logger.value("   context", data.context, 1);
-		build.logger.value("   dependencyType", data.dependencyType, 1);
-		build.logger.value("   request", data.request, 1);
+		build.logger.write(`   externals: process asset italic(${data.request})`);
+		build.logger.value("      context", data.context);
+		build.logger.value("      dependencyType", data.dependencyType);
+		build.logger.value("      request", data.request);
 		if (data.contextInfo)
 		{
-			build.logger.value("   issuer", data.contextInfo.issuer, 1);
-			build.logger.value("   issuer layer", data.contextInfo.issuerLayer, 1);
+			build.logger.value("      issuer", data.contextInfo.issuer);
+			build.logger.value("      issuer layer", data.contextInfo.issuerLayer);
 			// `compiler` value isin form `vscode-taskexplorer|undefined|extension|test|node|none`
-			build.logger.value("   compiler / wpconfig exports.name", data.contextInfo.compiler, 1);
+			build.logger.value("      compiler / wpconfig exports.name", data.contextInfo.compiler);
 		}
 	}
 };

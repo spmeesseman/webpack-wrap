@@ -103,24 +103,6 @@ const printBuildStart = (build) =>
 
 /**
  * @param {typedefs.WpwBuild} build
- * @param {typedefs.WpwError} e
- * @param {Function} fn
- * @param {string} [icon]
- */
-const printNonFatalIssue = (build, e, fn, icon) =>
-{
-    if (!icon || fn.name !== "write") {
-        fn.call(build.logger, `Location: ${e.file}`);
-    }
-    else {
-        fn.call(build.logger, `Location: ${e.file}`, undefined, "", build.logger.icons.color.star);
-    }
-    fn.call(build.logger, "   " + e.message);
-};
-
-
-/**
- * @param {typedefs.WpwBuild} build
  */
 const printWpcProperties = (build) =>
 {
@@ -147,5 +129,5 @@ const printWpcProperties = (build) =>
 
 
 module.exports = {
-    printBuildProperties, printBuildStart, printNonFatalIssue, printWpcProperties
+    printBuildProperties, printBuildStart, printWpcProperties
 };

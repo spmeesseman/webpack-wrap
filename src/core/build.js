@@ -13,14 +13,14 @@
 const WpwBase = require("./base");
 const { existsSync } = require("fs");
 const WpwSource = require("./source");
+const WpwError = require("../utils/message");
 const webpackExports = require("../exports");
 const typedefs = require("../types/typedefs");
+const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
-const {
-    applySchemaDefaults, objUtils, printNonFatalIssue, printBuildStart, printBuildProperties,
-    printWpcProperties, typeUtils, utils, validateSchema, WpwError, WpwLogger, pushUniq, merge
-} = require("../utils");
+const { objUtils, typeUtils, pushUniq, merge } = require("@spmeesseman/type-utils");
+const { printBuildStart, printBuildProperties, printWpcProperties, utils, validateSchema } = require("../utils");
 
 
 /**
@@ -87,6 +87,12 @@ class WpwBuild extends WpwBase
     }
 
 
+    get buildCount() { return this.wrapper.buildCount; }
+    get cmdLine() { return this.wrapper.args; }
+    get isOnlyBuild() { return this.wrapper.isSingleBuild; }
+    get pkgJson() { return this.wrapper.pkgJson; }
+
+
 	/**
 	 * @private
 	 */
@@ -94,7 +100,7 @@ class WpwBuild extends WpwBase
     {
         const messages = [];
         const optionMessage = (/** @type {string} */o) =>
-              `the ${o} option was auto-enabled, enable this option for the ${this.name} build in .wpwraprc to bury this message`;
+              `the '${o}' build option was auto-enabled (enable '${o}' in .wpcrc to silence this message)`;
 
         if (this.type === "app")
         {
@@ -167,27 +173,21 @@ class WpwBuild extends WpwBase
         const l = this.logger;
         if (this.info.length > 0) {
             l.write("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
-            this.info.splice(0).forEach(e => printNonFatalIssue(this, e, l.write));
+            this.info.splice(0).forEach(e => l.info(e));
         }
         if (this.warnings.length > 0) {
             l.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
-            this.warnings.splice(0).forEach(w => printNonFatalIssue(this, w, l.warning));
+            this.warnings.splice(0).forEach(w => l.warning(w));
         }
         if (this.errors.length > 0) {
             l.write("REPORTED ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
-            this.errors.splice(0).forEach(e => printNonFatalIssue(this, e, l.error));
+            this.errors.splice(0).forEach(e => l.error(e));
         }
         for (const d of this.disposables.splice(0)) {
             const result = d.dispose();
             if (typeUtils.isPromise(result)) { await result; }
         }
     }
-
-
-    get buildCount() { return this.wrapper.buildCount; }
-    get cmdLine() { return this.wrapper.args; }
-    get isOnlyBuild() { return this.wrapper.isSingleBuild; }
-    get pkgJson() { return this.wrapper.pkgJson; }
 
 
     /**
@@ -417,10 +417,16 @@ class WpwBuild extends WpwBase
      */
     validateConfig(config)
     {
-        if (!config.name) { throw WpwError.getErrorMissing("build[config.name]"); }
-        if (!config.type) { throw WpwError.getErrorMissing("build[config.type]"); }
-        if (!config.mode) { throw WpwError.getErrorMissing("build[config.mode]"); }
-        if (!config.target) { throw WpwError.getErrorMissing("build[config.target]"); }
+        const _get = (/** @type {string} */ p) => new WpwError({
+            wpc: this.wpc,
+            capture: this.validateConfig,
+            code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+            message: `config validation failed for build ${this.name}: property ${p}`
+        });
+        if (!config.name) { throw _get("config.name"); }
+        if (!config.type) { throw _get("config.type"); }
+        if (!config.mode) { throw _get("config.mode"); }
+        if (!config.target) { throw _get("config.target"); }
     }
 
 

@@ -15,11 +15,12 @@
 
 import { IWpwBuildConfig } from "./rc";
 import { IWpwWebpackConfig } from "./app";
-import { NoExtraProperties } from "./generic";
 import { WebpackCompilation, WebpackError, WebpackDependencyLocation } from "./webpack";
 
 
-type WpwMessageType = import("../utils/message");
+type WpwMessageCls = import("../utils/message");
+
+type WpwMessageType = "error" | "info" | "warning";
 
 enum WpwMessageCodePrefix { Error = "WPW", Info = "WPW", Reserved = "WPW", Warning = "WPW" }
 
@@ -35,8 +36,6 @@ type WpwInfoCodePrefix = `${WpwMessageCodePrefix.Info}${0|1|2}`;
 
 type WpwErrorCode = `${WpwErrorCodePrefix}${number}${number}`;
 
-// type WpwErrorCodeBuildTypes= `${WpwMessageCodePrefix.Error}6${6|7}${number}`;
-
 type WpwWarningCode = `${WpwWarningCodePrefix}${number}${number}`;
 
 type WpwInfoCode = `${WpwInfoCodePrefix}${number}${number}`;
@@ -47,7 +46,7 @@ type WpwMessageCode = WpwErrorCode | WpwWarningCode | WpwInfoCode | WpwReservedC
 
 type WpwMessageText = string;
 
-interface IWpwMessage
+interface IWpwMessageMap
 {
     [ key: WpwMessageCode ]: WpwMessageText;
 }
@@ -67,7 +66,7 @@ interface IWpwMessageInfo
     compilation?: WebpackCompilation;
     detail?: string;
     detailObject?: Record<string, any>;
-    error?: WpwMessageType | WebpackError | Error | undefined;
+    error?: WpwMessageCls | WebpackError | Error | undefined;
     message: string;
     pad?: string;
     suggest?: string | string[];
@@ -77,9 +76,10 @@ type WpwMessageInfo = IWpwMessageInfo;
 // type WpwMessageInfo = NoExtraProperties<IWpwMessageInfo>;
 type WpwMessageInfoKey = keyof WpwMessageInfo;
 
-interface WpwWebpackError extends WebpackError
+interface IWpwMessage extends WebpackError
 {
-    loc?: WebpackDependencyLocation;
+    code: WpwMessageCode;
+    type: WpwMessageType;
 }
 
 
@@ -87,6 +87,7 @@ export {
     IWpwMessageEnum,
     IWpwMessageInfo,
     IWpwMessage,
+    IWpwMessageMap,
     WpwMessageType,
     WpwErrorCodeBuildTypesPrefix,
     WpwReservedCodePrefix,
@@ -101,7 +102,6 @@ export {
     WpwMessageText,
     WpwMessageKey,
     WpwMessageInfo,
-    WpwMessageInfoKey,
-    WpwWebpackError
+    WpwMessageInfoKey
 };
 

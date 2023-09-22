@@ -110,10 +110,16 @@ class WpwBase
     //  */
     // validateConfig(config, key)
     // {
+    //     const _get = (/** @type {string} */ p) => new WpwError({
+    //         wpc: this.wpc,
+    //         capture: this.validateBaseTaskOptions,
+    //         code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+    //         message: `config validation failed for task module ${this.name}: property ${p}`
+    //     });
     //     WpwKeysEnum[key]?.forEach((/** @type {string} */ cKey) =>
     //     {
     //         if (isNulled(config[cKey])) {
-    //             throw WpwError.getErrorMissing(`config: ${key} : ${cKey} [${config[cKey]}]`);
+    //             throw _get(`config: ${key} : ${cKey} [${config[cKey]}]`);
     //         }
     //     });
     // }

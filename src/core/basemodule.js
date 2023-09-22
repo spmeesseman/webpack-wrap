@@ -10,9 +10,12 @@
  *//** */
 
 const WpwBase = require("./base");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { lowerCaseFirstChar, WpwError, clone, relativePath } = require("../utils");
+const { clone } = require("@spmeesseman/type-utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
+const { WpwAbstractFunctionError } = require("../utils/message");
+const { lowerCaseFirstChar, relativePath } = require("../utils/utils");
 
 
 /**
@@ -73,7 +76,7 @@ class WpwBaseModule extends WpwBase
 	 * @returns {WpwBase | undefined | never}
 	 * @throws {typedefs.WpwError}
      */
-	static create(..._args) { throw WpwError.getAbstractFunction(`[${this.name}[create][static]`); }
+	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }
 
 
 	/**
@@ -115,12 +118,30 @@ class WpwBaseModule extends WpwBase
 	validateOptions(options)
     {
         if (!options.build) {
-            throw WpwError.getErrorMissing("app", this.wpc, "invalid option[app]");
+            throw this.validationError("build");
         }
         const key = this.buildOptionsKey;
-        if (!key || (!this.pluginsNoOpts.includes(key) && !isWpwBuildOptionsKey(key))) {
-            throw WpwError.getErrorProperty("key", this.wpc, `invalid option[key], '${key}' does not exist in build options`);
+        if (!key || (!this.pluginsNoOpts.includes(key) && !isWpwBuildOptionsKey(key)))
+        {
+            throw this.validationError("buildkey", `invalid option[key], '${key}' does not exist in build options`);
         }
+    }
+
+
+    /**
+     * @protected
+     * @param {string} property
+     * @param {string} [detail]
+     */
+    validationError(property, detail)
+    {
+        return new WpwError({
+            detail,
+            wpc: this.wpc,
+            capture: this.validateOptions,
+            code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+            message: `config validation failed for module ${this.name}: property ${property}`
+        });
     }
 
 }

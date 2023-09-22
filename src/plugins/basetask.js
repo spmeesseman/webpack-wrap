@@ -23,9 +23,11 @@
 
 const { join } = require("path");
 const WpwPlugin = require("./base");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const { existsAsync, capitalize } = require("../utils");
 const { rm, unlink, writeFile } = require("fs/promises");
-const { existsAsync, WpwError, applyIf, isFunction, isPromise, capitalize } = require("../utils");
+const { applyIf, isFunction, isPromise } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -131,8 +133,14 @@ class WpwBaseTaskPlugin extends WpwPlugin
      */
 	validateBaseTaskOptions()
     {
+		const _get = (/** @type {string} */ p) => new WpwError({
+            wpc: this.wpc,
+            capture: this.validateBaseTaskOptions,
+            code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+            message: `config validation failed for task module ${this.name}: property ${p}`
+        });
         if (!isFunction(this[this.options.taskHandler])) {
-            throw WpwError.getErrorMissing("options.taskHandler", this.wpc, "invalid option [basetask]");
+            throw _get("taskHandler");
         }
     }
 

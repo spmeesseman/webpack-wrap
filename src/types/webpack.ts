@@ -51,7 +51,8 @@ import webpack, {
     WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
     MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin as WebpackExternalsPlugin, EntryOptions as WebpackEntryOptions,
     WebpackError, StatsOptions as WebpackStatsOptions, ProgressPlugin as WebpackProgressPlugin, optimize,
-    NoEmitOnErrorsPlugin as WebpackNoEmitOnErrorsPlugin, IgnorePlugin as WebpackIgnorePlugin, BannerPlugin as WebpackBannerPlugin
+    NoEmitOnErrorsPlugin as WebpackNoEmitOnErrorsPlugin, IgnorePlugin as WebpackIgnorePlugin, BannerPlugin as WebpackBannerPlugin,
+    ExternalItemFunctionData as WebpackExternalItemFunctionData
 } from "webpack";
 
 class WebpackLimitChunkCountPlugin extends optimize.LimitChunkCountPlugin {};
@@ -205,6 +206,7 @@ export {
     WebpackError,
     WebpackEtag,
     WebpackExternalItem,
+    WebpackExternalItemFunctionData,
     WebpackExternalsPlugin,
     WebpackFileCacheOptions,
     WebpackIgnorePlugin,
