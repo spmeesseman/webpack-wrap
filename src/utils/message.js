@@ -138,23 +138,8 @@ const WpwMessageEnum =
  */
 class WpwError extends WebpackError
 {
-    static M = WpwMessageEnum;
-    static Msg = WpwMessageEnum;
-
     /** @type {typedefs.WpwMessageCode} */
     code;
-    /** @type {string | undefined} */
-    details;
-    /** @type {typedefs.WebpackModule | undefined | null} */
-    module;
-    /** @type {typedefs.WebpackDependencyLocation | undefined} */
-    loc;
-    /** @type {boolean | undefined} */
-    hideStack;
-    /** @type {typedefs.WebpackChunk | undefined} */
-    chunk;
-    /** @type {string | undefined} */
-    file;
     /** @type {typedefs.WpwMessageType} */
     type;
 
@@ -172,6 +157,9 @@ class WpwError extends WebpackError
         WpwError.captureStackTrace(this, info.capture || this.constructor);
         this.setDetails(info);
     }
+
+
+    static get Msg() { return WpwMessageEnum; }
 
 
 	[inspect]() { return this.stack + (this.details ? `\n${this.details}` : ""); }
@@ -229,7 +217,7 @@ class WpwError extends WebpackError
             }
             else if (WpwError.isInfoCode(info.code))
             {
-                code = this.colorOutput("[", 34) + info.code + this.colorOutput("]", 34);
+                code = this.colorOutput("[", 35) + info.code + this.colorOutput("]", 35);
             }
             return `${code}: ${this.getMessageTag(info.code)}\n${WpwMessageMap[info.code]}\n${info.message}`;
         }
@@ -366,6 +354,7 @@ class WpwError extends WebpackError
     }
 }
 
+
 class WpwAbstractFunctionError extends WpwError
 {
     /**
@@ -376,7 +365,7 @@ class WpwAbstractFunctionError extends WpwError
      */
     constructor(fnName, capture, wpc, detail)
     {
-        super({ code: WpwError.Msg.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture });
+        super({ code: WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture });
 		this.name = "WpwAbstractFunctionError";
     }
 }
