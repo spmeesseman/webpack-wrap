@@ -217,7 +217,7 @@ class WpwError extends WebpackError
             }
             else if (WpwError.isInfoCode(info.code))
             {
-                code = this.colorOutput("[", 35) + info.code + this.colorOutput("]", 35);
+                code = this.colorOutput("[", 37) + info.code + this.colorOutput("]", 37);
             }
             return `${code}: ${this.getMessageTag(info.code)}\n${WpwMessageMap[info.code]}\n${info.message}`;
         }
