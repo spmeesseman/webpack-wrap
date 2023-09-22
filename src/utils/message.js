@@ -19,6 +19,82 @@ const { isString, isError, isObject, asArray, pick, applyIf } = require("@spmees
 
 
 /**
+ * @private
+ * @param {string} msg
+ * @param {number} color
+ * @returns {string}
+ */
+const colorOutput = (msg, color) => "\x1B[" + color + "m" + msg + "\x1B[90m";
+
+
+/**
+ * @protected
+ * @param {typedefs.WpwMessageInfo} info
+ * @returns {string}
+ */
+const getMessage = (info) =>
+{
+    if (info.code.length === 6 && WpwMessageMap[info.code])
+    {
+        let code = `[${info.code}]`;
+        if (isErrorCode(info.code))
+        {
+            code = colorOutput("[", 31) + info.code + colorOutput("]", 31);
+        }
+        else if (isWarningCode(info.code))
+        {
+            code = colorOutput("[", 33) + info.code + colorOutput("]", 33);
+        }
+        else if (isInfoCode(info.code))
+        {
+            code = colorOutput("[", 37) + info.code + colorOutput("]", 37);
+        }
+        return `${code}: ${getMessageTag(info.code)}\n${WpwMessageMap[info.code]}\n${info.message}`;
+    }
+    return info.message;
+};
+
+
+/**
+ * @private
+ * @param {typedefs.WpwMessageCode} code
+ * @returns {string}
+ */
+const getMessageTag = (code) =>
+{
+    for (const [ k, v ] of Object.entries(WpwMessageEnum))
+    {
+        if (v === code) {
+            return k;
+        }
+    }
+    return "ERROR_UNKNOWN";
+};
+
+
+/**
+ * @param {typedefs.WpwMessageCode} code
+ * @returns {boolean}
+ */
+const isErrorCode = (code) => (/WPW[6-8][0-9][0-9]/).test(code);
+
+
+/**
+ * @param {typedefs.WpwMessageCode} code
+ * @returns {boolean}
+ */
+const isInfoCode = (code) => (/WPW[0-2][0-9][0-9]/).test(code);
+
+
+/**
+ * @param {typedefs.WpwMessageCode} code
+ * @returns {boolean}
+ */
+const isWarningCode = (code) => (/WPW[3-5][0-9][0-9]/).test(code);
+
+
+
+/**
  * @type {typedefs.IWpwMessageMap}
  */
 const WpwMessageMap =
@@ -74,6 +150,7 @@ const WpwMessageMap =
     WPW898: "the current process flow has not yet been implemented",
     WPW899: "an unknown error has occurred"
 };
+
 
 /**
  * @enum {typedefs.WpwMessageCode}
@@ -149,10 +226,10 @@ class WpwMessage extends WebpackError
      */
     constructor(info)
     {
-        super(WpwMessage.getMessage(info));
+        super(getMessage(info));
 		this.name = "WpwError";
         this.code = info.code;
-        this.type = WpwMessage.isErrorCode(info.code) ? "error" : WpwMessage.isWarningCode(info.code) ? "warning": "info";
+        this.type = isErrorCode(info.code) ? "error" : isWarningCode(info.code) ? "warning": "info";
         // Object.setPrototypeOf(this, new.target.prototype);
         WpwError.captureStackTrace(this, info.capture || this.constructor);
         this.setDetails(info);
@@ -163,15 +240,6 @@ class WpwMessage extends WebpackError
 
 
 	[inspect]() { return this.stack + (this.details ? `\n${this.details}` : ""); }
-
-
-    /**
-     * @private
-     * @param {string} msg
-     * @param {number} color
-     * @returns {string}
-     */
-    static colorOutput(msg, color) { return "\x1B[" + color + "m" + msg + "\x1B[90m"; }
 
 
 	/**
@@ -189,72 +257,6 @@ class WpwMessage extends WebpackError
      * @returns {WpwError}
      */
     static get(info) {return new WpwMessage(applyIf(info, { capture: this.get })); }
-
-
-    /**
-     * @protected
-     * @param {typedefs.WpwMessageInfo} info
-     * @returns {string}
-     */
-    static getMessage(info)
-    {
-        if (info.code.length === 6 && WpwMessageMap[info.code])
-        {
-            let code = `[${info.code}]`;
-            if (WpwMessage.isErrorCode(info.code))
-            {
-                code = this.colorOutput("[", 31) + info.code + this.colorOutput("]", 31);
-            }
-            else if (WpwMessage.isWarningCode(info.code))
-            {
-                code = this.colorOutput("[", 33) + info.code + this.colorOutput("]", 33);
-            }
-            else if (WpwMessage.isInfoCode(info.code))
-            {
-                code = this.colorOutput("[", 37) + info.code + this.colorOutput("]", 37);
-            }
-            return `${code}: ${this.getMessageTag(info.code)}\n${WpwMessageMap[info.code]}\n${info.message}`;
-        }
-        return info.message;
-    };
-
-
-    /**
-     * @private
-     * @param {typedefs.WpwMessageCode} code
-     * @returns {string}
-     */
-    static getMessageTag(code)
-    {
-        for (const [ k, v ] of Object.entries(WpwMessageEnum))
-        {
-            if (v === code) {
-                return k;
-            }
-        }
-        return "ERROR_UNKNOWN";
-    };
-
-
-    /**
-     * @param {typedefs.WpwMessageCode} code
-     * @returns {boolean}
-     */
-    static isErrorCode(code) { return (/WPW[6-8][0-9][0-9]/).test(code); }
-
-
-    /**
-     * @param {typedefs.WpwMessageCode} code
-     * @returns {boolean}
-     */
-    static isInfoCode(code) { return (/WPW[0-2][0-9][0-9]/).test(code); }
-
-
-    /**
-     * @param {typedefs.WpwMessageCode} code
-     * @returns {boolean}
-     */
-    static isWarningCode(code) { return (/WPW[3-5][0-9][0-9]/).test(code); }
 
 
 	/**
@@ -276,7 +278,7 @@ class WpwMessage extends WebpackError
         let details = "";
         const err = info.error,
               hasErrorDetail = isError(err),
-              isInfo = WpwMessage.isInfoCode(info.code);
+              isInfo = isInfoCode(info.code);
 
         if (isString(info.detail)) {
             details += `\n${info.detail}`;
@@ -301,8 +303,8 @@ class WpwMessage extends WebpackError
         {
             let ct = 0;
             details += "\n";
-            details += WpwMessage.colorOutput("suggesstions:", 36);
-            asArray(info.suggest).forEach((s) => { details += `\n   ${WpwMessage.colorOutput(`(${++ct})`, 37)} ${s}`; });
+            details += colorOutput("suggesstions:", 36);
+            asArray(info.suggest).forEach((s) => { details += `\n   ${colorOutput(`(${++ct})`, 37)} ${s}`; });
         }
 
         this.details = details ? details.trim() : undefined;
