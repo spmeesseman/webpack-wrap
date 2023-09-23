@@ -1161,14 +1161,7 @@
                     }
                 },
                 "timestamp": {
-                    "type": "string",
-                    "default": "hh:mm:ss",
-                    "enum": [
-                        "mm:ss",
-                        "mm:ss:sss",
-                        "hh:mm:ss",
-                        "hh:mm:ss:sss"
-                    ]
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "valueMaxLineLength": {
                     "type": "number",

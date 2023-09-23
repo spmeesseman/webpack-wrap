@@ -24,4 +24,4 @@ const wpwCliOptions =
     ]
 };
 
-module.exports = { wpwCliOptions };
+module.exports = wpwCliOptions;

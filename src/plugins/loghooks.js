@@ -238,7 +238,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 		{
 			const end = Date.now();
 			apply(this, { end, elapsed: end - this.start });
-			this.logger.value("total time elapsed", `$${this.elapsed} ms`);
+			this.logger.value("total time elapsed", this.timeElapsed());
 		});
 		this.addCompilerHook("afterDone");
 		this.addCompilerHook("additionalPass");
@@ -246,6 +246,19 @@ class WpwLogHooksPlugin extends WpwPlugin
 		this.addCompilerHook("invalid");
 		this.addCompilerHook("watchRun");
 		this.addCompilerHook("watchClose");
+	}
+
+
+	timeElapsed()
+	{
+		const tm = this.elapsed,
+              mssMode = true,
+              tmM = Math.floor(tm / 1000 / 60),
+              tmS = Math.floor(tm / 1000 % 60),
+              tmSF = tmS >= 10 ? tmS + "" : "0" + tmS,
+              tmMS = tm % 1000,
+              tmMSF = tmMS >= 100 ? tmMS + "" : (tmMS > 10 ? "0" + tmMS : "00" + tmMS);
+        return `${tmM}:${tmSF}${"." + (mssMode ? tmMSF : tmMSF.slice(0, -1))}`;
 	}
 
 
@@ -258,11 +271,11 @@ class WpwLogHooksPlugin extends WpwPlugin
 		const key = hook +this.build.wpc.name;
 		if (!this.globalCache[key])
 		{
-			const l = this.logger,
-				  tag = `italic(elapsed:${this.elapsed}ms)`;
 			this.globalCache[key] = true;
 			this.last = Date.now();
 			this.elapsed = this.last - this.start;
+			const l = this.logger,
+				  tag = `italic(elapsed:${this.timeElapsed()}ms)`;
 			l.valuestar(`build stage hook ${l.tag(tag, l.colors.white)}`, hook);
 		}
 	};

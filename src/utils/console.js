@@ -29,6 +29,8 @@ class WpwLogger
     options;
     /** @type {number} @private */
     separatorLength;
+    /** @type {number} @private */
+    tzOffset;
 
 
     /**
@@ -38,13 +40,13 @@ class WpwLogger
     {
         this.applyOptions(options);
         this.separatorLength = 125;
+        this.tzOffset = (new Date()).getTimezoneOffset() * 60000;
         const infoIconClr = this.options.colors.infoIcon || this.options.color || this.options.colors.buildBracket;
         this.infoIcon = infoIconClr ?  this.withColor(this.icons.info, this.colors[infoIconClr]) : this.icons.color.info;
         if (this.options.colors.default)
         {
             Object.keys(this.colors).filter(c => this.colors[c][1] === this.colors.system).forEach((c) =>
             {
-                // @ts-ignore
                 this.colors[c][1] = this.colorMap[this.options.colors.default];
             });
         }
@@ -163,19 +165,7 @@ class WpwLogger
     formatObjectMessage(msg)
     {
         let sMsg = "";
-        if (msg === null)
-        {
-            sMsg = "null";
-        }
-        else if (msg === undefined)
-        {
-            sMsg = "undefined";
-        }
-        else if (typeUtils.isNulled(msg))
-        {
-            sMsg = "nulled";
-        }
-        else if (typeUtils.isString(msg))
+        if (typeUtils.isString(msg))
         {
             sMsg = msg;
         }
@@ -220,7 +210,7 @@ class WpwLogger
         {
             sMsg = "<promise>";
         }
-        else if (typeUtils.isObject(msg))
+        else if (typeUtils.isObject<{}>(msg))
         {
             if (typeUtils.isObjectEmpty(msg)) {
                 sMsg = "{}";
@@ -241,6 +231,18 @@ class WpwLogger
                     }
                 }
             }
+        }
+        else if (msg === null)
+        {
+            sMsg = "null";
+        }
+        else if (msg === undefined)
+        {
+            sMsg = "undefined";
+        }
+        else if (typeUtils.isNulled(msg))
+        {
+            sMsg = "nulled";
         }
         return sMsg;
     }
@@ -463,6 +465,12 @@ class WpwLogger
 
 
     /**
+     * @private
+     */
+    timestamp = () => this.withColor((new Date(Date.now() - this.tzOffset)).toISOString().slice(0, -1).split("T")[1], this.colors.grey) + " > ";
+
+
+    /**
      * Write / log a message and an aligned value.  The message pad space is defined
      * by the build configuratkion value {@link typedefs.IWpwLogPad log.pad.value}
      *
@@ -650,8 +658,9 @@ class WpwLogger
                 envTagLen = WpwLogger.envTagLen + envTagClrLen,
                 envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
                         this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
-                envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "";
-        console.log(`${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
+                envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
+                tmStamp = opts.timestamp ? this.timestamp() : "";
+        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
         return this;
     }
 
