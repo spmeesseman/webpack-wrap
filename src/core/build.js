@@ -79,7 +79,8 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, { info: [], errors: [], warnings: [], wrapper });
         this.initConfig(config);
         this.initLogger();
-        this.configureDependencyOptions();
+        this.configureRequiredDependencies();
+        this.configureOptionalDependencies();
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.source = new WpwSource(objUtils.clone(config.source), this);
         this.disposables.push(this.source, this.logger);
@@ -96,23 +97,25 @@ class WpwBuild extends WpwBase
 	/**
 	 * @private
 	 */
-    configureDependencyOptions()
+    configureOptionalDependencies()
     {
         const messages = [];
         const optionMessage = (/** @type {string} */o) =>
               `the '${o}' build option was auto-enabled (enable '${o}' in .wpcrc to silence this message)`;
-
+        //
+        // USER CONFIGURABLE OPTIONS (w/ MESSAGE FEEDBACK)
+        //
         if (this.type === "app")
         {
-            if (!this.options.optimization)
+            if (!this.options.optimization || this.options.optimization.enabled === undefined)
             {
                 this.options.optimization = { enabled: true };
                 pushUniq(messages, "optimization.enabled");
             }
         }
-        else if (this.type === "types")
+        else if (this.type === "types" && this.options.types)
         {
-            if (this.options.types?.mode === "tscheck" && !this.options.tscheck)
+            if (this.options.types.mode === "tscheck" && (!this.options.tscheck || this.options.tscheck.enabled === undefined))
             {
                 this.options.tscheck = { enabled: true };
                 pushUniq(messages, "tscheck.enabled");
@@ -120,28 +123,23 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "tests")
         {
-            if  (!this.options.vendormod || !this.options.vendormod.nyc)
+            if  (!this.options.vendormod || this.options.vendormod.nyc === undefined)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, nyc: true });
                 pushUniq(messages, "vendormod.nyc");
             }
         }
 
-        if (this.type !== "types" && this.source.type === "typescript" && !this.options.tscheck)
+        if (this.type !== "types" && this.source.type === "typescript" && (!this.options.tscheck || this.options.tscheck.enabled === undefined)) // && this.source.options.ts?.loader !== "babel")
         {
             this.options.tscheck = { enabled: true };
             pushUniq(messages, "tscheck.enabled");
         }
 
-        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
+        if (this.options.devtool && this.options.devtool.enabled !== false && this.options.devtool.mode === "plugin")
         {
-            this.options.experiments = { enabled: true };
-            pushUniq(messages, "experiments.enabled");
-        }
-
-        if (this.options.devtool && this.options.devtool.mode === "plugin")
-        {
-            if (!this.options.vendormod || !this.options.vendormod.source_map_plugin)
+            const vendormod = this.options.vendormod;
+            if (!vendormod || !vendormod.enabled || (!vendormod.source_map_plugin && !vendormod.all))
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, source_map_plugin: true });
                 pushUniq(messages, "vendormod.source_map_plugin");
@@ -151,6 +149,23 @@ class WpwBuild extends WpwBase
         messages.forEach((m) => {
             this.addMessage({ code: WpwError.Code.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
         });
+    }
+
+
+    /**
+	 * @private
+	 */
+    configureRequiredDependencies()
+    {
+        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
+        {
+            this.options.experiments = { enabled: true };
+        }
+
+        if (this.mode === "production" && (!this.options.licensefiles || this.options.licensefiles.enabled === undefined))
+        {
+            this.options.licensefiles = { enabled: true };
+        }
     }
 
 

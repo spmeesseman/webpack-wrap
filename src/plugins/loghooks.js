@@ -261,7 +261,10 @@ class WpwLogHooksPlugin extends WpwPlugin
 			this.globalCache[key] = true;
 			this.last = Date.now();
 			this.elapsed = this.last - this.start;
-			this.logger.valuestar("build stage hook", `${hook} [italic(elapsed:${this.elapsed}ms)]`);
+			this.logger.valuestar(
+				"build stage hook",
+				`${hook} [${this.logger.withColor(`italic(elapsed:${this.elapsed}ms)`, this.logger.colors.grey)}]`
+			);
 		}
 	};
 
