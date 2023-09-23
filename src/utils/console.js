@@ -149,6 +149,7 @@ class WpwLogger
             {
                 msg = msg.replace(new RegExp(`${cKey}\\((.*?)\\)`, "g"), (_, g1) => this.withColor(g1, this.colors[cKey]));
             }
+            return msg;
         }
         return this.formatObjectMessage(msg);
     }
@@ -477,7 +478,7 @@ class WpwLogger
     {
         if (level !== undefined && level > this.options.level) { return this; }
 
-        let val = value, vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
+        let val = value, vMsg = (this.formatMessage(msg) || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
         const vPad = WpwLogger.valuePadLen,
               rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
 

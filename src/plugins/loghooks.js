@@ -258,13 +258,12 @@ class WpwLogHooksPlugin extends WpwPlugin
 		const key = hook +this.build.wpc.name;
 		if (!this.globalCache[key])
 		{
+			const l = this.logger,
+				  tag = `italic(elapsed:${this.elapsed}ms)`;
 			this.globalCache[key] = true;
 			this.last = Date.now();
 			this.elapsed = this.last - this.start;
-			this.logger.valuestar(
-				"build stage hook",
-				`${hook} [${this.logger.withColor(`italic(elapsed:${this.elapsed}ms)`, this.logger.colors.grey)}]`
-			);
+			l.valuestar(`build stage hook ${l.tag(tag, l.colors.white)}`, hook);
 		}
 	};
 
