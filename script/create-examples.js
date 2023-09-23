@@ -50,7 +50,7 @@ cliWrap(async () =>
     logger = new WpwLogger({
         envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
     });
-    logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+    logger.printBanner("create-examples.js", "0.0.1", "generating webpack-wrap example files");
 
     logger.log("Create standard example rc file");
     try {
@@ -60,7 +60,7 @@ cliWrap(async () =>
     let content = basicExample1Content.replace(/webpack-wrap/g, "exampleapp")
                                       .replace(/Webpack-Wrap/g, "Example-App")
                                       .replace(/Webpack Wrap/g, "Example App");
-    await writeFile(resolve(__dirname, "../example/rc/basic/.wpwrc.json"), content);
+    await writeFile(resolve(__dirname, "../examples/wpwrc/basic/.wpwrc.json"), content);
 
     logger.log("Create vscode example rc file");
     try {
@@ -69,7 +69,7 @@ cliWrap(async () =>
     const vscodeExample1Content = await readFile(vscodeExampleFile1, "utf8");
     content = vscodeExample1Content.replace(/taskexplorer/g, "examplevscodeext")
                                    .replace(/Task Explorer/g, "Example VSCode Extension");
-    await writeFile(resolve(__dirname, "../example/rc/vscode/.wpwrc.json"), content);
+    await writeFile(resolve(__dirname, "../examples/wpwrc/vscode/.wpwrc.json"), content);
 
     logger.blank(undefined, logger.icons.color.success);
     logger.success("successfully uploaded rc schema", undefined, "", true);

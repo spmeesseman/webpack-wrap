@@ -600,8 +600,8 @@ class WpwPlugin extends WpwBaseModule
         if (buildOptions && buildOptions.enabled !== false && asArray(addOptionsKeysCheck).every(o => buildOptions[o[0]] === o[1]))
         {
             const plugin = new clsType(applyIf({ build }, pluginOptions));
-            plugin.plugins.push(...asArray(plugin.getVendorPlugin()));
             plugin.buildOptions = buildOptions;
+            plugin.plugins.push(...asArray(plugin.getVendorPlugin()));
             return plugin;
         }
     }

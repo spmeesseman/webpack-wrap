@@ -36,7 +36,7 @@ class WpwBaseModule extends WpwBase
     /** @type {number}  @protected */
     hashDigestLength;
     /** @type {string[]}  @private */
-    pluginsNoOpts = [ "dispose" ];
+    pluginsNoOpts = [ "dispose", "sourcemaps" ];
     /** @type {string} @protected */
 	virtualFile;
 	/** @type {string} @protected */
@@ -69,6 +69,7 @@ class WpwBaseModule extends WpwBase
     get baseName() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, ""); }
     get buildOptionsKey() { return /** @type {typedefs.WpwBuildOptionsKey} */(this.baseName.toLowerCase()); }
     get cacheName() { return `${this.build.name}_${this.build.mode}_${this.build.wpc.target}`.toLowerCase(); }
+
 
 	/**
      * @abstract
@@ -109,6 +110,7 @@ class WpwBaseModule extends WpwBase
             (/** @type {string} */p) => { this.global[p] = {}; }
         );
     }
+
 
     /**
      * @private

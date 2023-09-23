@@ -42,7 +42,7 @@
         "clean-all": "npm run clean-app && npm run clean-docs && npm run clean-examples && rimraf dist && rimraf node_modules/.cache/wpwrap",
         "clean-app": "rimraf dist/webpack-wrap.*js && rimraf dist/vendor.*js && rimraf dist/runtime.*js && rimraf node_modules/.cache/wpwrap/webpack/webpack-wrap*",
         "clean-docs": "rimraf dist/docs && rimraf node_modules/.cache/wpwrap/webpack/docs*",
-        "clean-examples": "rimraf examples/vscode && rimraf dist/examples",
+        "clean-examples": "rimraf examples/wpwrc/**/.wpwrc.json && rimraf dist/examples",
         "clean-types": "rimraf dist/types && rimraf dist/types.d.ts && rimraf node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo && rimraf node_modules/.cache/wpwrap/webpack/types*",
         "clean-schema": "rimraf src/types/rc.ts && rimraf src/types/constants.js",
         "clean-wpcache": "rimraf node_modules/.cache/wpwrap/webpack",

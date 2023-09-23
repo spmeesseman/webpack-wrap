@@ -413,11 +413,12 @@ class WpwLogger
     /**
      * @param {string | undefined} msg
      * @param {typedefs.WpwLoggerLevel} [level]
+     * @returns {this}
      */
     start(msg, level)
     {
-        if (level !== undefined && level > this.options.level) { return; }
-        this.write((this.options.color ?
+        if (level !== undefined && level > this.options.level) { return this; }
+        return this.write((this.options.color ?
             this.withColor(this.icons.start, this.colors[this.options.color]) :
             this.icons.color.start) + (msg ? "  " + msg : ""),
             level
@@ -430,11 +431,12 @@ class WpwLogger
      * @param {typedefs.WpwLoggerLevel} [level]
      * @param {string} [pad]
      * @param {boolean} [successIcon]
+     * @returns {this}
      */
     success(msg, level, pad, successIcon)
     {
-        if (level !== undefined && level > this.options.level) { return; }
-        this.writeMsgTag(
+        if (level !== undefined && level > this.options.level) { return this; }
+        return this.writeMsgTag(
             msg, "success", level, pad,
             this.options.colors.default ? this.colors[this.options.colors.default] : this.colors.white,
             this.colors.green,
@@ -469,10 +471,11 @@ class WpwLogger
      * @param {string} [pad] Message pre-padding
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null} [color]
+     * @returns {this}
      */
     value(msg, value, level, pad, icon, color)
     {
-        if (level !== undefined && level > this.options.level) { return; }
+        if (level !== undefined && level > this.options.level) { return this; }
 
         let val = value, vMsg = (msg || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
         const vPad = WpwLogger.valuePadLen,
@@ -548,7 +551,7 @@ class WpwLogger
                     vMsg = "".padStart(vPad + xPad) + val;
                     this.write(vMsg, level, pad, icon, color);
                 }
-                return;
+                return this;
             }
             else {
                 vMsg += val;
@@ -560,7 +563,7 @@ class WpwLogger
         else {
             vMsg += ": null";
         }
-        this.write(vMsg, level, pad, icon, color, true);
+        return this.write(vMsg, level, pad, icon, color, true);
     }
 
 
@@ -571,10 +574,11 @@ class WpwLogger
      * @param {string} [pad] Message pre-padding
      * @param {typedefs.WpwLogColorMapping | null} [iconColor]
      * @param {typedefs.WpwLogColorMapping | null} [msgColor]
+     * @returns {this}
      */
     valuestar(msg, dsc, level, pad, iconColor, msgColor)
     {
-        if (level !== undefined && level > this.options.level) { return; }
+        if (level !== undefined && level > this.options.level) { return this; }
         const icon = this.withColor(
             this.icons.star,
             iconColor ||
@@ -584,11 +588,9 @@ class WpwLogger
         );
         if (this.options.colors.valueStarText && this.options.colors.valueStarText !== "white")
         {
-            this.value(msg, `${icon} ${this.withColor(dsc, this.colors[this.options.colors.valueStarText])} ${icon}`, level, pad, 0, msgColor);
+            return this.value(msg, `${icon} ${this.withColor(dsc, this.colors[this.options.colors.valueStarText])} ${icon}`, level, pad, 0, msgColor);
         }
-        else {
-            this.value(msg, `${icon} ${dsc} ${icon}`, level, pad, undefined, msgColor);
-        }
+        return this.value(msg, `${icon} ${dsc} ${icon}`, level, pad, undefined, msgColor);
     }
 
 
@@ -596,6 +598,7 @@ class WpwLogger
      * @param {any} msg
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
+     * @returns {this}
      */
     warning = (msg, pad, color) => this.write(this.formatObjectMessage(msg), undefined, pad, this.icons.color.warning, color);
 
@@ -628,10 +631,11 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      * @param {boolean | null | undefined} [isValue]
+     * @returns {this}
      */
     write(msg, level, pad = "", icon, color, isValue)
     {
-        if (level !== undefined && level > this.options.level) { return; }
+        if (level !== undefined && level > this.options.level) { return this; }
         const opts = this.options,
                 basePad = this.options.pad.base || "",
                 msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
@@ -647,6 +651,7 @@ class WpwLogger
                         this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
                 envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "";
         console.log(`${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
+        return this;
     }
 
 
@@ -658,14 +663,15 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | undefined | null} [bracketColor] surrounding bracket color value
      * @param {typedefs.WpwLogColorMapping | undefined | null} [msgColor] msg color value
      * @param {string | undefined | null | 0 | false} [icon]
+     * @returns {this}
      */
     writeMsgTag(msg, tagMsg, level, pad, bracketColor, msgColor, icon)
     {
-        if (level !== undefined && level > this.options.level) { return; }
+        if (level !== undefined && level > this.options.level) { return this; }
         let exPad = "";
         const match = msg.match(/^( +)[\w]/);
         if (match) { exPad = match[1]; msg = msg.trimStart(); }
-        this.write(
+        return this.write(
             exPad + this.tag(tagMsg, bracketColor, msgColor) + " " +
             this.withColor(msg, this.colors[this.options.colors.default || "grey"]), level, pad, icon
         );
