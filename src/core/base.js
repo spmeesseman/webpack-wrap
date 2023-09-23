@@ -23,17 +23,31 @@ const { apply, isObject, isPromise, pickNot, clone, pushReturn } = require("@spm
  */
 class WpwBase
 {
-    /** @type {typedefs.IDisposable[]} */
+    /**
+     * @type {typedefs.IDisposable[]}
+     */
     disposables;
-    /** @type {typedefs.IWpwGlobalEnvironment} */
+    /**
+     * @type {typedefs.IWpwGlobalEnvironment}
+     */
     global;
-    /** @type {typedefs.WpwBaseOptions} */
+    /**
+     * @type {typedefs.WpwBaseOptions}
+     */
     initialConfig;
-    /** @type {WpwLogger} @abstract */
+    /**
+     * @abstract
+     * @type {WpwLogger}
+     */
     logger;
-    /**  @type {string} */
+    /**
+     * @type {string}
+     */
     name;
-    /** @type {Record<string, any>} @protected */
+    /**
+     * @protected
+     * @type {Record<string, any>}
+     */
     options;
 
 

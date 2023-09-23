@@ -18,18 +18,36 @@ const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple"
  */
 class WpwLogger
 {
-    /** @type {number} @private @static */
+    /**
+     * @private
+     * @type {number}
+     */
     static envTagLen;
-    /** @type {number} @private @static */
+    /**
+     * @private
+     * @type {number}
+     */
     static valuePadLen;
 
-    /** @type {string} @private */
+    /**
+     * @private
+     * @type {string}
+     */
     infoIcon;
-    /** @type {Required<typedefs.IWpwLog>} @private */
+    /**
+     * @private
+     * @type {Required<typedefs.IWpwLog>}
+     */
     options;
-    /** @type {number} @private */
+    /**
+     * @private
+     * @type {number}
+     */
     separatorLength;
-    /** @type {number} @private */
+    /**
+     * @private
+     * @type {number}
+     */
     tzOffset;
 
 

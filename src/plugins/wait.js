@@ -17,13 +17,25 @@ const { WpwError, merge, isPromise, pushUniq } = require("../utils");
 
 class WpwPluginWaitManager
 {
-    /** @type {typedefs.WpwBuildOptionsKey[]} @private */
+    /**
+	 * @private
+     * @type {typedefs.WpwBuildOptionsKey[]}
+     */
     done;
-    /** @type {typedefs.WpwBuildOptionsKey[]} @private */
+    /**
+	 * @private
+     * @type {typedefs.WpwBuildOptionsKey[]}
+     */
     waiting;
-    /** @type {EventEmitter} @private */
+    /**
+	 * @private
+     * @type {EventEmitter}
+     */
     onPluginEvent;
-    /** @type {typedefs.WpwPluginWaitOptions[]} @private */
+    /**
+	 * @private
+     * @type {typedefs.WpwPluginWaitOptions[]}
+     */
     registered;
 
 

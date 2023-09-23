@@ -1,7 +1,7 @@
 node_modules
 dist
 .dccache
-res/doc
+res/doc*
 src/types/rc.ts
 src/types/constants.js
 .coverage

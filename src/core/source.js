@@ -26,21 +26,41 @@ const { writeFileSync } = require("fs");
  */
 class WpwSource
 {
-    /** @type {typedefs.TypeScript | undefined} */
+    /**
+     * @private
+     * @type {typedefs.TypeScript | undefined}
+     */
     static typescript;
-    /** @type {typedefs.WpwBuild} */
+
+    /**
+     * @private
+     * @type {typedefs.WpwBuild}
+     */
     build;
-    /** @type {typedefs.IWpwSourceTsConfig} */
+    /**
+     * @type {typedefs.IWpwSourceTsConfig}
+     */
     config;
-    /** @type {typedefs.IWpwSourceTsConfigFile} */
+    /**
+     * @type {typedefs.IWpwSourceTsConfigFile}
+     */
     configFile;
-    /** @type {typedefs.WpwSourceExtension} */
+    /**
+     * @type {typedefs.WpwSourceExtension}
+     */
     ext;
-    /** @type {WpwLogger} @private */
+    /**
+     * @private
+     * @type {WpwLogger}
+     */
     logger;
-    /** @type {typedefs.WpwSourceOptions} */
+    /**
+     * @type {typedefs.WpwSourceOptions}
+     */
     options;
-    /** @type {typedefs.WpwSourceType} */
+    /**
+     * @type {typedefs.WpwSourceType}
+     */
     type;
 
 

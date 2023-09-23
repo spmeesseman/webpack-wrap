@@ -201,7 +201,6 @@ class WpwWrapper extends WpwBase
         //
         baseBuildConfigs.forEach((config) =>
         {
-            this.touchBuildOptionsEnabled(config.options);
             this.buildConfigs.push(merge(emptyConfig(), rootBaseConfig, config, modeBaseConfig));
         });
         //
@@ -214,7 +213,6 @@ class WpwWrapper extends WpwBase
             let rootBuildConfig = this.buildConfigs.find(bc => bc.name === config.name);
             if (!rootBuildConfig)
             {
-                this.touchBuildOptionsEnabled(modeBaseConfig.options);
                 rootBuildConfig = merge(emptyConfig(), rootBaseConfig, modeBaseConfig);
                 this.buildConfigs.push(rootBuildConfig);
             }
@@ -230,6 +228,7 @@ class WpwWrapper extends WpwBase
                 const c = config.log.color;
                 applyIf(config.log.colors, { valueStar: c, buildBracket: c, tagBracket: c, infoIcon: c });
             }
+            this.touchBuildOptionsEnabled(config.options);
             this.resolvePaths(config);
         });
     }
@@ -357,7 +356,7 @@ class WpwWrapper extends WpwBase
                defaultTempDir = `node_modules${sep}.cache${sep}wpwrap${sep}temp`,
                temp = resolve(
                    ostemp ? `${ostemp}${sep}${this.pkgJson.scopedName.name}` : defaultTempDir,
-                   `${buildConfig.target}${sep}${buildConfig.mode}`
+                   `${buildConfig.name}${sep}${buildConfig.mode}`
                );
         paths.base = base;
         paths.temp = paths.temp && paths.temp !== defaultTempDir ? paths.temp : temp;

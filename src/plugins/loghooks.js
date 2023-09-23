@@ -20,13 +20,25 @@ const { apply } = require("@spmeesseman/type-utils");
  */
 class WpwLogHooksPlugin extends WpwPlugin
 {
-	/** @type {number} @private */
+	/**
+	 * @private
+	 * @type {number}
+	 */
 	elapsed;
-	/** @type {number} @private */
+	/**
+	 * @private
+	 * @type {number}
+	 */
 	end;
-	/** @type {number} @private */
+	/**
+	 * @private
+	 * @type {number}
+	 */
 	last;
-	/** @type {number} @private */
+	/**
+	 * @private
+	 * @type {number}
+	 */
 	start;
 
 

@@ -125,11 +125,7 @@ class WpwResolveExport extends WpwWebpackExport
 	jsdoc()
 	{
 		const jsdocOptions = this.build.options.jsdoc;
-		if (jsdocOptions && jsdocOptions.enabled)
-		{
-			//
-		}
-		else {
+		if (!jsdocOptions || jsdocOptions.enabled === false) {
 			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}

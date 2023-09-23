@@ -259,14 +259,4 @@ async function jsdocLoader(source, map, meta)
 }
 
 
-function loader(source, map, meta)
-{
-    const callback = this.async();
-	jsdocLoader.call(this, source, map, meta)
-    .then(
-        (args) => callback(null, ...args),
-        (err) => callback(err)
-    );
-}
-
-module.exports = loader;
+module.exports = jsdocLoader;

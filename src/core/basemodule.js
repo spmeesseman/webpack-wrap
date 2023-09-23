@@ -25,25 +25,53 @@ const { lowerCaseFirstChar, relativePath } = require("../utils/utils");
  */
 class WpwBaseModule extends WpwBase
 {
-    /** @type {typedefs.WpwBuild} */
+    /**
+     * @type {typedefs.WpwBuild}
+     */
     build;
-    /** @type {typedefs.WpwBuildOptionsConfig<any>} @protected */
+    /**
+     * @protected
+     * @type {typedefs.WpwBuildOptionsConfig<any>}
+     */
     buildOptions;
-    /** @type {Record<string, any>} */
+    /**
+     * @type {Record<string, any>}
+     */
     globalCache;
-    /** @type {string}  @protected */
+    /**
+     * @protected
+     * @type {string}
+     */
     globalBaseProperty;
-    /** @type {number}  @protected */
+    /**
+     * @protected
+     * @type {number}
+     */
     hashDigestLength;
-    /** @type {string[]}  @private */
+    /**
+     * @private
+     * @type {string[]}
+     */
     pluginsNoOpts = [ "dispose", "sourcemaps" ];
-    /** @type {string} @protected */
+    /**
+     * @protected
+     * @type {string}
+     */
 	virtualFile;
-	/** @type {string} @protected */
+	/**
+     * @protected
+     * @type {string}
+     */
 	virtualFilePath;
-	/** @type {string} @protected */
+	/**
+     * @protected
+     * @type {string}
+     */
 	virtualFileRelPath;
-    /** @type {typedefs.WpwWebpackConfig} @protected */
+    /**
+     * @protected
+     * @type {typedefs.WpwWebpackConfig}
+     */
     wpc;
 
 
@@ -61,7 +89,7 @@ class WpwBaseModule extends WpwBase
         this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
-        this.virtualFileRelPath = relativePath(this.build.getBasePath(), this.virtualFilePath);
+        this.virtualFileRelPath = relativePath(this.build.getContextPath(), this.virtualFilePath);
         this.build.disposables.push(this);
     }
 

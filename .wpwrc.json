@@ -70,17 +70,19 @@
             "name": "docs",
             "type": "jsdoc",
             "entry": {
-                "docs": "./src/core/rc.js"
+                "docs": "./src/core/wrapper.js"
+            },
+            "log": {
+                "color": "magenta"
             },
             "options": {
                 "jsdoc": {
                     "mode": "plugin",
-                    "destination": "res/docs/api",
                     "title": "Webpack-Wrap Source Documentation"
                 }
             },
             "paths": {
-                "dist": "dist/docs"
+                "dist": "dist/doc/api"
             }
         }],
         "options": {

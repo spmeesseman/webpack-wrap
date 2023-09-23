@@ -649,15 +649,6 @@
                                     "properties": {
                                         "analyze": {
                                             "properties": {
-                                                "enabled": false
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "analyze": {
-                                            "properties": {
                                                 "enabled": {
                                                     "const": false
                                                 }
@@ -670,15 +661,6 @@
                                 "anyOf": [{
                                     "properties": {
                                         "runtimevars": false
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "runtimevars": {
-                                            "properties": {
-                                                "enabled": false
-                                            }
-                                        }
                                     }
                                 },
                                 {
@@ -703,15 +685,6 @@
                                     "properties": {
                                         "upload": {
                                             "properties": {
-                                                "enabled": false
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "upload": {
-                                            "properties": {
                                                 "enabled": {
                                                     "const": false
                                                 }
@@ -724,15 +697,6 @@
                                 "anyOf": [{
                                     "properties": {
                                         "istanbul": false
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "istanbul": {
-                                            "properties": {
-                                                "enabled": false
-                                            }
-                                        }
                                     }
                                 },
                                 {
@@ -757,15 +721,6 @@
                                     "properties": {
                                         "testsuite": {
                                             "properties": {
-                                                "enabled": false
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "testsuite": {
-                                            "properties": {
                                                 "enabled": {
                                                     "const": false
                                                 }
@@ -778,15 +733,6 @@
                                 "anyOf": [{
                                     "properties": {
                                         "jsdoc": false
-                                    }
-                                },
-                                {
-                                    "properties": {
-                                        "jsdoc": {
-                                            "properties": {
-                                                "enabled": false
-                                            }
-                                        }
                                     }
                                 },
                                 {

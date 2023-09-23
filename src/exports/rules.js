@@ -8,9 +8,7 @@
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
- * @description
- *
- * @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
+ * @description @see {@link https://webpack.js.org/configuration/rules webpack.js.org/rules}
  *
  *//** */
 
@@ -239,13 +237,20 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+	 * The `jsdoc` module is a {@link WpwBaseTaskPlugin} type module, using a virtual file so that
+	 * Webpack runs through it's normal process as if it going to bundle ts/js code.  This scenario
+	 * is used when the build really isn't a Webpack bundling, but more of something that usually
+	 * a task runner would handle, e.g this `jsdoc` build or the `types` build.  They are implememnted
+	 * here in an effort to condense all tasks to Webpavk only, where something like Gulp, Grunt, Ant,
+	 * etc is not needed, especially for several smaller projects.
+	 *
 	 * @override
 	 * @throws {WpwError}
 	 */
 	jsdoc()
 	{
 		const build = this.build,
-			  jsdocConfig = build.options.jsdoc;
+			  jsdocConfig = this.build.options.jsdoc;
 
 		if (!build.wpc.entry[build.name]) {
 			build.addMessage({
@@ -255,15 +260,14 @@ class WpwRulesExport extends WpwWebpackExport
 			return;
 		}
 
-		if (jsdocConfig && jsdocConfig.mode === "plugin")
+		if (jsdocConfig?.mode === "plugin")
 		{
-			const fakeEntryFile = /** @type {string} */(build.wpc.entry[this.build.name]).replace(/^\.[\/\\]/, "");
-			build.logger.write(`   add rule for virtual entry file '${fakeEntryFile}'`, 2);
+			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
 			build.wpc.module.rules.push(
 			{
-				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
-				// loader: resolve(__dirname, "../loaders/dts.js"),
 				loader: "wpw-jsdoc-loader",
+				include: this.build.global.cacheDir,
+				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
 				options: merge({
 					outDir: build.getDistPath(),
 					inputDir: build.getSrcPath(),
@@ -418,6 +422,13 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+	 * The `types` module is a {@link WpwBaseTaskPlugin} type module, using a virtual file so that
+	 * Webpack runs through it's normal process as if it going to bundle ts/js code.  This scenario
+	 * is used when the build really isn't a Webpack bundling, but more of something that usually
+	 * a task runner would handle, e.g this `types` build or the `jsdoc` build.  They are implememnted
+	 * here in an effort to condense all tasks to Webpavk only, where something like Gulp, Grunt, Ant,
+	 * etc is not needed, especially for several smaller projects.
+	 *
 	 * @override
 	 * @throws {WpwError}
 	 */
@@ -426,23 +437,14 @@ class WpwRulesExport extends WpwWebpackExport
 		const build = this.build,
 			  typesConfig = build.options.types;
 
-		if (!build.wpc.entry[build.name]) {
-			build.addMessage({
-				code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
-				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
-			});
-			return;
-		}
-
 		if (typesConfig && (typesConfig.mode === "loader" || typesConfig.mode === "plugin"))
 		{
-			const fakeEntryFile = /** @type {string} */(build.wpc.entry[this.build.name]).replace(/^\.[\/\\]/, "");
-			build.logger.write(`   add rule for virtual entry file '${fakeEntryFile}'`, 2);
+			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
 			build.wpc.module.rules.push(
 			{
-				test: new RegExp(`${fakeEntryFile.replace(/[\\\/]/g, "[\\\\\\/]")}$`),
-				// loader: resolve(__dirname, "../loaders/dts.js"),
 				loader: "wpw-types-loader",
+				include: this.build.global.cacheDir,
+				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
 				options: merge({ virtualFile: this.virtualFilePath }, { typesConfig })
 			});
 		}

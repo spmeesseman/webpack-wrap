@@ -29,43 +29,86 @@ const { printBuildStart, printBuildProperties, printWpcProperties, utils, valida
  */
 class WpwBuild extends WpwBase
 {
-    /** @type {boolean} */
+    /**
+     * @type {boolean}
+     */
     auto;
-    /** @type {boolean} */
+    /**
+     * @type {boolean}
+     */
     debug;
-    /** @type {typedefs.WpwWebpackEntry} */
+    /**
+     * @type {typedefs.WpwWebpackEntry}
+     */
     entry;
-    /** @type {WpwError[]} @private */
+    /**
+     * @private
+     * @type {WpwError[]}
+     */
     errors;
-    /** @type {WpwError[]} @private */
+    /**
+     * @private
+     * @type {WpwError[]}
+     */
     info;
-    /** @type {typedefs.WpwLog} */
+    /**
+     * @type {typedefs.WpwLog}
+     */
     log;
-    /** @type {typedefs.WpwWebpackMode} */
+    /**
+     * @type {typedefs.WpwWebpackMode}
+     */
     mode;
-    /** @type {string} @override */
+    /**
+     * @override
+     * @type {string}
+     */
     name;
-    /** @type {typedefs.WpwBuildOptions} */
+    /**
+     * @type {typedefs.WpwBuildOptions}
+     */
     options;
-    /** @type {typedefs.WebpackConfigOverride} */
+    /**
+     * @type {typedefs.WebpackConfigOverride}
+     */
     overrides;
-    /** @type {typedefs.WpwRcPaths} */
+    /**
+     * @type {typedefs.WpwRcPaths}
+     */
     paths;
-    /** @type {typedefs.WpwSource} */
+    /**
+     * @type {typedefs.WpwSource}
+     */
     source;
-    /** @type {typedefs.WpwSourceConfig} */
+    /**
+     * @type {typedefs.WpwSourceConfig}
+     */
     sourceConfig;
-    /** @type {typedefs.WebpackTarget} */
+    /**
+     * @type {typedefs.WebpackTarget}
+     */
     target;
-    /** @type {typedefs.WpwBuildType} */
+    /**
+     * @type {typedefs.WpwBuildType}
+     */
     type;
-    /** @type {typedefs.WpwVsCode} */
+    /**
+     * @type {typedefs.WpwVsCode}
+     */
     vscode;
-    /** @type {WpwError[]} @private */
+    /**
+     * @private
+     * @type {WpwError[]}
+     */
     warnings;
-    /** @type {typedefs.WpwWebpackConfig} */
+    /**
+     * @type {typedefs.WpwWebpackConfig}
+     */
     wpc;
-    /** @type {typedefs.WpwWrapper}} @private */
+    /**
+     * @private
+     * @type {typedefs.WpwWrapper}}
+     */
     wrapper;
 
 
@@ -79,8 +122,7 @@ class WpwBuild extends WpwBase
         objUtils.apply(this, { info: [], errors: [], warnings: [], wrapper });
         this.initConfig(config);
         this.initLogger();
-        this.configureRequiredDependencies();
-        this.configureOptionalDependencies();
+        this.configureDependencies();
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.source = new WpwSource(objUtils.clone(config.source), this);
         this.disposables.push(this.source, this.logger);
@@ -97,25 +139,33 @@ class WpwBuild extends WpwBase
 	/**
 	 * @private
 	 */
-    configureOptionalDependencies()
+    configureDependencies()
     {
         const messages = [];
         const optionMessage = (/** @type {string} */o) =>
-              `the '${o}' build option was auto-enabled (enable '${o}' in .wpcrc to silence this message)`;
-        //
-        // USER CONFIGURABLE OPTIONS (w/ MESSAGE FEEDBACK)
-        //
+              `the '${o}' build option was auto-enabled (explicitly enable/disable '${o}' in .wpcrc to silence this message)`;
+        const explicitlyDisabled = (/** @type {Partial<typedefs.IWpwModuleConfig> | undefined} */cfg) => !!cfg && cfg.enabled === false;
+
         if (this.type === "app")
         {
-            if (!this.options.optimization || this.options.optimization.enabled === undefined)
+            if (!explicitlyDisabled(this.options.optimization))
             {
                 this.options.optimization = { enabled: true };
                 pushUniq(messages, "optimization.enabled");
             }
         }
-        else if (this.type === "types" && this.options.types)
+        else if (this.type === "jsdoc")
         {
-            if (this.options.types.mode === "tscheck" && (!this.options.tscheck || this.options.tscheck.enabled === undefined))
+            // this.mode = "test (rename to none)";
+            if (!explicitlyDisabled(this.options.externals))
+            {
+                this.options.externals = { enabled: true, all: true };
+                pushUniq(messages, "externals.all");
+            }
+        }
+        else if (this.type === "types")
+        {
+            if (this.options.types?.mode === "tscheck" && !explicitlyDisabled(this.options.tscheck))
             {
                 this.options.tscheck = { enabled: true };
                 pushUniq(messages, "tscheck.enabled");
@@ -123,14 +173,14 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "tests")
         {
-            if  (!this.options.vendormod || this.options.vendormod.nyc === undefined)
+            if  (!explicitlyDisabled(this.options.vendormod) && this.options.vendormod?.nyc !== false)
             {
                 this.options.vendormod = objUtils.merge(this.options.vendormod, { enabled: true, nyc: true });
                 pushUniq(messages, "vendormod.nyc");
             }
         }
 
-        if (this.type !== "types" && this.source.type === "typescript" && (!this.options.tscheck || this.options.tscheck.enabled === undefined)) // && this.source.options.ts?.loader !== "babel")
+        if (this.type !== "types" && this.source.type === "typescript" && (!explicitlyDisabled(this.options.tscheck))) // && this.source.options.ts?.loader !== "babel")
         {
             this.options.tscheck = { enabled: true };
             pushUniq(messages, "tscheck.enabled");
@@ -146,26 +196,22 @@ class WpwBuild extends WpwBase
             }
         }
 
-        messages.forEach((m) => {
-            this.addMessage({ code: WpwError.Code.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
-        });
-    }
-
-
-    /**
-	 * @private
-	 */
-    configureRequiredDependencies()
-    {
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
         {
             this.options.experiments = { enabled: true };
+            // pushUniq(messages, "licensefiles.enabled");
         }
 
-        if (this.mode === "production" && (!this.options.licensefiles || this.options.licensefiles.enabled === undefined))
+        if (this.mode === "production" && !explicitlyDisabled(this.options.licensefiles))
         {
-            this.options.licensefiles = { enabled: true };
+            if (this.type !== "jsdoc" && this.type !== "types")
+            {
+                this.options.licensefiles = { enabled: true };
+                pushUniq(messages, "licensefiles.enabled");
+            }
         }
+
+        messages.forEach((m) => this.addMessage({ code: WpwError.Code.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) }));
     }
 
 
@@ -398,9 +444,9 @@ class WpwBuild extends WpwBase
 	 */
     initConfig(config)
     {
+        objUtils.applyIf(config, { target: this.getTarget(), type: this.getType() });
         this.validateConfig(config);
         objUtils.apply(this, config);
-        objUtils.applyIf(this, { target: this.getTarget(), type: this.getType() });
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
     }
 

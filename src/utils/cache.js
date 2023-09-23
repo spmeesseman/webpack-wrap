@@ -21,11 +21,20 @@ const { readFileSync, existsSync, writeFileSync } = require("fs");
  */
 class WpwCache
 {
-    /** @type {Record<string, any>} @private */
+    /**
+     * @private
+     * @type {Record<string, any>}
+     */
     cache;
-    /** @type {typedefs.WpwBuild} @private */
+    /**
+     * @private
+     * @type {typedefs.WpwBuild}
+     */
     build;
-    /** @type {string} @private */
+    /**
+     * @private
+     * @type {string}
+     */
     file;
 
 

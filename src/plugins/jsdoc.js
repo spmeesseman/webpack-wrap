@@ -15,7 +15,7 @@ const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { join, posix, relative } = require("path");
 const { relativePath, existsAsync, findFiles } = require("../utils");
-const { isBoolean, pick, isObject, apply, asArray } = require("@spmeesseman/type-utils");
+const { isBoolean, pick, isObject, apply, asArray, isPrimitive } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -65,9 +65,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
         if (isObject(options) && !isBoolean(options))
         {
-            apply(jsdocOptions, {
-                ...pick(options, "debug", "encoding", "private", "readme", "package", "configure", "template", "tutorials", "verbose")
-            });
             if (options.readme) {
                 jsdocOptions.push("--readme", `"${posix.normalize(relativePath(outDir, options.readme))}"`);
             }
@@ -83,6 +80,14 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (options.tutorials) {
                 jsdocOptions.push("--tutorials", `"${posix.normalize(relativePath(outDir, options.tutorials))}"`);
             }
+            if (options.tutorials) {
+                jsdocOptions.push("--tutorials", `"${posix.normalize(relativePath(outDir, options.tutorials))}"`);
+            }
+            const nonPathOpts = pick(options, "debug", "encoding", "private", "verbose");
+            Object.entries(nonPathOpts).filter(([ _, v ]) => isPrimitive(v) && v !== false).forEach(([ k, v ]) =>
+            {
+                jsdocOptions.push(`--${k}` + (v !== true ? ` ${v}` : ""));
+            });
         }
 
         if (!(await existsAsync(outDir)))
@@ -195,7 +200,8 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
               // identifier = this.name,
               logger = build.logger,
               srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true }),
-              outDir = this.buildOptions.destination || join(build.getDistPath()) ;
+              // distDir = this.buildOptions.destination || join(build.getDistPath()),
+              outDir = this.buildPathTemp;
 
         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
         if (code !== 0)
@@ -203,7 +209,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             build.addMessage({
                 code: WpwError.Code.ERROR_JSDOC_FAILED,
                 compilation: this.compilation ,
-                message: "jsdoc build failed - jsdoc command exited with error code " + code
+                message: "jsdoc command exited with error code " + code
             });
             return;
         }
