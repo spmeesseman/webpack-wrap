@@ -182,14 +182,14 @@ class WpwCleanPlugin extends WpwPlugin
 	async staleAssets(stats)
 	{
 		const distPath = this.build.getDistPath();
-		if (await existsAsync(distPath))
+		if (this.build.options.output?.immutable && await existsAsync(distPath))
 		{
 			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
 			for (const file of files)
 			{
 				const assets = stats.compilation.getAssets(),
-					  clean = !assets.find(a => a.name === file);
-				if (clean) {
+					  cleanItUpSon = !assets.find(a => a.name === file && file.startsWith(this.fileNameStrip(a.name, true)));
+				if (cleanItUpSon) {
 					await unlink(join(distPath, file));
 				}
 			}
@@ -197,11 +197,12 @@ class WpwCleanPlugin extends WpwPlugin
 		}
 	}
 
+
 	/**
-     * @param {typedefs.WebpackCompilation} compilation the compiler instance
+     * @param {typedefs.WebpackCompilation} _compilation the compiler instance
 	 * @returns {Promise<void>}
      */
-	async webpackCache(compilation)
+	async webpackCache(_compilation)
 	{
 		if (this.build.options.cache)
 		{
@@ -219,10 +220,8 @@ class WpwCleanPlugin extends WpwPlugin
 	 */
 	getVendorPlugin()
 	{
-		const contextPath = this.wpc.context,
-			  outputPath = this.wpc.output.path;
-		/** @type {CleanWebpackPluginOptions} */
-		let options;
+		const contextPath = this.wpc.context;
+		let /** @type {CleanWebpackPluginOptions} */options;
 		if (this.buildOptions.full)
 		{
 			if (this.build.type === "webapp")

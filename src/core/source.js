@@ -186,8 +186,11 @@ class WpwSource
                 logger.write(`         code      : ${d.code}`, undefined, "", logger.icons.color.warning);
                 logger.write(`         category  : ${d.category}`, undefined, "", logger.icons.color.warning);
                 logger.write(`         message   : ${d.messageText}`, undefined, "", logger.icons.color.warning);
-                logger.write(`         start     : ${d.start}`, undefined, "", logger.icons.color.warning);
-                logger.write(`         file      : ${d.file?.fileName}`, undefined, "", logger.icons.color.warning);
+                if (d.file && d.start) {
+                    const pos = d.file.getLineAndCharacterOfPosition(d.start),
+                          file = `${d.file.fileName}:${pos.line}:${pos.character}`;
+                    logger.write(`         location  : ${file}`, undefined, "", logger.icons.color.warning);
+                }
             });
         }
 

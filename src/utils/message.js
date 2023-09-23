@@ -265,6 +265,8 @@ class WpwMessage extends WebpackError
     code;
     /** @type {typedefs.WpwMessageType} */
     type;
+    /** @type {typedefs.WebpackDependencyLocation | undefined} @override*/
+	loc;
 
 
     /**
