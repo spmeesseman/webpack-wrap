@@ -22,6 +22,16 @@ const { rename, unlink, readdir } = require("fs/promises");
 class WpwLicenseFilesPlugin extends WpwPlugin
 {
     /**
+     * @param {typedefs.WpwPluginOptions} options
+     */
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"licensefiles">} */(this.buildOptions); // reset for typings
+	}
+
+
+    /**
      * Called by webpack runtime to initialize this plugin
      * @override
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
@@ -31,44 +41,59 @@ class WpwLicenseFilesPlugin extends WpwPlugin
     {
         this.onApply(compiler,
         {
-            processLicenseFiles: {
-                async: true,
-                hook: "shutdown",
-                callback: this.licenseFiles.bind(this)
+            renameLicenseFiles: {
+                hook: "compilation",
+                stage: "ANALYSE",
+                hookCompilation: "processAssets",
+                callback: this.renameLicenseFiles.bind(this)
             }
         });
     }
 
 
-    /**
-     * @returns {Promise<void>}
+	/**
+     * @override
+     * @param {typedefs.WpwBuild} build
+	 * @returns {WpwLicenseFilesPlugin | undefined}
      */
-    async licenseFiles()
+	static create = (build) => WpwPlugin.wrap(WpwLicenseFilesPlugin, build, "licensefiles");
+
+
+    /**
+     * @private
+     * @param {typedefs.WebpackCompilationAssets} assets
+     */
+    renameLicenseFiles = (assets) =>
     {
-        const distDir = this.compiler.options.output.path || this.compiler.outputPath,
-              items = existsSync(distDir) ? await readdir(distDir) : [];
-        for (const file of items.filter(i => i.includes("LICENSE")))
+        const l = this.logger.write("rename license files: strip contenthash and txt extension from filenames", 1),
+              compilation = this.compilation;
+
+        Object.entries(assets).filter(([ file ]) => file.includes(".LICENSE")).forEach(([ file ]) =>
         {
-            try {
-                if (!file.includes(".debug")) {
-                    await rename(join(distDir, file), join(distDir, file.replace("js.LICENSE.txt", "LICENSE")));
+            const asset = compilation.getAsset(file);
+            if (asset)
+            {
+                l.write(`found license file italic(${asset.name})`, 2);
+                l.value("   current filename", file, 2);
+                if (!file.includes(".debug"))
+                {
+                    const rgx = new RegExp(`\.[a-f0-9]{${this.hashDigestLength}}\.js\.LICENSE(?:\.[a-z]+)?`);
+                    const newFile = file.replace(rgx, ".LICENSE");
+                    l.value("   new filename", newFile, 2);
+                    l.value("   asset info", JSON.stringify(asset.info), 3);
+                    l.write("   rename license file in compilation", 2);
+                    compilation.renameAsset(file, newFile);
                 }
                 else {
-                    await unlink(join(distDir, file));
+                    l.value("   asset info", JSON.stringify(asset.info), 3);
+                    l.write("   remove 'debug build' license file from compilation", 2);
+                    compilation.deleteAsset(file);
                 }
-            } catch {}
-        }
+            }
+        });
     };
 
 }
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {WpwLicenseFilesPlugin | undefined}
- */
-const licensefiles = (build) =>
-    (build.options.licensefiles ? new WpwLicenseFilesPlugin({ build }) : undefined);
-
-
-module.exports = licensefiles;
+module.exports = WpwLicenseFilesPlugin.create;

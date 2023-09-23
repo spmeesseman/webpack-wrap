@@ -77,7 +77,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
      */
     renameMap = (assets) =>
     {
-        const l = this.logger.write("rename sourcemaps with entry module contenthash", 1),
+        const l = this.logger.write("rename sourcemaps: replace filename hashes with corresponding entry module hash", 1),
               compilation = this.compilation;
 
         Object.entries(assets).filter(([ file ]) => file.endsWith(".map")).forEach(([ file ]) =>
@@ -87,10 +87,10 @@ class WpwSourceMapsPlugin extends WpwPlugin
             {
                 const entryHash = this.build.global.runtimeVars.next[this.fileNameStrip(file, true)],
                       newFile = this.fileNameStrip(file).replace(".js.map", `.${entryHash}.js.map`);
-                l.write(`found sourcemap ${asset.name}, rename using contenthash italic(${entryHash})`, 2);
-                l.value("   current filename", file, 3);
-                l.value("   new filename", newFile, 3);
-                l.value("   asset info", JSON.stringify(asset.info), 4);
+                l.write(`found sourcemap asset italic(${asset.name})`, 1);
+                l.value("   current filename", file, 2);
+                l.value("   new filename", newFile, 2);
+                l.value("   asset info", JSON.stringify(asset.info), 3);
                 compilation.renameAsset(file, newFile);
                 const srcAsset = compilation.getAsset(newFile.replace(".map", ""));
                 if (srcAsset && srcAsset.info.related && srcAsset.info.related.sourceMap)
@@ -100,7 +100,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
                           newInfo = apply({ ...srcAsset.info }, { related: { ...srcAsset.info.related, sourceMap: newFile }});
                     let newSource = source;
                     l.write("   update source entry asset with new sourcemap filename", 2);
-                    l.value("   source entry asset info", JSON.stringify(srcAsset.info), 4);
+                    l.value("   source entry asset info", JSON.stringify(srcAsset.info), 3);
                     newSource = source.toString().replace(file, newFile);
                     compilation.updateAsset(srcAsset.name, new sources.SourceMapSource(newSource, srcAsset.name, map), newInfo);
                 }

@@ -148,12 +148,6 @@ class WpwBuild extends WpwBase
             }
         }
 
-        if ((this.options.analyze?.analyzer || this.cmdLine.analyze) && !this.options.devtool && !this.options.devtool)
-        {
-            this.options.devtool = { enabled: true };
-            pushUniq(messages, "devtool.enabled");
-        }
-
         messages.forEach((m) => {
             this.addMessage({ code: WpwError.Code.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
         });

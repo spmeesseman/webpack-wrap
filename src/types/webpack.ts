@@ -83,9 +83,9 @@ interface IWebpackCompilationParams {
 type WebpackCompilationParams = IWebpackCompilationParams;
 
 type WebpackCompilationHookStage = "ADDITIONAL" | "PRE_PROCESS" | "DERIVED" | "ADDITIONS" |  "OPTIMIZE" |
-                                           "OPTIMIZE_COUNT" | "OPTIMIZE_COMPATIBILITY" | "OPTIMIZE_SIZE" |
-                                           "DEV_TOOLING" | "OPTIMIZE_INLINE" | "SUMMARIZE" | "OPTIMIZE_HASH" |
-                                           "OPTIMIZE_TRANSFER" | "ANALYSE" | "REPORT";
+                                   "OPTIMIZE_COUNT" | "OPTIMIZE_COMPATIBILITY" | "OPTIMIZE_SIZE" |
+                                   "DEV_TOOLING" | "OPTIMIZE_INLINE" | "SUMMARIZE" | "OPTIMIZE_HASH" |
+                                   "OPTIMIZE_TRANSFER" | "ANALYSE" | "REPORT";
 
 type WebpackCompilerHook = WebpackCompiler["hooks"];
 

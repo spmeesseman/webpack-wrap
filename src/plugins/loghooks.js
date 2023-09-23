@@ -12,6 +12,7 @@
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { isFunction } = require("../utils");
+const { apply } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -19,10 +20,26 @@ const { isFunction } = require("../utils");
  */
 class WpwLogHooksPlugin extends WpwPlugin
 {
+	/** @type {number} @private */
+	elapsed;
+	/** @type {number} @private */
+	end;
+	/** @type {number} @private */
+	last;
+	/** @type {number} @private */
+	start;
+
+
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+		const start = Date.now();
+		apply(this, { elapsed: 0, end: 0, last: 0, start, startLast: start });
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"loghooks">} */(this.buildOptions); // reset for typings
+	}
 
 
 	/**
@@ -30,7 +47,7 @@ class WpwLogHooksPlugin extends WpwPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwLogHooksPlugin | undefined}
      */
-	static create = (build) => build.options.loghooks?.enabled ? new WpwLogHooksPlugin({ build }) : undefined;
+	static create = (build) => WpwPlugin.wrap(WpwLogHooksPlugin, build, "loghooks");
 
 
     /**
@@ -217,7 +234,12 @@ class WpwLogHooksPlugin extends WpwPlugin
 		this.addCompilerHook("emit");
 		this.addCompilerHook("afterEmit");
 		this.addCompilerHook("done");
-		this.addCompilerHook("shutdown");
+		this.addCompilerHook("shutdown", () =>
+		{
+			const end = Date.now();
+			apply(this, { end, elapsed: end - this.start });
+			this.logger.value("total time elapsed", `$${this.elapsed} ms`);
+		});
 		this.addCompilerHook("afterDone");
 		this.addCompilerHook("additionalPass");
 		this.addCompilerHook("failed", /** @param {Error} e */(e) => { this.logger.error(e); });
@@ -237,7 +259,9 @@ class WpwLogHooksPlugin extends WpwPlugin
 		if (!this.globalCache[key])
 		{
 			this.globalCache[key] = true;
-			this.logger.valuestar("build stage hook", hook);
+			this.last = Date.now();
+			this.elapsed = this.last - this.start;
+			this.logger.valuestar("build stage hook", `${hook} [italic(elapsed:${this.elapsed}ms)]`);
 		}
 	};
 

@@ -17,6 +17,7 @@ const environment = require("./environment");
 const istanbul = require("./istanbul");
 const licensefiles = require("./licensefiles");
 const ignore = require("./ignore");
+const jsdoc = require("./jsdoc");
 const optimization = require("./optimization");
 const loghooks = require("./loghooks");
 const progress = require("./progress");
@@ -37,6 +38,6 @@ const analyze = { analyzer, circular, visualizer };
 
 module.exports = {
     analyze, banner, clean, copy, cssextract, dispose, environment, htmlcsp, htmlinlinechunks,
-    ignore, imageminimizer, istanbul, licensefiles, loghooks, optimization, progress, runtimevars,
-    scm, sourcemaps, testsuite, tscheck, types, upload, vendormod, webviewapps, wait
+    ignore, imageminimizer, istanbul, jsdoc, licensefiles, loghooks, optimization, progress,
+    runtimevars, scm, sourcemaps, testsuite, tscheck, types, upload, vendormod, webviewapps, wait
 };

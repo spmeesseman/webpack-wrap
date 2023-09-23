@@ -35,7 +35,7 @@ class WpwScmPlugin extends WpwPlugin
         {
             commitSourceCodeChanges: {
                 async: true,
-                hook: "shutdown",
+                hook: "done",
                 callback: this.commit.bind(this)
             }
         });

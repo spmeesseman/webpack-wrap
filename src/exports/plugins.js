@@ -14,9 +14,9 @@ const { isString} = require("../utils");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const {
-	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, optimization,
-	progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, cssextract, htmlcsp,
-	imageminimizer, htmlinlinechunks, testsuite, types, vendormod, webviewapps, scm
+	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, jsdoc,
+	optimization, progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, cssextract,
+	htmlcsp, imageminimizer, htmlinlinechunks, testsuite, types, vendormod, webviewapps, scm
 } = require("../plugins");
 
 
@@ -63,29 +63,30 @@ class WpwPluginsExport extends WpwWebpackExport
 		// 	}
 		// });
 		build.wpc.plugins.push(
-			loghooks(build),           // n/a - logs all compiler.hooks.* when they run
-			environment(build),        // compiler.hooks.environment
-			vendormod(build),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
-			progress(build),           // n/a - reports progress from webpack engine
-			clean(build),              // compiler.hooks.emit, compiler.hooks.done
-			types(build),              // compiler.hooks.beforeCompile - build tests / test suite
-			testsuite(build),          // compiler.hooks.beforeCompile - build tests / test suite
-			banner(build),             // compiler.hooks.compilation -> compilation.hooks.processAssets
-			istanbul(build),           // compiler.hooks.compilation - add istanbul ignores to node-requires
-			runtimevars(build),        // compiler.hooks.compilation
-			ignore(build),             // compiler.hooks.normalModuleFactory
-			tscheck(build),            // compiler.hooks.afterEnvironment, hooks.afterCompile
-			...this.webPlugins(build), // webapp specific plugins
+			loghooks(build),            // n/a - logs all compiler.hooks.* when they run
+			environment(build),         // compiler.hooks.environment
+			vendormod(build),           // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
+			progress(build),            // n/a - reports progress from webpack engine
+			clean(build),               // compiler.hooks.emit, compiler.hooks.done
+			jsdoc(build),               // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
+			types(build),               // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
+			testsuite(build),           // compiler.hooks.beforeCompile - build tests / test suite
+			banner(build),              // compiler.hooks.compilation -> compilation.hooks.processAssets
+			istanbul(build),            // compiler.hooks.compilation - add istanbul ignores to node-requires
+			runtimevars(build),         // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONS
+			ignore(build),              // compiler.hooks.normalModuleFactory
+			tscheck(build),             // compiler.hooks.afterEnvironment, hooks.afterCompile
+			...this.webPlugins(build),  // webapp specific plugins
 			...this.nodePlugins(build), // webapp specific plugins
-			sourcemaps(build),         // compiler.hooks.compilation -> compilation.hooks.processAssets
-			...optimization(build),    // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
-			analyze.analyzer(build),   // compiler.hooks.done
-			analyze.visualizer(build), // compiler.hooks.emit
-			analyze.circular(build),   // compiler.hooks.compilation -> compilation.hooks.optimizeModules
-			licensefiles(build),       // compiler.hooks.shutdown
-			upload(build),             // compiler.hooks.afterDone
-			scm(build),                // compiler.hooks.shutdown
-			dispose(build)             // perform cleanup, dispose registred disposables
+			sourcemaps(build),          // compiler.hooks.compilation -> compilation.hooks.processAssets|DEV_TOOLING
+			...optimization(build),     // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
+			analyze.analyzer(build),    // compiler.hooks.done
+			analyze.visualizer(build),  // compiler.hooks.emit
+			analyze.circular(build),    // compiler.hooks.compilation -> compilation.hooks.optimizeModules
+			licensefiles(build),        // compiler.hooks.compilation -> compilation.hooks.processAssets|ANALYSE
+			upload(build),              // compiler.hooks.afterDone
+			scm(build),                 // compiler.hooks.done
+			dispose(build)              // compiler.hooks.shutdown
 		);
 
 		build.wpc.plugins.slice().reverse().forEach((p, i, a) => { if (!p) { build.wpc.plugins.splice(a.length - 1 - i, 1); }});
@@ -105,7 +106,7 @@ class WpwPluginsExport extends WpwWebpackExport
 		if (build.type !== "webapp")
 		{
 			plugins.push(
-				copy(build)           // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
+				copy(build)           // compiler.hooks.thisCompilation -> compilation.hooks.processAssets|ADDITIONAL
 			);
 		}
 		return plugins;
