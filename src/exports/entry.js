@@ -82,7 +82,7 @@ class WpwEntryExport extends WpwWebpackExport
 		if (!entryPathAbs)
 		{
 			build.addMessage({
-				code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+				code: WpwError.Code.ERROR_CONFIG_PROPERTY,
 				message: "could not determine entry point",
 				suggest: "set the 'entry' property in the wpw build configuration",
 				detail: `build details: [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
@@ -96,7 +96,7 @@ class WpwEntryExport extends WpwWebpackExport
 		if (entryPathAbs.includes(build.getDistPath()))
 		{
 			build.addMessage({
-				code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+				code: WpwError.Code.ERROR_CONFIG_PROPERTY,
 				message: "entry point cannot be a descendent of 'dist' path",
 				suggest: "set a valid 'entry' property in the wpw build configuration",
 				detail: `build details: [entry=${entryPath}] [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
@@ -142,7 +142,7 @@ class WpwEntryExport extends WpwWebpackExport
 			}
 			else {
 				this.build.addMessage({
-					code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER,
+					code: WpwError.Code.ERROR_SHITTY_PROGRAMMER,
 					message: `exports.entry.build[${build.type}]`
 				});
 				return;
@@ -156,7 +156,7 @@ class WpwEntryExport extends WpwWebpackExport
 			if (isObjectEmpty(build.entry))
 			{
 				build.addMessage({
-					code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS,
+					code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS,
 					message: "entry target is invalid (empty object not allowed)"
 				});
 				_create();

@@ -352,10 +352,8 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("../utils/message")} WpwError */
-/** @typedef {import("./message").IWpwError} IWpwMessage */
 /** @typedef {import("./message").WpwInfoCode} WpwInfoCode */
 /** @typedef {import("./message").WpwErrorCode} WpwErrorCode */
-/** @typedef {import("./message").WpwMessageKey} WpwMessageKey */
 /** @typedef {import("./message").IWpwMessageMap} IWpwMessageMap */
 /** @typedef {import("./message").WpwMessageCode} WpwMessageCode */
 /** @typedef {import("./message").WpwMessageInfo} WpwMessageInfo */

@@ -13,7 +13,7 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseModule = require("../core/basemodule");
 
-const ABSTRACT_ERROR = WpwError.Msg.ERROR_ABSTRACT_FUNCTION;
+const ABSTRACT_ERROR = WpwError.Code.ERROR_ABSTRACT_FUNCTION;
 
 
 /**

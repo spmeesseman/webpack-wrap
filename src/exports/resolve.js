@@ -84,7 +84,7 @@ class WpwResolveExport extends WpwWebpackExport
 			build.logger.success("   create resolve configuration", 2);
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${build.type}]` });
+			this.build.addMessage({ code: WpwError.Code.ERROR_SHITTY_PROGRAMMER, message: `exports.resolve.build[${build.type}]` });
 		}
 	}
 
@@ -130,7 +130,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
+			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}
 
@@ -165,7 +165,7 @@ class WpwResolveExport extends WpwWebpackExport
 			//
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
+			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
 		}
 	}
 
@@ -178,7 +178,7 @@ class WpwResolveExport extends WpwWebpackExport
 			this.build.wpc.resolve.extensions.push(".d.ts");
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
+			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
 		}
 	}
 

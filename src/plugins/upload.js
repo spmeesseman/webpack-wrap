@@ -82,7 +82,7 @@ class WpwUploadPlugin extends WpwPlugin
         }   }
         catch (e) {
 			this.build.addMessage({
-                code: WpwError.Msg.ERROR_GENERAL,
+                code: WpwError.Code.ERROR_GENERAL,
                 compilation: this.compilation,
                 error: e,
                 message: "exception while cleaning upload-from path"
@@ -165,7 +165,7 @@ class WpwUploadPlugin extends WpwPlugin
         {
             this.build.addMessage({
                 compilation: this.compilation,
-                code: WpwError.Msg.ERROR_CONFIG_INVALID,
+                code: WpwError.Code.ERROR_CONFIG_INVALID,
                 message: "Required environment variables for upload are not set"
             });
             return;

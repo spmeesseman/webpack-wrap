@@ -38,7 +38,7 @@ class WpwdCopyPlugin extends WpwPlugin
      */
     apply(compiler)
     {
-		if (this.buildOptions.entriesNoHash)
+		if (this.buildOptions.entryModuleNoHash)
 		{
 			this.onApply(compiler,
 			{

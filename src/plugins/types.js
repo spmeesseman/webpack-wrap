@@ -85,7 +85,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 				build.addMessage({
 					pad: "   ",
 					compilation: this.compilation,
-					code: WpwError.Msg.ERROR_TYPES_FAILED,
+					code: WpwError.Code.ERROR_TYPES_FAILED,
 					message: "check diagnostics returned by program in log output"
 				});
 			}
@@ -98,7 +98,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		{   build.addMessage({
 				pad: "   ",
 				compilation: this.compilation,
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				message: `configured build method is '${method}'`
 			});
 		}
@@ -225,7 +225,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			}
 			catch (e)
 			{   this.build.addMessage({
-					code: WpwError.Msg.WARNING_GENERAL,
+					code: WpwError.Code.WARNING_GENERAL,
 					message: `failed to remove temp files, asset '${assetPath}' will still be emitted` }
 				);
 			}
@@ -246,7 +246,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 	{
 		if (!configFile || !configFile.path) {
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "invalid source code configured path"
 			});
@@ -266,7 +266,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		if (result !== 0)
 		{
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "tsc returned error code " + result
 			});
@@ -280,7 +280,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		}
 		catch (e) {
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "output directory does not exist @ " + outputDirAbs
 			});

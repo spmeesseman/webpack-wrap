@@ -32,7 +32,7 @@ const dtsBundle = async (build, compilation, statsProperty) =>
 
     if (!(await existsAsync(dtsFilesOutputDir)))
     {
-        build.addMessage({ code: WpwError.Msg.ERROR_NO_OUTPUT_DIR, compilation, message: "dts bundling failed" });
+        build.addMessage({ code: WpwError.Code.ERROR_NO_OUTPUT_DIR, compilation, message: "dts bundling failed" });
         return;
     }
 
@@ -111,7 +111,7 @@ const dtsBundle = async (build, compilation, statsProperty) =>
     }
     catch (e) {
         build.addMessage({
-            code: WpwError.Msg.ERROR_TYPES_FAILED,
+            code: WpwError.Code.ERROR_TYPES_FAILED,
             compilation,
             error: e,
             message: "types build: failed to create bundle"

@@ -122,7 +122,7 @@ const applySchemaDefaults = (config, schemaKey, ...propertyKeys) =>
         }
         else {
             throw new WpwError({
-                code: WpwError.Msg.ERROR_CONFIG_PROPERTY,
+                code: WpwError.Code.ERROR_CONFIG_PROPERTY,
                 message: "schema error - could not locate specified schema key"
             });
         }
@@ -168,7 +168,7 @@ const getSchema = (key) =>
             // }
         }
         catch (e) {
-            throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema file", error: e });
+            throw WpwError.get({ code: WpwError.Code.ERROR_SCHEMA, message: "failed to read schema file", error: e });
         }
     }
     return /** @type {R} */(schemas[sKey]);
@@ -203,7 +203,7 @@ const getDefinitionSchema = (schemaObj, definitions) =>
                 property = refProperty;
             }
             else {
-                throw WpwError.get({ code: WpwError.Msg.ERROR_SCHEMA, message: "failed to read schema definitions" });
+                throw WpwError.get({ code: WpwError.Code.ERROR_SCHEMA, message: "failed to read schema definitions" });
             }
         }
     }
@@ -249,7 +249,7 @@ const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "")
 const validateSchema = (config, key, logger) =>
 {
     const log = logger || { write: () => {}, withColor: () => "", colors: { italic: [ 0, 0 ] } },
-          code = WpwError.Msg.ERROR_SCHEMA,
+          code = WpwError.Code.ERROR_SCHEMA,
           schemaFile = getSchemaFile(key);
     log.write("validate schema `" + log.withColor(schemaFile, log.colors.italic) + "`", 1);
     try

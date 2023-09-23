@@ -139,7 +139,7 @@ class WpwBaseModule extends WpwBase
             detail,
             wpc: this.wpc,
             capture: this.validateOptions,
-            code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+            code: WpwError.Code.ERROR_RESOURCE_MISSING,
             message: `config validation failed for module ${this.name}: property ${property}`
         });
     }

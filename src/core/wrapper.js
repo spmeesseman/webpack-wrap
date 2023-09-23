@@ -126,7 +126,7 @@ class WpwWrapper extends WpwBase
             if (parentDir === dirPath)
             {
                 throw new WpwError({
-                    code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+                    code: WpwError.Code.ERROR_RESOURCE_MISSING,
                     message: `Could not locate or parse '${basename(file)}', check existence or syntax`
                 });
             }
@@ -396,7 +396,7 @@ class WpwWrapper extends WpwBase
                 delete options[k];
             }
             else {
-                throw new WpwError({ code: WpwError.Msg.ERROR_SCHEMA, message: `invalid build options [${k}]` });
+                throw new WpwError({ code: WpwError.Code.ERROR_SCHEMA, message: `invalid build options [${k}]` });
             }
         });
     }

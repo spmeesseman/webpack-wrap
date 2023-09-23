@@ -125,7 +125,7 @@ async function jsdocLoader(source, map, meta)
     //     jsdoc.renderSync(jsdocOptions);
     // }
     // catch (e) {
-    //     throw new WpwError({ code: WpwError.Msg.ERROR_LOADER, message: "jsdoc loader renderSync failed", error: e });
+    //     throw new WpwError({ code: WpwError.Code.ERROR_LOADER, message: "jsdoc loader renderSync failed", error: e });
     // }
     // finally {
     //     // console = origConsole;

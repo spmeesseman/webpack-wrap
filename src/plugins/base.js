@@ -274,7 +274,7 @@ class WpwPlugin extends WpwBaseModule
 	exec = async (command, program, ignoreOut) =>
     {
         const result = await execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
-        result.errors.forEach(e => this.build.addMessage({ code: WpwError.Msg.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
+        result.errors.forEach(e => this.build.addMessage({ code: WpwError.Code.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
         return result.code;
     };
 
@@ -325,7 +325,7 @@ class WpwPlugin extends WpwBaseModule
 	 */
 	handleError(message, error)
 	{
-        this.build.addMessage({ code: WpwError.Msg.ERROR_GENERAL, message, compilation: this.compilation, error });
+        this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
 	}
 
 

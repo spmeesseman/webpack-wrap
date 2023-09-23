@@ -88,7 +88,7 @@ class WpwPluginWaitManager
             else if (Date.now() - start > options.timeout)
             {
                 reject(new WpwError({
-                    code: WpwError.Msg.ERROR_GENERAL,
+                    code: WpwError.Code.ERROR_GENERAL,
                     message: `wait operation timed out at ${options.timeout} ms`
                 }));
             }

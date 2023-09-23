@@ -51,8 +51,6 @@ interface IWpwMessageMap
     [ key: WpwMessageCode ]: WpwMessageText;
 }
 
-type WpwMessageKey = keyof IWpwMessage;
-
 interface IWpwMessageEnum
 {
     [ key: string ]: WpwMessageCode;
@@ -76,17 +74,10 @@ type WpwMessageInfo = IWpwMessageInfo;
 // type WpwMessageInfo = NoExtraProperties<IWpwMessageInfo>;
 type WpwMessageInfoKey = keyof WpwMessageInfo;
 
-interface IWpwMessage extends WebpackError
-{
-    code: WpwMessageCode;
-    type: WpwMessageType;
-}
-
 
 export {
     IWpwMessageEnum,
     IWpwMessageInfo,
-    IWpwMessage,
     IWpwMessageMap,
     WpwMessageType,
     WpwErrorCodeBuildTypesPrefix,
@@ -100,7 +91,6 @@ export {
     WpwReservedCode,
     WpwMessageCode,
     WpwMessageText,
-    WpwMessageKey,
     WpwMessageInfo,
     WpwMessageInfoKey
 };

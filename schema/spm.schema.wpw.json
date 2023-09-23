@@ -858,6 +858,10 @@
                 },
                 "type": {
                     "$ref": "#/definitions/WpwExportConfigDevToolType"
+                },
+                "syncHash": {
+                    "$ref": "#/definitions/BooleanDefaultTrue",
+                    "description": "replaces the actual sourcemap file content hash in the filename with the corresponding module's content hash"
                 }
             },
             "examples": [{
@@ -1653,7 +1657,7 @@
                     "type": "boolean",
                     "description": "copies resource files in directories named 'res' for webapp type projects; and for private repo projects, copies all resources in a base directory named 'res' to the 'res' directory of a '../*-info' public project, if it exists"
                 },
-                "entriesNoHash": {
+                "entryModuleNoHash": {
                     "type": "boolean",
                     "description": "if entry filenames are hashed, copies the hashed files using a base filename, without the hash.  useful for development debugging / tests"
                 },
@@ -1708,10 +1712,10 @@
                 },
                 {
                     "required": [
-                        "entriesNoHash"
+                        "entryModuleNoHash"
                     ],
                     "properties": {
-                        "entriesNoHash": {
+                        "entryModuleNoHash": {
                             "const": true
                         }
                     }

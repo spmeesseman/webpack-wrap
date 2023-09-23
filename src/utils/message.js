@@ -62,7 +62,7 @@ const getMessage = (info) =>
  */
 const getMessageTag = (code) =>
 {
-    for (const [ k, v ] of Object.entries(WpwMessageEnum)) { if (v === code) { return k; } }
+    for (const [ k, v ] of Object.entries(WpwMessageCode)) { if (v === code) { return k; } }
     return "ERROR_UNKNOWN";
 };
 
@@ -118,19 +118,37 @@ const WpwMessageMap =
     WPW531: "invalid exports configuration",
     WPW532: "invalid plugins configuration",
     //
-    // ERRORS (600 - 699)
+    // GENERAL ERRORS (600 - 609)
     //
     WPW600: "an error has occurred",
+    WPW605: "output directory does not exist",
+    //
+    // SCHEMA ERRORS (610 - 619)
+    //
     WPW610: "general schema error",
     WPW611: "schema validation error",
     WPW615: "typescript module error",
-    WPW605: "build failed - output directory does not exist",
-    WPW630: "abstract function must be overridden",
-    WPW650: "jsdoc build failure",
-    WPW660: "types build failure",
-    WPW680: "loader error",
     //
-    // ERRORS (700 - 799)
+    // CLASS ERRORS (620 - 629)
+    //
+    WPW620: "abstract function must be overridden",
+    //
+    // EXPORTS ERRORS (630 - 649)
+    //
+    WPW630: "exports error",
+    WPW649: "loader error",
+    //
+    // PLUGINS ERRORS (650 - 679)
+    //
+    WPW650: "plugin error",
+    WPW660: "jsdoc plugin error",
+    WPW670: "types plugin error",
+    //
+    // RESERVED ERRORS (680 - 699)
+    //
+    // ERROR_ ..........................................
+    //
+    // CONFIGURATION ERRORS (700 - 719)
     //
     WPW700: "could not locate resource",
     WPW710: "invalid configuration",
@@ -138,18 +156,25 @@ const WpwMessageMap =
     WPW712: "invalid exports configuration",
     WPW713: "invalid plugins configuration",
     //
-    // ERRORS (800 - 899)
+    // RESERVED ERRORS (720 - 799)
     //
-    WPW895: "error due to unknown programmer writing crap code",
-    WPW898: "the current process flow has not yet been implemented",
-    WPW899: "an unknown error has occurred"
+    // ERROR_ ..........................................
+    //
+    // IMPLEMENTATION ERRORS (890 - 894)
+    //
+    WPW890: "error due to unknown programmer writing crap code",
+    WPW891: "the current process flow has not yet been implemented",
+    //
+    // UNKNOWN ERRORS (895 - 899)
+    //
+    WPW895: "an unknown error has occurred"
 };
 
 
 /**
  * @enum {typedefs.WpwMessageCode}
  */
-const WpwMessageEnum =
+const WpwMessageCode =
 {   //
     // INFO (000 - 099)
     //
@@ -175,19 +200,37 @@ const WpwMessageEnum =
     WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW531"),
     WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW532"),
     //
-    // ERROR (600 - 699)
+    // GENERAL ERRORS (600 - 609)
     //
     ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW600"),
+    ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
+    //
+    // SCHEMA ERRORS (610 - 619)
+    //
     ERROR_SCHEMA: /** @type {typedefs.WpwErrorCode} */("WPW610"),
     ERROR_SCHEMA_VALIDATION: /** @type {typedefs.WpwErrorCode} */("WPW611"),
     ERROR_TYPESCRIPT: /** @type {typedefs.WpwErrorCode} */("WPW615"),
-    ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW630"),
-    ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
-    ERROR_JSDOC_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW650"),
-    ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
-    ERROR_LOADER: /** @type {typedefs.WpwErrorCode} */("WPW680"),
     //
-    // ERROR (700 - 799)
+    // CLASS ERRORS (620 - 629)
+    //
+    ERROR_ABSTRACT_FUNCTION: /** @type {typedefs.WpwErrorCode} */("WPW620"),
+    //
+    // EXPORTS ERROR (630 - 649)
+    //
+    ERROR_EXPORT_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW630"),
+    ERROR_LOADER: /** @type {typedefs.WpwErrorCode} */("WPW649"),
+    //
+    // PLUGINS ERROR (650 - 679)
+    //
+    ERROR_PLUGIN_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW650"),
+    ERROR_JSDOC_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
+    ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW670"),
+    //
+    // RESERVED ERRORS (680 - 699)
+    //
+    // ERROR_ ..........................................
+    //
+    // CONFIGURATION ERRORS (700 - 719)
     //
     ERROR_RESOURCE_MISSING: /** @type {typedefs.WpwErrorCode} */("WPW700"),
     ERROR_CONFIG_INVALID: /** @type {typedefs.WpwErrorCode} */("WPW710"),
@@ -195,20 +238,29 @@ const WpwMessageEnum =
     ERROR_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwErrorCode} */("WPW712"),
     ERROR_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwErrorCode} */("WPW713"),
     //
-    // ERROR (800 - 899)
+    // RESERVED ERRORS (720 - 799)
     //
-    ERROR_SHITTY_PROGRAMMER: /** @type {typedefs.WpwErrorCode} */("WPW895"),
-    ERROR_NOT_IMPLEMENTED: /** @type {typedefs.WpwErrorCode} */("WPW898"),
-    ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW899")
+    // ERROR_ ..........................................
+    //
+    // IMPLEMENTATION ERRORS (890 - 894)
+    //
+    ERROR_SHITTY_PROGRAMMER: /** @type {typedefs.WpwErrorCode} */("WPW890"),
+    ERROR_NOT_IMPLEMENTED: /** @type {typedefs.WpwErrorCode} */("WPW891"),
+    //
+    // UNKNOWN ERRORS (895 - 899)
+    //
+    ERROR_UNKNOWN: /** @type {typedefs.WpwErrorCode} */("WPW895")
 };
 
 
 /**
  * @extends {WebpackError}
- * @implements {typedefs.IWpwMessage}
  */
 class WpwMessage extends WebpackError
 {
+    /** @readonly */
+    static Code = WpwMessageCode;
+
     /** @type {typedefs.WpwMessageCode} */
     code;
     /** @type {typedefs.WpwMessageType} */
@@ -221,16 +273,13 @@ class WpwMessage extends WebpackError
     constructor(info)
     {
         super(getMessage(info));
-		this.name = "WpwError";
         this.code = info.code;
+		this.name = "WpwMessage";
         this.type = isErrorCode(info.code) ? "error" : isWarningCode(info.code) ? "warning": "info";
         // Object.setPrototypeOf(this, new.target.prototype);
         WpwError.captureStackTrace(this, info.capture || this.constructor);
         this.setDetails(info);
     }
-
-
-    static get Msg() { return WpwMessageEnum; }
 
 
 	[inspect]() { return this.stack + (this.details ? `\n${this.details}` : ""); }
@@ -365,7 +414,7 @@ class WpwAbstractFunctionError extends WpwError
      */
     constructor(fnName, capture, wpc, detail)
     {
-        super({ code: WpwMessageEnum.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture });
+        super({ code: WpwMessageCode.ERROR_ABSTRACT_FUNCTION, wpc, message: `[${fnName}] ` + (detail || ""), capture });
 		this.name = "WpwAbstractFunctionError";
     }
 }

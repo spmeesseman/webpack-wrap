@@ -207,7 +207,7 @@ class WpwRulesExport extends WpwWebpackExport
 			// }
 		}
 		else {
-			this.build.addMessage({ code: WpwError.Msg.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${build.type}]` });
+			this.build.addMessage({ code: WpwError.Code.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${build.type}]` });
 		}
 		build.logger.success("   create rules", 2);
 	}
@@ -249,7 +249,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 		if (!build.wpc.entry[build.name]) {
 			build.addMessage({
-				code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+				code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
 				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
 			});
 			return;
@@ -428,7 +428,7 @@ class WpwRulesExport extends WpwWebpackExport
 
 		if (!build.wpc.entry[build.name]) {
 			build.addMessage({
-				code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+				code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
 				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
 			});
 			return;

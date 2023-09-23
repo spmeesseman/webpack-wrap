@@ -95,7 +95,7 @@ const externals = (build) =>
 				}
 				else
 				{   build.addMessage({
-						code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+						code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
 						message: "invalid value for externals.modules, must be a string array"
 					});
 				}
@@ -110,7 +110,7 @@ const externals = (build) =>
 				}
 				else
 				{   build.addMessage({
-						code: WpwError.Msg.ERROR_CONFIG_INVALID_EXPORTS,
+						code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
 						message: "invalid value for externals.raw, must be an object"
 					});
 				}

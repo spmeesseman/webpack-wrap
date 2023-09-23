@@ -34,7 +34,7 @@ const circular = (build) =>
             failOnError: isObject(buildOptionsCircular) ? !!buildOptionsCircular.fail : false,
             onDetected: ({ module: _webpackModuleRecord, paths, compilation }) =>
             {
-                build.addMessage({ code: WpwError.Msg.WARNING_CIRCULAR, compilation, message: paths.join(" -> ") });
+                build.addMessage({ code: WpwError.Code.WARNING_CIRCULAR, compilation, message: paths.join(" -> ") });
             }
         });
     }

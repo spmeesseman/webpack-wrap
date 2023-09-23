@@ -64,7 +64,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 	{
 		if (!configFile || !configFile.path) {
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "invalid source code configured path"
 			});
@@ -87,7 +87,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 		if (result !== 0)
 		{
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "tsc returned error code " + result
 			});
@@ -101,7 +101,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 		}
 		catch (e) {
 			this.build.addMessage({
-				code: WpwError.Msg.ERROR_TYPES_FAILED,
+				code: WpwError.Code.ERROR_TYPES_FAILED,
 				compilation: this.compilation,
 				message: "output directory does not exist"
 			});
@@ -119,7 +119,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 			if (result !== 0)
 			{
 				this.build.addMessage({
-					code: WpwError.Msg.ERROR_TYPES_FAILED,
+					code: WpwError.Code.ERROR_TYPES_FAILED,
 					compilation: this.compilation,
 					message: "typescript path aliasing failed, returned exit code " + result
 				});
@@ -276,7 +276,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 		if (!this.build.source.config || !this.build.source.configFile.path)
 		{
 			const eMsg = "Could not locate tsconfig file for tests suite - must be **/tests?/tsconfig.* or **/tsconfig.tests?.json";
-			this.build.addMessage({ code: WpwError.Msg.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
+			this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, compilation: this.compilation, message: eMsg });
 			this.logger.warning("consider possible solutions:");
 			this.logger.warning("   (1) rename test suite config file according to convention");
 			this.logger.warning("   (2) disable testsuite plugin in italic(.wsbuildrc.plugins.testsuite)");

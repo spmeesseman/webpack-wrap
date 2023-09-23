@@ -201,7 +201,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         if (code !== 0)
         {
             build.addMessage({
-                code: WpwError.Msg.ERROR_JSDOC_FAILED,
+                code: WpwError.Code.ERROR_JSDOC_FAILED,
                 compilation: this.compilation ,
                 message: "jsdoc build failed - jsdoc command exited with error code " + code
             });
@@ -214,7 +214,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         if (!(await existsAsync(outDir)))
         {
             build.addMessage({
-                code: WpwError.Msg.ERROR_NO_OUTPUT_DIR,
+                code: WpwError.Code.ERROR_NO_OUTPUT_DIR,
                 compilation: this.compilation ,
                 message: "jsdoc build failed - output directory doesn't exist"
             });
@@ -253,7 +253,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             // {   this.build.addMessage({
             //         error: e,
             //         compilation: this.compilation ,
-            //         code: WpwError.Msg.ERROR_JSDOC_FAILED,
+            //         code: WpwError.Code.ERROR_JSDOC_FAILED,
             //         message: "jsdoc build failed - failed while checking cache"
             //     });
             //     return;

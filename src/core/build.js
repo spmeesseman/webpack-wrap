@@ -155,7 +155,7 @@ class WpwBuild extends WpwBase
         }
 
         messages.forEach((m) => {
-            this.addMessage({ code: WpwError.Msg.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
+            this.addMessage({ code: WpwError.Code.INFO_AUTO_ENABLED_OPTION, message: optionMessage(m) });
         });
     }
 
@@ -415,7 +415,7 @@ class WpwBuild extends WpwBase
         const _get = (/** @type {string} */ p) => new WpwError({
             wpc: this.wpc,
             capture: this.validateConfig,
-            code: WpwError.Msg.ERROR_RESOURCE_MISSING,
+            code: WpwError.Code.ERROR_RESOURCE_MISSING,
             message: `config validation failed for build ${this.name}: property ${p}`
         });
         if (!config.name) { throw _get("config.name"); }

@@ -113,7 +113,7 @@ class WpwSource
               ts = WpwSource.typescript = /** @type {typedefs.TypeScript} */(WpwSource.typescript || require(require.resolve("typescript")));
 
         if (!ts) {
-            throw WpwError.get({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
+            throw WpwError.get({ code: WpwError.Code.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
         }
 
         const specOptions = merge({}, this.config.compilerOptions, compilerOptions);
@@ -139,7 +139,7 @@ class WpwSource
             const parseConfigFileHost = this.createConfigHost(host, host),
                   parsedCmdLine = ts.getParsedCommandLineOfConfigFile(configFilePath, options, parseConfigFileHost);
             if (!parsedCmdLine) {
-                throw new WpwError({ code: WpwError.Msg.ERROR_TYPESCRIPT, message: "could not set rootNames" });
+                throw new WpwError({ code: WpwError.Code.ERROR_TYPESCRIPT, message: "could not set rootNames" });
             }
             rootNames = parsedCmdLine.fileNames;
         }
