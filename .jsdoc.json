@@ -1,10 +1,9 @@
 {
-    "plugins": [],
     "mode": "typescript",
     "recurseDepth": 10,
     "markdown": {
-      "parser": "gfm",
-      "hardwrap": true
+        "hardwrap": false,
+        "idInHeadings": true
     },
     "menu":{
       "Webpack-Wrap Documentation": {
@@ -15,11 +14,17 @@
       }
     },
     "opts": {
-      "template": "node_modules/docdash",
       "encoding": "utf8",
       "destination": "./dist/doc/api",
-      "recurse": true
+      "recurse": true,
+      "template": "node_modules/clean-jsdoc-theme",
+      "theme_opts": {
+          "default_theme": "dark"
+      }
     },
+    "plugins": [
+        "plugins/markdown"
+    ],
     "source": {
         "include": [
             "src"
@@ -84,21 +89,27 @@
         "search": true,
         "collapse": true,
         "wrap": true,
-        "typedefs":true,
+        "typedefs": true,
         "navLevel": 3,
         "private": false,
-        "removeQuotes":"trim",
+        "removeQuotes": "trim",
         "scripts": [],
         "menu": {
-            "Admin": {
-            "href":"https://zababurinsv.github.io/admin/",
-            "target":"_blank",
-            "class":"menu-item",
-            "id":"website_link"
+            "Donate": {
+                "href":"https://github.com/spmeesseman/webpack-wrap",
+                "target":"_blank",
+                "class":"menu-item",
+                "id":"website_link"
+            },
+            "Repository": {
+                "href":"https://github.com/spmeesseman/webpack-wrap",
+                "target":"_blank",
+                "class":"menu-item",
+                "id":"website_link"
             }
         },
-        "scopeInOutputPath": true,
-        "nameInOutputPath": true,
-        "versionInOutputPath": true
+        "scopeInOutputPath": false,
+        "nameInOutputPath": false,
+        "versionInOutputPath": false
     }
 }

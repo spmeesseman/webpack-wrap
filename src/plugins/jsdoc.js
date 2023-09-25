@@ -211,7 +211,9 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
                   //
                   // the "--package" options creates 3 more dir levela deep for output path
                   // e.g. [diat]/@spmeesseman/webpack-wrap/0.0.1/....  remove from output emit path
+                  // Update 9/25/23 - the above explanation code REMOVED (can be controlled in jsdoc.json config file)
                   //
+                  // filePathRel = relative(outDir, filePath), // .replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
                   filePathRel = relative(outDir, filePath).replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
                   source = new this.compiler.webpack.sources.RawSource(data);
             //    result = await this.checkSnapshot(filePath, "__", outDir); // , data),
