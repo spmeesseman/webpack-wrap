@@ -3,7 +3,7 @@
 // @ts-check
 
 /**
- * @file src/plugin/types.js
+ * @file src/plugins/types.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -42,7 +42,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwTypesPlugin | undefined}
      */
-	static create = (build) => WpwTypesPlugin.wrap(WpwTypesPlugin, build, "types", undefined, [[ "mode", "plugin" ]]);
+	static create = (build) => WpwTypesPlugin.wrap(WpwTypesPlugin, build, "types", [[ "mode", "plugin" ]]);
 
 
 	/**
@@ -92,7 +92,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		}
 		else if (method === "tsc")
 		{
-			rc = await this.execTsBuild(source.configFile, this.compilerOptionsToArgs(options), this.buildPathTemp);
+			rc = await this.execTsBuild(source.configFile, this.optionsToArgs(options), this.buildPathTemp);
 		}
 		else
 		{   build.addMessage({
@@ -188,16 +188,6 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 
 		return programOptions;
 	};
-
-
-	/**
-	 * @param {typedefs.WpwSourceConfigCompilerOptions} options
-	 * @returns {string[]}
-	 */
-	compilerOptionsToArgs(options)
-	{
-		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
-	}
 
 
 	/**

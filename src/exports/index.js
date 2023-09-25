@@ -53,7 +53,6 @@ const webpackDefaultExports = (build) =>
 /**
  * @param {typedefs.WpwBuild} build
  * @returns {typedefs.WpwWebpackConfig}
- * @throws
  */
 const webpackExports = (build) =>
 {

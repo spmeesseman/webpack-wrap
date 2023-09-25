@@ -107,7 +107,7 @@ class WpwBuild extends WpwBase
     wpc;
     /**
      * @private
-     * @type {typedefs.WpwWrapper}}
+     * @type {typedefs.WpwWrapper}
      */
     wrapper;
 
@@ -132,8 +132,12 @@ class WpwBuild extends WpwBase
 
     get buildCount() { return this.wrapper.buildCount; }
     get cmdLine() { return this.wrapper.args; }
+    get hasError() { return this.errors.length > 0; }
+    get hasErrorOrWarning() { return this.hasError || this.hasWarning; }
+    get hasWarning() { return this.warnings.length > 0; }
     get isOnlyBuild() { return this.wrapper.isSingleBuild; }
     get pkgJson() { return this.wrapper.pkgJson; }
+    get pkgJsonFilePath() { return this.wrapper.pkgJsonFilePath; }
 
 
 	/**

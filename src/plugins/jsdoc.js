@@ -2,7 +2,7 @@
 // @ts-check
 
 /**
- * @file plugin/types.js
+ * @file src/plugins/jsdoc.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -13,9 +13,10 @@ const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { join, posix, relative } = require("path");
-const { relativePath, existsAsync, findFiles } = require("../utils");
+const { join, posix, relative, resolve, extname } = require("path");
+const { relativePath, existsAsync, findFiles, findExPath } = require("../utils");
 const { isBoolean, pick, isObject, apply, asArray, isPrimitive } = require("@spmeesseman/type-utils");
+const { existsSync } = require("fs");
 
 
 /**
@@ -28,61 +29,72 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
      */
 	constructor(options)
 	{
-		super(apply({ taskHandler: "generateJsDocs" }, options));
+		super(apply({ taskHandler: "buildJsDocs" }, options));
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"jsdoc">} */(this.buildOptions); // reset for typings
 	}
 
 
 	/**
-	 * @param {typedefs.WebpackCompilationAssets} compilationAssets
+     * @override
+     * @param {typedefs.WpwBuild} build
+	 * @returns {WpwJsDocPlugin | undefined}
+     */
+	static create = (build) => WpwJsDocPlugin.wrap(this, build, "jsdoc", [[ "mode", "plugin" ], this.validateJsDocInstalled ]);
+
+
+	/**
+	 * @param {typedefs.WebpackCompilationAssets} assets
 	 * @returns {Promise<void>}
 	 */
-	async generateJsDocs(compilationAssets)
+	async buildJsDocs(assets)
 	{
-        const // webpack = this.compiler.webpack,
-              compilation = this.compilation,
-              assets = [],
-              entryNames = asArray(compilation.entrypoints.keys()),
-              // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
-              // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
-              logger = this.build.logger,
+        const build = this.build,
+              logger = build.logger,
               options = this.buildOptions,
-              currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)),
-              outDir = isBoolean(options) ? join(this.build.paths.dist, "doc") :
-                                            this.buildOptions.destination ||
-                                            join(this.build.paths.dist, "doc") ;
+              outDir = this.buildPathTemp,
+              baseDir = build.getBasePath(),
+              ctxDir =  build.getContextPath(),
+              srcDir =  build.getSrcPath(),
+              pathOptions = { psx: true, stat: true };
+
+        const _addPathOption = (/** @type {string} */ option) =>
+        {
+            if (options[option])
+            {
+                const rPath = relativePath(baseDir, options[option], { psx: true, stat: true }) ;
+                if (rPath) {
+                    jsdocOptions.push(`--${option}`, `"${rPath}"`);
+                }
+                else {
+                    build.addMessage({
+                        code: WpwError.Code.ERROR_RESOURCE_MISSING,
+                        message: `could not locate the jsdoc options path '${option}'`,
+                        compilation: this.compilation
+                    });
+                }
+            }
+        };
 
 		logger.write("create jsdoc documentation", 1);
+		logger.value("   base directory", baseDir, 1);
+		logger.value("   context directory", ctxDir, 1);
+		logger.value("   input directory", srcDir, 1);
 		logger.value("   output directory", outDir, 1);
-        logger.value("   # of current entry assets processed", currentAssets.length, 2);
 		this.printCompilationDependencies();
-
-        if (!compilation.entrypoints) {
-            return;
-        }
 
         const jsdocOptions = [ "--destination", `"${outDir}"` ];
 
-        if (isObject(options) && !isBoolean(options))
+        if (isObject(options))
         {
-            if (options.readme) {
-                jsdocOptions.push("--readme", `"${posix.normalize(relativePath(outDir, options.readme))}"`);
+            _addPathOption("configure");
+            _addPathOption("package");
+            _addPathOption("readme");
+            _addPathOption("template");
+            _addPathOption("tutorials");
+            if (build.hasError) {
+                return;
             }
-            if (options.package) {
-                jsdocOptions.push("--package", `"${posix.normalize(relativePath(outDir, options.package))}"`);
-            }
-            if (options.configure) {
-                jsdocOptions.push("--configure", `"${posix.normalize(relativePath(outDir, options.configure))}"`);
-            }
-            if (options.template) {
-                jsdocOptions.push("--template", `"${posix.normalize(relativePath(outDir, options.template))}"`);
-            }
-            if (options.tutorials) {
-                jsdocOptions.push("--tutorials", `"${posix.normalize(relativePath(outDir, options.tutorials))}"`);
-            }
-            if (options.tutorials) {
-                jsdocOptions.push("--tutorials", `"${posix.normalize(relativePath(outDir, options.tutorials))}"`);
-            }
+            jsdocOptions.push("--recurse");
             const nonPathOpts = pick(options, "debug", "encoding", "private", "verbose");
             Object.entries(nonPathOpts).filter(([ _, v ]) => isPrimitive(v) && v !== false).forEach(([ k, v ]) =>
             {
@@ -90,128 +102,82 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             });
         }
 
-        if (!(await existsAsync(outDir)))
+        if (!jsdocOptions.includes("--package")) {
+            jsdocOptions.push("--package", `"${relativePath(baseDir, build.pkgJsonFilePath, pathOptions)}"`);
+        }
+
+        if (!jsdocOptions.includes("--readme"))
         {
-            await this.buildJsDoc(jsdocOptions, compilationAssets);
-            return;
+            const path = await findExPath([
+                join(ctxDir, "readme.txt"),
+                join(ctxDir, "readme.md"),
+                join(ctxDir, "readme"),
+                join(baseDir, "readme.txt"),
+                join(baseDir, ".readme.md"),
+                join(baseDir, "readme")
+            ]);
+            if (path) {
+                jsdocOptions.push("--readme", `"${relativePath(baseDir, path, pathOptions)}"`);
+            }
+        }
+
+        if (!jsdocOptions.includes("--configure"))
+        {
+            const path = await findExPath([
+                join(ctxDir, ".jsdoc.json"),
+                join(ctxDir, "jsdoc.json"),
+                join(baseDir, ".jsdoc.json"),
+                join(baseDir, "jsdoc.json"),
+                join(srcDir, ".jsdoc.json"),
+                join(srcDir, "jsdoc.json")
+            ]);
+            if (path) {
+                jsdocOptions.push("--configure", `"${relativePath(baseDir, path, pathOptions)}"`);
+            }
+        }
+
+        if (jsdocOptions.length <= 2) // execute only if we found more options than '--destination',
+        {                             // otherwise enter error state
+            build.addMessage({
+                code: WpwError.Code.ERROR_JSDOC_FAILED,
+                message: "unable to create jsdoc execution options (0 options found)",
+                compilation: this.compilation
+            });
+        }
+        else {
+            await this.executeJsDoc(jsdocOptions, assets);
         }
     }
-//
-//         const templateResult = options.templateContent ? { mainCompilationHash: compilation.hash } :
-//                                childCompilerPlugin.getCompilationEntryResult(options.template);
-//
-//         if ('error' in templateResult) {
-//             compilation.errors.push(prettyError(templateResult.error, compiler.context).toString());
-//         }
-//
-//         // If the child compilation was not executed during a previous main compile run
-//         // it is a cached result
-//         const isCompilationCached = templateResult.mainCompilationHash !== compilation.hash;
-//
-//         /** The public path used inside the html file */
-//         const htmlPublicPath = getPublicPath(compilation, options.filename, options.publicPath);
-//         const compilationHash = compilation.hash;
-//         const entryPointPublicPathMap = {};
-//         const extensionRegexp = /\.(css|js|mjs)(\?|$)/;
-//         for (let i = 0; i < entryNames.length; i++)
-//         {
-//           const entryName = entryNames[i];
-//             /** entryPointUnfilteredFiles - also includes hot module update files */
-//             const entryPointUnfilteredFiles = compilation.entrypoints.get(entryName)?.getFiles();
-//
-//             const entryPointFiles = entryPointUnfilteredFiles?.filter((chunkFile) => {
-//                 const asset = compilation.getAsset(chunkFile);
-//                 if (!asset) {
-//                     return true;
-//                 }
-//                 // Prevent hot-module files from being included:
-//                 const assetMetaInformation = asset.info || {};
-//                 return !(assetMetaInformation.hotModuleReplacement || assetMetaInformation.development);
-//             });
-//
-//             // Prepend the publicPath and append the hash depending on the
-//             // webpack.output.publicPath and hashOptions
-//             // E.g. bundle.js -> /bundle.js?hash
-//             const entryPointPublicPaths = entryPointFiles?.map(chunkFile =>
-//             {
-//                 const entryPointPublicPath = publicPath + urlencodePath(chunkFile);
-//                 return options.hash
-//                     ? appendHash(entryPointPublicPath, compilationHash)
-//                     : entryPointPublicPath;
-//             });
-//
-//             entryPointPublicPaths?.forEach((entryPointPublicPath) => {
-//                 const extMatch = extensionRegexp.exec(entryPointPublicPath);
-//                 // Skip if the public path is not a .css, .mjs or .js file
-//                 if (!extMatch) {
-//                 return;
-//                 }
-//                 // Skip if this file is already known
-//                 // (e.g. because of common chunk optimizations)
-//                 if (entryPointPublicPathMap[entryPointPublicPath]) {
-//                 return;
-//                 }
-//                 entryPointPublicPathMap[entryPointPublicPath] = true;
-//                 assets.push(entryPointPublicPath);
-//             });
-//         }
-//
-//         const newAssetJson = JSON.stringify(assets);
-//         if (isCompilationCached && options.cache && assetJson === newAssetJson)
-//         {
-//                 previousEmittedAssets.forEach(({ name, html }) => {
-//                 compilation.emitAsset(name, new webpack.sources.RawSource(html, false));
-//             });
-//             return;
-//         }
-//         else {
-//             previousEmittedAssets = [];
-//             assetJson = newAssetJson;
-//         }
-//
-//         const filename = options.filename.replace(/\[templatehash([^\]]*)\]/g, require('util').deprecate(
-//         (match, options) => `[contenthash${options}]`,
-//         '[templatehash] is now [contenthash]')
-//         );
-//         const replacedFilename = replacePlaceholdersInFilename(filename, html, compilation);
-//         // Add the evaluated html code to the webpack assets
-//         compilation.emitAsset(replacedFilename.path, new webpack.sources.RawSource(html, false), replacedFilename.info);
-//         previousEmittedAssets.push({ name: replacedFilename.path, html });
-//         return replacedFilename.path;
-//
-// 		logger.write(`   finished execution of jsdoc build @ italic(${relative(this.build.paths.base, outDir)})`, 3);
-// 	};
-//
-//
+
+
     /**
      * @param {string[]} jsdocParams
-	 * @param {typedefs.WebpackCompilationAssets} compilationAssets
+	 * @param {typedefs.WebpackCompilationAssets} _assets
 	 * @returns {Promise<void>}
 	 */
-    async buildJsDoc(jsdocParams, compilationAssets)
+    async executeJsDoc(jsdocParams, _assets)
     {
+        let numFilesProcessed = 0;
         const build = this.build,
-              // webpack = this.compiler.webpack,
-              // compilation = this.compilation,
-              // assets = [],
-              // entryNames = Array.from(compilation.entrypoints.keys()),
-              // filteredEntryNames = filterChunks(entryNames, options.chunks, options.excludeChunks),
-              // sortedEntryNames = sortEntryChunks(filteredEntryNames, options.chunksSortMode, compilation),
-              // identifier = this.name,
               logger = build.logger,
-              srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true }),
-              // distDir = this.buildOptions.destination || join(build.getDistPath()),
-              outDir = this.buildPathTemp;
+              outDir = this.buildPathTemp,
+              // persistedCache = this.cache.get(),
+              srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true });
 
-        const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} --recurse "${srcDir}"`, "jsdoc");
+        logger.write("   execute jsdoc", 2);
+        logger.value("      cmd line", jsdocParams, 3);
+
+        //
+        // Execute jsdoc module
+        //
+        const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} "${srcDir}"`, "jsdoc");
         if (code !== 0)
         {
-            build.addMessage({
+            return build.addMessage({
                 code: WpwError.Code.ERROR_JSDOC_FAILED,
                 compilation: this.compilation ,
                 message: "jsdoc command exited with error code " + code
             });
-            return;
         }
 
         //
@@ -219,83 +185,43 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         //
         if (!(await existsAsync(outDir)))
         {
-            build.addMessage({
-                code: WpwError.Code.ERROR_NO_OUTPUT_DIR,
-                compilation: this.compilation ,
-                message: "jsdoc build failed - output directory doesn't exist"
+            return build.addMessage({
+                code: WpwError.Code.ERROR_JSDOC_FAILED,
+                compilation: this.compilation,
+                message: "jsdoc build failed - output directory doesn't exist",
+                detail: `configured output directory: ${outDir}`
             });
-            return;
         }
 
 		//
 		// Process output files
 		//
-        // const persistedCache = this.cache.get();
-		const files = await findFiles("**/*.{html,css,js}", { cwd: outDir, absolute: true });
+        logger.write("   process jsdoc output files", 2);
+		const files = await findFiles("**/*.*", { cwd: outDir, absolute: true });
 		for (const filePath of files)
 		{
             const data = await readFile(filePath),
                   filePathRel = relative(outDir, filePath),
                   source = new this.compiler.webpack.sources.RawSource(data);
+            //    result = await this.checkSnapshot(filePath, "__", outDir); // , data),
+            //    data = result.source?.buffer() || await readFile(filePath),
+            //    newHash = this.getContentHash(data);
 
-            const info = /** @type {typedefs.WebpackAssetInfo} */({
-                // contenthash: this.getContentHash(data),
-                immutable: false, // newHash === persistedCache[filePathRel],
-                javascriptModule: false,
-                jsdoc: true
-            });
-            logger.value("      emit asset", filePathRel, 3);
-            this.compilation.emitAsset(filePathRel, source, info);
-
-			// let /** @type {typedefs.WebpackSource | undefined} */source, hash, cacheEntry;
-			// const filePathRel = relative(outDir, filePath);
-
-            // logger.value("   process jsdoc output files", filePathRel, 3);
-            // logger.write("      check compilation cache for snapshot", 4);
-            // try {
-            //     cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-            // }
-            // catch (e)
-            // {   this.build.addMessage({
-            //         error: e,
-            //         compilation: this.compilation ,
-            //         code: WpwError.Code.ERROR_JSDOC_FAILED,
-            //         message: "jsdoc build failed - failed while checking cache"
-            //     });
-            //     return;
-            // }
-            // const result = await this.checkSnapshot(filePath, "__", outDir); // , data);
-            // const data = result.source?.buffer() || await readFile(filePath);
-            // const newHash = this.getContentHash(data);
-            // if (newHash === persistedCache[filePathRel])
-            // {
-            //     logger.write("      asset is unchanged", 4);
+            // if (newHash === persistedCache[filePathRel]) {
+            //     logger.value("      asset unchanged", filePathRel, 4);
             // }
             // else {
-            //     logger.write("      asset has changed, update hash in persistent cache", 4);
+            //     logger.value("      asset changed", filePathRel, 4);
             //     persistedCache[filePathRel] = newHash;
             //     this.cache.set(persistedCache);
             // }
-            // const info = /** @type {typedefs.WebpackAssetInfo} */({
-            //     // contenthash: newHash,
-            //     immutable: true, // newHash === persistedCache[filePathRel],
-            //     javascriptModule: false,
-            //     jsdoc: true
-            // });
-            // this.compilation.buildDependencies.add(filePathRel);
-            // this.compilation.buildDependencies.add(filePath);
-		    // this.compilation.compilationDependencies.add();
-		    // this.compilation.contextDependencies.add();
 
-            // this.compilation.fileDependencies.add(filePath);
-
-            // assets[filePathRel] = source;
-
-            // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
-
-            // this.compilation.emitAsset(filePathRel, source, info);
-
-            // this.compilation.additionalChunkAssets.push(filePathRel);
+            const info = /** @type {typedefs.WebpackAssetInfo} */({
+                // contenthash: newHash,
+                immutable: false, // true // newHash === persistedCache[filePathRel],
+                javascriptModule: false,
+                jsdoc: true
+            });
 
             // const existingAsset = this.compilation.getAsset(filePathRel);
             // if (!existingAsset)
@@ -305,32 +231,125 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             // }
             // else {
             //     logger.write("      asset compared for emit", 3);
-            //     // this.compilation.buildDependencies.add(filePath);
-            //     // this.compilation.comparedForEmitAssets.add(filePath);
-            //     // this.compilation.compilationDependencies.add(filePath);
             //     this.compilation.comparedForEmitAssets.add(filePath);
             //     // this.compilation.updateAsset(filePathRel, source, info);
             // }
+
+            const sourceFile = filePathRel.replace(extname(filePath), build.source.dotext);
+            if (await existsAsync(sourceFile))
+            {
+                this.compilation.fileDependencies.add(sourceFile);
+                info.sourceFilename = relativePath(outDir, sourceFile, { psx: true });
+            }
+
+            logger.value("      emit asset", filePathRel, 3);
+            this.compilation.emitAsset(filePathRel, source, info);
+            ++numFilesProcessed;
 		}
-    };
+        logger.write(`   processed ${numFilesProcessed} jsdoc output files`, 2);
+    }
 
-
-    validateJsDocInstalled = () =>
+    /*
+    async getSnapshot()
     {
-        return true;
-    };
+        const assets = [],
+              compiler = this.compiler,
+              compilation = this.compilation,
+              templateResult = options.templateContent ? { mainCompilationHash: compilation.hash } :
+                               childCompilerPlugin.getCompilationEntryResult(options.template);
+
+        if ('error' in templateResult) {
+            compilation.errors.push(prettyError(templateResult.error, compiler.context).toString());
+        }
+
+        // If the child compilation was not executed during a previous main compile run
+        // it is a cached result
+        const isCompilationCached = templateResult.mainCompilationHash !== compilation.hash;
+
+        // The public path used inside the html file
+        const htmlPublicPath = getPublicPath(compilation, options.filename, options.publicPath);
+        const compilationHash = compilation.hash;
+        const entryPointPublicPathMap = {};
+        const extensionRegexp = /\.(css|js|mjs)(\?|$)/;
+        for (let i = 0; i < entryNames.length; i++)
+        {
+          const entryName = entryNames[i];
+            // entryPointUnfilteredFiles - also includes hot module update files
+            const entryPointUnfilteredFiles = compilation.entrypoints.get(entryName)?.getFiles();
+
+            const entryPointFiles = entryPointUnfilteredFiles?.filter((chunkFile) => {
+                const asset = compilation.getAsset(chunkFile);
+                if (!asset) {
+                    return true;
+                }
+                // Prevent hot-module files from being included:
+                const assetMetaInformation = asset.info || {};
+                return !(assetMetaInformation.hotModuleReplacement || assetMetaInformation.development);
+            });
+
+            // Prepend the publicPath and append the hash depending on the
+            // webpack.output.publicPath and hashOptions
+            // E.g. bundle.js -> /bundle.js?hash
+            const entryPointPublicPaths = entryPointFiles?.map(chunkFile =>
+            {
+                const entryPointPublicPath = publicPath + urlencodePath(chunkFile);
+                return options.hash
+                    ? appendHash(entryPointPublicPath, compilationHash)
+                    : entryPointPublicPath;
+            });
+
+            entryPointPublicPaths?.forEach((entryPointPublicPath) => {
+                const extMatch = extensionRegexp.exec(entryPointPublicPath);
+                // Skip if the public path is not a .css, .mjs or .js file
+                if (!extMatch) {
+                return;
+                }
+                // Skip if this file is already known
+                // (e.g. because of common chunk optimizations)
+                if (entryPointPublicPathMap[entryPointPublicPath]) {
+                return;
+                }
+                entryPointPublicPathMap[entryPointPublicPath] = true;
+                assets.push(entryPointPublicPath);
+            });
+        }
+
+        const newAssetJson = JSON.stringify(assets);
+        if (isCompilationCached && options.cache && assetJson === newAssetJson)
+        {
+                previousEmittedAssets.forEach(({ name, html }) => {
+                compilation.emitAsset(name, new webpack.sources.RawSource(html, false));
+            });
+            return;
+        }
+        else {
+            previousEmittedAssets = [];
+            assetJson = newAssetJson;
+        }
+
+        const filename = options.filename.replace(/\[templatehash([^\]]*)\]/g, require('util').deprecate(
+        (match, options) => `[contenthash${options}]`,
+        '[templatehash] is now [contenthash]')
+        );
+        const replacedFilename = replacePlaceholdersInFilename(filename, html, compilation);
+        // Add the evaluated html code to the webpack assets
+        compilation.emitAsset(replacedFilename.path, new webpack.sources.RawSource(html, false), replacedFilename.info);
+        previousEmittedAssets.push({ name: replacedFilename.path, html });
+        return replacedFilename.path;
+
+		logger.write(`   finished execution of jsdoc build @ italic(${relative(this.build.paths.base, outDir)})`, 3);
+ 	}
+    */
+
+
+    /**
+     * @private
+     * @param {typedefs.WpwBuild} build
+     * @returns {boolean}
+     */
+    static validateJsDocInstalled = (build) => existsSync(resolve(build.getBasePath(), "node_modules/jsdoc"));
 
 }
 
 
-/**
- * @param { typedefs.WpwBuild} build The current build's rc wrapper @see {@link typedefs.WpwBuild WpwBuild}
- * @returns {WpwJsDocPlugin | undefined}
- */
-const jsdoc = (build) =>
-    build.options.jsdoc &&
-    build.options.jsdoc.enabled !== false &&
-    build.options.jsdoc.mode === "plugin" ? new WpwJsDocPlugin({ build }) : undefined;
-
-
-module.exports = jsdoc;
+module.exports = WpwJsDocPlugin.create;

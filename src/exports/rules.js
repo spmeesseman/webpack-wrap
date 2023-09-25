@@ -48,7 +48,7 @@ class WpwRulesExport extends WpwWebpackExport
 	 * @private
 	 * @param {string | RegExp} test
 	 * @param {string} includePath
-	 * @param {[string | RegExp, string ][]} searchReplaceArr
+	 * @param {typedefs.WpwReplacePair[]} searchReplaceArr
 	 */
 	addVendorReplaceRule(test, includePath, searchReplaceArr)
 	{

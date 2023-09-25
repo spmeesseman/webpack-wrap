@@ -10,15 +10,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const typedefs = require("../../types/typedefs");
 const VisualizerPlugin = require("webpack-visualizer-plugin2");
-
-/** @typedef {import("../../types/typedefs").WpwBuild} WpwBuild */
-/** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
 
 
 /**
- * @param {WpwBuild} build
- * @returns {WebpackPluginInstance | undefined}
+ * @param {typedefs.WpwBuild} build
+ * @returns {typedefs.WebpackPluginInstance | undefined}
  */
 const visualizer = (build) =>
 {

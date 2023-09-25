@@ -7,8 +7,6 @@
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
- * @description
- *
  * @see {@link https://webpack.js.org/configuration/other-options/#ignorewarnings webpack.js.org/ignorewarnings}
  *
  */
@@ -17,14 +15,11 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @see {@link https://webpack.js.org/configuration/other-options/#ignorewarnings webpack.js.org/ignorewarnings}
- *
- * @function ignorewarnings
- * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build @see {@link typedefs.WpwBuild WpwBuild}
  */
 const ignorewarnings = (build) =>
 {
-   if (build.options.ignorewarnings && (!build.cmdLine.verbosity || build.cmdLine.verbosity !== "none"))
+   if (build.options.ignorewarnings?.enabled === true && !build.cmdLine.verbosity && build.logger.level <= 2)
    {
 		build.wpc.ignoreWarnings = [
 			/Critical dependency\: the request of a dependency is an expression/,

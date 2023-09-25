@@ -274,17 +274,10 @@
 /** @typedef {import("./base").WpwBaseOptions} WpwBaseOptions */
 /** @typedef {import("./base").WpwBaseModuleOptions} WpwBaseModuleOptions */
 /** @typedef {import("./base").IWpwBaseModuleOptions} IWpwBaseModuleOptions */
-
-
-/***********************************************************************************************************************
- * BUILD
- ***********************************************************************************************************************/
-
-// @typedef {import(".").hasSymbolSham} hasSymbolSham */
-/**@typedef {Exclude<WpwBuildOptions[WpwBuildOptionsKey], undefined>} BuildOptionsConfig */
+/** @typedef {import("./base").WpwModuleOptionsValidationArgs} WpwModuleOptionsValidationArgs */
 /**
  * @template {WpwBuildOptionsKey} T
- * @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsConfig<T>
+ * @typedef {import("./base").WpwBuildOptionsConfig<T>} WpwBuildOptionsConfig<T>
  */
 
 
@@ -297,6 +290,9 @@
 /** @typedef {import("./app").WpwWebpackConfig} WpwWebpackConfig */
 /** @typedef {import("./app").WpwRuntimeEnvArgs} WpwRuntimeEnvArgs */
 /** @typedef {import("./app").WpwGetRcPathOptions} WpwGetRcPathOptions */
+/** @typedef {import("./app").WpwSourceTsConfigApp} WpwSourceTsConfigApp */
+/** @typedef {import("./app").WpwGetAbsPathOptions} WpwGetAbsPathOptions */
+/** @typedef {import("./app").WpwGetRelPathOptions} WpwGetRelPathOptions */
 /** @typedef {import("./app").WpwWebpackAliasConfig} WpwWebpackAliasConfig */
 /** @typedef {import("./app").IWpwGlobalEnvironment} IWpwGlobalEnvironment */
 /** @typedef {import("./app").IWpwWebpackAliasConfig} IWpwWebpackAliasConfig */
@@ -309,6 +305,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./export").IWpwExport} IWpwExport */
+/** @typedef {[string | RegExp, string]} WpwReplacePair */
 /** @typedef {import("./export").WpwExportPlugin} WpwExportPlugin */
 /** @typedef {import("./export").WpwExportOptions} WpwExportOptions */
 
@@ -318,7 +315,6 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
-/** @typedef {import("./generic").MergeOptions} MergeOptions */
 /** @typedef {import("./generic").ExecAsynResult} ExecAsynResult */
 /** @template T @template {keyof T} K @typedef {import("./generic").RequireKeys<T, K>} RequireKeys */
 /** @template {WpwBuildOptionsKey} T @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsType<T> */
@@ -380,17 +376,22 @@
 /** @typedef {import("./plugin").WpwPluginCompilationTapOptions} WpwPluginCompilationTapOptions */
 /** @typedef {import("./plugin").WpwPluginWrappedHookHandlerSync} WpwPluginWrappedHookHandlerSync */
 /** @typedef {import("./plugin").WpwPluginWrappedHookHandlerAsync} WpwPluginWrappedHookHandlerAsync */
+/** @typedef {import("./plugin").WpwPluginCompilationTapOptionsPair} WpwPluginCompilationTapOptionsPair */
 /** @typedef {{ file: string; snapshot?: WebpackSnapshot | null; source?: WebpackRawSource }} CacheResult */
+/**
+ * @template T
+ * @typedef {import("./plugin").WpwPluginConstructor<T>} WpwPluginConstructor<T>
+ */
 
 
 /***********************************************************************************************************************
  * SCHEMA
  ***********************************************************************************************************************/
 
-/** @typedef {import("./schema")} WpwJsonSchemaKey */
 /** @typedef {import("json-schema").JSONSchema4} JsonSchema4 */
 /** @typedef {import("json-schema").JSONSchema6} JsonSchema6 */
 /** @typedef {import("json-schema").JSONSchema7} JsonSchema7 */
+/** @typedef {import("./schema").WpwJsonSchemaKey} WpwJsonSchemaKey */
 /** @typedef {import("json-schema").JSONSchema4} JsonSchema4Definition */
 /** @typedef {import("json-schema").JSONSchema4Object} JsonSchema4Object */
 /** @typedef {import("json-schema").JSONSchema6Object} JsonSchema6Object */
@@ -430,6 +431,7 @@
 // /** @typedef {import("webpack/serialization/ObjectMiddleware").ObjectDeserializerContext} WebpackObjectDeserializerContext */
 // /** @typedef {import("webpack/serialization/ObjectMiddleware").ObjectSerializerContext} WebpackObjectSerializerContext */
 
+/** @typedef {import("./webpack").WebpackEtag} WebpackEtag */
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackType} WebpackType */
 /** @typedef {import("./webpack").WebpackChunk} WebpackChunk */
@@ -440,6 +442,7 @@
 /** @typedef {import("./webpack").WebpackLogger} WebpackLogger */
 /** @typedef {import("./webpack").WebpackSource} WebpackSource */
 /** @typedef {import("./webpack").WebpackCompiler} WebpackCompiler */
+/** @typedef {import("./webpack").WebpackPathData} WebpackPathData */
 /** @typedef {import("./webpack").WebpackSnapshot} WebpackSnapshot */
 /** @typedef {import("./webpack").WebpackLogLevel} WebpackLogLevel */
 /** @typedef {import("./webpack").WebpackRawSource} WebpackRawSource */
@@ -449,10 +452,12 @@
 /** @typedef {import("./webpack").WebpackRuntimeArgs} WebpackRuntimeArgs */
 /** @typedef {import("./webpack").WebpackCacheFacade} WebpackCacheFacade */
 /** @typedef {import("./webpack").WebpackCompilation} WebpackCompilation */
+/** @typedef {import("./webpack").WebpackAsyncHook<any>} WebpackAsyncHook */
 /** @typedef {import("./webpack").WebpackBannerPlugin} WebpackBannerPlugin */
 /** @typedef {import("./webpack").WebpackIgnorePlugin} WebpackIgnorePlugin */
 /** @typedef {import("./webpack").WebpackEntryOptions} WebpackEntryOptions */
 /** @typedef {import("./webpack").WebpackExternalItem} WebpackExternalItem */
+/** @typedef {import("./webpack").WebpackPathDataOutput} WebpackPathDataOutput */
 /** @typedef {import("./webpack").WebpackProgressPlugin} WebpackProgressPlugin */
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */
@@ -474,12 +479,21 @@
 /** @typedef {import("./webpack").WebpackInfrastructureLogging} WebpackInfrastructureLogging */
 /** @typedef {import("./webpack").WebpackCompilerAsyncHookName} WebpackCompilerAsyncHookName */
 /** @typedef {import("./webpack").WebpackLimitChunkCountPlugin} WebpackLimitChunkCountPlugin */
+/** @typedef {import("./webpack").WebpackPluginInstanceOrUndef} WebpackPluginInstanceOrUndef */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompiler>} WebpackAsyncCompilerHook */
 /** @typedef {import("./webpack").WebpackObjectSerializerContext} WebpackObjectSerializerContext */
 /** @typedef {import("./webpack").WebpackSyncHook<WebpackCompilation>} WebpackSyncCompilationHook */
 /** @typedef {import("./webpack").WebpackExternalItemFunctionData} WebpackExternalItemFunctionData */
 /** @typedef {import("./webpack").WebpackAsyncHook<WebpackCompilation>} WebpackAsyncCompilationHook */
 /** @typedef {import("./webpack").WebpackObjectDeserializerContext} WebpackObjectDeserializerContext */
+
+/** @typedef {import("clean-webpack-plugin").Options} CleanWebpackPluginOptions */
+/** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
+/** @typedef {import("fork-ts-checker-webpack-plugin/lib/plugin-options").ForkTsCheckerWebpackPluginOptions} ForkTsCheckerOptions */
+
+/** @typedef {import("glob").GlobOptions} GlobOptions */
 
 
 /**

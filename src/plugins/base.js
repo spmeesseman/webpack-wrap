@@ -38,7 +38,7 @@ const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
-const { isFunction, execAsync, applyIf, asArray, isString } = require("../utils");
+const { isFunction, execAsync, asArray, isString } = require("../utils");
 
 
 /**
@@ -48,22 +48,44 @@ const { isFunction, execAsync, applyIf, asArray, isString } = require("../utils"
  */
 class WpwPlugin extends WpwBaseModule
 {
-    /**  @type {WpwPluginWaitManager}  @private  */
+    /**
+     * @private
+     * @type {WpwPluginWaitManager}
+     */
     static eventManager = new WpwPluginWaitManager();
 
-    /** @type {WpwCache} @protected */
+    /**
+     * @protected
+     * @type {WpwCache}
+     */
     cache;
-    /** @type {typedefs.WebpackCompilation} */
+    /**
+     * @type {typedefs.WebpackCompilation}
+     */
     compilation;
-    /** @type {typedefs.WebpackCompiler} */
+    /**
+     * @type {typedefs.WebpackCompiler}
+     */
     compiler;
-    /**  @type {typedefs.WebpackPluginInstance[]} @private */
+    /**
+     * @private
+     * @type {typedefs.WebpackPluginInstance[]}
+     */
     plugins;
-    /** @type {typedefs.WebpackCacheFacade} @protected */
+    /**
+     * @protected
+     * @type {typedefs.WebpackCacheFacade}
+     */
     wpCache;
-    /** @type {typedefs.WebpackCacheFacade}  @protected */
+    /**
+     * @private
+     * @type {typedefs.WebpackCacheFacade}
+     */
     wpCacheCompilation;
-    /** @type {typedefs.WebpackLogger} @protected */
+    /**
+     * @protected
+     * @type {typedefs.WebpackLogger}
+     */
     wpLogger;
 
 
@@ -118,20 +140,12 @@ class WpwPlugin extends WpwBaseModule
      */
     checkSnapshot = async (filePath, identifier, outputDir, source) =>
     {
-        let data, /** @type {typedefs.CacheResult} */cacheEntry;
+        let data;
         const logger = this.logger,
               filePathRel = relative(outputDir, filePath),
               /** @type {typedefs.CacheResult} */result = { file: basename(filePathRel), snapshot: null, source };
 
-        logger.value("   check cache for existing asset", filePathRel, 3);
-        try {
-            cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-        }
-        catch (e) {
-            this.handleError("failed while checking cache", e);
-            return result;
-        }
-
+        const cacheEntry = await this.getCacheEntry(filePath, identifier, null);
         if (cacheEntry && cacheEntry.snapshot)
         {
             let isValidSnapshot;
@@ -279,6 +293,31 @@ class WpwPlugin extends WpwBaseModule
     };
 
 
+    /**
+     * @protected
+     * @param {string} filePath
+     * @param {string | number} identifier
+     * @param {typedefs.WebpackEtag | null} [etag]
+     * @returns {Promise<typedefs.CacheResult | undefined>}
+     */
+    async getCacheEntry(filePath, identifier, etag)
+    {
+        this.logger.value("   check cache for existing asset", filePath, 3);
+        try {
+            return this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, etag ?? null);
+            // const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
+        }
+        catch (e)
+        {   this.build.addMessage({
+                error: e,
+                compilation: this.compilation ,
+                code: WpwError.Code.ERROR_JSDOC_FAILED,
+                message: "jsdoc build failed - failed while checking cache"
+            });
+        }
+    }
+
+
 	/**
 	 * @protected
 	 * @param {Buffer} source
@@ -312,9 +351,10 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @abstract
 	 * @protected
-     * @returns {typedefs.WebpackPluginInstance | typedefs.WebpackPluginInstance[] | undefined} WebpackPluginInstance
+     * @param {boolean} [_applyFirst]
+     * @returns {typedefs.WebpackPluginInstance | (typedefs.WebpackPluginInstance | undefined)[] | undefined} WebpackPluginInstance
      */
-    getVendorPlugin() { return undefined; }
+    getVendorPlugin(_applyFirst) { return undefined; }
 
 
 	/**
@@ -332,7 +372,7 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string|any} hook
-     * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook} hook is AsyncCompilerHook | AsyncCompilationHook
+     * @returns {hook is typedefs.WebpackAsyncHook} hook is AsyncCompilerHook | AsyncCompilationHook
      */
     isAsyncHook = (hook) => isFunction(hook.tapPromise);
 
@@ -365,14 +405,21 @@ class WpwPlugin extends WpwBaseModule
         this.wpLogger = compiler.getInfrastructureLogger(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
 
-        // this.tapCompilationHooks([[ "setCompilationInstance", {
-        //     hook: "compilation",
-        //     stage: "PRE_PROCESS",
-        //     callback: this.onCompilation.bind(this),
-        //     hookCompilation: "processAssets"
-        // }]]);
+        //
+        // Set up a hook so that the compiltion instance can be stored before it actually begins
+        //
         compiler.hooks.compilation.tap("setCompilationInstance", (c) => { this.compilation = c; });
 
+        //
+        // if there's any wrapped vendor plugin(s) that specify the 'hookVendorPluginFirst' flag, create
+        // those hooks before the internl WpwPlugin hooks.  After applying internal hooks, then apply any
+        // vendor plugins that do not specify the flag;
+        //
+        for (const p of this.plugins.filter(p => !!p.applyFirst)) { p.apply.call(p, compiler); }
+
+        //
+        // Add all internal WpwPlugin hooks
+        //
         if (options)
         {
             this.validateApplyOptions(compiler, options);
@@ -381,7 +428,7 @@ class WpwPlugin extends WpwBaseModule
                                        optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
             if (hasCompilationHook)
             {
-                const compilationHooks = /** @type {[string, typedefs.WpwPluginCompilationTapOptions][]} */(
+                const compilationHooks = /** @type {typedefs.WpwPluginCompilationTapOptionsPair[]} */(
                     optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation")
                 );
                 this.tapCompilationHooks(compilationHooks);
@@ -408,14 +455,15 @@ class WpwPlugin extends WpwBaseModule
         }
 
         //
-        // if there's a wrapped vendor plugin(s), then forward the compiler instance to the plugin's apply() method
+        // if there's any wrapped vendor plugin(s) that does not specify the 'hookVendorPluginFirst'
+        // flag, create those hooks now that the internl WpwPlugin hooks have been created.
         //
-        for (const p of this.plugins) { p.apply.call(p, compiler); }
+        for (const p of this.plugins.filter(p => !p.applyFirst)) { p.apply.call(p, compiler); }
     }
 
 
     /**
-     * @protected
+     * @private
      * @param {typedefs.WebpackCompilation} compilation
      * @returns {boolean} boolean
      */
@@ -459,7 +507,7 @@ class WpwPlugin extends WpwBaseModule
 
     /**
      * @private
-     * @param {[string, typedefs.WpwPluginCompilationTapOptions][]} optionsArray
+     * @param {typedefs.WpwPluginCompilationTapOptionsPair[]} optionsArray
      */
     tapCompilationHooks(optionsArray)
     {
@@ -587,21 +635,28 @@ class WpwPlugin extends WpwBaseModule
      * the the WpwPlugin instance.
      *
      * @template {WpwPlugin} T
-     * @param {new(arg1: typedefs.WpwPluginOptions) => T} clsType the extended WpwPlugin class type
+     * @param {typedefs.WpwPluginConstructor<T>} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper
      * @param {typedefs.WpwBuildOptionsKey} buildOptionsKey
-     * @param {Partial<typedefs.WpwPluginOptions>} [pluginOptions]
-     * @param {[ string, string | boolean | number ][]} [addOptionsKeysCheck]
+     * @param {typedefs.WpwModuleOptionsValidationArgs[]} [validation]
      * @returns {T | undefined} T | undefined
      */
-    static wrap(clsType, build, buildOptionsKey, pluginOptions, addOptionsKeysCheck)
+    static wrap(clsType, build, buildOptionsKey, validation)
     {
-        const buildOptions = build.options[buildOptionsKey];
-        if (buildOptions && buildOptions.enabled !== false && asArray(addOptionsKeysCheck).every(o => buildOptions[o[0]] === o[1]))
+        const buildOptions = build.options[buildOptionsKey],
+              enabled = buildOptions && buildOptions.enabled !== false;
+        if (enabled && asArray(validation).every(o => isFunction(o) ? o(build) : buildOptions[o[0]] === o[1]))
         {
-            const plugin = new clsType(applyIf({ build }, pluginOptions));
-            plugin.buildOptions = buildOptions;
-            plugin.plugins.push(...asArray(plugin.getVendorPlugin()));
+            const plugin = new clsType({ build, buildOptions });
+            // plugin.buildOptions = buildOptions;
+            const _getVendorPlugins = (/** @type {true | undefined} */ applyFirst) =>
+            {
+                const plugins = asArray(plugin.getVendorPlugin(applyFirst));
+                plugins.slice().reverse().forEach((p, i, a) => { if (!p) { plugins.splice(a.length - 1 - i, 1); }});
+                plugin.plugins.push(...plugins);
+            };
+            _getVendorPlugins(true);
+            _getVendorPlugins();
             return plugin;
         }
     }
@@ -668,6 +723,7 @@ class WpwPlugin extends WpwBaseModule
         }
         return /** @type {R} */(cb);
     }
+
 }
 
 

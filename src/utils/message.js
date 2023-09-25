@@ -258,14 +258,23 @@ const WpwMessageCode =
  */
 class WpwMessage extends WebpackError
 {
-    /** @readonly */
+    /**
+     * @readonly
+     */
     static Code = WpwMessageCode;
 
-    /** @type {typedefs.WpwMessageCode} */
+    /**
+     * @type {typedefs.WpwMessageCode}
+     */
     code;
-    /** @type {typedefs.WpwMessageType} */
+    /**
+     * @type {typedefs.WpwMessageType}
+     */
     type;
-    /** @type {typedefs.WebpackDependencyLocation | undefined} @override*/
+    /**
+     * @override
+     * @type {typedefs.WebpackDependencyLocation | undefined}
+     */
 	loc;
 
 

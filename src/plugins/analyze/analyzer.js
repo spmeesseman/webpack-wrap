@@ -2,6 +2,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
+const typedefs = require("../../types/typedefs");
 const { isObject } = require("@spmeesseman/type-utils");
 
 /**
@@ -14,12 +15,9 @@ const { isObject } = require("@spmeesseman/type-utils");
 
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
-/** @typedef {import("../../types/typedefs").WpwBuild} WpwBuild */
-/** @typedef {import("../../types/typedefs").WebpackPluginInstance} WebpackPluginInstance */
-
 
 /**
- * @param {WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {BundleAnalyzerPlugin | undefined}
  */
 const analyzer = (build) =>

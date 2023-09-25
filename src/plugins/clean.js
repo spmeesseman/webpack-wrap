@@ -18,8 +18,6 @@ const { WpwBuildOptionsKeys } = require("../types/constants");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { existsAsync, apply, resolvePath } = require("../utils");
 
-/** @typedef {import("clean-webpack-plugin").Options} CleanWebpackPluginOptions */
-
 
 /**
  * @extends WpwPlugin
@@ -221,7 +219,8 @@ class WpwCleanPlugin extends WpwPlugin
 	getVendorPlugin()
 	{
 		const contextPath = this.wpc.context;
-		let /** @type {CleanWebpackPluginOptions} */options;
+		/** @type {typedefs.CleanWebpackPluginOptions} */
+		let options;
 		if (this.buildOptions.full)
 		{
 			if (this.build.type === "webapp")

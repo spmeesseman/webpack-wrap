@@ -1,6 +1,8 @@
 // @ts-check
 
-const { apply, isString, WpwRegex } = require("../utils");
+const WpwRegex = require("../utils/regex");
+const typedefs = require("../types/typedefs");
+const { apply, isString } = require("@spmeesseman/type-utils");
 
 /**
  * @file exports/output.js
@@ -9,16 +11,9 @@ const { apply, isString, WpwRegex } = require("../utils");
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
- * @description
+ * @description @see {@link https://webpack.js.org/configuration/output webpack.js.org/output}
  *
- * @see {@link https://webpack.js.org/configuration/output webpack.js.org/output}
- *
- */
-
-/** @typedef {import("../core/build")} WpwBuild */
-/** @typedef {import("../types").WebpackPathData}  WebpackPathData */
-/** @typedef {import("../types").WebpackAssetInfo}  WebpackAssetInfo */
-/** @typedef {import("../types").RequireKeys<WebpackPathData, "filename" | "chunk">} WebpackPathDataOutput */
+ *//** */
 
 
 const outputEnvironment = (build) =>
@@ -33,10 +28,7 @@ const outputEnvironment = (build) =>
 
 
 /**
- * @see {@link https://webpack.js.org/configuration/output webpack.js.org/output}
- *
- * @function
- * @param {WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const output = (build) =>
 {
@@ -60,8 +52,8 @@ const output = (build) =>
 			// clean: build.clean ? { keep: /(img|font|readme|walkthrough)[\\/]/ } : undefined,
 			publicPath: build.vscode?.type === "webview" ? "#{webroot}/" : (process.env.ASSET_PATH || "/"),
 			/**
-			 * @param {WebpackPathData} pathData
-			 * @param {WebpackAssetInfo | undefined} _assetInfo
+			 * @param {typedefs.WebpackPathData} pathData
+			 * @param {typedefs.WebpackAssetInfo | undefined} _assetInfo
 			 * @returns {string}
 			 */
 			filename: (pathData, _assetInfo) =>
@@ -127,7 +119,7 @@ const output = (build) =>
 			libraryTarget: "commonjs2",
 			filename: (pathData, _assetInfo) =>
 			{
-				const data = /** @type {WebpackPathDataOutput} */(pathData);
+				const data = /** @type {typedefs.WebpackPathDataOutput} */(pathData);
 				return WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
 			}
 		});

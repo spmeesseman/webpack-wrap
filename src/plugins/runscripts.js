@@ -21,16 +21,13 @@ const { WpwPluginConfigRunScriptsKeys } = require("../types/constants");
  */
 class WpwRunScriptsPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} @protected */
-    buildOptions;
-
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} */(this.build.options.runscripts);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} */(this.buildOptions);
 	}
 
 

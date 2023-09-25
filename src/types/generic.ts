@@ -33,14 +33,6 @@ type NoExtraProperties<T, U extends T = T> = U extends (infer V)[] ? NoExtraProp
 
 interface IDisposable { dispose: () => Required<void | PromiseLike<void>> }
 
-interface MergeOptions<T, U>
-{
-    onlyIf: boolean;
-    deepObj: boolean;
-    deepArr: boolean;
-    values: [ (T | Partial<T> | undefined), ...(U | T | Partial<T> | undefined)[]];
-}
-
 interface ExecAsynResult { code: number | null; errors: string[] }
 
 
@@ -55,7 +47,6 @@ export {
     // ExtractTypings,
     IDisposable,
     Impossible,
-    MergeOptions,
     NoExtraProperties,
     PartialSome,
     PickByType,

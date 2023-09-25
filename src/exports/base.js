@@ -8,7 +8,6 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { glob } = require("glob");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseModule = require("../core/basemodule");
@@ -28,6 +27,7 @@ class WpwWebpackExport extends WpwBaseModule
      */
 	constructor(options) { super(options); }
 
+
     /**
      * @abstract
      * @protected
@@ -36,6 +36,7 @@ class WpwWebpackExport extends WpwBaseModule
     {
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][app]` });
     }
+
 
     /**
      * @abstract
@@ -50,29 +51,6 @@ class WpwWebpackExport extends WpwBaseModule
 
 
     /**
-     * @protected
-     * @param {string} dir
-     * @param {typedefs.WpwSourceExtension | typedefs.WpwSourceDotExtensionApp} ext
-     * @returns {typedefs.IWpwWebpackEntryImport}
-     */
-    createEntryObjFromDir(dir, ext)
-    {
-        if (!ext.startsWith(".")) {
-            ext = /** @type {typedefs.WpwSourceDotExtensionApp} */("." + ext);
-        }
-        return glob.sync(
-            `*${ext}`, {
-                absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: 1
-            }
-        )
-        .reduce((obj, e)=>
-        {
-            obj[e.replace(ext, "")] = `./${e}`;
-            return obj;
-        }, {});
-    };
-
-    /**
      * @abstract
      * @protected
      */
@@ -80,6 +58,7 @@ class WpwWebpackExport extends WpwBaseModule
     {
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][jsdoc]` });
     }
+
 
     /**
      * @abstract
@@ -90,6 +69,7 @@ class WpwWebpackExport extends WpwBaseModule
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][tests]` });
     }
 
+
     /**
      * @abstract
      * @protected
@@ -98,6 +78,7 @@ class WpwWebpackExport extends WpwBaseModule
     {
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][types]` });
     }
+
 
     /**
      * @abstract

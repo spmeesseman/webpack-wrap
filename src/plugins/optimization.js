@@ -11,11 +11,12 @@
 
 const typedefs = require("../types/typedefs");
 const { requireResolve } = require("../utils");
-const webpack = /** @type {typedefs.WebpackType} */(requireResolve("webpack"));
+/** @type {typedefs.WebpackType} */
+const webpack = requireResolve("webpack");
 
 
 /**
- * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
+ * @param {typedefs.WpwBuild} build
  * @returns {typedefs.WebpackPluginInstance[]}
  */
 const optimization = (build) =>

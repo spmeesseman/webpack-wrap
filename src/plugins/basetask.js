@@ -35,7 +35,10 @@ const { applyIf, isFunction, isPromise } = require("@spmeesseman/type-utils");
  */
 class WpwBaseTaskPlugin extends WpwPlugin
 {
-	/** @type {string} @protected */
+	/**
+	 * @protected
+	 * @type {string}
+	 */
 	buildPathTemp;
 
 
@@ -124,6 +127,17 @@ class WpwBaseTaskPlugin extends WpwPlugin
 		const dummyCode = "console.log('dummy source');",
 			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
         await writeFile(this.virtualFilePath, source);
+	}
+
+
+	/**
+	 * @protected
+	 * @param {Record<string, any>} options
+	 * @returns {string[]}
+	 */
+	optionsToArgs(options)
+	{
+		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
 	}
 
 

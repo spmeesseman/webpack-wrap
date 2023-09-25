@@ -4,7 +4,7 @@ const typedefs = require("../types/typedefs");
 const { isString, apply } = require("../utils");
 
 /**
- * @file exports/stats.js
+ * @file src/exports/stats.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -13,8 +13,8 @@ const { isString, apply } = require("../utils");
 
 
 /**
- * @param {import("../types").WpwLoggerLevel | import("../types").WebpackLogLevel | undefined} loglevel
- * @returns {import("../types").WebpackLogLevel}
+ * @param {typedefs.WpwLoggerLevel | typedefs.WebpackLogLevel | undefined} loglevel
+ * @returns {typedefs.WebpackLogLevel}
  */
 const level = (loglevel) =>
 {
@@ -43,7 +43,6 @@ const level = (loglevel) =>
 
 
 /**
- * @function stats
  * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const stats = (build) =>

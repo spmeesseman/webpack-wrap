@@ -23,7 +23,7 @@
  import {WpwExportPlugin } from "./export";
 import {
     WpwWebpackEntryImport, WpwWebpackMode, WpwLoggerLevel, WebpackTarget, WpwSourceExtension,
-    WebpackLibraryType
+    WebpackLibraryType, WpwSourceTsConfig, WpwSourceTsConfigFile
 } from "./rc";
 import {
     WebpackConfig, WebpackEntry, WebpackModuleOptions, WebpackLogLevel, WebpackRuntimeArgs,
@@ -38,6 +38,10 @@ interface IWpwGetRcPathOptions {
     build?: string; rel?: boolean; ctx?: boolean; dot?: boolean; psx?: boolean; stat?: boolean; path?: string; fallback?: boolean;
 };
 type WpwGetRcPathOptions = IWpwGetRcPathOptions;
+
+type WpwGetRelPathOptions = Exclude<WpwGetRcPathOptions, "build" | "fallback" | "rel" | "ctx"> & { case?: boolean };
+
+type WpwGetAbsPathOptions = Exclude<WpwGetRcPathOptions, "build" | "dot" | "fallback" | "rel" | "ctx"> & { case?: boolean };
 
 interface IWpwGlobalEnvironment {
     buildCount: number; cache: Record<string, any>; cacheDir: string; verbose: boolean; [ key: string ]: any;
@@ -74,6 +78,8 @@ type WpwWebpackAliasValue = string | string[];
 interface IWpwWebpackAliasConfig { [k: string]: WpwWebpackAliasValue | undefined }
 type WpwWebpackAliasConfig = IWpwWebpackAliasConfig;
 
+type WpwSourceTsConfigApp =  WpwSourceTsConfigFile & { config: WpwSourceTsConfig };
+
 
 export {
     IWpwWebpackConfig,
@@ -81,9 +87,12 @@ export {
     IWpwGetRcPathOptions,
     WpwCombinedRuntimeArgs,
     IWpwGlobalEnvironment,
+    WpwGetAbsPathOptions,
     WpwGetRcPathOptions,
+    WpwGetRelPathOptions,
     WpwRuntimeEnvArgs,
     WpwSourceDotExtensionApp,
+    WpwSourceTsConfigApp,
     WpwWebpackConfig,
     IWpwWebpackAliasConfig,
     WpwWebpackAliasConfig,

@@ -111,11 +111,12 @@ class WpwSourceMapsPlugin extends WpwPlugin
 
 	/**
 	 * @override
+     * @param {true} [applyFirst]
 	 * @returns {typedefs.WebpackPluginInstance | undefined}
 	 */
-	getVendorPlugin = () =>
+	getVendorPlugin = (applyFirst) =>
 	{
-        if (this.buildOptions.mode === "plugin")
+        if (applyFirst && this.buildOptions.mode === "plugin")
         {
             const outputOptions = this.build.options.output || {},
                   immutable = outputOptions.immutable !== false;

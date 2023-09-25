@@ -2,10 +2,36 @@
     "plugins": [],
     "mode": "typescript",
     "recurseDepth": 10,
-    "destination": "res/doc/api",
+    "destination": "dist/doc/api",
+    "markdown": {
+      "parser": "gfm",
+      "hardwrap": true
+    },
+    "menu":{
+      "Webpack-Wrap Documentation": {
+        "href":"https://app1.spmeesseman.com/res/docs/",
+        "target":"_blank",
+        "class":"menu-item",
+        "id":"repository"
+      }
+    },
+    "opts": {
+      "template": "node_modules/docdash",
+      "encoding": "utf8",
+      "destination": "./dist/doc/api",
+      "recurse": true
+    },
     "source": {
+        "include": [
+            "src"
+        ],
+        "exclude": [
+            "node_modules",
+            "src/types",
+            "typedefs.js"
+        ],
         "includePattern": "src[\\\\\\/].+\\.(m|c)?js(doc|x)?$",
-        "excludePattern": "(^|\\/|\\\\|node_modules)_"
+        "excludePattern": "(^|\\/|\\\\)_"
     },
     "sourceType": "module",
     "tags": {
@@ -21,6 +47,59 @@
     },
     "templates": {
         "cleverLinks": false,
-        "monospaceLinks": false
+        "monospaceLinks": false,
+        "default": {
+          "outputSourceFiles": true,
+          "includeDate": false
+        },
+        "scripts": [],
+        "favicon": "",
+        "css": []
+    },
+    "docdash": {
+        "static": true,
+        "sort": true,
+        "sectionOrder": [
+            "Classes",
+            "Modules",
+            "Externals",
+            "Events",
+            "Namespaces",
+            "Mixins",
+            "Tutorials",
+            "Interfaces"
+        ],
+        "disqus": "",
+        "openGraph": {
+            "title": "",
+            "type": "website",
+            "image": "",
+            "site_name": "",
+            "url": ""
+        },
+        "meta": {
+            "title": "",
+            "description": "",
+            "keyword": ""
+        },
+        "search": true,
+        "collapse": true,
+        "wrap": true,
+        "typedefs":true,
+        "navLevel": 3,
+        "private": false,
+        "removeQuotes":"trim",
+        "scripts": [],
+        "menu": {
+            "Admin": {
+            "href":"https://zababurinsv.github.io/admin/",
+            "target":"_blank",
+            "class":"menu-item",
+            "id":"website_link"
+            }
+        },
+        "scopeInOutputPath": true,
+        "nameInOutputPath": true,
+        "versionInOutputPath": true
     }
 }

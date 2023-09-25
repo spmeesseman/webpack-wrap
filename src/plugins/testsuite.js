@@ -126,84 +126,21 @@ class WpwTestSuitePlugin extends WpwPlugin
 				return result;
 			}
 		}
+
 		//
 		// Process output files
 		//
 		// const files = await findFiles("**/*.{js,d.ts}", { cwd: outputDir, absolute: true });
+		// persistedCache = this.cache.get();
 		// for (const filePath of files)
 		// {
 		// 	// let data, source, hash, newHash, cacheEntry, persistedCache;
 		// 	const filePathRel = relativePath(outputDir, filePath);
 		// 	logger.value("   process types output file", filePathRel, 4);
 		// 	logger.write("      check compilation cache for snapshot", 4);
-		// 	try {
-		// 		persistedCache = this.cache.get();
-		// 		cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-		// 	}
-		// 	catch (e) {
-		// 		this.handleError("failed while checking cache", e);
-		// 		return;
-		// 	}
-
-		// 	if (cacheEntry)
-		// 	{
-		// 		let isValidSnapshot;
-		// 		logger.write("      check snapshot valid", 4);
-		// 		try {
-		// 			isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
-		// 		}
-		// 		catch (e) {
-		// 			this.handleError("failed while checking snapshot", e);
-		// 			return;
-		// 		}
-		// 		if (isValidSnapshot)
-		// 		{
-		// 			logger.write("      snapshot is valid", 4);
-		// 			({ hash, source } = cacheEntry);
-		// 			data = data || await readFile(filePath);
-		// 			newHash = newHash || this.getContentHash(data);
-		// 			if (newHash === hash)
-		// 			{
-		// 				logger.write("      asset is unchanged since last snapshot", 4);
-		// 			}
-		// 			else {
-		// 				logger.write("      asset has changed since last snapshot", 4);
-		// 			}
-		// 		}
-		// 		else {
-		// 			logger.write("      snapshot is invalid", 4);
-		// 		}
-		// 	}
-
-		// 	if (!source)
-		// 	{
-		// 		let snapshot;
-		// 		const startTime = Date.now();
-		// 		data = data || await readFile(filePath);
-		// 		source = new this.compiler.webpack.sources.RawSource(data);
-		// 		logger.write("      create snapshot", 4);
-		// 		try {
-		// 			snapshot = await this.createSnapshot(startTime, filePath);
-		// 		}
-		// 		catch (e) {
-		// 			this.handleError("failed while creating snapshot for " + filePathRel, e);
-		// 			return;
-		// 		}
-		// 		if (snapshot)
-		// 		{
-		// 			logger.write("      cache snapshot", 4);
-		// 			try {
-		// 				newHash = newHash || this.getContentHash(source.buffer());
-		// 				snapshot.setFileHashes(hash);
-		// 				await this.wpCacheCompilation.storePromise(`${filePath}|${identifier}`, null, { source, snapshot, hash });
-		// 				cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-		// 			}
-		// 			catch (e) {
-		// 				this.handleError("failed while caching snapshot " + filePathRel, e);
-		// 				return;
-		// 			}
-		// 		}
-		// 	}
+		//  result = await this.checkSnapshot(filePath, "__", outDir); // , data),
+		//  data = result.source?.buffer() || await readFile(filePath),
+		//  newHash = this.getContentHash(data);
 
 		// 	data = data || await readFile(filePath);
 		// 	newHash = newHash || this.getContentHash(data);
@@ -225,36 +162,19 @@ class WpwTestSuitePlugin extends WpwPlugin
 		// 	types: true
 		// });
 
-		// logger.value("      add to compilation build dependencies", filePathRel, 5);
-		// this.compilation.buildDependencies.add(filePathRel);
-		// logger.write("      add to compilation file dependencies", 5);
-		// this.compilation.fileDependencies.add(filePath);
-		// this.compilation.compilationDependencies.add();this.compilation.
-		// this.compilation.contextDependencies.add();
-
-		// const cache = this.compiler.getCache(`${this.build.name}_${this.build.type}_${this.build.wpc.target}`.toLowerCase());
-
+		// // this.compilation.buildDependencies.add(filePathRel);
+		// // this.compilation.fileDependencies.add(filePath);
+		// // const existingAsset = this.compilation.getAsset(filePathRel);
+		// // if (!existingAsset)
+		// // {
+		// // 	logger.write("      emit asset", 3);
+		// // 	this.compilation.emitAsset(filePathRel, source, info);
+		// // }
+		// // else {
+		// // 	logger.write("      asset compared for emit", 3);
+		// // 	this.compilation.comparedForEmitAssets.add(filePathRel);
+		// // }
 		// this.compilation.emitAsset(filePathRel, source, info);
-
-		// 	// this.compilation.additionalChunkAssets.push(filePathRel);
-
-		// 	const existingAsset = this.compilation.getAsset(filePathRel);
-		// 	if (!existingAsset)
-		// 	{
-		// 		logger.write("      emit asset", 3);
-		// 		this.compilation.emitAsset(filePathRel, source, info);
-		// 	}
-		// 	else if (this.options.force)
-		// 	{
-		// 		logger.write("      update asset", 3);
-		// 		this.compilation.updateAsset(filePathRel, source, info);
-		// 	}
-		// 	else {
-		// 		logger.write("      asset compared for emit", 3);
-		// 		this.compilation.buildDependencies.add(filePathRel);
-		// 		this.compilation.comparedForEmitAssets.add(filePathRel);
-		// 		this.compilation.compilationDependencies.add(filePathRel);
-		// 	}
 		// }
 
 		logger.write("   finished execution of tsc command", 3);
@@ -269,7 +189,6 @@ class WpwTestSuitePlugin extends WpwPlugin
 	async testsuite(compilation)
 	{
 		this.build.logger.write("build test suite", 1);
-		this.onCompilation(compilation);
 
 		const testsDir = join(this.build.getDistPath(), "test");
 

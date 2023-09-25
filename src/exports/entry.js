@@ -7,20 +7,18 @@
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *
- * @description
- *
- * @see {@link https://webpack.js.org/configuration/entry-context/}
+ * @description @see {@link https://webpack.js.org/configuration/entry-context/}
  *
  *//** */
 
 const { glob } = require("glob");
-const { basename, isAbsolute, normalize } = require("path");
+const { existsSync } = require("fs");
 const WpwWebpackExport = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const { basename, isAbsolute, normalize } = require("path");
 const { relativePath, forwardSlash, resolvePath } = require("../utils");
 const { apply, isObjectEmpty, isString, isDirectory, isFunction, isObject } = require("@spmeesseman/type-utils");
-const { existsSync, exists } = require("fs");
 
 
 /**
@@ -28,7 +26,10 @@ const { existsSync, exists } = require("fs");
  */
 class WpwEntryExport extends WpwWebpackExport
 {
-	/** @type {string} @private */
+	/**
+	 * @private
+	 * @type {string}
+	 */
 	globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
 
 
@@ -143,7 +144,7 @@ class WpwEntryExport extends WpwWebpackExport
 			else {
 				this.build.addMessage({
 					code: WpwError.Code.ERROR_SHITTY_PROGRAMMER,
-					message: `exports.entry.build[${build.type}]`
+					message: `no matching handler for build type [${build.type}]`
 				});
 				return;
 			}

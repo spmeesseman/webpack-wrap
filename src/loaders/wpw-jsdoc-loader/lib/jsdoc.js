@@ -11,6 +11,7 @@
 
 const { validate } = require("schema-utils");
 const { urlToRequest } = require("loader-utils");
+const typedefs = require("../../../types/typedefs");
 const WpwLogger = require("../../../utils/console");
 const { forwardSlash } = require("../../../utils/utils");
 
@@ -18,7 +19,7 @@ const { forwardSlash } = require("../../../utils/utils");
 let logger;
 
 
-/** @type {import("schema-utils/declarations/validate").Schema} */
+/** @type {typedefs.JsonSchema} */
 const schema = {
     type: "object",
     properties: {

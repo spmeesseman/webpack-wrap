@@ -8,7 +8,9 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const analyzer = require("./analyze/analyzer");
 const banner = require("./banner");
+const circular = require("./analyze/circular");
 const clean = require("./clean");
 const copy = require("./copy");
 const dispose = require("./dispose");
@@ -28,16 +30,15 @@ const types = require("./types");
 const tscheck = require("./tscheck");
 const upload = require("./upload");
 const vendormod = require("./vendormod");
-const wait = require("./wait");
-const { cssextract, htmlcsp, imageminimizer, htmlinlinechunks, webviewapps } = require("./html");
-
-const analyzer = require("./analyze/analyzer");
-const circular = require("./analyze/circular");
 const visualizer = require("./analyze/visualizer");
+const wait = require("./wait");
+const web = require("./html");
+
 const analyze = { analyzer, circular, visualizer };
 
+
 module.exports = {
-    analyze, banner, clean, copy, cssextract, dispose, environment, htmlcsp, htmlinlinechunks,
-    ignore, imageminimizer, istanbul, jsdoc, licensefiles, loghooks, optimization, progress,
-    runtimevars, scm, sourcemaps, testsuite, tscheck, types, upload, vendormod, webviewapps, wait
+    analyze, banner, clean, copy, dispose, environment, ignore, istanbul,
+    jsdoc, licensefiles, loghooks, optimization, progress, runtimevars, scm,
+    sourcemaps, testsuite, tscheck, types, upload, vendormod, web, wait
 };

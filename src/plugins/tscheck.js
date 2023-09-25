@@ -17,11 +17,6 @@ const { dtsBundle, merge, isString, findFiles } = require("../utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const { unlink } = require("fs/promises");
 
-/** @typedef {ForkTsCheckerOptions["typescript"]} ForkTsCheckerTypescriptOptions */
-/** @typedef {import("fork-ts-checker-webpack-plugin/lib/issue/issue").Issue} TsCheckIssue*/
-/** @typedef {import("fork-ts-checker-webpack-plugin/lib/files-change").FilesChange} TsCheckFilesChange */
-/** @typedef {import("fork-ts-checker-webpack-plugin/lib/plugin-options").ForkTsCheckerWebpackPluginOptions} ForkTsCheckerOptions */
-
 
 /**
  * @extends WpwPlugin
@@ -132,7 +127,7 @@ class WpwTsCheckPlugin extends WpwPlugin
 	getVendorPlugin = () =>
 	{
 		const build = this.build;
-		/** @type {ForkTsCheckerTypescriptOptions} */
+		/** @type {typedefs.ForkTsCheckerTypescriptOptions} */
 		const tsOptions = {
 			build: false,
 			configFile: build.source.configFile.path,
@@ -167,7 +162,7 @@ class WpwTsCheckPlugin extends WpwPlugin
 		build.logger.write(`   add config file '${tsOptions.configFile}' to tschecker [${tsOptions.mode}][build=${!!tsOptions.build}]`, 2);
 		build.logger.write("   create 'fork-ts-checker-webpack-plugin' instance");
 
-		return new ForkTsCheckerWebpackPlugin(/** @type {ForkTsCheckerOptions} */(
+		return new ForkTsCheckerWebpackPlugin(/** @type {typedefs.ForkTsCheckerOptions} */(
 		{
 			async: false,
 			formatter: "basic",
@@ -189,8 +184,8 @@ class WpwTsCheckPlugin extends WpwPlugin
 
 	/**
 	 * @private
-	 * @param {TsCheckIssue[]} issues
-	 * @returns {TsCheckIssue[]}
+	 * @param {typedefs.TsCheckIssue[]} issues
+	 * @returns {typedefs.TsCheckIssue[]}
 	 */
 	tsForkCheckerIssues = (issues) =>
 	{
@@ -201,9 +196,9 @@ class WpwTsCheckPlugin extends WpwPlugin
 
 	/**
 	 * @private
-	 * @param {TsCheckFilesChange} filesChange
+	 * @param {typedefs.TsCheckFilesChange} filesChange
 	 * @param {typedefs.WebpackCompilation} compilation
-	 * @returns {Promise<TsCheckFilesChange>}
+	 * @returns {Promise<typedefs.TsCheckFilesChange>}
 	 */
 	tsForkCheckerStart = async (filesChange, compilation) =>
 	{

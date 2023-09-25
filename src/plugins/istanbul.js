@@ -19,12 +19,15 @@ const typedefs = require("../types/typedefs");
  */
 class WpwIstanbulPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"istanbul">} @protected */
+    /**
+     * @protected
+     * @type {typedefs.WpwBuildOptionsConfig<"istanbul">}
+     */
     buildOptions;
 
 
     /**
-     * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+     * @param {typedefs.WpwPluginOptions} options
      */
 	constructor(options) { super(options); }
 
@@ -41,7 +44,6 @@ class WpwIstanbulPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
      * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */

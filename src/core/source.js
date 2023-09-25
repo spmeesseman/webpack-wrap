@@ -9,15 +9,14 @@
  *//** */
 
 const JSON5 = require("json5");
-const { existsSync, unlinkSync } = require("fs");
 const typedefs = require("../types/typedefs");
 const WpwError = require("../utils/message");
 const WpwLogger = require("../utils/console");
 const { spawnSync } = require("child_process");
+const { resolvePath, findFilesSync } = require("../utils");
 const { resolve, basename, join, dirname } = require("path");
-const { resolvePath, asArray, findFilesSync } = require("../utils");
-const { apply, isString, merge, pickNot, clone } = require("@spmeesseman/type-utils");
-const { writeFileSync } = require("fs");
+const { existsSync, unlinkSync, writeFileSync } = require("fs");
+const { apply, asArray, isString, merge, pickNot, clone } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -130,7 +129,7 @@ class WpwSource
     {
         let rootNames = files?.slice();
         const baseDir = this.configFile.dir || this.build.getBasePath(),
-              ts = WpwSource.typescript = /** @type {typedefs.TypeScript} */(WpwSource.typescript || require(require.resolve("typescript")));
+              ts = WpwSource.typescript = (WpwSource.typescript || require("typescript"));
 
         if (!ts) {
             throw WpwError.get({ code: WpwError.Code.ERROR_TYPESCRIPT, message: "typescript.program is unavailable" });
@@ -228,7 +227,7 @@ class WpwSource
      * @private
      * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
-     * @returns {{ file: string | undefined; files: string[] }}
+     * @returns {{ file: string | undefined, files: string[] }} { file: string | undefined, files: string[] }
      */
     findJsTsConfig(sourceConfig, build)
     {
@@ -293,7 +292,7 @@ class WpwSource
      * @private
      * @param {typedefs.IWpwSourceConfig} sourceConfig
      * @param {typedefs.WpwBuild} build
-     * @returns {(typedefs.WpwSourceTsConfigFile & { config: typedefs.WpwSourceTsConfig})}
+     * @returns {typedefs.WpwSourceTsConfigApp} WpwSourceTsConfigApp
      */
     getJsTsConfigFileInfo(sourceConfig, build)
     {

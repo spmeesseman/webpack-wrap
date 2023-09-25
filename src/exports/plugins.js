@@ -9,15 +9,10 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { isString} = require("../utils");
 // const wpwPlugins = require("../plugins");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const {
-	analyze, banner, clean, copy, dispose, environment, istanbul, loghooks, ignore, jsdoc,
-	optimization, progress, runtimevars, sourcemaps, licensefiles, tscheck, upload, cssextract,
-	htmlcsp, imageminimizer, htmlinlinechunks, testsuite, types, vendormod, webviewapps, scm
-} = require("../plugins");
+const plugins = require("../plugins");
 
 
 /**
@@ -63,80 +58,34 @@ class WpwPluginsExport extends WpwWebpackExport
 		// 	}
 		// });
 		build.wpc.plugins.push(
-			loghooks(build),            // n/a - logs all compiler.hooks.* when they run
-			environment(build),         // compiler.hooks.environment
-			vendormod(build),           // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
-			progress(build),            // n/a - reports progress from webpack engine
-			clean(build),               // compiler.hooks.emit, compiler.hooks.done
-			jsdoc(build),               // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
-			types(build),               // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
-			testsuite(build),           // compiler.hooks.beforeCompile - build tests / test suite
-			banner(build),              // compiler.hooks.compilation -> compilation.hooks.processAssets
-			istanbul(build),            // compiler.hooks.compilation - add istanbul ignores to node-requires
-			runtimevars(build),         // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONS
-			ignore(build),              // compiler.hooks.normalModuleFactory
-			tscheck(build),             // compiler.hooks.afterEnvironment, hooks.afterCompile
-			...this.webPlugins(build),  // webapp specific plugins
-			...this.nodePlugins(build), // webapp specific plugins
-			sourcemaps(build),          // compiler.hooks.compilation -> compilation.hooks.processAssets|DEV_TOOLING
-			...optimization(build),     // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
-			analyze.analyzer(build),    // compiler.hooks.done
-			analyze.visualizer(build),  // compiler.hooks.emit
-			analyze.circular(build),    // compiler.hooks.compilation -> compilation.hooks.optimizeModules
-			licensefiles(build),        // compiler.hooks.compilation -> compilation.hooks.processAssets|ANALYSE
-			upload(build),              // compiler.hooks.afterDone
-			scm(build),                 // compiler.hooks.done
-			dispose(build)              // compiler.hooks.shutdown
+			plugins.loghooks(build),           // n/a - logs all compiler.hooks.* when they run
+			plugins.environment(build),        // compiler.hooks.environment
+			plugins.vendormod(build),          // compiler.hooks.afterEnvironment - mods to vendor plugins and/or modules
+			plugins.progress(build),           // n/a - reports progress from webpack engine
+			plugins.clean(build),              // compiler.hooks.emit, compiler.hooks.done
+			plugins.jsdoc(build),              // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
+			plugins.types(build),              // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
+			plugins.testsuite(build),          // compiler.hooks.beforeCompile - build tests / test suite
+			plugins.banner(build),             // compiler.hooks.compilation -> compilation.hooks.processAssets
+			plugins.istanbul(build),           // compiler.hooks.compilation - add istanbul ignores to node-requires
+			plugins.runtimevars(build),        // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONS
+			plugins.ignore(build),             // compiler.hooks.normalModuleFactory
+			plugins.tscheck(build),            // compiler.hooks.afterEnvironment, hooks.afterCompile
+			plugins.web(build),                // webapp specific plugins
+			plugins.copy(build),			   // compiler.hooks.thisCompilation -> compilation.hooks.processAssets|ADDITIONAL
+			plugins.sourcemaps(build),         // compiler.hooks.compilation -> compilation.hooks.processAssets|DEV_TOOLING
+			...plugins.optimization(build),    // compiler.hooks.shouldEmit, compiler.hooks.compilation->shouldRecord|optimizeChunks
+			plugins.analyze.analyzer(build),   // compiler.hooks.done
+			plugins.analyze.visualizer(build), // compiler.hooks.emit
+			plugins.analyze.circular(build),   // compiler.hooks.compilation -> compilation.hooks.optimizeModules
+			plugins.licensefiles(build),       // compiler.hooks.compilation -> compilation.hooks.processAssets|ANALYSE
+			plugins.upload(build),             // compiler.hooks.afterDone
+			plugins.scm(build),                // compiler.hooks.done
+			plugins.dispose(build)             // compiler.hooks.shutdown
 		);
 
 		build.wpc.plugins.slice().reverse().forEach((p, i, a) => { if (!p) { build.wpc.plugins.splice(a.length - 1 - i, 1); }});
 		build.logger.write("   plugins configuration created successfully", 2);
-	};
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WpwBuild} build Webpack build specific environment
-	 * @returns {(typedefs.WebpackPluginInstance | undefined)[]}
-	 */
-	nodePlugins = (build) =>
-	{
-		/** @type {(typedefs.WebpackPluginInstance | undefined)[]} */
-		const plugins = [];
-		if (build.type !== "webapp")
-		{
-			plugins.push(
-				copy(build)           // compiler.hooks.thisCompilation -> compilation.hooks.processAssets|ADDITIONAL
-			);
-		}
-		return plugins;
-	};
-
-
-	/**
-	 * @private
-	 * @param {typedefs.WpwBuild} build Webpack build specific environment
-	 * @returns {(typedefs.WebpackPluginInstance | undefined)[]}
-	 */
-	webPlugins = (build) =>
-	{
-		/** @type {(typedefs.WebpackPluginInstance | undefined)[]} */
-		const plugins = [];
-		if (build.type === "webapp")
-		{
-			const apps = isString(build.entry) ? [ build.entry ] :
-						(Object.keys(build.entry || this.createEntryObjFromDir(build.getSrcPath(), ".ts")));
-			plugins.push(
-				cssextract(build),           //
-				...webviewapps(apps, build), //
-				// @ts-ignore
-				htmlcsp(build),              //
-				htmlinlinechunks(build),     //
-				copy(build, { apps }),       // compiler.hooks.thisCompilation -> compilation.hooks.processAssets
-				imageminimizer(build)        //
-			);
-		}
-		return plugins;
 	};
 
 };

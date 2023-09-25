@@ -10,172 +10,239 @@
  *//** */
 
 const { posix } = require("path");
+const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const HtmlPlugin = require("html-webpack-plugin");
-const CspHtmlPlugin = require("csp-html-webpack-plugin");
+const { isString } = require("@spmeesseman/type-utils");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CspHtmlWebpackPlugin = require("csp-html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin");
 
 
 /**
- * @param { string } name
- * @param {typedefs.WpwBuild} build
- * @returns {HtmlPlugin | undefined}
+ * @extends WpwPlugin
  */
-const html = (name, build) =>
+class WpwWebPlugin extends WpwPlugin
 {
-    let plugin;
-    if (build.type === "webapp")
+    /**
+     * @private
+     * @type {typedefs.WpwBuildOptionsConfig<"web"> | undefined}
+     */
+    webBuildOptions;
+
+
+	/**
+	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
+	 */
+	constructor(options)
     {
-        const wwwName = name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
-		plugin = new HtmlPlugin(
-		{
-			chunks: [ name, wwwName ],
-			filename: posix.join(build.getDistPath(), "page", `${wwwName}.html`),
-			inject: true,
-			inlineSource: build.wpc.mode === "production" ? ".css$" : undefined,
-			// inlineSource: undefined,
-			scriptLoading: "module",
-			template: posix.join(name, `${wwwName}.html`),
-			minify: build.wpc.mode !== "production" ? false :
-			{
-				removeComments: true,
-				collapseWhitespace: true,
-				removeRedundantAttributes: false,
-				useShortDoctype: true,
-				removeEmptyAttributes: true,
-				removeStyleLinkTypeAttributes: true,
-				keepClosingSlash: true,
-				minifyCSS: true
-			}
-		});
+        super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"html">} */(this.buildOptions); // reset for typings
+        this.webBuildOptions = this.build.options.web;
     }
-    return plugin;
-};
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {MiniCssExtractPlugin}
- */
-const cssextract = (build) =>
-{
-    return new MiniCssExtractPlugin(
+	/**
+     * @override
+     * @param {typedefs.WpwBuild} build
+	 * @returns {WpwWebPlugin | undefined}
+     */
+	static create = (build) => WpwWebPlugin.wrap(this, build, "html");
+
+
+    /**
+     * @returns {typedefs.WebpackPluginInstanceOrUndef[] | undefined}
+     */
+    getVendorPlugin()
     {
-        filename: (pathData, assetInfo) =>
+        const build = this.build;
+        if (build.type === "webapp")
         {
-            let name = "[name]";
-            if (pathData.chunk?.name) {
-                name = pathData.chunk.name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
+            return [
+                this.css(),
+				...this.webapps(),
+				this.csp(),
+				this.inlinechunks(),
+				this.images()
+            ];
+        }
+    };
+
+
+    /**
+     * @returns {MiniCssExtractPlugin}
+     */
+    css()
+    {
+        return new MiniCssExtractPlugin(
+        {
+            filename: (pathData, assetInfo) =>
+            {
+                let name = "[name]";
+                if (pathData.chunk?.name) {
+                    name = pathData.chunk.name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
+                }
+                return `css/${name}.css`;
             }
-            return `css/${name}.css`;
-        }
-    });
-};
+        });
+    }
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {CspHtmlPlugin}
- */
-const htmlcsp = (build) =>
-{
-    const plugin = new CspHtmlPlugin(
+    /**
+     * @returns {typedefs.WebpackPluginInstance}
+     */
+    csp()
     {
-        // "connect-src":
-        // build.wpc.mode !== 'production'
-        // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
-        // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
-        "default-src": "'none'",
-        "font-src": [ "#{cspSource}" ],
-        // "frame-src":
-        // build.wpc.mode !== 'production'
-        // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
-        // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
-        "img-src": [ "#{cspSource}", "https:", "data:" ],
-        "script-src":
-        build.wpc.mode !== "production"
-                ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-eval'" ]
-                : [ "#{cspSource}", "'nonce-#{cspNonce}'" ],
-        "style-src":
-        build.wpc.mode === "production"
-                ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-hashes'" ]
-                : [ "#{cspSource}", "'unsafe-hashes'", "'unsafe-inline'" ]
-    },
-    {
-        enabled: true,
-        hashingMethod: "sha256",
-        hashEnabled: {
-            "script-src": true,
-            "style-src": build.wpc.mode === "production"
-        },
-        nonceEnabled: {
-            "script-src": true,
-            "style-src": build.wpc.mode === "production"
-        }
-    });
-
-    //
-    // For vscode extensions -
-    // Override the nonce creation so it can be dynamically generated at runtime
-    //
-    if (build.vscode) {
+        /** @type {typedefs.WebpackPluginInstance} */
         // @ts-ignore
-        plugin.createNonce = () => "#{cspNonce}";
+        const plugin = new CspHtmlWebpackPlugin(
+        {
+            // "connect-src":
+            // build.wpc.mode !== 'production'
+            // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
+            // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
+            "default-src": "'none'",
+            "font-src": [ "#{cspSource}" ],
+            // "frame-src":
+            // build.wpc.mode !== 'production'
+            // 		 ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.sandbox.paypal.com", "https://www.paypal.com" ]
+            // 		 : [ "#{cspSource}", "'nonce-#{cspNonce}'", "https://www.paypal.com" ],
+            "img-src": [ "#{cspSource}", "https:", "data:" ],
+            "script-src":
+            this.build.wpc.mode !== "production"
+                    ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-eval'" ]
+                    : [ "#{cspSource}", "'nonce-#{cspNonce}'" ],
+            "style-src":
+            this.build.wpc.mode === "production"
+                    ? [ "#{cspSource}", "'nonce-#{cspNonce}'", "'unsafe-hashes'" ]
+                    : [ "#{cspSource}", "'unsafe-hashes'", "'unsafe-inline'" ]
+        },
+        {
+            enabled: true,
+            hashingMethod: "sha256",
+            hashEnabled: {
+                "script-src": true,
+                "style-src": this.build.wpc.mode === "production"
+            },
+            nonceEnabled: {
+                "script-src": true,
+                "style-src": this.build.wpc.mode === "production"
+            }
+        });
+
+        //
+        // For vscode extensions -
+        // Override the nonce creation so it can be dynamically generated at runtime
+        //
+        if (this.build.vscode) {
+            // @ts-ignore
+            plugin.createNonce = () => "#{cspNonce}";
+        }
+
+        return plugin;
     }
 
-    return plugin;
-};
+
+    /**
+     * @returns {InlineChunkHtmlPlugin}
+     */
+    inlinechunks() { return new InlineChunkHtmlPlugin(HtmlWebpackPlugin, []); }
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {InlineChunkHtmlPlugin | undefined}
- */
-const htmlinlinechunks = (build) =>
-{
-    let plugin;
-    if (build.type === "webapp")
+    /**
+     * @returns {ImageMinimizerPlugin | undefined}
+     */
+    images()
     {
-        // plugin = new InlineChunkHtmlPlugin(HtmlPlugin, build.wpc.mode === "production" ? ["\\.css$"] : []);
-        plugin = new InlineChunkHtmlPlugin(HtmlPlugin, []);
+        let plugin;
+        if (this.build.wpc.mode === "production")
+        {
+            plugin = new ImageMinimizerPlugin({
+            	deleteOriginalAssets: true,
+            	generator: [ this.imageminimizer() ]
+            });
+        }
+        return plugin;
     }
-    return plugin;
-};
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {ImageMinimizerPlugin | undefined}
- */
-const imageminimizer = (build) =>
-{
-    let plugin;
-    if (build.type === "webapp" && build.wpc.mode !== "production")
+    /**
+     * @returns { ImageMinimizerPlugin.Generator<any> }
+     */
+    imageminimizer()
     {
-        // plugin = new ImageMinimizerPlugin({
-        // 	deleteOriginalAssets: true,
-        // 	generator: [ imgConfig(env, wpConfig) ]
-        // });
+        if (this.build.cmdLine.imageOpt)
+        {
+            // @ts-ignore
+            return {
+                type: "asset",
+                implementation: ImageMinimizerPlugin.sharpGenerate,
+                options: {
+                    encodeOptions: {
+                        webp: {
+                            lossless: true
+                        }
+                    }
+                }
+            };
+        }
+
+        return {
+            type: "asset",
+            implementation: ImageMinimizerPlugin.imageminGenerate,
+            options: {
+                plugins: [
+                [
+                    "imagemin-webp",
+                    {
+                        lossless: true,
+                        nearLossless: 0,
+                        quality: 100,
+                        method: this.build.wpc.mode === "production" ? 4 : 0
+                    }
+                ]]
+            }
+        };
     }
-    return plugin;
-};
 
 
-/**
- * @param {string[]} apps
- * @param {typedefs.WpwBuild} build
- * @returns {HtmlPlugin[]}
- */
-const webviewapps = (apps, build) =>
-{
-    const plugins = [];
-    if (build.type === "webapp")
+    /**
+     * @returns {HtmlWebpackPlugin[]}
+     */
+    webapps()
     {
-        apps.forEach(k => plugins.push(html(k, build)));
+        const build = this.build,
+              apps = isString(build.entry) ? [ build.entry ] :
+                     (Object.keys(build.entry || this.createEntryObjFromDir(build.getSrcPath(), build.source.dotext)));
+
+        return apps.map((name) =>
+        {
+            const wwwName = name.replace(/[a-z]+([A-Z])/g, (substr, token) => substr.replace(token, "-" + token.toLowerCase()));
+            return new HtmlWebpackPlugin(
+            {
+                inject: true,
+                scriptLoading: "module",
+                chunks: [ name, wwwName ],
+                filename: posix.join(build.getDistPath(), "page", `${wwwName}.html`),
+                inlineSource: build.wpc.mode === "production" ? ".css$" : undefined,
+                template: posix.join(name, `${wwwName}.html`),
+                minify: build.wpc.mode !== "production" ?
+                        false :
+                        {
+                            removeComments: true,
+                            collapseWhitespace: true,
+                            removeRedundantAttributes: false,
+                            useShortDoctype: true,
+                            removeEmptyAttributes: true,
+                            removeStyleLinkTypeAttributes: true,
+                            keepClosingSlash: true,
+                            minifyCSS: true
+                        }
+            });
+        });
     }
-    return plugins;
-};
+
+}
 
 
 class InlineChunkHtmlPlugin
@@ -230,43 +297,4 @@ class InlineChunkHtmlPlugin
 }
 
 
-// /**
-//  * @param {WpwBuild} build
-//  * @param {WebpackConfig} wpConfig Webpack config object
-//  * @returns { ImageMinimizerPlugin.Generator<any> }
-//  */
-// const imgConfig = (env, wpConfig) =>
-// {
-// 	// @ts-ignore
-// 	return env.imageOpt ?
-// 	{
-// 		type: "asset",
-// 		implementation: ImageMinimizerPlugin.sharpGenerate,
-// 		options: {
-// 			encodeOptions: {
-// 				webp: {
-// 					lossless: true,
-// 				},
-// 			},
-// 		},
-// 	} :
-// 	{
-// 		type: "asset",
-// 		implementation: ImageMinimizerPlugin.imageminGenerate,
-// 		options: {
-// 			plugins: [
-// 			[
-// 				"imagemin-webp",
-// 				{
-// 					lossless: true,
-// 					nearLossless: 0,
-// 					quality: 100,
-// 					method: build.wpc.mode === "production" ? 4 : 0,
-// 				}
-// 			]]
-// 		}
-// 	};
-// };
-
-
-module.exports = { cssextract, htmlcsp, htmlinlinechunks, imageminimizer, webviewapps };
+module.exports = WpwWebPlugin.create;

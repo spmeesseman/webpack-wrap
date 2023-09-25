@@ -10,8 +10,8 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const typedefs = require("../types/typedefs");
 const { isFunction } = require("../utils");
+const typedefs = require("../types/typedefs");
 const { apply } = require("@spmeesseman/type-utils");
 
 
@@ -112,7 +112,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 	/**
 	 * @private
 	 * @param {typedefs.WebpackCompilerHookName} hook
-	 * @param {(arg: any) => any} [cb]
+	 * @param {function(any): any} [cb]
 	 */
 	addCompilerHook(hook, cb)
 	{

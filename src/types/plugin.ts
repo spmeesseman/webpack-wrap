@@ -38,11 +38,11 @@
  *//** */
 
 import { RequireKeys } from "./generic";
-import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
+import { WpwBuildOptions, WpwBuildOptionsKey, WpwPluginConfigWaitItem } from "./rc";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance,
-    WebpackCompilationHookStage, WebpackCompilation
+    WebpackCompilationHookStage, WebpackCompilation, WebpackAsyncHook
 } from "./webpack";
 
 
@@ -79,6 +79,7 @@ interface WpwPluginBaseTapOptions
     waitStage?: WpwPluginHookWaitStage;
 };
 type WpwPluginCompilationTapOptions = RequireKeys<WpwPluginBaseTapOptions, "stage" | "hookCompilation">;
+type WpwPluginCompilationTapOptionsPair = [string, WpwPluginCompilationTapOptions];
 
 interface IWpwPlugin extends IWpwBaseModule, WebpackPluginInstance
 {
@@ -86,12 +87,18 @@ interface IWpwPlugin extends IWpwBaseModule, WebpackPluginInstance
     compiler?: WebpackCompiler;
 }
 
+type WpwPluginConstructor<T> = new(arg1: WpwPluginOptions) => T;
+
+// type WpwIsAsyncHook = (T is WebpackAsyncHook);
+
 
 export {
     IWpwPlugin,
     WpwPluginBaseTapOptions,
     WpwPluginBaseTaskOptions,
     WpwPluginCompilationTapOptions,
+    WpwPluginCompilationTapOptionsPair,
+    WpwPluginConstructor,
     WpwPluginHookHandler,
     WpwPluginHookHandlerResult,
     WpwPluginHookWaitStage,

@@ -9,9 +9,9 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
-const { apply } = require("../utils");
+const { apply, isString } = require("../utils");
 const { join, posix } = require("path");
 const typedefs = require("../types/typedefs");
 const CopyPlugin = require("copy-webpack-plugin");
@@ -20,15 +20,16 @@ const CopyPlugin = require("copy-webpack-plugin");
 /**
  * @extends WpwPlugin
  */
-class WpwdCopyPlugin extends WpwPlugin
+class WpwCopyPlugin extends WpwPlugin
 {
-    /** @type {typedefs.WpwBuildOptionsConfig<"copy">} */
-    buildOptions;
-
 	/**
 	 * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
 	 */
-	constructor(options) { super(options); }
+	constructor(options)
+	{
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"copy">} */(this.buildOptions); // reset for typings
+	}
 
 
     /**
@@ -66,10 +67,9 @@ class WpwdCopyPlugin extends WpwPlugin
 	/**
      * @override
      * @param {typedefs.WpwBuild} build
-     * @param {Partial<typedefs.WpwPluginOptions>} [options]
-	 * @returns {WpwdCopyPlugin | undefined}
+	 * @returns {WpwCopyPlugin | undefined}
      */
-	static create = (build, options) => WpwdCopyPlugin.wrap(this, build, "copy", options);
+	static create = (build) => WpwCopyPlugin.wrap(this, build, "copy");
 
 
 	/**
@@ -171,25 +171,30 @@ class WpwdCopyPlugin extends WpwPlugin
 			{
 				/** @type {CopyPlugin.Pattern[]} */
 				const patterns = [],
-					  base = build.getContextPath({ rel: false });
-				this.options.apps?.filter((appName) => existsSync(join(base, appName, "res"))).forEach(
-					(appName) => patterns.push(
-					{
-						from: posix.join(psxBasePath, appName, "res", "*.*"),
-						to: posix.join(psxBuildPath, "res", "webview"),
-						context: posix.join(psxBasePath, appName, "res")
-					})
-				);
-				if (existsSync(join(base, "res")))
+					  base = build.getContextPath({ rel: false }),
+					  apps = isString(build.entry) ? [ build.entry ] :
+						     (Object.keys(build.entry || this.createEntryObjFromDir(build.getSrcPath(), build.source.dotext)));
+				if (apps.length > 0)
 				{
-					patterns.push({
-						from: posix.join(psxBasePath, "res", "*.*"),
-						to: posix.join(psxBuildPath, "res", "webview"),
-						context: psxBaseCtxPath
-					});
-				}
-				if (patterns.length > 0) {
-					plugin = new CopyPlugin({ patterns });
+					apps.filter((appName) => existsSync(join(base, appName, "res"))).forEach(
+						(/** @type {string} */ appName) => patterns.push(
+						{
+							from: posix.join(psxBasePath, appName, "res", "*.*"),
+							to: posix.join(psxBuildPath, "res", "webview"),
+							context: posix.join(psxBasePath, appName, "res")
+						})
+					);
+					if (existsSync(join(base, "res")))
+					{
+						patterns.push({
+							from: posix.join(psxBasePath, "res", "*.*"),
+							to: posix.join(psxBuildPath, "res", "webview"),
+							context: psxBaseCtxPath
+						});
+					}
+					if (patterns.length > 0) {
+						plugin = new CopyPlugin({ patterns });
+					}
 				}
 			}
 			else if (build.type === "app" && build.wpc.mode === "production")
@@ -243,4 +248,4 @@ class WpwdCopyPlugin extends WpwPlugin
 }
 
 
-module.exports = WpwdCopyPlugin.create;
+module.exports = WpwCopyPlugin.create;

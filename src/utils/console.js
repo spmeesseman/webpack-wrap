@@ -370,14 +370,14 @@ class WpwLogger
      * @param {string} title
      * @param {tinycolor.ColorInput[]} colors
      */
-    printBanner(name, version, title, ...colors) { WpwLogger.printBanner(name, version, title, null, this, ...colors); }
+    printBanner(name, version, title, ...colors) { WpwLogger.printBanner(name, version, title, undefined, this, ...colors); }
 
 
     /**
      * @param {string} name
      * @param {string} version
      * @param {string} subtitle
-     * @param {((logger: WpwLogger) => unknown) | null | undefined} [cb]
+     * @param {function(WpwLogger): unknown | null | undefined} [cb]
      * @param {WpwLogger} [logger]
      * @param {tinycolor.ColorInput[]} colors
      */

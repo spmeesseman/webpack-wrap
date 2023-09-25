@@ -10,13 +10,15 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const { getExcludes } = require("../../utils");
+const WpwError = require("../../utils/message");
+const typedefs = require("../../types/typedefs");
 const { isObject } = require("@spmeesseman/type-utils");
-const { getExcludes, WpwError } = require("../../utils");
 const CircularDependencyPlugin = require("circular-dependency-plugin");
 
 
 /**
- * @param {import("../../types/typedefs").WpwBuild} build
+ * @param {typedefs.WpwBuild} build
  * @returns {CircularDependencyPlugin | undefined}
  */
 const circular = (build) =>

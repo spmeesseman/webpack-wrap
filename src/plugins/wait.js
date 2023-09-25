@@ -90,7 +90,10 @@ class WpwPluginWaitManager
     pollFile(options)
     {
         const start = Date.now();
-        /** @param {(value: void | PromiseLike<void>) => void} resolve @param {any} reject */
+        /**
+         * @param {any} resolve
+         * @param {any} reject
+         */
         const _poll = (resolve, reject) =>
         {
             if (existsSync(options.name))
@@ -108,7 +111,7 @@ class WpwPluginWaitManager
                 setTimeout(_poll, options.interval, resolve, reject);
             }
         };
-        return new Promise((resolve, reject) => _poll(resolve, reject));
+        return new Promise(_poll);
     }
 
 

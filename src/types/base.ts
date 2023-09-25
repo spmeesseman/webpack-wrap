@@ -19,16 +19,19 @@
  *//** */
 
 import { IDisposable } from "./generic";
-import { WpwBuildOptionsKey } from "./rc";
+import { WpwBuildOptions, WpwBuildOptionsKey } from "./rc";
 
 
 type WpwBuildInstance = InstanceType<typeof import("../core/build")>;
 
 type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
 
+type WpwBuildOptionsConfig<T extends WpwBuildOptionsKey> = Exclude<WpwBuildOptions[T], undefined>;
+
 interface IWpwBaseModuleOptions extends IWpwBaseOptions
 {
     build: WpwBuildInstance;
+    buildOptions?: WpwBuildOptionsConfig<WpwBuildOptionsKey>;
     globalCacheProps?: string[];
 };
 type WpwBaseModuleOptions = IWpwBaseModuleOptions;
@@ -52,9 +55,22 @@ interface IWpwBase extends IDisposable
     logger: WpwLoggerInstance;
 }
 
-interface IWpwBaseOptions extends Record<string, any> { logger?: WpwLoggerInstance };
-
+interface IWpwBaseOptions extends Record<string, any>
+{
+    logger?: WpwLoggerInstance;
+};
 type WpwBaseOptions = IWpwBaseOptions;
 
+type WpwModuleOptionsValidationArgs = [ string, string | boolean | number ] | ((...args: any) => boolean);
 
-export { IWpwBase, IWpwBaseModule, IWpwBaseOptions, IWpwBaseModuleOptions, WpwBaseOptions, WpwBaseModuleOptions };
+
+export {
+    IWpwBase,
+    IWpwBaseModule,
+    IWpwBaseOptions,
+    IWpwBaseModuleOptions,
+    WpwBaseOptions,
+    WpwBaseModuleOptions,
+    WpwBuildOptionsConfig,
+    WpwModuleOptionsValidationArgs
+};

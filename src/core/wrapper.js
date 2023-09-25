@@ -30,49 +30,94 @@ const {
  */
 class WpwWrapper extends WpwBase
 {
-    /** @type {typedefs.WpwRuntimeEnvArgs} */
+    /**
+     * @type {typedefs.WpwRuntimeEnvArgs}
+     */
     arge;
-    /** @type {typedefs.WpwCombinedRuntimeArgs} */
+    /**
+     * @type {typedefs.WpwCombinedRuntimeArgs}
+     */
     args;
-    /** @type {typedefs.WebpackRuntimeArgs} */
+    /**
+     * @type {typedefs.WebpackRuntimeArgs}
+     */
     argv;
-    /** @type {WpwBuild[]} */
+    /**
+     * @type {WpwBuild[]}
+     */
     builds;
-    /** @type {typedefs.IWpwBuildConfig[]} */
+    /**
+     * @type {typedefs.IWpwBuildConfig[]}
+     */
     buildConfigs;
-    /** @type {typedefs.WpwBuildBaseConfig} */
+    /**
+     * @type {typedefs.WpwBuildBaseConfig}
+     */
     development;
-    /** @type {typedefs.WpwLog} */
+    /**
+     * @type {typedefs.WpwLog}
+     */
     log;
-    /** @type {typedefs.WpwWebpackMode} */
+    /**
+     * @type {typedefs.WpwWebpackMode}
+     */
     mode;
-    /** @type {typedefs.WebpackConfigOverride} */
+    /**
+     * @type {typedefs.WebpackConfigOverride}
+     */
     overrides;
-    /** @type {typedefs.WpwRcPaths} */
+    /**
+     * @type {typedefs.WpwRcPaths}
+     */
     paths;
-    /** @type {typedefs.WpwPackageJson} */
+    /**
+     * @type {typedefs.WpwPackageJson}
+     */
     pkgJson;
-    /** @type {string} @private */
+    /**
+     * @private
+     * @type {string}
+     */
     pkgJsonPath;
-    /** @type {typedefs.WpwBuildOptions} */
+    /**
+     * @type {typedefs.WpwBuildOptions}
+     */
     options;
-    /** @type {typedefs.WpwBuildBaseConfig} */
+    /**
+     * @type {typedefs.WpwBuildBaseConfig}
+     */
     production;
-    /** @type {boolean} */
+    /**
+     * @type {boolean}
+     */
     publicInfoProject;
-    /** @type {string} */
+    /**
+     * @type {string}
+     */
     $schema;
-    /** @type {typedefs.WpwVersionString} */
+    /**
+     * @type {typedefs.WpwVersionString}
+     */
     schemaVersion;
-    /** @type {typedefs.IWpwSourceConfig} */
+    /**
+     * @type {typedefs.IWpwSourceConfig}
+     */
     source;
-    /** @type {typedefs.WpwBuildBaseConfig} */
+    /**
+     * @type {typedefs.WpwBuildBaseConfig}
+     */
     test;
-    /** @type {typedefs.WpwVersionString}/ */
+    /**
+     * @type {typedefs.WpwVersionString}
+     */
     version;
-    /** @type {typedefs.WpwVsCode}/ */
+    /**
+     * @type {typedefs.WpwVsCode}
+     */
     vscode;
-    /** @type {typedefs.WpwVersionString} */
+    /**
+     * @type {typedefs.WpwVersionString}
+     */
     wpwVersion;
 
 
@@ -99,6 +144,7 @@ class WpwWrapper extends WpwBase
 
     get isSingleBuild() { return !!this.args.build && this.builds.length <= 1; }
     get buildCount() { return this.builds.length; }
+    get pkgJsonFilePath() { return this.pkgJsonPath; }
 
 
     /**

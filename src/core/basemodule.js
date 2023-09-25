@@ -9,6 +9,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const { glob } = require("glob");
 const WpwBase = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
@@ -86,7 +87,12 @@ class WpwBaseModule extends WpwBase
         this.build = options.build;
         this.wpc = this.build.wpc;
         this.hashDigestLength = this.wpc.output.hashDigestLength || 20;
-        this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
+        if (options.buildOptions) {
+            this.buildOptions = options.buildOptions;
+        }
+        else {
+            this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
+        }
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
         this.virtualFileRelPath = relativePath(this.build.getContextPath(), this.virtualFilePath);
@@ -106,6 +112,30 @@ class WpwBaseModule extends WpwBase
 	 * @throws {typedefs.WpwError}
      */
 	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }
+
+
+    /**
+     * @protected
+     * @param {string} dir
+     * @param {typedefs.WpwSourceExtension | typedefs.WpwSourceDotExtensionApp} ext
+     * @returns {typedefs.IWpwWebpackEntryImport}
+     */
+    createEntryObjFromDir(dir, ext)
+    {
+        if (!ext.startsWith(".")) {
+            ext = /** @type {typedefs.WpwSourceDotExtensionApp} */("." + ext);
+        }
+        return glob.sync(
+            `*${ext}`, {
+                absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: 1
+            }
+        )
+        .reduce((obj, e)=>
+        {
+            obj[e.replace(ext, "")] = `./${e}`;
+            return obj;
+        }, {});
+    };
 
 
 	/**

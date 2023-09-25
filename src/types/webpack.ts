@@ -67,6 +67,8 @@ type WebpackAsyncHook<T> = AsyncSeriesHook<T>;
 
 type WebpackCacheFacade = ReturnType<WebpackCompilation["getCache"]>;
 
+type WebpackEtag = Exclude<Parameters<WebpackCacheFacade["get"]>[1], null>;
+
 type WebpackSource = WebpackSources.Source;
 
 interface IWebpackCompilationAssets { [index: string]: WebpackSource }
@@ -103,8 +105,6 @@ type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextMod
 
 // type WebpackDependencyLocation = Exclude<WebpackError["loc"], undefined>;
 
-type WebpackEtag = ReturnType<ReturnType<WebpackCompilation["getCache"]>["getLazyHashedEtag"]>;
-
 type WebpackExternalItem = ArrayInnerType<WebpackExternalsPlugin["externals"]>;
 
 type WebpackHookMap<H> = HookMap<H>;
@@ -126,6 +126,11 @@ type WebpackOptimization = WebpackOptionsNormalized["optimization"];
 type WebpackEntry = EntryObject;
 
 type WebpackOutput = RequireKeys<Exclude<WebpackConfig["output"], undefined>, "path">;
+
+type WebpackPathDataOutput = RequireKeys<WebpackPathData, "filename" | "chunk">;
+
+type WebpackPluginInstanceOrUndef = WebpackPluginInstance | undefined;
+
 
 type WebpackRawSource = WebpackSources.RawSource;
 
@@ -223,7 +228,9 @@ export {
     WebpackObjectSerializerContext,
     WebpackOptimization,
     WebpackPathData,
+    WebpackPathDataOutput,
     WebpackPluginInstance,
+    WebpackPluginInstanceOrUndef,
     WebpackProgressPlugin,
     WebpackLogLevel,
     WebpackOutput,

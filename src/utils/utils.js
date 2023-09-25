@@ -16,7 +16,7 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, isArray, isDirectory, merge } = require("@spmeesseman/type-utils");
+const { asArray, isDirectory, merge, apply } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -182,18 +182,18 @@ const existsAsync = async (path) =>
 
 /**
  * @param {string} pattern
- * @param {import("glob").GlobOptions} options
+ * @param {typedefs.GlobOptions} options
  * @returns {Promise<string[]>}
  */
-const findFiles = async (pattern, options) => (await glob(pattern, merge(globOptions, options))).map((f) => f.toString());
+const findFiles = async (pattern, options) => (await glob(pattern, merge(globOptions, options))).map(f => f.toString());
 
 
 /**
  * @param {string} pattern
- * @param {import("glob").GlobOptions} [options]
+ * @param {typedefs.GlobOptions} [options]
  * @returns {string[]}
  */
-const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions, options)).map((f) => f.toString());
+const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions, options)).map(f => f.toString());
 
 
 /**
@@ -360,11 +360,46 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 
 
 /**
- * @param {string} b base directory
+ * @template {typedefs.WpwGetRelPathOptions | undefined} O
+ * @template {O extends { stat: true } ? string | undefined : string} R
+ * @param {string} baseDir base directory
  * @param {string} p configured path (relative or absolute)
- * @returns {string} a relative path
+ * @param {O} [o]
+ * @returns {R} a relative path
  */
-const relativePath = (b, p) => { if (isAbsolute(p)) { p = relative(b, p); } return p; };
+const relativePath = (baseDir, p, o) =>
+{
+    let /** @type {string | undefined } */path = p;
+    const opts = apply({}, o);
+    if (path)
+    {
+        if (baseDir)
+        {
+            if (isAbsolute(path))
+            {
+                if (opts.stat && !existsSync(path)) {
+                    path = undefined;
+                }
+                path = relative(baseDir, p);
+            }
+            else {
+                if (opts.stat && !existsSync(resolve(baseDir, path))) {
+                    path = undefined;
+                }
+            }
+        }
+        if (path)
+        {
+            if (opts.psx) {
+                path = path.replace(/\\/g, "/");
+            }
+            if (opts.dot) {
+                path = `.${opts.psx ? "/" : sep}${path.replace(/^\.[\\\/]/, "")}`;
+            }
+        }
+    }
+    return /** @type {R} */(path);
+};
 
 
 // * @returns {import("../../package.json").dependencies[T]}
@@ -377,11 +412,31 @@ const requireResolve = (id) => require(require.resolve(id, { paths: [ require.ma
 
 
 /**
- * @param {string} b base directory
+ * @template {typedefs.WpwGetAbsPathOptions | undefined} O
+ * @template {O extends { stat: true } ? string | undefined : string} R
+ * @param {string} baseDir base directory
  * @param {string | undefined} p configured path (relative or absolute)
- * @returns {string} an absolute path
+ * @param {O} [o]
+ * @returns {R} an absolute path
  */
-const resolvePath = (b, p) => { if (p && !isAbsolute(p)) { p = resolve(b, p); } return p || b; };
+const resolvePath = (baseDir, p, o) =>
+{
+    let /** @type {string | undefined } */path = p;
+    const opts = apply({}, o);
+    if (path)
+    {
+        if (baseDir && !isAbsolute(path)) {
+            path = resolve(baseDir, path);
+        }
+        if (opts.stat && !existsSync(path)) {
+            path = undefined;
+        }
+        if (path && opts.psx) {
+            path = path.replace(/\\/g, "/");
+        }
+    }
+    return /** @type {R} */(path);
+};
 
 
 module.exports = {

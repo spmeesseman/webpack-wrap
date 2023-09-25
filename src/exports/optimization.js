@@ -11,9 +11,6 @@ const typedefs = require("../types/typedefs");
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-/** @typedef {import("../types").WebpackOptimization} WebpackOptimization */
-/** @typedef {import("../types").WpwWebpackConfig} WpwWebpackConfig */
-
 
 /**
  * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}

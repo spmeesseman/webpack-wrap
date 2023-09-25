@@ -22,9 +22,6 @@ class WpwVendorModPlugin extends WpwPlugin
 {
 	static ranOnce = false;
 
-    /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} @protected */
-    buildOptions;
-
 
     /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
@@ -32,7 +29,7 @@ class WpwVendorModPlugin extends WpwPlugin
 	constructor(options)
 	{
 		super(options);
-        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} */(this.build.options.vendormod);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"vendormod">} */(this.buildOptions);
 	}
 
 
