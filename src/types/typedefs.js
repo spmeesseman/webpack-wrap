@@ -432,6 +432,7 @@
 // /** @typedef {import("webpack/serialization/ObjectMiddleware").ObjectSerializerContext} WebpackObjectSerializerContext */
 
 /** @typedef {import("./webpack").WebpackEtag} WebpackEtag */
+/** @typedef {import("./webpack").WebpackHook} WebpackHook */
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackType} WebpackType */
 /** @typedef {import("./webpack").WebpackChunk} WebpackChunk */

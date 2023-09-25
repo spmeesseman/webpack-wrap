@@ -226,17 +226,22 @@ class WpwBuild extends WpwBase
     {
         const l = this.logger;
         if (this.info.length > 0) {
-            l.write("REPORTED INFORMATIONAL MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
+            l.write("FEEDBACK MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
             this.info.splice(0).forEach(e => l.info(e));
         }
         if (this.warnings.length > 0) {
-            l.warning("REPORTED NON-FATAL WARNINGS FOR THIS BUILD:");
+            l.warning("NON-FATAL WARNINGS FOR THIS BUILD:");
             this.warnings.splice(0).forEach(w => l.warning(w));
         }
-        if (this.errors.length > 0) {
-            l.write("REPORTED ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
-            this.errors.splice(0).forEach(e => l.error(e));
-        }
+        // if (this.errors.length > 0) {
+        //     //
+        //     // Removed 9/24/23 - errors are added to compilation.errors array, and reported by the
+        //     // wp infrastructure logger when it exits.  seems redundant to print them here too.
+        //     // laving commented in case something changes and we put it back
+        //     //
+        //     l.write("ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
+        //     this.errors.splice(0).forEach(e => l.error(e));
+        // }
         for (const d of this.disposables.splice(0)) {
             const result = d.dispose();
             if (typeUtils.isPromise(result)) { await result; }
@@ -257,13 +262,13 @@ class WpwBuild extends WpwBase
         if (/WPW[0-2][0-9][0-9]/.test(info.code))
         {
             const i = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
-            l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
+            // l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
             this.info.push(i);
         }
         else if (/WPW[3-5][0-9][0-9]/.test(info.code))
         {
             const w = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
-            l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
+            // l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
             this.warnings.push(w);
             if (hasCompilation) {
                 compilation.warnings.push(w);
@@ -273,7 +278,7 @@ class WpwBuild extends WpwBase
         {
             const e = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
             this.errors.push(e);
-            l.write(info.message, undefined, pad, icons.color.error, l.colors.red);
+            // l.write(info.message, undefined, pad, icons.color.error, l.colors.red);
             if (hasCompilation) {
                 compilation.errors.push(e);
             }

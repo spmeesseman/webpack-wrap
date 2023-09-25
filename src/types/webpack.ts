@@ -107,6 +107,8 @@ type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextMod
 
 type WebpackExternalItem = ArrayInnerType<WebpackExternalsPlugin["externals"]>;
 
+type WebpackHook<T> = WebpackSyncHook<T> | WebpackAsyncHook<T>;
+
 type WebpackHookMap<H> = HookMap<H>;
 
 type WebpackInfrastructureLogging = Exclude<WebpackConfig["infrastructureLogging"], undefined>;
@@ -184,6 +186,7 @@ export {
     WebpackAsset,
     WebpackAssetInfo,
     WebpackAssetEmittedInfo,
+    WebpackHook,
     WebpackAsyncHook,
     WebpackSyncHook,
     WebpackBannerPlugin,

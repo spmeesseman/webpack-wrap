@@ -82,11 +82,6 @@ class WpwPlugin extends WpwBaseModule
      * @type {typedefs.WebpackCacheFacade}
      */
     wpCacheCompilation;
-    /**
-     * @protected
-     * @type {typedefs.WebpackLogger}
-     */
-    wpLogger;
 
 
     /**
@@ -200,31 +195,8 @@ class WpwPlugin extends WpwBaseModule
     };
 
 
-    /**
-     * @protected
-     * @param {string} filePath
-     * @param {string} identifier
-     * @param {string} outputDir Output directory of build
-     * @returns {Promise<boolean>} Promise<boolean>
-     */
-    checkSnapshotExists = async (filePath, identifier, outputDir) =>
-    {
-        const logger = this.logger,
-              filePathRel = relative(outputDir, filePath);
-        let /** @type {typedefs.CacheResult | undefined} */cacheEntry;
-        logger.value("   check cache for existing asset snapshot", filePathRel, 3);
-        try {
-            cacheEntry = await this.wpCacheCompilation.getPromise(`${filePath}|${identifier}`, null);
-        }
-        catch (e) {
-            this.handleError("failed while checking if cached snapshot exists", e);
-        }
-        return !!cacheEntry && !!cacheEntry.snapshot;
-    };
-
-
 	/**
-	 * @protected
+	 * @private
 	 * @param {typedefs.WebpackSnapshot} snapshot
 	 * @returns {Promise<boolean | undefined>} Promise<boolean | undefined>
 	 */
@@ -262,7 +234,7 @@ class WpwPlugin extends WpwBaseModule
 
 
 	/**
-	 * @protected
+	 * @private
 	 * @param {number} startTime
 	 * @param {string} dependency
 	 * @returns {Promise<typedefs.WebpackSnapshot | undefined | null>} Promise<WebpackSnapshot | undefined | null>
@@ -287,14 +259,23 @@ class WpwPlugin extends WpwBaseModule
 	 */
 	exec = async (command, program, ignoreOut) =>
     {
-        const result = await execAsync({ command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut });
-        result.errors.forEach(e => this.build.addMessage({ code: WpwError.Code.ERROR_TYPESCRIPT, compilation: this.compilation, message: e }));
+        const result = await execAsync({
+            command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut
+        });
+        for (const message of result.errors)
+        {
+            this.build.addMessage({
+                message,
+                compilation: this.compilation,
+                code: WpwError.Code.ERROR_NON_ZERO_EXIT_CODE
+            });
+        }
         return result.code;
     };
 
 
     /**
-     * @protected
+     * @private
      * @param {string} filePath
      * @param {string | number} identifier
      * @param {typedefs.WebpackEtag | null} [etag]
@@ -352,7 +333,7 @@ class WpwPlugin extends WpwBaseModule
      * @abstract
 	 * @protected
      * @param {boolean} [_applyFirst]
-     * @returns {typedefs.WebpackPluginInstance | (typedefs.WebpackPluginInstance | undefined)[] | undefined} WebpackPluginInstance
+     * @returns {typedefs.WebpackPluginInstance | typedefs.WebpackPluginInstanceOrUndef[] | undefined} WebpackPluginInstance
      */
     getVendorPlugin(_applyFirst) { return undefined; }
 
@@ -368,12 +349,12 @@ class WpwPlugin extends WpwBaseModule
         this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
 	}
 
-    // * @returns {hook is typedefs.WebpackAsyncHook} hook is AsyncCompilerHook | AsyncCompilationHook
     /**
      * @protected
      * @param {string|any} hook
-     * @returns {boolean}
+     * @returns {boolean} hook is WebpackAsyncHook
      */
+    // * @returns {hook is typedefs.WebpackAsyncHook} hook is WebpackAsyncHook
     isAsyncHook = (hook) => isFunction(hook.tapPromise);
 
 
@@ -385,11 +366,11 @@ class WpwPlugin extends WpwBaseModule
     isEntryAsset = (file) => WpwPlugin.getEntriesRegex(this.wpc).test(file);
 
 
-    // * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
     /**
      * @param {any} hook
-     * @returns {boolean}
+     * @returns {boolean} hook is WebpackHook
      */
+    // * @returns {hook is typedefs.WebpackHook} <-- "is" causes jsdoc errors
     isTapable = (hook) => isFunction(hook.tap) || isFunction(hook.tapPromise);
 
 
@@ -403,7 +384,6 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compiler = compiler;
         this.wpCache = compiler.getCache(this.name);
-        this.wpLogger = compiler.getInfrastructureLogger(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
 
         //
@@ -471,7 +451,6 @@ class WpwPlugin extends WpwBaseModule
     onCompilation(compilation)
     {
         this.compilation = compilation;
-        this.wpLogger = compilation.getLogger(this.name);
         this.wpCacheCompilation = compilation.getCache(this.cacheName);
         return !compilation.getStats().hasErrors();
     }

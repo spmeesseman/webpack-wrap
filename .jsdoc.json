@@ -2,7 +2,6 @@
     "plugins": [],
     "mode": "typescript",
     "recurseDepth": 10,
-    "destination": "dist/doc/api",
     "markdown": {
       "parser": "gfm",
       "hardwrap": true

@@ -50,7 +50,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 	{
         const build = this.build,
               logger = build.logger,
-              options = this.buildOptions,
+              config = this.buildOptions,
               outDir = this.buildPathTemp,
               baseDir = build.getBasePath(),
               ctxDir =  build.getContextPath(),
@@ -59,9 +59,9 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
         const _addPathOption = (/** @type {string} */ option) =>
         {
-            if (options[option])
+            if (config[option])
             {
-                const rPath = relativePath(baseDir, options[option], { psx: true, stat: true }) ;
+                const rPath = relativePath(baseDir, config[option], { psx: true, stat: true }) ;
                 if (rPath) {
                     jsdocOptions.push(`--${option}`, `"${rPath}"`);
                 }
@@ -84,7 +84,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
         const jsdocOptions = [ "--destination", `"${outDir}"` ];
 
-        if (isObject(options))
+        if (isObject(config))
         {
             _addPathOption("configure");
             _addPathOption("package");
@@ -95,11 +95,15 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
                 return;
             }
             jsdocOptions.push("--recurse");
-            const nonPathOpts = pick(options, "debug", "encoding", "private", "verbose");
+            const nonPathOpts = pick(config, "debug", "encoding", "private", "verbose");
             Object.entries(nonPathOpts).filter(([ _, v ]) => isPrimitive(v) && v !== false).forEach(([ k, v ]) =>
             {
                 jsdocOptions.push(`--${k}` + (v !== true ? ` ${v}` : ""));
             });
+        }
+
+        if (!jsdocOptions.includes("--verbose") && build.logger.level >= 4) {
+            jsdocOptions.push("--verbose");
         }
 
         if (!jsdocOptions.includes("--package")) {
@@ -176,7 +180,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             return build.addMessage({
                 code: WpwError.Code.ERROR_JSDOC_FAILED,
                 compilation: this.compilation ,
-                message: "jsdoc command exited with error code " + code
+                message: "the jsdoc module execution exited with error code " + code
             });
         }
 
@@ -200,6 +204,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		const files = await findFiles("**/*.*", { cwd: outDir, absolute: true });
 		for (const filePath of files)
 		{
+            // logger.value("      process asset", filePath, 3);
             const data = await readFile(filePath),
                   filePathRel = relative(outDir, filePath),
                   source = new this.compiler.webpack.sources.RawSource(data);

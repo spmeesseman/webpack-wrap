@@ -122,6 +122,7 @@ const WpwMessageMap =
     //
     WPW600: "an error has occurred",
     WPW605: "output directory does not exist",
+    WPW606: "external process returned non-zero exit code",
     //
     // SCHEMA ERRORS (610 - 619)
     //
@@ -204,6 +205,7 @@ const WpwMessageCode =
     //
     ERROR_GENERAL: /** @type {typedefs.WpwErrorCode} */("WPW600"),
     ERROR_NO_OUTPUT_DIR: /** @type {typedefs.WpwErrorCode} */("WPW605"),
+    ERROR_NON_ZERO_EXIT_CODE: /** @type {typedefs.WpwErrorCode} */("WPW606"),
     //
     // SCHEMA ERRORS (610 - 619)
     //
@@ -379,14 +381,29 @@ class WpwMessage extends WebpackError
     {
         if (this.stack)
         {
-            const lines = this.stack.split("\n") || [],
-                  line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "1" ])[1]),
-                  column = parseInt((lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "0" ])[1]),
-                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1],
-                  fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
-
             let stack = this.stack.replace(`${this.name}: `, "");
+            const lines = this.stack.split("\n") || [],
+                  method = (lines[3].match(WpwRegex.StackTraceCurrentMethod) || [ "", "" ])[1];
+
             this.message.split("\n").forEach((m) => { stack = cleanUp(stack, m); });
+
+            let match, line, column;
+            if ((match = this.message.match(/(?:in|on) line ([0-9]+)/)) !== null) {
+                line = parseInt(match[1]);
+                column = 0;
+            }
+            else {
+                line = parseInt((lines[3].match(WpwRegex.StackTraceCurrentLine) || [ "", "1" ])[1]);
+                column = parseInt((lines[3].match(WpwRegex.StackTraceCurrentColumn) || [ "", "0" ])[1]);
+            }
+
+            let fileAbs;
+            if ((match = this.message.match(WpwRegex.SourceFileAbs) !== null)) {
+                fileAbs = match[1];
+            }
+            else {
+                fileAbs = (lines[3].match(WpwRegex.StackTraceCurrentFileAbs) || [ "", "" ])[1];
+            }
 
             this.loc = { end: { line: line + 1, column: 0 }, start: {line, column }, name: method };
             this.file = (lines[3].match(WpwRegex.StackTraceCurrentFile) || [ "", "" ])[1] + ` (${fileAbs}:${line}:${column})`;

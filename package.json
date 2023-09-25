@@ -33,7 +33,7 @@
         "build-app-test": "webpack --env build=app --mode none --env mode=test --config ./webpack.config.js",
         "build-app-test:analyze": "webpack --env build=app --mode none --env mode=test --env analyze --config ./webpack.config.js && npm run view-statistics",
         "build-docs": "webpack --env build=docs --mode production --config ./webpack.config.js",
-        "build-docs:test_jsdoc": "jsdoc --destination res/docs/api --configure .jsdoc.json --recurse ./src",
+        "build-docs:test_jsdoc": "jsdoc --configure ./.jsdoc.json",
         "build-examples": "node script/create-examples.js",
         "build-schema": "npm run schema-build-types",
         "build-types": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",

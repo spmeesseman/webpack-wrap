@@ -156,6 +156,7 @@ class WpwCopyPlugin extends WpwPlugin
 
 	/**
 	 * @override
+	 * @returns {typedefs.WebpackPluginInstance | undefined}
 	 */
 	getVendorPlugin = () =>
 	{
@@ -242,7 +243,7 @@ class WpwCopyPlugin extends WpwPlugin
 				}
 			}
 		}
-		return plugin || new CopyPlugin();
+		return plugin;
 	};
 
 }

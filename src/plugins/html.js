@@ -51,6 +51,7 @@ class WpwWebPlugin extends WpwPlugin
 
 
     /**
+	 * @override
      * @returns {typedefs.WebpackPluginInstanceOrUndef[] | undefined}
      */
     getVendorPlugin()

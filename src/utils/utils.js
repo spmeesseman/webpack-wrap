@@ -10,13 +10,14 @@
  *//** */
 
 const { glob } = require("glob");
+const WpwRegex = require("./regex");
 const { existsSync } = require("fs");
 const { promisify } = require("util");
 const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, isDirectory, merge, apply } = require("@spmeesseman/type-utils");
+const { asArray, isDirectory, merge, apply, pushUniq } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -88,34 +89,29 @@ const execAsync = async (options) =>
           ignores = asArray(options.ignoreOut),
           logPad = options.logPad || "",
           logger = options.logger,
-          colors = logger?.colors,
-          stdout = [], stderr = [], errors = [],
-          program = options.program || options.command.split(" ")[0];
+          program = options.program || options.command.split(" ")[0],
+          /** @type {string[]} */stdout = [], /** @type {string[]} */stderr = [], /** @type {string[]} */errors = [];
 
     const _handleOutput = (out, stdarr) =>
     {
-        if (options.stdout || !logger)
+        const outs = out.split("\n");
+        outs.filter(o => !!o).map(o => o.toString().trim()).forEach((o) =>
         {
-            console.log(out);
-        }
-        else
-        {
-            const outs = out.split("\n");
-            outs.filter(o => !!o).map(o => o.toString().trim()).forEach((o) =>
+            if (ignores.every(i => !o.toLowerCase().includes(i.toLowerCase())))
             {
-                if (ignores.every(i => !o.toLowerCase().includes(i.toLowerCase())))
-                {
-                    if (o.startsWith(":") && stdarr.length > 0) {
-                        stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + o;
-                    }
-                    else if (stdarr.length > 0 && stdarr[stdarr.length - 1].endsWith(":")) {
-                        stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + " " + o;
-                    }
-                    else {
-                        stdarr.push(o);
-                    }
+                if (o.startsWith(":") && stdarr.length > 0) {
+                    stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + o;
                 }
-            });
+                else if (stdarr.length > 0 && stdarr[stdarr.length - 1].endsWith(":")) {
+                    stdarr[stdarr.length - 1] = stdarr[stdarr.length -1] + " " + o;
+                }
+                else {
+                    stdarr.push(o);
+                }
+            }
+        });
+        if (options.stdout) {
+            console.log(out);
         }
     };
 
@@ -124,38 +120,16 @@ const execAsync = async (options) =>
 
     child.on("close", (code) =>
     {
-        exitCode = code;
-        if (logger && colors)
-        {
-            const clrCode = logger.withColor(code?.toString(), code === 0 ? colors.green : colors.red);
-            const _out = (/** @type {string} */ name, /** @type {any[]} */ out) =>
-            {
-                if (out.length > 0)
-                {
-                    const hdr = logger.withColor(`${program} ${name}:`, exitCode !== 0 ? colors.red : colors.yellow);
-                    out.forEach((m) =>
-                    {
-                        const msg = logger.withColor(m, colors.grey),
-                              lvl = m.length <= 256 ? 1 : (m.length <= 512 ? 2 : (m.length <= 1024 ? 3 : 5));
-                        logger.log(
-                            `${logPad}${hdr} ${msg}`, lvl, "   ",
-                            exitCode !== 0 ? logger.icons.color.error : logger.icons.color.warning
-                        );
-                        if ((/TS[0-9]{4}/).test(m)) {
-                            errors.push(m);
-                        }
-                    });
-                }
-            };
-            _out("stdout", stdout);
-            _out("stderr", stderr);
-            logger.log(`${logPad}${program} completed with exit code bold(${clrCode})`);
+        if (logger) {
+            const clrCode = logger.withColor(code?.toString(), code === 0 ? logger.colors.green : logger.colors.red);
+            logger.log(`   ${logPad}${program} returned exit code bold(${clrCode})`);
         }
+        exitCode = code;
+        stderr.filter(m => WpwRegex.MessageContainsError.test(m)).forEach((m) => pushUniq(errors, m));
+        stdout.filter(m => WpwRegex.MessageContainsError.test(m)).forEach((m) => pushUniq(errors, m));
     });
 
-    try {
-        await procPromise;
-    } catch{}
+    try { await procPromise; } catch{}
 
     return { code: exitCode, errors };
 };
@@ -182,18 +156,22 @@ const existsAsync = async (path) =>
 
 /**
  * @param {string} pattern
- * @param {typedefs.GlobOptions} options
+ * @param {typedefs.GlobOptions} [options]
+ * @param {boolean} [allowDirs]
  * @returns {Promise<string[]>}
  */
-const findFiles = async (pattern, options) => (await glob(pattern, merge(globOptions, options))).map(f => f.toString());
+const findFiles = async (pattern, options, allowDirs) =>
+    (await glob(pattern, merge(globOptions, options))).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
 
 
 /**
  * @param {string} pattern
  * @param {typedefs.GlobOptions} [options]
+ * @param {boolean} [allowDirs]
  * @returns {string[]}
  */
-const findFilesSync = (pattern, options) => glob.sync(pattern, merge(globOptions, options)).map(f => f.toString());
+const findFilesSync = (pattern, options, allowDirs) =>
+    glob.sync(pattern, merge(globOptions, options)).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
 
 
 /**
