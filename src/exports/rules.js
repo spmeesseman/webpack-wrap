@@ -269,11 +269,14 @@ class WpwRulesExport extends WpwWebpackExport
 				loader: "wpw-jsdoc-loader",
 				include: this.build.global.cacheDir,
 				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
-				options: merge({
+				options: {
+					entry: build.entry,
+					config: jsdocConfig,
+					ext: build.source.dotext,
 					outDir: build.getDistPath(),
 					inputDir: build.getSrcPath(),
 					virtualFile: this.virtualFilePath
-				}, { jsdocConfig })
+				}
 			});
 		}
 	}
@@ -446,7 +449,14 @@ class WpwRulesExport extends WpwWebpackExport
 				loader: "wpw-types-loader",
 				include: this.build.global.cacheDir,
 				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
-				options: merge({ virtualFile: this.virtualFilePath }, { typesConfig })
+				options: {
+					entry: build.entry,
+					config: typesConfig,
+					ext: build.source.dotext,
+					outDir: build.getDistPath(),
+					inputDir: build.getSrcPath(),
+					virtualFile: this.virtualFilePath
+				}
 			});
 		}
 	}

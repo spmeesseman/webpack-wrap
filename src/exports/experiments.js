@@ -12,7 +12,6 @@ const typedefs = require("../types/typedefs");
 
 
 /**
- * @function entry
  * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
  */
 const experiments = (build) =>

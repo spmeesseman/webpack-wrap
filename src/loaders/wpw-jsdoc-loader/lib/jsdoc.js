@@ -13,7 +13,7 @@ const { validate } = require("schema-utils");
 const { urlToRequest } = require("loader-utils");
 const typedefs = require("../../../types/typedefs");
 const WpwLogger = require("../../../utils/console");
-const { forwardSlash } = require("../../../utils/utils");
+const { forwardSlash, findFiles } = require("../../../utils/utils");
 
 /** @type {WpwLogger} */
 let logger;
@@ -28,17 +28,26 @@ const schema = {
         },
         options: {
             type: "object",
+            required: [
+                "config", "ext", "inputDir", "outDir", "virtualFile"
+            ],
             properties: {
-                outDir: {
+                entry: {
+                    type: "string"
+                },
+                ext: {
                     type: "string"
                 },
                 inputDir: {
                     type: "string"
                 },
+                outDir: {
+                    type: "string"
+                },
                 virtualFile: {
                     type: "string"
                 },
-                jsdocConfig: {
+                config: {
                     $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
                 }
             }
@@ -58,8 +67,16 @@ async function jsdocLoader(source, map, meta)
     logger.value("   path", resourcePath, 3);
 
     const options = this.getOptions();
-    logger.object("options", options, 5, "   ");
     validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
+
+    this.clearDependencies();
+    const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
+    for (const file of files) {
+        this.addDependency(file);
+        logger.value("   add dependency", file, 5);
+    }
+
+    return [ source, map, meta ];
 
     // const traceMethod = (obj) =>
     // {
@@ -170,8 +187,8 @@ async function jsdocLoader(source, map, meta)
     //     }
     // }
 
-    if (!source)
-    {
+    // if (!source)
+    // {
     //     let snapshot;
     //     const startTime = Date.now();
     //     data = data || await readFile(resourcePath);
@@ -196,7 +213,7 @@ async function jsdocLoader(source, map, meta)
     //             throw new WpwError("jsdoc loader failed" + e.message, "loaders/jsdoc.js", "caching snapshot " + resourcePathRel);
     //         }
     //     }
-    }
+    // }
 
     // newHash = newHash || this.getContentHash(data);
     // if (newHash === persistedCache[resourcePathRel])
@@ -256,7 +273,7 @@ async function jsdocLoader(source, map, meta)
 
     // return `export default ${JSON.stringify(results)}`;
     // return [ data ]; //  new RawSource(data);
-    return [ source, map, meta ];
+    // return [ source, map, meta ];
 }
 
 

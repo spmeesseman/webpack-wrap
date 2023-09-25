@@ -152,7 +152,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 		build.logger.start("create entry points", 1);
 
-		if (isObject(build.entry)) // If the build rc defined `entry` itself, apply and we're done...
+		if (isObject(build.entry) && build.type !== "jsdoc" && build.type !== "types")
 		{
 			if (isObjectEmpty(build.entry))
 			{
@@ -163,7 +163,7 @@ class WpwEntryExport extends WpwWebpackExport
 				_create();
 			}
 			else {
-				build.logger.write("   rc defined entry point paths are not validted", 3);
+				build.logger.write("   rc defined entry point paths are not validated", 3);
 				apply(build.wpc.entry, build.entry);
 			}
 		}

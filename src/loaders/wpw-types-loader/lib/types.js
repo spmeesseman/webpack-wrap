@@ -13,7 +13,7 @@ const { validate } = require("schema-utils");
 const { urlToRequest } = require("loader-utils");
 const typedefs = require("../../../types/typedefs");
 const WpwLogger = require("../../../utils/console");
-const { forwardSlash } = require("../../../utils/utils");
+const { forwardSlash, findFiles } = require("../../../utils/utils");
 
 /** @type {WpwLogger} */
 let logger;
@@ -30,14 +30,26 @@ const schema = {
         options: {
             type: "object",
             required: [
-                "virtualFile", "typesConfig"
+                "config", "ext", "inputDir", "outDir", "virtualFile"
             ],
             properties: {
+                entry: {
+                    type: "string"
+                },
+                ext: {
+                    type: "string"
+                },
+                inputDir: {
+                    type: "string"
+                },
+                outDir: {
+                    type: "string"
+                },
                 virtualFile: {
                     type: "string"
                 },
-                typesConfig: {
-                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
+                config: {
+                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
                 }
             }
         }
@@ -52,8 +64,16 @@ async function typesLoader(source, map, meta)
     logger.value("   path", resourcePath, 3);
 
     const options = this.getOptions();
-    logger.object("options", options, 5, "   ");
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
+
+    this.clearDependencies();
+    const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
+    for (const file of files) {
+        this.addDependency(file);
+        logger.value("   add dependency", file, 5);
+    }
+
+    return [ source, map, meta ];
 
     // const filename = loaderUtils.interpolateName(this, `[name]-page${i}-[contenthash].png`, {content: file});
     // const imageNames = images.map((file, i) => {
@@ -88,7 +108,7 @@ async function typesLoader(source, map, meta)
     // this.callback(null, source, map, meta);
     // this.callback(null, dummySource, null, null);
     // return [ newSource, map, meta ];
-    return [ source, map, meta ];
+    // return [ source, map, meta ];
 }
 
 

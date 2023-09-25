@@ -2,25 +2,84 @@
     "mode": "typescript",
     "recurseDepth": 10,
     "markdown": {
-        "hardwrap": false,
+        "hardwrap": true,
         "idInHeadings": true
     },
-    "menu":{
-      "Webpack-Wrap Documentation": {
-        "href":"https://app1.spmeesseman.com/res/docs/",
-        "target":"_blank",
-        "class":"menu-item",
-        "id":"repository"
-      }
+    "menu": {
+        "Webpack-Wrap Documentation": {
+            "href": "https://app1.spmeesseman.com/res/docs/",
+            "target": "_blank",
+            "class": "menu-item",
+            "id": "repository"
+        }
     },
     "opts": {
-      "encoding": "utf8",
-      "destination": "./dist/doc/api",
-      "recurse": true,
-      "template": "node_modules/clean-jsdoc-theme",
-      "theme_opts": {
-          "default_theme": "dark"
-      }
+        "encoding": "utf8",
+        "destination": "./dist/doc/api",
+        "recurse": true,
+        "template": "node_modules/clean-jsdoc-theme",
+        "theme_opts": {
+            "default_theme": "dark",
+            "displayModuleHeader": true,
+            "includeFilesListInHomepage": true,
+            "removeQuotes": "trim",
+            "add_scripts": "",
+            "search": true,
+            "sort": true,
+            "scopeInOutputPath": false,
+            "nameInOutputPath": false,
+            "versionInOutputPath": false,
+            "homepageTitle": "Webpack-Wrap",
+            "favicon": "res/img/favicon.ico",
+            "title": "<img src='res/img/title.png' class='wpw-jsdoc-title'/>",
+            "base_url": "https://app1.spmeesseman.com/res/app/webpack-wrap/docs/",
+            "add_script_path": [],
+            "sections": [
+                "Classes",
+                "Modules",
+                "Externals",
+                "Events",
+                "Namespaces",
+                "Mixins",
+                "Tutorials",
+                "Interfaces"
+            ],
+            "codepen": {
+                "enable_for": [
+                    "examples"
+                ],
+                "options": {
+                  "js_external": "https://code.jquery.com/jquery-3.6.0.min.js",
+                  "js_pre_processor": "babel"
+                }
+            },
+            "menu": [
+                {
+                    "title": "Donate",
+                    "href": "https://github.com/spmeesseman/webpack-wrap",
+                    "target": "_blank",
+                    "class": "menu-item",
+                    "id": "website_link"
+                },
+                {
+                    "title": "Repository",
+                    "href": "https://github.com/spmeesseman/webpack-wrap",
+                    "target": "_blank",
+                    "class": "menu-item",
+                    "id": "website_link"
+                }
+            ],
+            "meta": [
+                {
+                  "name": "author",
+                  "content": "Scott Meesseman"
+                },
+                {
+                  "name": "description",
+                  "content": "Webpack-Wrap - lots and lots of Webpack functionality in one package"
+                }
+            ]
+        }
     },
     "plugins": [
         "plugins/markdown"
@@ -31,8 +90,7 @@
         ],
         "exclude": [
             "node_modules",
-            "src/types",
-            "typedefs.js"
+            "src/types"
         ],
         "includePattern": "src[\\\\\\/].+\\.(m|c)?js(doc|x)?$",
         "excludePattern": "(^|\\/|\\\\)_"
@@ -53,8 +111,8 @@
         "cleverLinks": false,
         "monospaceLinks": false,
         "default": {
-          "outputSourceFiles": true,
-          "includeDate": false
+            "outputSourceFiles": true,
+            "includeDate": false
         },
         "scripts": [],
         "favicon": "",
@@ -96,16 +154,16 @@
         "scripts": [],
         "menu": {
             "Donate": {
-                "href":"https://github.com/spmeesseman/webpack-wrap",
-                "target":"_blank",
-                "class":"menu-item",
-                "id":"website_link"
+                "href": "https://github.com/spmeesseman/webpack-wrap",
+                "target": "_blank",
+                "class": "menu-item",
+                "id": "website_link"
             },
             "Repository": {
-                "href":"https://github.com/spmeesseman/webpack-wrap",
-                "target":"_blank",
-                "class":"menu-item",
-                "id":"website_link"
+                "href": "https://github.com/spmeesseman/webpack-wrap",
+                "target": "_blank",
+                "class": "menu-item",
+                "id": "website_link"
             }
         },
         "scopeInOutputPath": false,
