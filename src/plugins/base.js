@@ -368,11 +368,11 @@ class WpwPlugin extends WpwBaseModule
         this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
 	}
 
-
+    // * @returns {hook is typedefs.WebpackAsyncHook} hook is AsyncCompilerHook | AsyncCompilationHook
     /**
      * @protected
      * @param {string|any} hook
-     * @returns {hook is typedefs.WebpackAsyncHook} hook is AsyncCompilerHook | AsyncCompilationHook
+     * @returns {boolean}
      */
     isAsyncHook = (hook) => isFunction(hook.tapPromise);
 
@@ -385,9 +385,10 @@ class WpwPlugin extends WpwBaseModule
     isEntryAsset = (file) => WpwPlugin.getEntriesRegex(this.wpc).test(file);
 
 
+    // * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
     /**
      * @param {any} hook
-     * @returns {hook is typedefs.WebpackAsyncCompilerHook | typedefs.WebpackAsyncCompilationHook}
+     * @returns {boolean}
      */
     isTapable = (hook) => isFunction(hook.tap) || isFunction(hook.tapPromise);
 
@@ -437,14 +438,14 @@ class WpwPlugin extends WpwBaseModule
             for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
             {
                 const hook = compiler.hooks[tapOpts.hook];
-                if (!tapOpts.async)
+                if (!tapOpts.async || !(/** @type {any} */(hook).tapPromise))
                 {
                     hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
                 }
                 else
                 {   if (this.isAsyncHook(hook))
                     {
-                        hook.tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
+                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
                     }
                     else {
                         this.handleError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
@@ -550,26 +551,27 @@ class WpwPlugin extends WpwBaseModule
         const stageEnum = options.stage ? this.compiler.webpack.Compilation[`PROCESS_ASSETS_STAGE_${options.stage}`] : null,
               name = `${this.name}_${options.stage}`,
               hook = this.compilation.hooks[options.hookCompilation];
+
         if (this.isTapable(hook))
         {
             if (stageEnum && options.hookCompilation === "processAssets")
             {
                 const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
                 if (!options.async) {
-                    hook.tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
+                    /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
                 }
                 else {
-                    hook.tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
+                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
                 }
             }
             else
             {
                 if (!options.async) {
-                    hook.tap(name, this.wrapCallback(optionName, options));
+                    /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
                 }
                 else {
                     if (this.isAsyncHook(hook)) {
-                        hook.tapPromise(name, this.wrapCallback(optionName, options, true));
+                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
                     }
                     else {
                         this.handleError(`Invalid async hook specified: ${options.hook}`);

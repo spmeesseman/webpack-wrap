@@ -89,8 +89,6 @@ interface IWpwPlugin extends IWpwBaseModule, WebpackPluginInstance
 
 type WpwPluginConstructor<T> = new(arg1: WpwPluginOptions) => T;
 
-// type WpwIsAsyncHook = (T is WebpackAsyncHook);
-
 
 export {
     IWpwPlugin,
