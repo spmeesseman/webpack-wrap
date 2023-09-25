@@ -154,6 +154,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigLogHooks} IWpwPluginConfigLogHooks */
 /** @typedef {import("./rc").IWpwPluginConfigWaitItem} IWpwPluginConfigWaitItem */
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
+/** @typedef {import("./rc").WpwExportConfigCacheMode} WpwExportConfigCacheMode */
 /** @typedef {import("./rc").WpwExportConfigExternals} WpwExportConfigExternals */
 /** @typedef {import("./rc").WpwExportConfigOutputKey} WpwExportConfigOutputKey */
 /** @typedef {import("./rc").WpwPackageJsonRepository} WpwPackageJsonRepository */
@@ -207,6 +208,7 @@
 /** @typedef {import("./constants").isWpwWebpackCompilerHook} isWpwWebpackCompilerHook */
 /** @typedef {import("./rc").DefinitionsDirectoryPathGlob} DefinitionsDirectoryPathGlob */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsKey} WpwPluginConfigRunScriptsKey */
+/** @typedef {import("./constants").WpwExportConfigCacheModes} WpwExportConfigCacheModes */
 /** @typedef {import("./rc").WpwExportConfigDevToolMapType} WpwExportConfigDevToolMapType */
 /** @typedef {import("./rc").WpwFilePathRelativeLeadingDot} WpwFilePathRelativeLeadingDot */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItem} WpwPluginConfigRunScriptsItem */
@@ -215,6 +217,7 @@
 /** @typedef {import("./rc").WpwPluginConfigWebFilenameKey} WpwPluginConfigWebFilenameKey */
 /** @typedef {import("./rc").WpwSourceJavascriptOptionsKey} WpwSourceJavascriptOptionsKey */
 /** @typedef {import("./rc").WpwSourceTypescriptOptionsKey} WpwSourceTypescriptOptionsKey */
+/** @typedef {import("./constants").isWpwExportConfigCacheMode} isWpwExportConfigCacheMode */
 /** @typedef {import("./constants").WpwSourceJavascriptLoaders} WpwSourceJavascriptLoaders */
 /** @typedef {import("./constants").WpwSourceTypescriptLoaders} WpwSourceTypescriptLoaders */
 /** @typedef {import("./constants").WpwWebpackCompilationHooks} WpwWebpackCompilationHooks */
@@ -463,6 +466,7 @@
 /** @typedef {import("./webpack").WebpackPluginInstance} WebpackPluginInstance */
 /** @typedef {import("./webpack").WebpackRuleSetUseItem} WebpackRuleSetUseItem */
 /** @typedef {import("./webpack").WebpackExternalsPlugin} WebpackExternalsPlugin */
+/** @typedef {import("./webpack").WebpackSnapshotOptions} WebpackSnapshotOptions */
 /** @typedef {import("./webpack").WebpackCompilerHookName} WebpackCompilerHookName */
 /** @typedef {import("./webpack").WebpackFileCacheOptions} WebpackFileCacheOptions */
 /** @typedef {import("./webpack").WebpackCompilationParams} WebpackCompilationParams */

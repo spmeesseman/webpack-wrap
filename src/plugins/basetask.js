@@ -97,7 +97,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 		}
 		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
 		if (virtualEntryFile) {
-			this.logger.write(`delete virtual entry asset '${virtualEntryFile}' from compilation`, 3);
+			this.logger.write(`   delete virtual entry asset '${virtualEntryFile}' from compilation`, 3);
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
 	};

@@ -53,6 +53,11 @@ class WpwPlugin extends WpwBaseModule
      * @type {WpwPluginWaitManager}
      */
     static eventManager = new WpwPluginWaitManager();
+    /**
+     * @private
+     * @type {boolean | undefined}
+     */
+    static compilationTapped;
 
     /**
      * @protected
@@ -375,7 +380,8 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Called by extending class on call to apply() from webpack runtime
+     * Called by extending WpwPlugin instance on the webpack runtime's call to apply()
+     *
      * @protected
      * @param {typedefs.WebpackCompiler} compiler
      * @param {typedefs.WpwPluginTapOptions} [options]
@@ -387,9 +393,10 @@ class WpwPlugin extends WpwBaseModule
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
 
         //
-        // Set up a hook so that the compiltion instance can be stored before it actually begins
+        // Set up a hook so that the compiltion instance can be stored before it actually begins,
+        // and the compilation dependencies can be logged if a high enough logging level is set
         //
-        compiler.hooks.compilation.tap("setCompilationInstance", (c) => { this.compilation = c; });
+        compiler.hooks.compilation.tap("onBeforeCompilationStart_" + this.name, this.onCompilation.bind(this));
 
         //
         // if there's any wrapped vendor plugin(s) that specify the 'hookVendorPluginFirst' flag, create
@@ -446,13 +453,15 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @private
      * @param {typedefs.WebpackCompilation} compilation
-     * @returns {boolean} boolean
      */
     onCompilation(compilation)
     {
         this.compilation = compilation;
         this.wpCacheCompilation = compilation.getCache(this.cacheName);
-        return !compilation.getStats().hasErrors();
+        if (!WpwPlugin.compilationTapped) {
+            compilation.hooks.beforeCodeGeneration.tap("onBeforeCodeGeneration_" + this.name, () => this.printCompilationDependencies());
+            WpwPlugin.compilationTapped = true;
+        }
     }
 
 
@@ -493,7 +502,7 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compiler.hooks.compilation.tap(this.name, (compilation) =>
         {
-            if (!this.onCompilation(compilation)) {
+            if (compilation.getStats().hasErrors()) {
                 return;
             }
             optionsArray.forEach(([ name, tapOpts ]) =>
@@ -513,7 +522,7 @@ class WpwPlugin extends WpwBaseModule
                     this.handleError("Invalid hook parameters: stage not specified for processAssets");
                     return;
                 }
-                this.tapCompilationStage(name, /** @type {typedefs.WpwPluginCompilationTapOptions} */(tapOpts));
+                this.tapCompilationStage(name, compilation, tapOpts);
             });
         });
     }
@@ -522,14 +531,15 @@ class WpwPlugin extends WpwBaseModule
     /**
      * @protected
      * @param {string} optionName
+     * @param {typedefs.WebpackCompilation} compilation
      * @param {typedefs.WpwPluginCompilationTapOptions} options
      * @throws {WebpackError}
      */
-    tapCompilationStage(optionName, options)
+    tapCompilationStage(optionName, compilation, options)
     {
         const stageEnum = options.stage ? this.compiler.webpack.Compilation[`PROCESS_ASSETS_STAGE_${options.stage}`] : null,
               name = `${this.name}_${options.stage}`,
-              hook = this.compilation.hooks[options.hookCompilation];
+              hook = compilation.hooks[options.hookCompilation];
 
         if (this.isTapable(hook))
         {
@@ -667,6 +677,7 @@ class WpwPlugin extends WpwBaseModule
             {
                 logger.start(logMsg, 1);
                 const result = callback(...args);
+                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
                 if (result) {
                     eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
                 }
@@ -678,6 +689,7 @@ class WpwPlugin extends WpwBaseModule
             {
                 logger.start(logMsg, 1);
                 const result = await callback(...args);
+                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
                 if (result) {
                     eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
                 }

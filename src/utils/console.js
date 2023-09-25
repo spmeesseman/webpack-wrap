@@ -457,12 +457,7 @@ class WpwLogger
     success(msg, level, pad, successIcon)
     {
         if (level !== undefined && level > this.options.level) { return this; }
-        return this.writeMsgTag(
-            msg, "success", level, pad,
-            this.options.colors.default ? this.colors[this.options.colors.default] : this.colors.white,
-            this.colors.green,
-            successIcon ? this.icons.color.success : null
-        );
+        return this.writeMsgTag(msg, "success", level, pad, null, this.colors.green, successIcon ? this.icons.color.success : null);
     }
 
 

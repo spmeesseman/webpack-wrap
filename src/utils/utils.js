@@ -110,8 +110,21 @@ const execAsync = async (options) =>
                 }
             }
         });
-        if (options.stdout) {
-            console.log(out);
+    };
+
+    const _out = (/** @type {string} */ name, /** @type {any[]} */ out) =>
+    {
+        if (out.length > 0)
+        {
+            const hdr = logger ? logger.withColor(`${program} ${name}:`, exitCode !== 0 ? logger.colors.red : logger.colors.yellow) : "";
+            out.forEach((m) =>
+            {
+                const msgHasError = WpwRegex.MessageContainsError.test(m);
+                if (logger && (options.stdout || msgHasError)) {
+                    logger.log(`${logPad}${hdr} ${logger.withColor(m, logger.colors.grey)}`);
+                }
+                if (msgHasError) { pushUniq(errors, m); }
+            });
         }
     };
 
@@ -125,8 +138,8 @@ const execAsync = async (options) =>
             logger.log(`   ${logPad}${program} returned exit code bold(${clrCode})`);
         }
         exitCode = code;
-        stderr.filter(m => WpwRegex.MessageContainsError.test(m)).forEach((m) => pushUniq(errors, m));
-        stdout.filter(m => WpwRegex.MessageContainsError.test(m)).forEach((m) => pushUniq(errors, m));
+        _out("stdout", stdout);
+        _out("stderr", stderr);
     });
 
     try { await procPromise; } catch{}
@@ -386,6 +399,7 @@ const relativePath = (baseDir, p, o) =>
  * @returns {any}
  */
 const requireResolve = (id) => require(require.resolve(id, { paths: [ require.main?.path || process.cwd() ] }));
+// const requireResolve = (id) => __non_webpack_require__(require.resolve(id, { paths: [ require.main?.path || process.cwd() ] }));
 
 
 /**

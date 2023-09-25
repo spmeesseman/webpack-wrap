@@ -192,7 +192,7 @@ const promptForRestore = async (/** @type {string} */file, /** @type {string} */
     const promptSchema = {
         properties: {
             result: {
-                outputFileDesc: "Restore previous content? : yes (y) or no (n)",
+                description: "Restore previous content? : yes (y) or no (n)",
                 pattern: /^(?:yes|no|y|n)$/i,
                 default: "no",
                 message: "Must enter yes (y) or no (n)",

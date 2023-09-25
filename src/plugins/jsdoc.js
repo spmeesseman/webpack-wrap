@@ -173,7 +173,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         logger.value("      cmd line", jsdocParams, 3);
 
         //
-        // Execute jsdoc module
+        // Execute jsdoc command
         //
         const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} "${srcDir}"`, "jsdoc");
         if (code !== 0)
@@ -201,7 +201,8 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		//
 		// Process output files
 		//
-        logger.write("   process jsdoc output files", 2);
+        logger.write("   jsdoc command execution successful", 2);
+        logger.write("   process output files", 2);
 		const files = await findFiles("**/*.*", { cwd: outDir, absolute: true });
 		for (const filePath of files)
 		{
@@ -228,7 +229,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
             const info = /** @type {typedefs.WebpackAssetInfo} */({
                 // contenthash: newHash,
-                immutable: false, // true // newHash === persistedCache[filePathRel],
+                immutable: true, // true // newHash === persistedCache[filePathRel],
                 javascriptModule: false,
                 jsdoc: true
             });
@@ -247,21 +248,22 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
             if (extname(filePath) === ".html")
             {
-                const relPath = filePathRel.replace(".html", "").replace("_", sep),
-                      sourceFile = resolve(build.getSrcPath(), relPath);
+                const sourceFileRel = filePathRel.replace(".html", "").replace("_", sep),
+                      sourceFile = resolve(build.getSrcPath(), sourceFileRel);
                 if (await existsAsync(sourceFile))
                 {
-                    this.compilation.buildDependencies.add(sourceFile);
-                    info.sourceFilename = forwardSlash(relPath);
-                    logger.value("      add build dependency", info.sourceFilename, 3);
+                    // this.compilation.buildDependencies.add(sourceFile);
+                    this.compilation.fileDependencies.add(sourceFile);
+                    info.sourceFilename = forwardSlash(sourceFileRel);
+                    logger.value("      add build dependency", info.sourceFilename, 5);
                 }
             }
 
-            //logger.value("      emit asset", filePathRel, 3);
+            logger.value("      emit asset", filePathRel, 4);
             this.compilation.emitAsset(filePathRel, source, info);
             ++numFilesProcessed;
 		}
-        logger.write(`   processed ${numFilesProcessed} jsdoc output files`, 2);
+        logger.write(`   processed bold(${numFilesProcessed}) output files`, 3);
     }
 
     /*

@@ -81,7 +81,6 @@ class WpwCopyPlugin extends WpwPlugin
 		const currentAssets = Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file));
 		this.logger.write("create copies of entry modules without filename hash", 1);
         this.logger.value("   # of current entry assets processed", currentAssets.length, 2);
-		this.printCompilationDependencies();
 		for (const [ file ] of currentAssets)
 		{
 			const ccFile = this.fileNameStrip(file),

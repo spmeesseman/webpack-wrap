@@ -10,20 +10,21 @@
 
 
 const cache = require("./cache");
-const devtool = require("./devtool");
 const entry = require("./entry");
-const experiments = require("./experiments");
-const externals = require("./externals");
-const ignorewarnings = require("./ignorewarnings");
-const minification = require("./minification");
-const optimization = require("./optimization");
-const plugins = require("./plugins");
-const output = require("./output");
-const resolve = require("./resolve");
 const rules = require("./rules");
 const stats = require("./stats");
 const watch = require("./watch");
+const output = require("./output");
+const devtool = require("./devtool");
+const plugins = require("./plugins");
+const resolve = require("./resolve");
+const externals = require("./externals");
+const experiments = require("./experiments");
 const typedefs = require("../types/typedefs");
+const minification = require("./minification");
+const optimization = require("./optimization");
+const ignorewarnings = require("./ignorewarnings");
+const { isEmpty } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -34,6 +35,7 @@ const webpackDefaultExports = (build) =>
 {
     return {
         cache: { type: "memory" },
+        snapshot: {},
         context: build.paths.ctx || build.paths.base,
         entry: {},
         externals: [],
@@ -71,6 +73,7 @@ const webpackExports = (build) =>
     stats(build);          // Stats i.e. console output & webpack verbosity
     watch(build);          // Watch-mode options
     plugins(build);        // Plugins - exports.plugins() inits all plugin.plugins
+    Object.keys(build.wpc).forEach((k) => { if (isEmpty(build.wpc[k])) { delete build.wpc[k]; }});
     return build.wpc;
 };
 

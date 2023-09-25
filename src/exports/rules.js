@@ -34,6 +34,7 @@ class WpwRulesExport extends WpwWebpackExport
 	constructor(options)
 	{
 		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"rules">} */(this.buildOptions); // reset for typings
 	}
 
 

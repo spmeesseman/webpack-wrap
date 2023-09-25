@@ -87,7 +87,8 @@ class WpwLogHooksPlugin extends WpwPlugin
 			if (hook === "processAssets" && processAssetStage)
 			{
 				const stage = this.compiler.webpack.Compilation[`PROCESS_ASSETS_STAGE_${processAssetStage.toUpperCase()}`];
-				compilationHook.tap(
+				/** @type {typedefs.WebpackHook} */(
+				compilationHook).tap(
 					{ stage, name: `${this.name}_${hook}_${processAssetStage}` },
 					(/** @type {any} */_arg) =>
 					{
@@ -97,9 +98,9 @@ class WpwLogHooksPlugin extends WpwPlugin
 			}
 			else
 			{
-				if (isFunction(compilationHook.tap))
+				if (isFunction(/** @type {typedefs.WebpackHook} */(compilationHook).tap))
 				{
-					compilationHook.tap(`${this.name}_${hook}`, (/** @type {any} */_arg) =>
+					/** @type {typedefs.WebpackHook} */(compilationHook).tap(`${this.name}_${hook}`, (/** @type {any} */_arg) =>
 					{
 						this.writeBuildTag(hook);
 					});
@@ -226,18 +227,15 @@ class WpwLogHooksPlugin extends WpwPlugin
 		{
 			// const stats = compilation.getStats();
 			// stats.toJson().
-			const assets = compilation.getAssets();
-			this.logger.write(
-				"---- Compilation step completed -- Listing all assets ----------------------------------------",
-				3, "", null, this.logger.colors.white
-			);
-			for (const asset of assets)
+			if (this.logger.level >= 4)
 			{
-				this.logger.write(
-					this.logger.tag("ASSET", this.logger.colors.green, this.logger.colors.white) + " " +
-					this.logger.withColor(asset.name, this.logger.colors.grey), 3
-				);
-				this.logger.value("   asset info", JSON.stringify(asset.info), 5);
+				const assets = compilation.getAssets();
+				this.logger.write("compilation step completed, listing all assets", 4, "", null, this.logger.colors.white);
+				for (const asset of assets)
+				{
+					this.logger.writeMsgTag(asset.name, "ASSET", 4, "   ", null, this.logger.colors.grey);
+					this.logger.value("   asset info", JSON.stringify(asset.info), 5);
+				}
 			}
 		});
 		this.addCompilerHook("shouldEmit");

@@ -48,7 +48,7 @@ import webpack, {
     Cache as WebpackCache, Chunk as WebpackChunk, Configuration as WebpackConfig, Compilation as WebpackCompilation,
     Compiler as WebpackCompiler, EntryObject, sources as WebpackSources, Stats as WebpackStats, Module as WebpackModule,
     StatsAsset as WebpackStatsAsset, WebpackPluginInstance, ModuleOptions, RuleSetRule, PathData as WebpackPathData,
-    WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions as WebpackFileCacheOptions,
+    WebpackOptionsNormalized, RuleSetUse, ResolveOptions as WebpackResolveOptions, FileCacheOptions,
     MemoryCacheOptions as WebpackMemoryCacheOptions, ExternalsPlugin as WebpackExternalsPlugin, EntryOptions as WebpackEntryOptions,
     WebpackError, StatsOptions as WebpackStatsOptions, ProgressPlugin as WebpackProgressPlugin, optimize,
     NoEmitOnErrorsPlugin as WebpackNoEmitOnErrorsPlugin, IgnorePlugin as WebpackIgnorePlugin, BannerPlugin as WebpackBannerPlugin,
@@ -107,6 +107,8 @@ type WebpackContextModuleFactory =  ReturnType<WebpackCompiler["createContextMod
 
 type WebpackExternalItem = ArrayInnerType<WebpackExternalsPlugin["externals"]>;
 
+type WebpackFileCacheOptions = RequireKeys<FileCacheOptions, "buildDependencies">;
+
 type WebpackHook<T> = WebpackSyncHook<T> | WebpackAsyncHook<T>;
 
 type WebpackHookMap<H> = HookMap<H>;
@@ -152,6 +154,8 @@ interface IWebpackRuntimeEnvArgs { WEBPACK_WATCH?: boolean; watch?: boolean }
 type WebpackRuntimeEnvArgs = IWebpackRuntimeEnvArgs;
 
 type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;
+
+type WebpackSnapshotOptions = Exclude<WebpackConfig["snapshot"], undefined>;
 
 type WebpackStatsPrinterType<T> = T extends WebpackSyncHook<infer X> ? X : never;
 
@@ -244,6 +248,7 @@ export {
     WebpackRuleSetUseItem,
     WebpackSchema,
     WebpackSnapshot,
+    WebpackSnapshotOptions,
     WebpackSource,
     WebpackStats,
     WebpackStatsAsset,

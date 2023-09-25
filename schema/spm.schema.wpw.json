@@ -214,7 +214,8 @@
                     "$ref": "#/definitions/BooleanReadOnly"
                 },
                 "debug": {
-                    "$ref": "#/definitions/BooleanDefaultFalse"
+                    "$ref": "#/definitions/BooleanDefaultFalse",
+                    "description": "create both a 'release' and a 'debug' build, whereas the release build is stripped of all logging calls (calls that are defined by the WpwLogger interface)"
                 },
                 "entry": {
                     "$ref": "#/definitions/WpwWebpackEntry"
@@ -775,19 +776,41 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "mode": {
+                    "$ref": "#/definitions/WpwExportConfigCacheMode"
+                },
                 "verbose": {
                     "type": "boolean"
                 }
             },
             "examples": [{
                 "enabled": true,
+                "mode": "timestamp",
                 "verbose": false
             },
             {
-                "verbose": true
+                "verbose": true,
+                "mode": "hash"
+            },
+            {
+                "mode": "hashtimestamp"
             },
             {
                 "enabled": false
+            }]
+        },
+        "WpwExportConfigCacheMode": {
+            "$id": "#/WpwExportConfigCacheMode",
+            "default": "timestamp",
+            "oneOf": [
+            {
+                "const": "hash"
+            },
+            {
+                "const": "hashtimestamp"
+            },
+            {
+                "const": "timestamp"
             }]
         },
         "WpwExportConfigDevTool": {
