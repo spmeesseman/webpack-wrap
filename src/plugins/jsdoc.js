@@ -13,8 +13,8 @@ const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { join, posix, relative, resolve, extname } = require("path");
-const { relativePath, existsAsync, findFiles, findExPath } = require("../utils");
+const { join, posix, relative, resolve, extname, sep } = require("path");
+const { relativePath, existsAsync, findFiles, findExPath, forwardSlash } = require("../utils");
 const { isBoolean, pick, isObject, apply, asArray, isPrimitive } = require("@spmeesseman/type-utils");
 const { existsSync } = require("fs");
 
@@ -113,12 +113,13 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         if (!jsdocOptions.includes("--readme"))
         {
             const path = await findExPath([
-                join(ctxDir, "readme.txt"),
-                join(ctxDir, "readme.md"),
-                join(ctxDir, "readme"),
-                join(baseDir, "readme.txt"),
-                join(baseDir, ".readme.md"),
-                join(baseDir, "readme")
+                join(ctxDir, "README.txt"),
+                join(ctxDir, "README.md"),
+                join(ctxDir, "README"),
+                join(baseDir, "README.txt"),
+                join(baseDir, ".README.md"),
+                join(baseDir, "README"),
+                join(baseDir, ".README")
             ]);
             if (path) {
                 jsdocOptions.push("--readme", `"${relativePath(baseDir, path, pathOptions)}"`);
@@ -206,7 +207,11 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		{
             // logger.value("      process asset", filePath, 3);
             const data = await readFile(filePath),
-                  filePathRel = relative(outDir, filePath),
+                  //
+                  // the "--package" options creates 3 more dir levela deep for output path
+                  // e.g. [diat]/@spmeesseman/webpack-wrap/0.0.1/....  remove from output emit path
+                  //
+                  filePathRel = relative(outDir, filePath).replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
                   source = new this.compiler.webpack.sources.RawSource(data);
             //    result = await this.checkSnapshot(filePath, "__", outDir); // , data),
             //    data = result.source?.buffer() || await readFile(filePath),
@@ -240,14 +245,19 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             //     // this.compilation.updateAsset(filePathRel, source, info);
             // }
 
-            const sourceFile = filePathRel.replace(extname(filePath), build.source.dotext);
-            if (await existsAsync(sourceFile))
+            if (extname(filePath) === ".html")
             {
-                this.compilation.fileDependencies.add(sourceFile);
-                info.sourceFilename = relativePath(outDir, sourceFile, { psx: true });
+                const relPath = filePathRel.replace(".html", "").replace("_", sep),
+                      sourceFile = resolve(build.getSrcPath(), relPath);
+                if (await existsAsync(sourceFile))
+                {
+                    this.compilation.buildDependencies.add(sourceFile);
+                    info.sourceFilename = forwardSlash(relPath);
+                    logger.value("      add build dependency", info.sourceFilename, 3);
+                }
             }
 
-            logger.value("      emit asset", filePathRel, 3);
+            //logger.value("      emit asset", filePathRel, 3);
             this.compilation.emitAsset(filePathRel, source, info);
             ++numFilesProcessed;
 		}

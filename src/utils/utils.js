@@ -382,9 +382,8 @@ const relativePath = (baseDir, p, o) =>
 
 // * @returns {import("../../package.json").dependencies[T]}
 /**
- * @template T
  * @param {string} id
- * @returns {T}
+ * @returns {any}
  */
 const requireResolve = (id) => require(require.resolve(id, { paths: [ require.main?.path || process.cwd() ] }));
 
