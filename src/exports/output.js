@@ -1,8 +1,10 @@
 // @ts-check
 
 const WpwRegex = require("../utils/regex");
+const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const { apply, isString } = require("@spmeesseman/type-utils");
+const { apply, isString, isFunction } = require("@spmeesseman/type-utils");
+const { WpwError } = require("../utils/message");
 
 /**
  * @file exports/output.js
@@ -15,39 +17,134 @@ const { apply, isString } = require("@spmeesseman/type-utils");
  *
  *//** */
 
-
-const outputEnvironment = (build) =>
-{
-	if (build.type === "tests")
+ /**
+  * @extends {WpwWebpackExport}
+  */
+ class WpwOutputExport extends WpwWebpackExport
+ {
+	/**
+     * @param {typedefs.WpwExportOptions} options
+     */
+	constructor(options)
 	{
-		build.wpc.output.environment = {
-			arrowFunction: false
-		};
+		super(options);
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"output">} */(this.buildOptions); // reset for typings
 	}
-};
 
 
-/**
- * @param {typedefs.WpwBuild} build The current build's rc wrapper @see {@link WpwBuild}
- */
-const output = (build) =>
-{
-	build.logger.start("create output configuration", 2);
+	/**
+     * @override
+     * @param {typedefs.WpwBuild} build
+     */
+	static create = (build) => { const e = new this({ build }); e.create(); return e; };
 
-	apply(build.wpc.output,
+
+    /**
+     * @override
+     * @protected
+     */
+    app()
+    {
+        apply(this.build.wpc.output,
+		{
+			libraryTarget: "commonjs2",
+			filename: (pathData, _assetInfo) =>
+			{
+				const data = /** @type {typedefs.WebpackPathDataOutput} */(pathData);
+				return !this.buildOptions.immutable || WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
+			}
+		});
+    }
+
+
+	/**
+	 * @override
+	 * @protected
+	 */
+	create()
 	{
-		path: build.getDistPath(),
-		filename: "[name].js",
-		compareBeforeEmit: true,
-		hashDigestLength: 20
-		// clean: build.clean ? (build.isTests ? { keep: /(test)[\\/]/ } : build.clean) : undefined
-	});
+		const build = this.build;
+		build.logger.start("create output configuration", 2);
 
-	build.logger.write(`   configure output for build '${build.name}' [ type: ${build.type} ]`, 2);
-
-	if (build.type === "webapp")
-	{
 		apply(build.wpc.output,
+		{
+			path: build.getDistPath(),
+			filename: "[name].js",
+			compareBeforeEmit: true,
+			hashDigestLength: this.hashDigestLength
+			// clean: build.clean ? (build.isTests ? { keep: /(test)[\\/]/ } : build.clean) : undefined
+		});
+
+		build.logger.start("create output configuration", 2);
+		if (isFunction(this[build.type]))
+		{
+			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
+			this[build.type]();
+		}
+		else {
+			this.build.addMessage({ code: WpwError.Code.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${build.type}]` });
+		}
+
+		build.logger.success("   create output configuration", 2);
+	};
+
+
+    /**
+     * @override
+     * @protected
+     */
+    jsdoc()
+    {
+		// apply(this.build.wpc.output,
+		// {
+		// 	libraryTarget: "commonjs2"
+		// });
+    }
+
+
+    /**
+     * @override
+     * @protected
+     */
+    tests()
+    {
+		this.build.logger.write("   set test build library target to 'umd", 3);
+		apply(this.build.wpc.output,
+		{
+			libraryTarget: "umd",
+			umdNamedDefine: true,
+			environment: {
+				arrowFunction: false
+			}
+		});
+    }
+
+
+    /**
+     * @override
+     * @protected
+     */
+    types()
+	{
+		// apply(build.wpc.output,
+		// {
+		// 	// libraryTarget: "commonjs2"
+		// 	// publicPath: "types/"
+		// 	// library: "types",
+		// 	// libraryTarget: 'umd',
+		// 	// umdNamedDefine: true
+		// });
+	}
+
+
+    /**
+     * @override
+     * @protected
+     */
+    webapp()
+    {
+		const build = this.build;
+        apply(build.wpc.output,
 		{
 			// clean: build.clean ? { keep: /(img|font|readme|walkthrough)[\\/]/ } : undefined,
 			publicPath: build.vscode?.type === "webview" ? "#{webroot}/" : (process.env.ASSET_PATH || "/"),
@@ -88,53 +185,9 @@ const output = (build) =>
 		if (isString(build.wpc.output.publicPath) && !build.wpc.output.publicPath.endsWith("/")) {
 			build.wpc.output.publicPath += "/";
 		}
-	}
-	else if (build.type === "tests")
-	{
-		build.logger.write("   set test build library target to 'umd", 3);
-		apply(build.wpc.output,
-		{
-			libraryTarget: "umd",
-			umdNamedDefine: true
-		});
-	}
-	else if (build.type === "jsdoc")
-	{
-	}
-	else if (build.type === "types")
-	{
-		// apply(build.wpc.output,
-		// {
-		// 	// libraryTarget: "commonjs2"
-		// 	// publicPath: "types/"
-		// 	// library: "types",
-		// 	// libraryTarget: 'umd',
-		// 	// umdNamedDefine: true
-		// });
-	}
-	else if (build.type === "app") // type: module / main
-	{
-		apply(build.wpc.output,
-		{
-			libraryTarget: "commonjs2",
-			filename: (pathData, _assetInfo) =>
-			{
-				const data = /** @type {typedefs.WebpackPathDataOutput} */(pathData);
-				return WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
-			}
-		});
-	}
-	else {
-		apply(build.wpc.output,
-		{
-			libraryTarget: "commonjs2"
-		});
-	}
+    }
 
-	outputEnvironment(build);
-
-	build.logger.success("   create output configuration", 2);
-};
+ }
 
 
-module.exports = output;
+module.exports = WpwOutputExport.create;

@@ -31,8 +31,7 @@
             "versionInOutputPath": false,
             "homepageTitle": "Webpack-Wrap",
             "favicon": "res/img/favicon.ico",
-            "title": "<img src='res/img/title.png' class='wpw-jsdoc-title'/>",
-            "base_url": "https://app1.spmeesseman.com/res/app/webpack-wrap/docs/",
+            "title": "Webpack-Wrap",
             "add_script_path": [],
             "sections": [
                 "Classes",
@@ -59,14 +58,14 @@
                     "href": "https://github.com/spmeesseman/webpack-wrap",
                     "target": "_blank",
                     "class": "menu-item",
-                    "id": "website_link"
+                    "id": "donate_link"
                 },
                 {
                     "title": "Repository",
                     "href": "https://github.com/spmeesseman/webpack-wrap",
                     "target": "_blank",
                     "class": "menu-item",
-                    "id": "website_link"
+                    "id": "repo_link"
                 }
             ],
             "meta": [

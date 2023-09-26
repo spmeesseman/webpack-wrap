@@ -103,7 +103,7 @@ class WpwResolveExport extends WpwWebpackExport
 					this.nodeModulesPath, "node_modules"
 				],
 				extensions: [
-					".ts", ".tsx", ".js", ".jsx", ".json"
+					".json"
 				]
 			},
 			resolveLoader:
@@ -119,13 +119,37 @@ class WpwResolveExport extends WpwWebpackExport
 				]
 			}
 		}));
+
+		const extensions = /** @type {string[]} */(this.build.wpc.resolve.extensions);
+		if (this.build.source.type === "typescript")
+		{
+			extensions.unshift(".ts");
+		}
+		if (this.build.source.type === "javascript" || this.build.source.config.compilerOptions.allowJs)
+		{
+			extensions.unshift(".js");
+		}
+		if (this.build.source.config.compilerOptions.jsx)
+		{
+			extensions.push(".jsx", ".tsx");
+			if (this.build.source.type === "typescript") {
+				extensions.unshift(".tsx");
+			}
+		}
 	}
 
 
 	jsdoc()
 	{
 		const jsdocOptions = this.build.options.jsdoc;
-		if (!jsdocOptions || jsdocOptions.enabled === false) {
+		if (jsdocOptions && jsdocOptions.enabled !== false)
+		{
+			// this.build.wpc.resolve.extensions = [ ".js", ".json" ];
+			// if (this.build.source.config.compilerOptions.jsx) {
+			// 	this.build.wpc.resolve.extensions.push(".jsx");
+			// }
+		}
+		else {
 			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
 		}
 	}
@@ -184,7 +208,10 @@ class WpwResolveExport extends WpwWebpackExport
 		apply(this.build.wpc.resolve,
 		{
 			modules: [
-				this.build.getContextPath(), "node_modules"
+				this.build.getContextPath(),
+				this.nodeModulesPath,
+				resolve(__dirname, "../loaders"),
+				"node_modules"
 			]
 		});
 	}

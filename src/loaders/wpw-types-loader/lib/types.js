@@ -14,9 +14,12 @@ const { urlToRequest } = require("loader-utils");
 const typedefs = require("../../../types/typedefs");
 const WpwLogger = require("../../../utils/console");
 const { forwardSlash, findFiles } = require("../../../utils/utils");
+const { resolve } = require("path");
 
 /** @type {WpwLogger} */
 let logger;
+
+const baseDir= resolve(__dirname, "../../../..");
 
 
 /** @type {typedefs.JsonSchema} */
@@ -49,7 +52,7 @@ const schema = {
                     type: "string"
                 },
                 config: {
-                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
+                    $ref: "../../../../schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
                 }
             }
         }
@@ -66,12 +69,12 @@ async function typesLoader(source, map, meta)
     const options = this.getOptions();
     validate(schema, options, { name: "DTS Loader", baseDataPath: "options" });
 
-    this.clearDependencies();
-    const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
-    for (const file of files) {
-        this.addDependency(file);
-        logger.value("   add dependency", file, 5);
-    }
+    // this.clearDependencies();
+    // const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
+    // for (const file of files) {
+    //     this.addDependency(file);
+    //     logger.value("   add dependency", file, 5);
+    // }
 
     return [ source, map, meta ];
 

@@ -184,9 +184,15 @@ class WpwEntryExport extends WpwWebpackExport
 			  jsdocConfig = build.options.jsdoc;
 		if (jsdocConfig && jsdocConfig.mode === "plugin")
 		{
-			apply(build.wpc.entry, {
-				[ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}`
-			});
+			apply(build.wpc.entry, { [ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}` });
+			if (isObject(build.entry))
+			{
+				build.logger.write("   apply defined entry point path [file dependencies]", 3);
+				apply(build.wpc.entry, build.entry);
+			}
+			else {
+				apply(build.wpc.entry, { entry: `./${forwardSlash(build.entry)}` });
+			}
 		}
 	}
 

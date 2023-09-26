@@ -48,7 +48,7 @@ const schema = {
                     type: "string"
                 },
                 config: {
-                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
+                    $ref: "../../../../schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
                 }
             }
         }
@@ -69,12 +69,12 @@ async function jsdocLoader(source, map, meta)
     const options = this.getOptions();
     validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
 
-    this.clearDependencies();
-    const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
-    for (const file of files) {
-        this.addDependency(file);
-        logger.value("   add dependency", file, 5);
-    }
+    // this.clearDependencies();
+    // const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
+    // for (const file of files) {
+    //     this.addDependency(file);
+    //     logger.value("   add dependency", file, 5);
+    // }
 
     return [ source, map, meta ];
 

@@ -80,7 +80,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		logger.value("   context directory", ctxDir, 1);
 		logger.value("   input directory", srcDir, 1);
 		logger.value("   output directory", outDir, 1);
-		this.printCompilationDependencies();
 
         const jsdocOptions = [ "--destination", `"${outDir}"` ];
 
@@ -248,7 +247,8 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             //     // this.compilation.updateAsset(filePathRel, source, info);
             // }
 
-            if (extname(filePath) === ".html")
+            const ext = extname(filePath);
+            if (ext === ".htm" || ext === ".html")
             {
                 const sourceFileRel = filePathRel.replace(".html", "").replace("_", sep),
                       sourceFile = resolve(build.getSrcPath(), sourceFileRel);
@@ -271,68 +271,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
     /*
     async getSnapshot()
     {
-        const assets = [],
-              compiler = this.compiler,
-              compilation = this.compilation,
-              templateResult = options.templateContent ? { mainCompilationHash: compilation.hash } :
-                               childCompilerPlugin.getCompilationEntryResult(options.template);
-
-        if ('error' in templateResult) {
-            compilation.errors.push(prettyError(templateResult.error, compiler.context).toString());
-        }
-
-        // If the child compilation was not executed during a previous main compile run
-        // it is a cached result
-        const isCompilationCached = templateResult.mainCompilationHash !== compilation.hash;
-
-        // The public path used inside the html file
-        const htmlPublicPath = getPublicPath(compilation, options.filename, options.publicPath);
-        const compilationHash = compilation.hash;
-        const entryPointPublicPathMap = {};
-        const extensionRegexp = /\.(css|js|mjs)(\?|$)/;
-        for (let i = 0; i < entryNames.length; i++)
-        {
-          const entryName = entryNames[i];
-            // entryPointUnfilteredFiles - also includes hot module update files
-            const entryPointUnfilteredFiles = compilation.entrypoints.get(entryName)?.getFiles();
-
-            const entryPointFiles = entryPointUnfilteredFiles?.filter((chunkFile) => {
-                const asset = compilation.getAsset(chunkFile);
-                if (!asset) {
-                    return true;
-                }
-                // Prevent hot-module files from being included:
-                const assetMetaInformation = asset.info || {};
-                return !(assetMetaInformation.hotModuleReplacement || assetMetaInformation.development);
-            });
-
-            // Prepend the publicPath and append the hash depending on the
-            // webpack.output.publicPath and hashOptions
-            // E.g. bundle.js -> /bundle.js?hash
-            const entryPointPublicPaths = entryPointFiles?.map(chunkFile =>
-            {
-                const entryPointPublicPath = publicPath + urlencodePath(chunkFile);
-                return options.hash
-                    ? appendHash(entryPointPublicPath, compilationHash)
-                    : entryPointPublicPath;
-            });
-
-            entryPointPublicPaths?.forEach((entryPointPublicPath) => {
-                const extMatch = extensionRegexp.exec(entryPointPublicPath);
-                // Skip if the public path is not a .css, .mjs or .js file
-                if (!extMatch) {
-                return;
-                }
-                // Skip if this file is already known
-                // (e.g. because of common chunk optimizations)
-                if (entryPointPublicPathMap[entryPointPublicPath]) {
-                return;
-                }
-                entryPointPublicPathMap[entryPointPublicPath] = true;
-                assets.push(entryPointPublicPath);
-            });
-        }
-
         const newAssetJson = JSON.stringify(assets);
         if (isCompilationCached && options.cache && assetJson === newAssetJson)
         {
