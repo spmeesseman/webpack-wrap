@@ -129,9 +129,13 @@ class WpwResolveExport extends WpwWebpackExport
 		{
 			extensions.unshift(".js");
 		}
+		if (this.build.source.config.compilerOptions.resolveJsonModule)
+		{
+			extensions.push(".json");
+		}
 		if (this.build.source.config.compilerOptions.jsx)
 		{
-			extensions.push(".jsx", ".tsx");
+			extensions.push(".jsx");
 			if (this.build.source.type === "typescript") {
 				extensions.unshift(".tsx");
 			}
@@ -148,6 +152,7 @@ class WpwResolveExport extends WpwWebpackExport
 			// if (this.build.source.config.compilerOptions.jsx) {
 			// 	this.build.wpc.resolve.extensions.push(".jsx");
 			// }
+			pushUniq(/** @type {string[]} */(this.build.wpc.resolve.extensions), ".json");
 		}
 		else {
 			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.jsdoc" });
@@ -193,9 +198,9 @@ class WpwResolveExport extends WpwWebpackExport
 	types()
 	{
 		const typesOptions = this.build.options.types;
-		if (typesOptions && typesOptions.mode === "plugin" && this.build.wpc.resolve.extensions)
+		if (typesOptions && typesOptions.mode === "plugin")
 		{
-			this.build.wpc.resolve.extensions.push(".d.ts");
+			pushUniq(/** @type {string[]} */(this.build.wpc.resolve.extensions), ".d.ts");
 		}
 		else {
 			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.types" });
