@@ -67,6 +67,30 @@
     },
     "production": {
         "builds": [{
+            "name": "rc",
+            "type": "script",
+            "log": {
+                "color": "cyan"
+            },
+            "options": {
+                "script": {
+                    "mode": "parallel",
+                    "output": [
+                        "src/types/rc.ts",
+                        "src/types/constants.js"
+                    ],
+                    "scripts": [{
+                        "type": "node",
+                        "path": "script/generate-rc-types.js"
+                    },
+                    {
+                        "type": "node",
+                        "path": "script/upload-rc-schema.js"
+                    }]
+                }
+            }
+        },
+        {
             "name": "docs",
             "type": "jsdoc",
             "entry": {

@@ -82,6 +82,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
 
 
     /**
+     * @private
      * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
      * @returns {string}
      */
@@ -108,7 +109,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
                 }
                 else {
                     for (const script of stageOptions.scripts) {
-                        await execAsync({ command: this.buildCommand(script) });
+                        await execAsync({ command: this.buildCommand(script), logger: this.build.logger, logPad: "   " });
                     }
                 }
             }

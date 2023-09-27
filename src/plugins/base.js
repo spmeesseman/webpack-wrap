@@ -265,7 +265,7 @@ class WpwPlugin extends WpwBaseModule
 	exec = async (command, program, ignoreOut) =>
     {
         const result = await execAsync({
-            command, program, logger: this.logger, execOptions: { cwd: this.wpc.context }, ignoreOut
+            command, program, logger: this.logger, logPad: "   ", execOptions: { cwd: this.wpc.context }, ignoreOut
         });
         for (const message of result.errors)
         {

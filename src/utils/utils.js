@@ -135,7 +135,7 @@ const execAsync = async (options) =>
     {
         if (logger) {
             const clrCode = logger.withColor(code?.toString(), code === 0 ? logger.colors.green : logger.colors.red);
-            logger.log(`   ${logPad}${program} returned exit code bold(${clrCode})`);
+            logger.log(`${logPad}${program} returned exit code bold(${clrCode})`);
         }
         exitCode = code;
         _out("stdout", stdout);

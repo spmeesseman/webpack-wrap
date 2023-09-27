@@ -221,6 +221,7 @@
 /** @typedef {import("./rc").WpwExportConfigDevToolMapType} WpwExportConfigDevToolMapType */
 /** @typedef {import("./rc").WpwFilePathRelativeLeadingDot} WpwFilePathRelativeLeadingDot */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItem} WpwPluginConfigRunScriptsItem */
+/** @typedef {import("./rc").WpwPluginConfigRunScriptsMode} WpwPluginConfigRunScriptsMode */
 /** @typedef {import("./rc").WpwPluginConfigTypesBuildMode} WpwPluginConfigTypesBuildMode */
 /** @typedef {import("./rc").WpwPluginConfigTypesBundleKey} WpwPluginConfigTypesBundleKey */
 /** @typedef {import("./rc").WpwPluginConfigWebFilenameKey} WpwPluginConfigWebFilenameKey */
@@ -262,9 +263,11 @@
 /** @typedef {import("./constants").isWpwPluginConfigJsDocTemplate} isWpwPluginConfigJsDocTemplate */
 /** @typedef {import("./constants").isWpwPluginConfigRunScriptsKey} isWpwPluginConfigRunScriptsKey */
 /** @typedef {import("./constants").WpwExportConfigDevToolMapTypes} WpwExportConfigDevToolMapTypes */
+/** @typedef {import("./constants").WpwPluginConfigRunScriptsModes} WpwPluginConfigRunScriptsModes */
 /** @typedef {import("./constants").WpwPluginConfigTypesBuildModes} WpwPluginConfigTypesBuildModes */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilation} WpwPluginConfigLogHooksCompilation */
 /** @typedef {import("./constants").isWpwExportConfigDevToolMapType} isWpwExportConfigDevToolMapType */
+/** @typedef {import("./constants").isWpwPluginConfigRunScriptsMode} isWpwPluginConfigRunScriptsMode */
 /** @typedef {import("./constants").isWpwPluginConfigTypesBuildMode} isWpwPluginConfigTypesBuildMode */
 /** @typedef {import("./constants").WpwWebhookCompilationHookStages} WpwWebhookCompilationHookStages */
 /** @typedef {import("./rc").IWpwPluginConfigLogHooksCompilation} IWpwPluginConfigLogHooksCompilation */

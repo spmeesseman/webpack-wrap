@@ -8,7 +8,7 @@
  * @author @spmeesseman Scott Meesseman
  */
 
-const MessageContainsError = (/TS[0-9]{4}|error|fail(?:ed)?|could not|unable to/i);
+const MessageContainsError = (/TS[0-9]{4}|error|fail(?:ed)?|could not|cannot|can'?t|unable to/i);
 
 const PathVersion = /\/v([0-9]+\.[0-9]+\.[0-9]+(?:\-(?:pre|alpha|beta)\.[0-9]+)?)\//;
 

@@ -21,7 +21,7 @@ const WpwLogger = require("../src/utils/console");
 /** @type {WpwLogger} */
 let logger;
 
-const remotePath = resolve(__dirname, "..", "schema");
+const localSourcePath = resolve(__dirname, "..", "schema");
 
 const host = process.env.WPBUILD_APP1_SSH_UPLOAD_HOST,
       user = process.env.WPBUILD_APP1_SSH_UPLOAD_USER,
@@ -53,7 +53,9 @@ cliWrap(async () =>
         `mkdir ${rBasePath}/webpack-wrap`,
         `mkdir ${rBasePath}/webpack-wrap/v${version}`,
         `mkdir ${rBasePath}/webpack-wrap/v${version}/schema`,
-        `rm -f ${rBasePath}/webpack-wrap/v${version}/schema/spm.schema.*.json"`
+        `mkdir ${rBasePath}/webpack-wrap/v${version}/schema/template`,
+        `rm -f ${rBasePath}/webpack-wrap/v${version}/schema/spm.schema.*.json"`,
+        `rm -f ${rBasePath}/webpack-wrap/v${version}/schema/template/*.*"`
     ];
 
     const plinkArgs = [
@@ -66,22 +68,23 @@ cliWrap(async () =>
     ];
 
     const pscpArgs = [
-        sshAuthFlag,  // auth flag
-        sshAuth,      // auth key
-        "-q",         // quiet, don't show statistics
-        "-r",         // copy directories recursively
-        remotePath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
+        sshAuthFlag,     // auth flag
+        sshAuth,         // auth key
+        "-q",            // quiet, don't show statistics
+        "-r",            // copy directories recursively
+        localSourcePath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
         `${user}@${host}:"${rBasePath}/webpack-wrap/v${version}"` // uploaded, and created if not exists
     ];
 
-    logger.log("   plink: create / clear remmote directory");
+    logger.log(`   plink: create / clear remmote directory: ${rBasePath}/webpack-wrap/v${version}/schema`);
     await execAsync({
         logger,
         logPad: "   ",
         execOptions: { cwd: resolve(__dirname, "..") },
         command: "plink " + plinkArgs.join(" ")
     });
-    logger.log("   pscp: upload files");
+
+    logger.log(`   pscp: upload files from ${localSourcePath}`);
     await execAsync({
         logger,
         logPad: "   ",
