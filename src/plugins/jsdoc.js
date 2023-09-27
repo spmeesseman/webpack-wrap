@@ -59,8 +59,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
         // * @type {typedefs.WpwPluginConfigJsDoc} */
         /** @type {Record<string, any>} */
-        let fileConfig = {};
-        /** @type {Record<string, any>} */
         const config = { destination: outDir };
 
 		logger.write("create jsdoc documentation", 1);
@@ -77,7 +75,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (rPath)
             {
                 config.configure = relativePath(baseDir, rPath);
-                fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
             }
             else
             {   return build.addMessage({
@@ -90,12 +87,12 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         }
         else
         {
-            const opts = fileConfig.opts || {};
             apply(config, {
                 verbose: build.logger.level >= 4 || buildOptions.verbose,
                 debug: build.logger.level >= 5 || buildOptions.debug,
                 package: relativePath(baseDir, build.pkgJsonFilePath, pathOptions)
             });
+
             //
             // jsdoc.json config file (use the template config file @ schema/template if not found)
             //
@@ -113,14 +110,11 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             else {
                 config.configure = "schema/template/.jsdoc.json";
             }
-            //
-            // Read config file and store as jso
-            //
-            fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
+
             //
             // Examples directory
             //
-            path = buildOptions.examplesDir || opts.examples;
+            path = buildOptions.examplesDir;
             if (!path)
             {
                 path = await findFiles("**/examples/", { cwd: baseDir, maxDepth: 2 }, true)[0];
@@ -137,10 +131,11 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (path) {
                 config.examples = relativePath(baseDir, path, pathOptions);
             }
+
             //
             // Tutorials directory
             //
-            path = buildOptions.tutorialsDir || opts.tutorials;
+            path = buildOptions.tutorialsDir;
             if (!path)
             {
                 path = await findFiles("**/tutorials/", { cwd: baseDir, maxDepth: 2 }, true)[0];
@@ -157,10 +152,11 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (path) {
                 config.tutorials = relativePath(baseDir, path, pathOptions);
             }
+
             //
             // README file
             //
-            path = await opts.readme || findExPath([
+            path = buildOptions.readmeFile || await findExPath([
                 join(ctxDir, "README.txt"),
                 join(ctxDir, "README.md"),
                 join(ctxDir, "README"),
@@ -172,56 +168,71 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (path) {
                 config.readme = relativePath(baseDir, path, pathOptions);
             }
-            //
-            // Template
-            //
-            if (buildOptions.template) {
-                config.template = "node_modules/" + isWpwPluginConfigJsDocTemplate(buildOptions.template) ? buildOptions.template  : "clean-jsdoc-theme";
-            }
-            else if (!fileConfig.opts.template) {
-                config.template = "node_modules/clean-jsdoc-theme";
-            }
-            //
-            // If a diretcory is specified as an include, then use the jsdoc '--recurse' option
-            //
-            if (fileConfig.source.include)
+        }
+
+
+        //
+        // Read config file and store as jso
+        //
+        const jsdocArgs = this.configToArgs(config, true),
+              /** @type {Record<string, any>} */
+              fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
+        //
+        // Recurse flag
+        //
+        if (fileConfig.source.include)
+        {
+            for (const include of fileConfig.source.include)
             {
-                for (const include of fileConfig.source.include)
-                {
-                    if (isDirectory(resolvePath(baseDir, include))) {
-                        config.recurse = true;
-                        break;
-                    }
+                if (isDirectory(resolvePath(baseDir, include))) {
+                    jsdocArgs.push("--recurse");
+                    break;
                 }
             }
         }
-
-        await this.executeJsDoc(config, fileConfig, assets);
-    }
-
-
-    /**
-     * @param {Record<string, any>} config
-     * @param {Record<string, any>} fileConfig
-	 * @param {typedefs.WebpackCompilationAssets} _assets
-	 * @returns {Promise<void>}
-	 */
-    async executeJsDoc(config, fileConfig, _assets)
-    {
-        let numFilesProcessed = 0;
-        const build = this.build,
-              logger = build.logger,
-              outDir = this.buildPathTemp,
-              // persistedCache = this.cache.get(),
-              jsdocArgs = this.configToArgs(config, true);
-
-
-        if (!fileConfig.source.include || fileConfig.source.include.length === 0)
+        else if (!fileConfig.source.include || fileConfig.source.include.length === 0)
         {
             const srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true });
             jsdocArgs.push("--recurse", srcDir.includes(" ") && srcDir[0] !== "\"" ? `"${srcDir}"` : srcDir);
         }
-        const cmdLineArgs = jsdocArgs.join(" ");
+        //
+        // Template
+        //
+        if (buildOptions.template)
+        {
+            config.template = "node_modules/" + isWpwPluginConfigJsDocTemplate(buildOptions.template) ? buildOptions.template  : "clean-jsdoc-theme";
+            jsdocArgs.push("--template", config.template);
+        }
+        else if (!fileConfig.opts.template)
+        {
+            config.template = "node_modules/clean-jsdoc-theme";
+            jsdocArgs.push("--template", config.template);
+        }
+        // //
+        // // Theme
+        // //
+        // if (config.template === "node_modules/clean-jsdoc-theme" && isWpwPluginConfigJsDocTheme(buildOptions.theme)) {
+        //     fileConfig.opts.theme_opts.default_theme = buildOptions.theme;
+        // }
+
+        await this.executeJsDoc(jsdocArgs, assets);
+    }
+
+
+    /**
+     * @param {string[]} args
+	 * @param {typedefs.WebpackCompilationAssets} _assets
+	 * @returns {Promise<void>}
+	 */
+    async executeJsDoc(args, _assets)
+    {
+        let numFilesProcessed = 0;
+        const build = this.build,
+              logger = build.logger,
+              outDir = this.buildPathTemp;
+              // persistedCache = this.cache.get();
+
+        const cmdLineArgs = args.join(" ");
 
         logger.write("   execute jsdoc module", 1);
         logger.value("      cmd line args", cmdLineArgs, 2);

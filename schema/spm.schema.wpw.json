@@ -1794,6 +1794,9 @@
                 "mode": {
                     "$ref": "#/definitions/WpwPluginConfigJsDocMode"
                 },
+                "readmeFile": {
+                    "$ref": "#/definitions/FilePath"
+                },
                 "template": {
                     "$ref": "#/definitions/WpwPluginConfigJsDocTemplate"
                 },
