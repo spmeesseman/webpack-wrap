@@ -47,7 +47,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
      * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
      * @returns {string}
      */
-    buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
+    buildCommand = (script) => `${script.type} ${script.path} ${script.args ? " " + script.args.join(" ") : ""}`;
 
 
     /**
@@ -56,34 +56,11 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 	 */
     async executeScriptsBuild(_assets)
     {
+		this.logBuildInfo();
+
         let numFilesProcessed = 0;
         const build = this.build,
-              logger = build.logger,
-              baseDir = build.getBasePath(),
-              ctxDir =  build.getContextPath(),
-              srcDir =  build.getSrcPath();
-
-		logger.write("execute scripts build", 1);
-		logger.value("   base directory", baseDir, 1);
-		logger.value("   context directory", ctxDir, 1);
-		logger.value("   input directory", srcDir, 1);
-		logger.value("   mode", this.buildOptions.mode, 1);
-		logger.value("   # of scripts to execute", this.buildOptions.scripts.length, 1);
-		logger.write("   scripts:", 2);
-        this.buildOptions.scripts.forEach((script) => logger.write("      " + script, 2));
-        if (isString(this.buildOptions.output))
-        {
-		    logger.value("   output directory", this.buildOptions.output, 1);
-        }
-        else if (isArray(this.buildOptions.output))
-        {
-            logger.write("   output paths:", 2);
-            this.buildOptions.scripts.forEach((path) => logger.write("      " + path, 2));
-        }
-        else {
-            logger.value("   output directory", "n/a", 1);
-        }
-
+              logger = build.logger;
         //
         // Execute jsdoc command
         //
@@ -153,6 +130,27 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
         }
         else {
             logger.write("   successfully processed script build (0 output files)", 2);
+        }
+    }
+
+
+    logBuildInfo()
+    {
+        const logger = this.logger;
+        logger.write("execute scripts build", 1);
+		logger.value("   mode", this.buildOptions.mode, 1);
+		logger.value("   # of scripts to execute", this.buildOptions.scripts.length, 1);
+		logger.write("   scripts:", 2);
+        this.buildOptions.scripts.forEach((script) => logger.write("      " + script, 2));
+        if (isString(this.buildOptions.output)) {
+		    logger.value("   output directory", this.buildOptions.output, 1);
+        }
+        else if (isArray(this.buildOptions.output)) {
+            logger.write("   output paths:", 2);
+            this.buildOptions.scripts.forEach((path) => logger.write("      " + path, 2));
+        }
+        else {
+            logger.value("   output directory", "n/a", 1);
         }
     }
 

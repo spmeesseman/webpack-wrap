@@ -86,7 +86,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
      * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
      * @returns {string}
      */
-    buildCommand = (script) => script.path + " " + (script.args ? " " + script.args.join(" ") : "");
+    buildCommand = (script) => `${script.type} ${script.path} ${script.args ? " " + script.args.join(" ") : ""}`;
 
 
     /**

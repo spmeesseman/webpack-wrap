@@ -67,7 +67,24 @@
     },
     "production": {
         "builds": [{
-            "name": "rc",
+            "name": "examples",
+            "type": "script",
+            "log": {
+                "color": "blue"
+            },
+            "options": {
+                "script": {
+                    "mode": "synchronous",
+                    "output": "examples",
+                    "scripts": [{
+                        "type": "node",
+                        "path": "script/create-examples.js"
+                    }]
+                }
+            }
+        },
+        {
+            "name": "schema",
             "type": "script",
             "log": {
                 "color": "cyan"
