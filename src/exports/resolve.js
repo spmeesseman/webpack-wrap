@@ -33,6 +33,9 @@ class WpwResolveExport extends WpwWebpackExport
 	}
 
 
+	/**
+	 * @override
+	 */
 	app()
 	{
 		if (this.build.target === "web")
@@ -69,7 +72,6 @@ class WpwResolveExport extends WpwWebpackExport
 
 	/**
 	 * @override
-     * @protected
 	 * @throws {WpwError}
 	 */
 	create()
@@ -102,9 +104,7 @@ class WpwResolveExport extends WpwWebpackExport
 				modules: [
 					this.nodeModulesPath, "node_modules"
 				],
-				extensions: [
-					".json"
-				]
+				extensions: []
 			},
 			resolveLoader:
 			{
@@ -143,15 +143,14 @@ class WpwResolveExport extends WpwWebpackExport
 	}
 
 
+	/**
+	 * @override
+	 */
 	jsdoc()
 	{
-		const jsdocOptions = this.build.options.jsdoc;
-		if (jsdocOptions && jsdocOptions.enabled !== false)
+		const config = this.build.options.jsdoc;
+		if (config && config.enabled !== false)
 		{
-			// this.build.wpc.resolve.extensions = [ ".js", ".json" ];
-			// if (this.build.source.config.compilerOptions.jsx) {
-			// 	this.build.wpc.resolve.extensions.push(".jsx");
-			// }
 			pushUniq(/** @type {string[]} */(this.build.wpc.resolve.extensions), ".json");
 		}
 		else {
@@ -179,9 +178,26 @@ class WpwResolveExport extends WpwWebpackExport
             });
         }
 		return alias;
-    };
+    }
 
 
+	/**
+	 * @override
+	 */
+	script()
+	{
+		const build = this.build,
+			  config = build.options.script;
+		if (config && config.enabled !== false)
+		{
+
+		}
+	}
+
+
+	/**
+	 * @override
+	 */
 	tests()
 	{
 		const testsOptions = this.build.options.testsuite;

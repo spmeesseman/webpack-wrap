@@ -9,14 +9,14 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const { existsSync } = require("fs");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { join, posix, relative, resolve, extname, sep } = require("path");
-const { relativePath, existsAsync, findFiles, findExPath, forwardSlash } = require("../utils");
-const { isBoolean, pick, isObject, apply, asArray, isPrimitive } = require("@spmeesseman/type-utils");
-const { existsSync } = require("fs");
+const { apply, isDirectory } = require("@spmeesseman/type-utils");
+const { join, relative, resolve, extname, sep } = require("path");
+const { relativePath, existsAsync, findFiles, findExPath, forwardSlash, resolvePath, isWpwPluginConfigJsDocTheme, isWpwPluginConfigJsDocTemplate } = require("../utils");
 
 
 /**
@@ -39,7 +39,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwJsDocPlugin | undefined}
      */
-	static create = (build) => WpwJsDocPlugin.wrap(this, build, "jsdoc", [[ "mode", "plugin" ], this.validateJsDocInstalled ]);
+	static create = (build) => WpwJsDocPlugin.wrap(this, build, "jsdoc", this.validateJsDocInstalled);
 
 
 	/**
@@ -50,30 +50,18 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 	{
         const build = this.build,
               logger = build.logger,
-              config = this.buildOptions,
+              buildOptions = this.buildOptions,
               outDir = this.buildPathTemp,
               baseDir = build.getBasePath(),
               ctxDir =  build.getContextPath(),
               srcDir =  build.getSrcPath(),
               pathOptions = { psx: true, stat: true };
 
-        const _addPathOption = (/** @type {string} */ option) =>
-        {
-            if (config[option])
-            {
-                const rPath = relativePath(baseDir, config[option], { psx: true, stat: true }) ;
-                if (rPath) {
-                    jsdocOptions.push(`--${option}`, `"${rPath}"`);
-                }
-                else {
-                    build.addMessage({
-                        code: WpwError.Code.ERROR_RESOURCE_MISSING,
-                        message: `could not locate the jsdoc options path '${option}'`,
-                        compilation: this.compilation
-                    });
-                }
-            }
-        };
+        // * @type {typedefs.WpwPluginConfigJsDoc} */
+        /** @type {Record<string, any>} */
+        let fileConfig = {};
+        /** @type {Record<string, any>} */
+        const config = { destination: outDir };
 
 		logger.write("create jsdoc documentation", 1);
 		logger.value("   base directory", baseDir, 1);
@@ -81,37 +69,38 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		logger.value("   input directory", srcDir, 1);
 		logger.value("   output directory", outDir, 1);
 
-        const jsdocOptions = [ "--destination", `"${outDir}"` ];
-
-        if (isObject(config))
+        if (buildOptions.mode === "config")
         {
-            _addPathOption("configure");
-            _addPathOption("package");
-            _addPathOption("readme");
-            _addPathOption("template");
-            _addPathOption("tutorials");
-            if (build.hasError) {
-                return;
-            }
-            jsdocOptions.push("--recurse");
-            const nonPathOpts = pick(config, "debug", "encoding", "private", "verbose");
-            Object.entries(nonPathOpts).filter(([ _, v ]) => isPrimitive(v) && v !== false).forEach(([ k, v ]) =>
+            const rPath = resolvePath(baseDir, buildOptions.configFile, { psx: true, stat: true }) ;
+            if (rPath)
             {
-                jsdocOptions.push(`--${k}` + (v !== true ? ` ${v}` : ""));
-            });
+                config.configure = relativePath(baseDir, rPath);
+                fileConfig = JSON.parse(await readFile(rPath, "utf8"));
+            }
+            else
+            {   return build.addMessage({
+                    code: WpwError.Code.ERROR_RESOURCE_MISSING,
+                    message: "specified jsdoc configuration file path does not exist",
+                    detail: "configured file location: " + buildOptions.configFile,
+                    compilation: this.compilation
+                });
+            }
         }
-
-        if (!jsdocOptions.includes("--verbose") && build.logger.level >= 4) {
-            jsdocOptions.push("--verbose");
-        }
-
-        if (!jsdocOptions.includes("--package")) {
-            jsdocOptions.push("--package", `"${relativePath(baseDir, build.pkgJsonFilePath, pathOptions)}"`);
-        }
-
-        if (!jsdocOptions.includes("--readme"))
+        else
         {
-            const path = await findExPath([
+            apply(config, {
+                recurse: true,
+                verbose: build.logger.level >= 4 || buildOptions.verbose,
+                debug: build.logger.level >= 5 || buildOptions.debug,
+                package: relativePath(baseDir, build.pkgJsonFilePath, pathOptions)
+            });
+
+            let path = await findFiles("**/tutorials/", { cwd: baseDir, maxDepth: 2 }, true)[0];
+            if (path) {
+                config.tutorials = relativePath(baseDir, path, pathOptions);
+            }
+
+            path = await findExPath([
                 join(ctxDir, "README.txt"),
                 join(ctxDir, "README.md"),
                 join(ctxDir, "README"),
@@ -121,13 +110,10 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
                 join(baseDir, ".README")
             ]);
             if (path) {
-                jsdocOptions.push("--readme", `"${relativePath(baseDir, path, pathOptions)}"`);
+                config.readme = relativePath(baseDir, path, pathOptions);
             }
-        }
 
-        if (!jsdocOptions.includes("--configure"))
-        {
-            const path = await findExPath([
+            path = await findExPath([
                 join(ctxDir, ".jsdoc.json"),
                 join(ctxDir, "jsdoc.json"),
                 join(baseDir, ".jsdoc.json"),
@@ -136,45 +122,74 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
                 join(srcDir, "jsdoc.json")
             ]);
             if (path) {
-                jsdocOptions.push("--configure", `"${relativePath(baseDir, path, pathOptions)}"`);
+                config.configure = relativePath(baseDir, path, pathOptions);
+                fileConfig = JSON.parse(await readFile(path, "utf8"));
+            }
+            else {
+                config.configure = "schema/template/.jsdoc.json";
+                fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
+            }
+
+            if (buildOptions.template) {
+                config.template = "node_modules/" + isWpwPluginConfigJsDocTemplate(buildOptions.template) ? buildOptions.template  : "clean-jsdoc-theme";
+            }
+            if (!config.template && !fileConfig.opts?.template) {
+                config.template = "node_modules/clean-jsdoc-theme";
+            }
+
+            if (fileConfig.source.include)
+            {
+                for (const include of fileConfig.source.include)
+                {
+                    if (isDirectory(resolvePath(baseDir, include))) {
+                        config.recurse = true;
+                        break;
+                    }
+                }
             }
         }
 
-        if (jsdocOptions.length <= 2) // execute only if we found more options than '--destination',
-        {                             // otherwise enter error state
-            build.addMessage({
-                code: WpwError.Code.ERROR_JSDOC_FAILED,
-                message: "unable to create jsdoc execution options (0 options found)",
-                compilation: this.compilation
-            });
-        }
-        else {
-            await this.executeJsDoc(jsdocOptions, assets);
-        }
+        await this.executeJsDoc(config, fileConfig, assets);
     }
 
 
     /**
-     * @param {string[]} jsdocParams
+     * @param {Record<string, any>} config
+     * @param {Record<string, any>} fileConfig
 	 * @param {typedefs.WebpackCompilationAssets} _assets
 	 * @returns {Promise<void>}
 	 */
-    async executeJsDoc(jsdocParams, _assets)
+    async executeJsDoc(config, fileConfig, _assets)
     {
         let numFilesProcessed = 0;
         const build = this.build,
               logger = build.logger,
               outDir = this.buildPathTemp,
               // persistedCache = this.cache.get(),
-              srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true });
+              jsdocArgs = this.configToArgs(config, true);
 
-        logger.write("   execute jsdoc", 2);
-        logger.value("      cmd line", jsdocParams, 3);
+        logger.write("   execute jsdoc module", 1);
+
+        if (!fileConfig.source.include || fileConfig.source.include.length === 0)
+        {
+            const srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true });
+            if (srcDir.includes(" ") && srcDir[0] !== "\"")
+            {
+                jsdocArgs.push(`"${srcDir}"`);
+            }
+            else {
+                jsdocArgs.push(srcDir);
+            }
+        }
+
+
+        const cmdLineArgs = jsdocArgs.join(" ");
+        logger.value("      cmd line args", cmdLineArgs, 2);
 
         //
         // Execute jsdoc command
         //
-        const code = await this.exec(`npx jsdoc ${jsdocParams.join(" ")} "${srcDir}"`, "jsdoc");
+        const code = await this.exec(`npx jsdoc ${cmdLineArgs}`, "jsdoc");
         if (code !== 0)
         {
             return build.addMessage({
@@ -210,7 +225,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
                   //
                   // the "--package" options creates 3 more dir levela deep for output path
                   // e.g. [diat]/@spmeesseman/webpack-wrap/0.0.1/....  remove from output emit path
-                  // Update 9/25/23 - the above explanation code REMOVED (can be controlled in jsdoc.json config file)
                   //
                   // filePathRel = relative(outDir, filePath), // .replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
                   filePathRel = relative(outDir, filePath).replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
@@ -265,7 +279,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             this.compilation.emitAsset(filePathRel, source, info);
             ++numFilesProcessed;
 		}
-        logger.write(`   processed bold(${numFilesProcessed}) output files`, 3);
+        logger.write(`   processed bold(${numFilesProcessed}) of ${files.length} output files`, 3);
     }
 
     /*

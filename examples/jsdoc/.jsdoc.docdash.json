@@ -1,14 +1,14 @@
 {
     "mode": "typescript",
-    "recurseDepth": 10,
     "sourceType": "module",
+    "recurseDepth": 10,
     "markdown": {
         "hardwrap": true,
-        "idInHeadings": true
+        "idInHeadings": false
     },
     "menu": {
-        "Webpack-Wrap Documentation": {
-            "href": "https://app1.spmeesseman.com/res/docs/",
+        "API Documentation": {
+            "href": "",
             "target": "_blank",
             "class": "menu-item",
             "id": "repository"
@@ -18,75 +18,14 @@
         "encoding": "utf8",
         "destination": "./dist/doc/api",
         "recurse": true,
-        "template": "node_modules/clean-jsdoc-theme",
-        "theme_opts": {
-            "default_theme": "dark",
-            "displayModuleHeader": true,
-            "includeFilesListInHomepage": true,
-            "removeQuotes": "trim",
-            "add_scripts": "",
-            "search": true,
-            "sort": true,
-            "scopeInOutputPath": false,
-            "nameInOutputPath": false,
-            "versionInOutputPath": false,
-            "homepageTitle": "Webpack-Wrap",
-            "favicon": "res/img/favicon.ico",
-            "title": "Webpack-Wrap",
-            "add_script_path": [],
-            "sections": [
-                "Classes",
-                "Modules",
-                "Externals",
-                "Events",
-                "Namespaces",
-                "Mixins",
-                "Tutorials",
-                "Interfaces"
-            ],
-            "codepen": {
-                "enable_for": [
-                    "examples"
-                ],
-                "options": {
-                  "js_external": "https://code.jquery.com/jquery-3.6.0.min.js",
-                  "js_pre_processor": "babel"
-                }
-            },
-            "menu": [
-                {
-                    "title": "Donate",
-                    "href": "https://github.com/spmeesseman/webpack-wrap",
-                    "target": "_blank",
-                    "class": "menu-item",
-                    "id": "donate_link"
-                },
-                {
-                    "title": "Repository",
-                    "href": "https://github.com/spmeesseman/webpack-wrap",
-                    "target": "_blank",
-                    "class": "menu-item",
-                    "id": "repo_link"
-                }
-            ],
-            "meta": [
-                {
-                  "name": "author",
-                  "content": "Scott Meesseman"
-                },
-                {
-                  "name": "description",
-                  "content": "Webpack-Wrap - lots and lots of Webpack functionality in one package"
-                }
-            ]
-        }
+        "template": "node_modules/docdash"
     },
     "plugins": [
         "plugins/markdown"
     ],
     "source": {
         "include": [
-            "src", "examples/jsdoc"
+            "src"
         ],
         "exclude": [
             "node_modules",

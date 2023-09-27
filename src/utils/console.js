@@ -471,7 +471,7 @@ class WpwLogger
     {
         const bClr = bracketColor ||
                     (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
-                    (this.options.color ? this.colors[this.options.color] : null) || this.colors[this.options.color];
+                    (this.options.color ? this.colors[this.options.color] : null) || this.colors.blue;
         return tagMsg ?
             (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
     }
@@ -661,7 +661,6 @@ class WpwLogger
         const opts = this.options,
                 basePad = this.options.pad.base || "",
                 msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
-                linePad = isValue !== true ? basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + 2) : "",
                 envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
                 envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
                 envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
@@ -670,9 +669,12 @@ class WpwLogger
                                 this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg),
                 envTagLen = WpwLogger.envTagLen + envTagClrLen,
                 envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                        this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
+                         this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
                 envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
-                tmStamp = opts.timestamp ? this.timestamp() : "";
+                tmStamp = opts.timestamp ? this.timestamp() : "",
+                linePad = isValue !== true ?
+                          basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
+                          + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0)) : "";
         console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
         return this;
     }

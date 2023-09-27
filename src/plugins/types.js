@@ -92,7 +92,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		}
 		else if (method === "tsc")
 		{
-			rc = await this.execTsBuild(source.configFile, this.optionsToArgs(options), this.buildPathTemp);
+			rc = await this.execTsBuild(source.configFile, this.configToArgs(options), this.buildPathTemp);
 		}
 		else
 		{   build.addMessage({

@@ -177,22 +177,41 @@ class WpwEntryExport extends WpwWebpackExport
 
 	/**
 	 * @override
+	 * @throws {WpwError}
+	 */
+	script()
+	{
+		const build = this.build,
+			  config = build.options.script;
+		if (config && config.enabled !== false)
+		{
+
+		}
+	}
+
+
+	/**
+	 * @override
 	 */
 	jsdoc()
 	{
 		const build = this.build,
-			  jsdocConfig = build.options.jsdoc;
-		if (jsdocConfig && jsdocConfig.mode === "plugin")
+			  config = build.options.jsdoc;
+		if (config && config.enabled !== false)
 		{
-			apply(build.wpc.entry, { [ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}` });
 			if (isObject(build.entry))
 			{
+				let entry = 0;
 				build.logger.write("   apply defined entry point path [file dependencies]", 3);
 				apply(build.wpc.entry, build.entry);
+				Object.values(build.entry).forEach((value) => {
+					apply(build.wpc.entry, { [`entry${++entry}`]: value });
+				});
 			}
 			else {
-				apply(build.wpc.entry, { entry: `./${forwardSlash(build.entry)}` });
+				apply(build.wpc.entry, { entry1: `./${forwardSlash(build.entry)}` });
 			}
+			apply(build.wpc.entry, { [ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}` });
 		}
 	}
 

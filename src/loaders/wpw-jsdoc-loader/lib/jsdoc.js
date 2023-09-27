@@ -48,7 +48,7 @@ const schema = {
                     type: "string"
                 },
                 config: {
-                    $ref: "../../../../schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
+                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigJsDoc"
                 }
             }
         }

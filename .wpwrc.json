@@ -77,7 +77,7 @@
             },
             "options": {
                 "jsdoc": {
-                    "mode": "plugin",
+                    "mode": "auto",
                     "title": "Webpack-Wrap Source Documentation"
                 }
             },

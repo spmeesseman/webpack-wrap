@@ -400,10 +400,8 @@ class WpwWrapper extends WpwBase
                // @ts-ignore
                ostemp = os.tmpdir ? os.tmpdir() : os.tmpDir(),
                defaultTempDir = `node_modules${sep}.cache${sep}wpwrap${sep}temp`,
-               temp = resolve(
-                   ostemp ? `${ostemp}${sep}${this.pkgJson.scopedName.name}` : defaultTempDir,
-                   `${buildConfig.name}${sep}${buildConfig.mode}`
-               );
+               tempDir = ostemp ? `${ostemp}${sep}${this.pkgJson.scopedName.name}` : defaultTempDir,
+               temp = resolve(tempDir, `${buildConfig.name}${sep}${buildConfig.mode}`);
         paths.base = base;
         paths.temp = paths.temp && paths.temp !== defaultTempDir ? paths.temp : temp;
         paths.ctx = paths.ctx ? resolvePath(base, paths.ctx) : base;

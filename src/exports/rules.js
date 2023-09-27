@@ -177,7 +177,6 @@ class WpwRulesExport extends WpwWebpackExport
 
 	/**
 	 * @override
-     * @protected
 	 * @throws {WpwError}
 	 */
 	create()
@@ -261,7 +260,7 @@ class WpwRulesExport extends WpwWebpackExport
 			return;
 		}
 
-		if (jsdocConfig?.mode === "plugin")
+		if (jsdocConfig && jsdocConfig.enabled !== false)
 		{
 			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
 			build.wpc.module.rules.push(
@@ -278,6 +277,20 @@ class WpwRulesExport extends WpwWebpackExport
 					virtualFile: this.virtualFilePath
 				}
 			});
+		}
+	}
+
+
+	/**
+	 * @override
+	 */
+	script()
+	{
+		const build = this.build,
+			  config = build.options.script;
+		if (config && config.enabled !== false)
+		{
+
 		}
 	}
 

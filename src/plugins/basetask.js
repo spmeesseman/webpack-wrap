@@ -25,9 +25,9 @@ const { join } = require("path");
 const WpwPlugin = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { existsAsync, capitalize } = require("../utils");
+const { existsAsync, capitalize, findFiles } = require("../utils");
 const { rm, unlink, writeFile } = require("fs/promises");
-const { applyIf, isFunction, isPromise } = require("@spmeesseman/type-utils");
+const { applyIf, isFunction, isPromise, isString } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -100,6 +100,11 @@ class WpwBaseTaskPlugin extends WpwPlugin
 			this.logger.write(`   delete virtual entry asset '${virtualEntryFile}' from compilation`, 3);
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
+		const realEntryFiles = Object.keys(assets).filter(f => (/entry[0-9](?:.*?)\.js/).test(f));
+		realEntryFiles.forEach((realEntryFile) => {
+			this.logger.write(`   delete entry asset '${realEntryFile}' from compilation`, 3);
+			this.compilation.deleteAsset(realEntryFile);
+		});
 	};
 
 
@@ -112,8 +117,9 @@ class WpwBaseTaskPlugin extends WpwPlugin
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
 		}
+		console.log("CLEAN!!!!!!!!!!!!!");
 		if (await existsAsync(this.buildPathTemp)) {
-			await rm(this.buildPathTemp, { recursive: true, force: true });
+			// await rm(this.buildPathTemp, { recursive: true, force: true });
 		}
 	};
 
@@ -133,11 +139,23 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	/**
 	 * @protected
 	 * @param {Record<string, any>} options
+	 * @param {boolean} [excludeFalseFlags]
 	 * @returns {string[]}
 	 */
-	optionsToArgs(options)
+	configToArgs(options, excludeFalseFlags)
 	{
-		return Object.entries(options).filter(([ _, v ]) => v !== undefined).map(([ k, v ]) => v !== true ? `--${k} ${v}` : `--${k}`);
+		return Object.entries(options).filter(
+			([ _, v ]) => v !== undefined && (!excludeFalseFlags || v !== false)
+		)
+		.map(
+			([ k, v ]) =>
+			{
+				if (isString(v) && v.includes(" ") && v[0] !== "\"") {
+					return `--${k} "${v}"`;
+				}
+				return v !== true ? `--${k} ${v}` : `--${k}`;
+			}
+		);
 	}
 
 

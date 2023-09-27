@@ -11,6 +11,9 @@
 
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
+const { existsSync, rmSync } = require("fs");
+const { join, dirname } = require("path");
+const { findFilesSync } = require("../utils");
 
 
 /**
@@ -38,6 +41,14 @@ class WpwDisposePlugin extends WpwPlugin
     dispose()
     {
         this.logger.write("build complete, perform shutdown stage cleanup", 2);
+        let tmpPath = join(this.build.getTempPath(), this.build.name);
+		if (existsSync(tmpPath)) {
+			rmSync(tmpPath, { recursive: true, force: true });
+		}
+        tmpPath = dirname(tmpPath);
+        if (findFilesSync("*", { cwd: tmpPath }).length === 0) {
+            rmSync(tmpPath, { recursive: true, force: true });
+        }
         return this.build.dispose();
     }
 }

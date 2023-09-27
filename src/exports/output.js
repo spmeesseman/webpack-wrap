@@ -41,7 +41,6 @@ const { WpwError } = require("../utils/message");
 
     /**
      * @override
-     * @protected
      */
     app()
     {
@@ -59,7 +58,6 @@ const { WpwError } = require("../utils/message");
 
 	/**
 	 * @override
-	 * @protected
 	 */
 	create()
 	{
@@ -91,7 +89,6 @@ const { WpwError } = require("../utils/message");
 
     /**
      * @override
-     * @protected
      */
     jsdoc()
     {
@@ -102,9 +99,22 @@ const { WpwError } = require("../utils/message");
     }
 
 
+	/**
+	 * @override
+	 */
+	script()
+	{
+		// const build = this.build,
+		// 	  config = build.options.script;
+		// if (config && config.enabled !== false)
+		// {
+		//
+		// }
+	}
+
+
     /**
      * @override
-     * @protected
      */
     tests()
     {

@@ -629,7 +629,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {typedefs.WpwPluginConstructor<T>} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper
      * @param {typedefs.WpwBuildOptionsKey} buildOptionsKey
-     * @param {typedefs.WpwModuleOptionsValidationArgs[]} [validation]
+     * @param {typedefs.WpwModuleOptionsValidationArgs | typedefs.WpwModuleOptionsValidationArgs[]} [validation]
      * @returns {T | undefined} T | undefined
      */
     static wrap(clsType, build, buildOptionsKey, validation)

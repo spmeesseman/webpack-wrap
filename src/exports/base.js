@@ -64,6 +64,16 @@ class WpwWebpackExport extends WpwBaseModule
      * @abstract
      * @protected
      */
+    script()
+    {
+        this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][script]` });
+    }
+
+
+    /**
+     * @abstract
+     * @protected
+     */
     tests()
     {
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][tests]` });

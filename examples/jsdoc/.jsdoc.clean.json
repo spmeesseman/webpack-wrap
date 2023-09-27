@@ -7,8 +7,8 @@
         "idInHeadings": true
     },
     "menu": {
-        "Webpack-Wrap Documentation": {
-            "href": "https://app1.spmeesseman.com/res/docs/",
+        "API Documentation": {
+            "href": "",
             "target": "_blank",
             "class": "menu-item",
             "id": "repository"
@@ -86,7 +86,7 @@
     ],
     "source": {
         "include": [
-            "src", "examples/jsdoc"
+            "src"
         ],
         "exclude": [
             "node_modules",
@@ -116,57 +116,5 @@
         "scripts": [],
         "favicon": "",
         "css": []
-    },
-    "docdash": {
-        "static": true,
-        "sort": true,
-        "sectionOrder": [
-            "Classes",
-            "Modules",
-            "Externals",
-            "Events",
-            "Namespaces",
-            "Mixins",
-            "Tutorials",
-            "Interfaces"
-        ],
-        "disqus": "",
-        "openGraph": {
-            "title": "",
-            "type": "website",
-            "image": "",
-            "site_name": "",
-            "url": ""
-        },
-        "meta": {
-            "title": "",
-            "description": "",
-            "keyword": ""
-        },
-        "search": true,
-        "collapse": true,
-        "wrap": true,
-        "typedefs": true,
-        "navLevel": 3,
-        "private": false,
-        "removeQuotes": "trim",
-        "scripts": [],
-        "menu": {
-            "Donate": {
-                "href": "https://github.com/spmeesseman/webpack-wrap",
-                "target": "_blank",
-                "class": "menu-item",
-                "id": "website_link"
-            },
-            "Repository": {
-                "href": "https://github.com/spmeesseman/webpack-wrap",
-                "target": "_blank",
-                "class": "menu-item",
-                "id": "website_link"
-            }
-        },
-        "scopeInOutputPath": false,
-        "nameInOutputPath": false,
-        "versionInOutputPath": false
     }
 }
