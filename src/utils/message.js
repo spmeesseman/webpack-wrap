@@ -112,11 +112,16 @@ const WpwMessageMap =
     //
     WPW450: "did not modify sourcemaps - global data 'runtimeVars' not set, ensure appropriate build options are enabled",
     //
-    // WARNINGS (500-599)
+    // WARNINGS (500-519)
     //
-    WPW530: "invalid configuration",
-    WPW531: "invalid exports configuration",
-    WPW532: "invalid plugins configuration",
+    WPW500: "could not locate resource",
+    WPW510: "invalid configuration",
+    WPW511: "invalid exports configuration",
+    WPW512: "invalid plugins configuration",
+    //
+    // RESERVED WARNINGS (520 - 599)
+    //
+    // WARNING_ ..........................................
     //
     // GENERAL ERRORS (600 - 609)
     //
@@ -195,11 +200,16 @@ const WpwMessageCode =
     //
     WARNING_OPTIONS_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW450"),
     //
-    // WARNING (500 - 599)
+    // CONFIGURATION WARNINGS (500 - 519)
     //
-    WARNING_CONFIG_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW530"),
-    WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW531"),
-    WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW532"),
+    WARNING_RESOURCE_MISSING: /** @type {typedefs.WpwErrorCode} */("WPW500"),
+    WARNING_CONFIG_INVALID: /** @type {typedefs.WpwWarningCode} */("WPW510"),
+    WARNING_CONFIG_INVALID_EXPORTS: /** @type {typedefs.WpwWarningCode} */("WPW511"),
+    WARNING_CONFIG_INVALID_PLUGINS: /** @type {typedefs.WpwWarningCode} */("WPW512"),
+    //
+    // RESERVED WARNINGS (520 - 599)
+    //
+    // WARNING_ ..........................................
     //
     // GENERAL ERRORS (600 - 609)
     //

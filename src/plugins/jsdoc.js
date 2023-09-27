@@ -70,12 +70,14 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		logger.value("   output directory", outDir, 1);
 
         if (buildOptions.mode === "config")
-        {
+        {   //
+            // User has specified a config file in wpwrc
+            //
             const rPath = resolvePath(baseDir, buildOptions.configFile, { psx: true, stat: true }) ;
             if (rPath)
             {
                 config.configure = relativePath(baseDir, rPath);
-                fileConfig = JSON.parse(await readFile(rPath, "utf8"));
+                fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
             }
             else
             {   return build.addMessage({
@@ -88,19 +90,77 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         }
         else
         {
+            const opts = fileConfig.opts || {};
             apply(config, {
-                recurse: true,
                 verbose: build.logger.level >= 4 || buildOptions.verbose,
                 debug: build.logger.level >= 5 || buildOptions.debug,
                 package: relativePath(baseDir, build.pkgJsonFilePath, pathOptions)
             });
-
-            let path = await findFiles("**/tutorials/", { cwd: baseDir, maxDepth: 2 }, true)[0];
+            //
+            // jsdoc.json config file (use the template config file @ schema/template if not found)
+            //
+            let path = await findExPath([
+                join(ctxDir, ".jsdoc.json"),
+                join(ctxDir, "jsdoc.json"),
+                join(baseDir, ".jsdoc.json"),
+                join(baseDir, "jsdoc.json"),
+                join(srcDir, ".jsdoc.json"),
+                join(srcDir, "jsdoc.json")
+            ]);
+            if (path) {
+                config.configure = relativePath(baseDir, path, pathOptions);
+            }
+            else {
+                config.configure = "schema/template/.jsdoc.json";
+            }
+            //
+            // Read config file and store as jso
+            //
+            fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
+            //
+            // Examples directory
+            //
+            path = buildOptions.examplesDir || opts.examples;
+            if (!path)
+            {
+                path = await findFiles("**/examples/", { cwd: baseDir, maxDepth: 2 }, true)[0];
+            }
+            else if (!(await existsAsync(resolve(baseDir, path))))
+            {
+                build.addMessage({
+                    code: WpwError.Code.WARNING_RESOURCE_MISSING,
+                    message: "specified jsdoc 'examples' directory path does not exist",
+                    detail: "configured file location: " + buildOptions.configFile,
+                    compilation: this.compilation
+                });
+            }
+            if (path) {
+                config.examples = relativePath(baseDir, path, pathOptions);
+            }
+            //
+            // Tutorials directory
+            //
+            path = buildOptions.tutorialsDir || opts.tutorials;
+            if (!path)
+            {
+                path = await findFiles("**/tutorials/", { cwd: baseDir, maxDepth: 2 }, true)[0];
+            }
+            else if (!(await existsAsync(resolve(baseDir, path))))
+            {
+                build.addMessage({
+                    code: WpwError.Code.WARNING_RESOURCE_MISSING,
+                    message: "specified jsdoc 'tutorials' directory path does not exist",
+                    detail: "configured file location: " + buildOptions.configFile,
+                    compilation: this.compilation
+                });
+            }
             if (path) {
                 config.tutorials = relativePath(baseDir, path, pathOptions);
             }
-
-            path = await findExPath([
+            //
+            // README file
+            //
+            path = await opts.readme || findExPath([
                 join(ctxDir, "README.txt"),
                 join(ctxDir, "README.md"),
                 join(ctxDir, "README"),
@@ -112,31 +172,18 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             if (path) {
                 config.readme = relativePath(baseDir, path, pathOptions);
             }
-
-            path = await findExPath([
-                join(ctxDir, ".jsdoc.json"),
-                join(ctxDir, "jsdoc.json"),
-                join(baseDir, ".jsdoc.json"),
-                join(baseDir, "jsdoc.json"),
-                join(srcDir, ".jsdoc.json"),
-                join(srcDir, "jsdoc.json")
-            ]);
-            if (path) {
-                config.configure = relativePath(baseDir, path, pathOptions);
-                fileConfig = JSON.parse(await readFile(path, "utf8"));
-            }
-            else {
-                config.configure = "schema/template/.jsdoc.json";
-                fileConfig = JSON.parse(await readFile(resolve(baseDir, config.configure), "utf8"));
-            }
-
+            //
+            // Template
+            //
             if (buildOptions.template) {
                 config.template = "node_modules/" + isWpwPluginConfigJsDocTemplate(buildOptions.template) ? buildOptions.template  : "clean-jsdoc-theme";
             }
-            if (!config.template && !fileConfig.opts?.template) {
+            else if (!fileConfig.opts.template) {
                 config.template = "node_modules/clean-jsdoc-theme";
             }
-
+            //
+            // If a diretcory is specified as an include, then use the jsdoc '--recurse' option
+            //
             if (fileConfig.source.include)
             {
                 for (const include of fileConfig.source.include)
@@ -168,22 +215,15 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
               // persistedCache = this.cache.get(),
               jsdocArgs = this.configToArgs(config, true);
 
-        logger.write("   execute jsdoc module", 1);
 
         if (!fileConfig.source.include || fileConfig.source.include.length === 0)
         {
             const srcDir = build.getSrcPath({ rel: true, psx: true, dot: true, fallback: true });
-            if (srcDir.includes(" ") && srcDir[0] !== "\"")
-            {
-                jsdocArgs.push(`"${srcDir}"`);
-            }
-            else {
-                jsdocArgs.push(srcDir);
-            }
+            jsdocArgs.push("--recurse", srcDir.includes(" ") && srcDir[0] !== "\"" ? `"${srcDir}"` : srcDir);
         }
-
-
         const cmdLineArgs = jsdocArgs.join(" ");
+
+        logger.write("   execute jsdoc module", 1);
         logger.value("      cmd line args", cmdLineArgs, 2);
 
         //
