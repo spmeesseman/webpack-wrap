@@ -17,7 +17,7 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, isDirectory, merge, apply, pushUniq } = require("@spmeesseman/type-utils");
+const { asArray, isDirectory, merge, apply, pushUniq, applyIf } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
@@ -174,7 +174,7 @@ const existsAsync = async (path) =>
  * @returns {Promise<string[]>}
  */
 const findFiles = async (pattern, options, allowDirs) =>
-    (await glob(pattern, merge(globOptions, options))).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
+    (await glob(pattern, apply({}, options, globOptions))).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
 
 
 /**
@@ -184,7 +184,7 @@ const findFiles = async (pattern, options, allowDirs) =>
  * @returns {string[]}
  */
 const findFilesSync = (pattern, options, allowDirs) =>
-    glob.sync(pattern, merge(globOptions, options)).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
+    glob.sync(pattern, apply({}, options, globOptions)).map(f => f.toString()).filter(f => allowDirs || !isDirectory(f));
 
 
 /**

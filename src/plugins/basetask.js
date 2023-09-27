@@ -117,9 +117,8 @@ class WpwBaseTaskPlugin extends WpwPlugin
 		if (await existsAsync(this.virtualFilePath)) {
 			await unlink(this.virtualFilePath);
 		}
-		console.log("CLEAN!!!!!!!!!!!!!");
 		if (await existsAsync(this.buildPathTemp)) {
-			// await rm(this.buildPathTemp, { recursive: true, force: true });
+			await rm(this.buildPathTemp, { recursive: true, force: true });
 		}
 	};
 
