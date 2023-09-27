@@ -63,7 +63,6 @@ const { WpwError } = require("../utils/message");
 	{
 		const build = this.build;
 		build.logger.start("create output configuration", 2);
-
 		apply(build.wpc.output,
 		{
 			path: build.getDistPath(),
@@ -73,10 +72,9 @@ const { WpwError } = require("../utils/message");
 			// clean: build.clean ? (build.isTests ? { keep: /(test)[\\/]/ } : build.clean) : undefined
 		});
 
-		build.logger.start("create output configuration", 2);
 		if (isFunction(this[build.type]))
 		{
-			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
+			build.logger.write(`   create output config for build '${build.name}' [ type: ${build.type} ]`, 2);
 			this[build.type]();
 		}
 		else {

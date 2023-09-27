@@ -1,8 +1,7 @@
-/* eslint-disable import/no-extraneous-dependencies */
 // @ts-check
 
 /**
- * @file src/plugins/jsdoc.js
+ * @file src/plugins/script.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -15,7 +14,7 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { apply, isString, isArray, asArray, isDirectory } = require("@spmeesseman/type-utils");
-const { existsAsync, findFiles } = require("../utils");
+const { existsAsync, findFiles, relativePath } = require("../utils");
 
 
 /**
@@ -60,29 +59,33 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 
         let numFilesProcessed = 0;
         const build = this.build,
-              logger = build.logger;
+              logger = build.logger,
+              baseDir = build.getBasePath(),
+              scripts = this.buildOptions.scripts;
         //
-        // Execute jsdoc command
+        // Execute scripts
         //
-        const code = [];
+        const codes = [];
         if (this.buildOptions.mode === "parallel")
         {
-            code.push(...(await Promise.all(
-                this.buildOptions.scripts.map(script => this.exec(this.buildCommand(script), "script"))
+            codes.push(...(await Promise.all(
+                scripts.map(script => this.exec(this.buildCommand(script), "script"))
             )));
         }
         else {
-            for (const script of this.buildOptions.scripts) {
-                code.push(await this.exec(this.buildCommand(script), "script"));
+            for (const script of scripts) {
+                codes.push(await this.exec(this.buildCommand(script), "script"));
             }
         }
 
-        if (!code.every(c => c === 0 || c === null))
+        if (!codes.every(c => c === 0 || c === null))
         {
+            const errorMap = scripts.reduce((p, c, i) => apply(p, { [relativePath(baseDir, c.path)]: codes[i] }, {}));
             return build.addMessage({
-                code: WpwError.Code.ERROR_JSDOC_FAILED,
+                code: WpwError.Code.ERROR_SCRIPT_FAILED,
                 compilation: this.compilation ,
-                message: "scripts execution exited with error code " + code
+                message: "script execution(s) exited with non-zero exit code(s)",
+                detail: "error map: " + JSON.stringify(errorMap)
             });
         }
 
@@ -97,7 +100,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
                 if (!(await existsAsync(path)))
                 {
                     build.addMessage({
-                        code: WpwError.Code.ERROR_JSDOC_FAILED,
+                        code: WpwError.Code.ERROR_SCRIPT_FAILED,
                         compilation: this.compilation,
                         message: "scripts build failed - output path doesn't exist",
                         detail: `configured output path: ${path}`
@@ -118,7 +121,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
                     const info = /** @type {typedefs.WebpackAssetInfo} */({
                         immutable: true,
                         javascriptModule: false,
-                        jsdoc: true
+                        script: true
                     });
 
                     logger.value("      emit asset", filePathRel, 4);

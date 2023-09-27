@@ -148,6 +148,7 @@ const WpwMessageMap =
     //
     WPW650: "plugin error",
     WPW660: "jsdoc plugin error",
+    WPW667: "script plugin error",
     WPW670: "types plugin error",
     //
     // RESERVED ERRORS (680 - 699)
@@ -236,6 +237,7 @@ const WpwMessageCode =
     //
     ERROR_PLUGIN_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW650"),
     ERROR_JSDOC_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW660"),
+    ERROR_SCRIPT_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW667"),
     ERROR_TYPES_FAILED: /** @type {typedefs.WpwErrorCode} */("WPW670"),
     //
     // RESERVED ERRORS (680 - 699)

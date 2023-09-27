@@ -1045,6 +1045,10 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
+            "default": {
+                "enabled": true,
+                "immutable": true
+            },
             "properties": {
                 "enabled": {
                     "$ref": "#/definitions/BooleanDefaultTrue",

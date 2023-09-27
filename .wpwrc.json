@@ -123,7 +123,7 @@
                 }
             },
             "paths": {
-                "dist": "dist/doc/api"
+                "dist": "dist/doc"
             }
         }],
         "options": {
