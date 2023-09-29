@@ -58,6 +58,9 @@ type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
 type WpwPluginHookHandlerResult = void | Promise<void> | WpwPluginHookWaitStage | Promise<WpwPluginHookWaitStage>;
 
+interface IWpwPluginStats { hookCount: number; hooksProcessed: number };
+type WpwPluginStats = IWpwPluginStats;
+
 type WpwPluginWrappedHookHandlerSync = (...args: any[]) => void;
 
 type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => Promise<void>;
@@ -102,6 +105,7 @@ export {
     WpwPluginHookWaitStage,
     WpwPluginMultiWaitOptions,
     WpwPluginOptions,
+    WpwPluginStats,
     WpwPluginTapOptions,
     WpwPluginWaitOptions,
     WpwPluginWrappedHookHandler,

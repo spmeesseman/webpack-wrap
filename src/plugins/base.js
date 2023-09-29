@@ -38,6 +38,7 @@ const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const WpwBaseModule = require("../core/basemodule");
 const { isFunction, execAsync, asArray, isString } = require("../utils");
+const { apply } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -72,6 +73,11 @@ class WpwPlugin extends WpwBaseModule
      */
     plugins;
     /**
+     * @private
+     * @type {Record<string, any>}
+     */
+    stats;
+    /**
      * @protected
      * @type {typedefs.WebpackCacheFacade}
      */
@@ -89,8 +95,7 @@ class WpwPlugin extends WpwBaseModule
 	constructor(options)
     {
         super(options);
-        this.plugins = [];
-        this.cache = new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName));
+        apply(this, { stats: {}, plugins: [], cache: new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName)) });
     }
 
 
@@ -100,10 +105,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {WpwError | typedefs.WebpackError | Error | undefined} [error]
 	 * @throws {WpwError}
 	 */
-	addError(message, error)
-	{
-        this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
-	}
+	addError(message, error) { this.build.addMessage({ code: WpwError.Code.ERROR_PLUGIN_FAILED, message, compilation: this.compilation, error }); }
 
 
     /**
@@ -122,8 +124,8 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} prop
      * @returns {string} string
      */
-    breakProp = (prop) => prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
-                              .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase();
+    breakProp(prop) { return prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
+                                 .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase(); }
 
 
     /**
@@ -133,7 +135,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} mode
      * @param {string} name
      */
-    cacheFilename = (mode, name) => `plugincache_${mode}_${name}.json`;
+    cacheFilename(mode, name) { return `plugincache_${mode}_${name}.json`; }
 
 
     /**
@@ -229,8 +231,10 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} [statsProperty]
      * @returns {typedefs.WpwPluginCompilationTapOptions} WpwPluginTapOptions
      */
-    static compilationHookConfig = (hook, stage, callback, async, statsProperty) =>
-        ({ async: !!async, hook: "compilation", stage, hookCompilation: hook, callback, statsProperty });
+    static compilationHookConfig(hook, stage, callback, async, statsProperty)
+    {
+        return { async: !!async, hook: "compilation", stage, hookCompilation: hook, callback, statsProperty };
+    }
 
 
     /**
@@ -241,7 +245,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} [statsProperty]
      * @returns {typedefs.WpwPluginBaseTapOptions} WpwPluginTapOptions
      */
-    static compilerHookConfig = (hook, callback, async, statsProperty) => ({ async: !!async, hook, callback, statsProperty });
+    static compilerHookConfig(hook, callback, async, statsProperty) { return { async: !!async, hook, callback, statsProperty }; }
 
 
 	/**
@@ -250,7 +254,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {string} dependency
 	 * @returns {Promise<typedefs.WebpackSnapshot | undefined | null>} Promise<WebpackSnapshot | undefined | null>
 	 */
-	createSnapshot = async (startTime, dependency) =>
+	async createSnapshot(startTime, dependency)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -268,7 +272,7 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {string | string[]} [ignoreOut]
 	 * @returns {Promise<number | null>} Promise<number | null>
 	 */
-	exec = async (command, program, ignoreOut) =>
+	async exec(command, program, ignoreOut)
     {
         const result = await execAsync({
             command, program, logger: this.logger, logPad: "   ", execOptions: { cwd: this.wpc.context }, ignoreOut
@@ -355,7 +359,7 @@ class WpwPlugin extends WpwBaseModule
      * @returns {boolean} hook is WebpackAsyncHook
      */
     // * @returns {hook is typedefs.WebpackAsyncHook} hook is WebpackAsyncHook
-    isAsyncHook = (hook) => isFunction(hook.tapPromise);
+    isAsyncHook(hook) { return isFunction(hook.tapPromise); }
 
 
     /**
@@ -363,7 +367,7 @@ class WpwPlugin extends WpwBaseModule
      * @param {string} file
      * @returns {boolean} boolean
      */
-    isEntryAsset = (file) => WpwPlugin.getEntriesRegex(this.wpc).test(file);
+    isEntryAsset(file) { return WpwPlugin.getEntriesRegex(this.wpc).test(file); }
 
 
     /**
@@ -371,7 +375,7 @@ class WpwPlugin extends WpwBaseModule
      * @returns {boolean} hook is WebpackHook
      */
     // * @returns {hook is typedefs.WebpackHook} <-- "is" causes jsdoc errors
-    isTapable = (hook) => isFunction(hook.tap) || isFunction(hook.tapPromise);
+    isTapable(hook) { return isFunction(hook.tap) || isFunction(hook.tapPromise); }
 
 
     /**
@@ -656,8 +660,7 @@ class WpwPlugin extends WpwBaseModule
         let /** @type {typedefs.WpwPluginWrappedHookHandler} */cb;
         const logger = this.logger,
               callback = isString(options.callback) ? /** @type {Exclude<typedefs.WpwPluginHookHandler, string>} */(this[options.callback]) : options.callback,
-              logMsg = this.breakProp(message),
-              wait = this.build.options.wait;
+              logMsg = this.breakProp(message);
 
         if (async !== true)
         {

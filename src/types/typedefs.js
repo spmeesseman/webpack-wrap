@@ -385,6 +385,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./plugin").IWpwPlugin} IWpwPlugin */
+/** @typedef {import("./plugin").WpwPluginStats} WpwPluginStats */
 /** @typedef {import("./plugin").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("./plugin").WpwPluginTapOptions} WpwPluginTapOptions */
 /** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */

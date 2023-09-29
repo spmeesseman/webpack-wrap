@@ -105,49 +105,24 @@ class WpwEventManager
     }
 
 
-    // /**
-    //  * @private
-    //  * @param {Required<typedefs.WpwPluginWaitOptions>} options
-    //  * @returns {Promise<void>}
-    //  */
-    // pollFile(options)
-    // {
-    //     const start = Date.now();
-    //     /**
-    //      * @param {any} resolve
-    //      * @param {any} reject
-    //      */
-    //     const _poll = (resolve, reject) =>
-    //     {
-    //         if (existsSync(options.name))
-    //         {
-    //             resolve();
-    //         }
-    //         else if (Date.now() - start > options.timeout)
-    //         {
-    //             reject(new WpwError({
-    //                 code: WpwError.Code.ERROR_GENERAL,
-    //                 message: `wait operation timed out at ${options.timeout} ms`
-    //             }));
-    //         }
-    //         else {
-    //             setTimeout(_poll, options.interval, resolve, reject);
-    //         }
-    //     };
-    //     return new Promise(_poll);
-    // }
-
-
     /**
-     * @param {typedefs.WpwPluginWaitOptions} options
+     * @private
+     * @param {typedefs.IWpwPluginConfigWaitItem} waitConfig
+     * @returns {Promise<void>}
      */
-    register(options)
+    pollFile(waitConfig)
     {
-        pushUniq(this.waiting, options.source);
-        this.registered.push(clone(options));
-		if (this.done.includes(options.name)) {
-			this.onPluginDone(options.name);
-		}
+        const _poll = (/** @type {() => void} */ resolve) =>
+        {
+            if (existsSync(waitConfig.name))
+            {
+                resolve();
+            }
+            else {
+                setTimeout(_poll, waitConfig.interval, resolve);
+            }
+        };
+        return new Promise(_poll);
     }
 
 
@@ -163,19 +138,34 @@ class WpwEventManager
                   waitItem = waitConfig?.items?.find(i => !!build.getBuild(i.name));
             if (waitItem)
             {
+                waitItem.source = build.name;
+                this.logger.write(`start wait period for '${waitItem.name}'`, 2);
                 return Promise.race(
                 [
                     /** @type {Promise<void>} */(new Promise((resolve) =>
                     {
-                        this.onPluginEvent.on(`${waitItem.source}_done`, () =>
+                        if (waitItem.mode === "event")
                         {
-                            this.logger.write(`received event 'done' from '${waitItem.source}'`, 3);
-                            this.logger.write(`   resume waiting build '${waitItem.name}'`, 3);
-                            resolve();
-                        });
+                            this.onPluginEvent.on(`${waitItem.name}_done`, () =>
+                            {
+                                this.logger.write(`resume waiting build '${waitItem.source}'`, 2);
+                                this.logger.write(`   received event 'done' from '${waitItem.name}'`, 2);
+                                resolve();
+                            });
+                        }
+                        else {
+                            this.pollFile(waitItem).then(() =>
+                            {
+                                this.logger.write(`resume waiting build '${waitItem.source}'`, 2);
+                                this.logger.write(`   file '${waitItem.name}' exists`, 2);
+                                resolve();
+                            });
+                        }
                     })),
                     /** @type {Promise<void>} */(new Promise(resolve => setTimeout(() =>
                     {
+                        this.logger.write(`resume waiting build '${waitItem.source}'`, 2);
+                        this.logger.write(`   timeout occurred, wait event on '${waitItem.name} not triggered`, 2);
                         resolve();
                     },
                     waitItem.timeout || 30000)))
