@@ -45,19 +45,18 @@ class WpwIstanbulPlugin extends WpwPlugin
 
     /**
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             performCodeCoverageTasks: {
                 hook: "compilation",
                 stage: "ADDITIONS",
                 statsProperty: "istanbul",
                 callback: this.istanbulTags.bind(this)
             }
-        });
+        };
     }
 
 

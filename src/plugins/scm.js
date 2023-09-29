@@ -25,20 +25,18 @@ class WpwScmPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             commitSourceCodeChanges: {
                 async: true,
                 hook: "done",
                 callback: this.commit.bind(this)
             }
-        });
+        };
     }
 
 

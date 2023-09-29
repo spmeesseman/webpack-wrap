@@ -34,20 +34,18 @@ class WpwLicenseFilesPlugin extends WpwPlugin
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @returns {void}
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             renameLicenseFiles: {
                 hook: "compilation",
                 stage: "ANALYSE",
                 hookCompilation: "processAssets",
                 callback: this.renameLicenseFiles.bind(this)
             }
-        });
+        };
     }
 
 

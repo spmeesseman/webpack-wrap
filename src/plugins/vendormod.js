@@ -34,19 +34,17 @@ class WpwVendorModPlugin extends WpwPlugin
 
 
     /**
-     * @function Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-		this.onApply(compiler,
-        {
+		return {
             modifyVendorPlugins: {
                 hook: "afterEnvironment",
                 callback: this.modifyVendorSource.bind(this)
             }
-        });
+        };
     }
 
 

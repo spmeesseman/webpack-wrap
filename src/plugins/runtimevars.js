@@ -29,14 +29,12 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             getContenthashInfo: {
                 hook: "compilation",
                 stage: "PRE_PROCESS",
@@ -52,7 +50,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
                 hook: "afterEmit",
                 callback: this.saveAssetState.bind(this)
             }
-        });
+        };
     }
 
 

@@ -39,6 +39,7 @@ const { relative, basename } = require("path");
 const WpwBaseModule = require("../core/basemodule");
 const { isFunction, execAsync, asArray, isString } = require("../utils");
 const { apply } = require("@spmeesseman/type-utils");
+const { isPromise } = require("util/types");
 
 
 /**
@@ -109,12 +110,74 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Called by webpack runtime to initialize this plugin.  To be overridden by inheriting class.
+     * Main webpack plugin initializtion handler, called by webpack runtime to initialize this plugin.
      *
-     * @abstract
      * @param {typedefs.WebpackCompiler} compiler
      */
-    apply(compiler) { this.compiler = compiler; }
+    apply(compiler)
+    {
+        this.compiler = compiler;
+        this.wpCache = compiler.getCache(this.name);
+        this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
+        //
+        // Set up a plugin wait hook if necessary
+        //
+        const waitConfig = this.build.options.wait;
+        if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
+            compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
+        }
+        //
+        // Set up a hook so that the compiltion instance can be stored before it actually begins,
+        // and the compilation dependencies can be logged if a high enough logging level is set
+        //
+        compiler.hooks.compilation.tap("onBeforeCompilationStart_" + this.name, this.onCompilation.bind(this));
+        //
+        // if there's any wrapped vendor plugin(s) that specify the 'hookVendorPluginFirst' flag, create
+        // those hooks before the internl WpwPlugin hooks.  After applying internal hooks, then apply any
+        // vendor plugins that do not specify the flag;
+        //
+        for (const p of this.plugins.filter(p => !!p.applyFirst)) { p.apply.call(p, compiler); }
+        //
+        // Add all internal WpwPlugin hooks
+        //
+        const options = this.onApply();
+        if (!this.build.hasError) { return; }
+        if (options)
+        {
+            this.validateApplyOptions(compiler, options);
+            const optionsArray = Object.entries(options),
+                  hasCompilationHook = optionsArray.find(([ _, tapOpts ]) => tapOpts.hook === "compilation") ||
+                                       optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
+            if (hasCompilationHook)
+            {
+                const compilationHooks = /** @type {typedefs.WpwPluginCompilationTapOptionsPair[]} */(
+                    optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation")
+                );
+                this.tapCompilationHooks(compilationHooks);
+            }
+            for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
+            {
+                const hook = compiler.hooks[tapOpts.hook];
+                if (!tapOpts.async || !(/** @type {any} */(hook).tapPromise))
+                {
+                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
+                }
+                else
+                {   if (this.isAsyncHook(hook)) {
+                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
+                    }
+                    else {
+                        return this.addError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
+                    }
+                }
+            }
+        }
+        //
+        // if there's any wrapped vendor plugin(s) that does not specify the 'hookVendorPluginFirst'
+        // flag, create those hooks now that the internl WpwPlugin hooks have been created.
+        //
+        for (const p of this.plugins.filter(p => !p.applyFirst)) { p.apply.call(p, compiler); }
+    }
 
 
     /**
@@ -381,78 +444,11 @@ class WpwPlugin extends WpwBaseModule
     /**
      * Called by extending WpwPlugin instance on the webpack runtime's call to apply()
      *
+     * @abstract
      * @protected
-     * @param {typedefs.WebpackCompiler} compiler
-     * @param {typedefs.WpwPluginTapOptions} [options]
+     * @returns {typedefs.WpwPluginTapOptions | undefined | void}
      */
-    onApply(compiler, options)
-    {
-        this.compiler = compiler;
-        this.wpCache = compiler.getCache(this.name);
-        this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
-
-        //
-        // Set up a hook so that the compiltion instance can be stored before it actually begins,
-        // and the compilation dependencies can be logged if a high enough logging level is set
-        //
-        compiler.hooks.compilation.tap("onBeforeCompilationStart_" + this.name, this.onCompilation.bind(this));
-
-        //
-        // if there's any wrapped vendor plugin(s) that specify the 'hookVendorPluginFirst' flag, create
-        // those hooks before the internl WpwPlugin hooks.  After applying internal hooks, then apply any
-        // vendor plugins that do not specify the flag;
-        //
-        for (const p of this.plugins.filter(p => !!p.applyFirst)) { p.apply.call(p, compiler); }
-
-        //
-        // Plugin wait hook
-        //
-        const waitConfig = this.build.options.wait;
-        if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
-            compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
-        }
-
-        //
-        // Add all internal WpwPlugin hooks
-        //
-        if (options)
-        {
-            this.validateApplyOptions(compiler, options);
-            const optionsArray = Object.entries(options),
-                  hasCompilationHook = optionsArray.find(([ _, tapOpts ]) => tapOpts.hook === "compilation") ||
-                                       optionsArray.every(([ _, tapOpts ]) => !!tapOpts.stage);
-            if (hasCompilationHook)
-            {
-                const compilationHooks = /** @type {typedefs.WpwPluginCompilationTapOptionsPair[]} */(
-                    optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook === "compilation")
-                );
-                this.tapCompilationHooks(compilationHooks);
-            }
-
-            for (const [ name, tapOpts ] of optionsArray.filter(([ _, tapOpts ]) => tapOpts.hook && tapOpts.hook !== "compilation"))
-            {
-                const hook = compiler.hooks[tapOpts.hook];
-                if (!tapOpts.async || !(/** @type {any} */(hook).tapPromise))
-                {
-                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
-                }
-                else
-                {   if (this.isAsyncHook(hook)) {
-                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
-                    }
-                    else {
-                        return this.addError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
-                    }
-                }
-            }
-        }
-
-        //
-        // if there's any wrapped vendor plugin(s) that does not specify the 'hookVendorPluginFirst'
-        // flag, create those hooks now that the internl WpwPlugin hooks have been created.
-        //
-        for (const p of this.plugins.filter(p => !p.applyFirst)) { p.apply.call(p, compiler); }
-    }
+    onApply() { return; }
 
 
     /**
@@ -553,7 +549,7 @@ class WpwPlugin extends WpwBaseModule
                 /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
             }
             else {
-                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
+                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
             }
         }
         else
@@ -563,7 +559,7 @@ class WpwPlugin extends WpwBaseModule
             }
             else {
                 if (this.isAsyncHook(hook)) {
-                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
+                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options));
                 }
                 else {
                     return this.addError(`Invalid async hook specified: ${options.hook}`);
@@ -634,13 +630,10 @@ class WpwPlugin extends WpwBaseModule
         if (enabled && asArray(validation).every(o => isFunction(o) ? o(build) : buildOptions[o[0]] === o[1]))
         {
             const plugin = new clsType({ build, buildOptions });
-            const _getVendorPlugins = (/** @type {true | undefined} */ applyFirst) =>
-            {
-                const plugins = asArray(plugin.getVendorPlugin(applyFirst));
-                plugins.slice().reverse().forEach((p, i, a) => { if (!p) { plugins.splice(a.length - 1 - i, 1); }});
-                plugin.plugins.push(...plugins);
-            };
-            _getVendorPlugins(true); _getVendorPlugins();
+            plugin.plugins.push(
+                ...asArray(plugin.getVendorPlugin(true)).filter(p => !!p),
+                ...asArray(plugin.getVendorPlugin()).filter(p => !!p)
+            );
             return plugin;
         }
     }
@@ -652,58 +645,32 @@ class WpwPlugin extends WpwBaseModule
      * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
      * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpwPluginBaseTapOptions} options
-     * @param {T} [async]
      * @returns {R} WpwPluginWrappedHookHandler
      */
-    wrapCallback(message, options, async)
+    wrapCallback(message, options)
     {
-        let /** @type {typedefs.WpwPluginWrappedHookHandler} */cb;
         const logger = this.logger,
               callback = isString(options.callback) ? /** @type {Exclude<typedefs.WpwPluginHookHandler, string>} */(this[options.callback]) : options.callback,
               logMsg = this.breakProp(message);
 
-        if (async !== true)
+        return /** @type {R} */((/** @type {...any} */...args) =>
         {
-            cb = (/** @type {...any} */...args) =>
+            const _done = (/** @type {typedefs.WpwPluginHookWaitStage | void} */ result) =>
             {
-                logger.start(logMsg, 1);
-                const result = /** @type {typedefs.WpwPluginHookWaitStage} */(callback(...args)) || undefined;
                 logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-                if (!this.build.hasError) {
-                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result);
+                ++this.stats[this.buildOptionsKey].hooksProcessed;
+                if (!this.build.hasError)
+                {
+                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result || undefined);
+                    if (this.stats[this.buildOptionsKey] === this.stats[this.buildOptionsKey].hookCount) {
+                        this.build.eventManager.emit(`${this.buildOptionsKey}_${options.hook}`, this.name, result || undefined);
+                    }
                 }
             };
-        }
-        else
-        {
-            cb = async (/** @type {...any} */...args) =>
-            {
-                logger.start(logMsg, 1);
-                const result = await callback(...args) || undefined;
-                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-                if (!this.build.hasError) {
-                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result);
-                }
-            };
-        }
-
-        // if (!this.build.isOnlyBuild && wait?.items)
-        // {
-        //     for (const waitConfig of wait.items.filter(i => !!this.build.getBuild(i.name)))
-        //     {
-        //         return /** @type {R} */(() =>
-        //         {
-        //             this.build.eventManager.register({
-        //                 mode: waitConfig.mode,
-        //                 source: this.buildOptionsKey,
-        //                 name: waitConfig.name,
-        //                 callback: cb
-        //             });
-        //         });
-        //     }
-        // }
-
-        return /** @type {R} */(cb);
+            logger.start(logMsg, 1);
+            const result = callback(...args);
+            if (isPromise(result)) { result.then(_done); } else { _done(result); }
+        });
     }
 
 }

@@ -16,6 +16,7 @@ const typedefs = require("../types/typedefs");
 const { dtsBundle, merge, isString, findFiles } = require("../utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const { unlink } = require("fs/promises");
+const { config } = require("process");
 
 
 /**
@@ -34,12 +35,13 @@ class WpwTsCheckPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions | undefined}
      */
-    apply(compiler)
+    onApply()
     {
+		/** @type {typedefs.WpwPluginTapOptions | undefined} */
+		let config;
 		const distPath = this.build.getDistPath({ build: "types" }),
 			  entry = this.build.wpc.entry[this.build.name] || this.build.wpc.entry.index,
 			  entryFile = resolve(distPath, isString(entry) ? entry : (entry.import ? entry.import : (entry[0] ?? "")));
@@ -74,16 +76,13 @@ class WpwTsCheckPlugin extends WpwPlugin
 				callback: this.cleanTempFiles.bind(this)
 			};
 
-			this.onApply(compiler, applyConfig);
-		}
-		else {
-			this.onApply(compiler);
+			config = applyConfig;
 		}
 
 		const logLevel = this.build.logger.level;
 		if (logLevel > 1)
 		{
-			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+			const tsForkCheckerHooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(this.compiler);
 			tsForkCheckerHooks.error.tap(this.name, this.tsForkCheckerError.bind(this));
 			tsForkCheckerHooks.waiting.tap(this.name, this.tsForkCheckerWaiting.bind(this));
 			if (logLevel >= 2)
@@ -95,6 +94,8 @@ class WpwTsCheckPlugin extends WpwPlugin
 				}
 			}
 		}
+
+		return config;
 	}
 
 

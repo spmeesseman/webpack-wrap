@@ -20,6 +20,11 @@ class WpwLogger
 {
     /**
      * @private
+     * @type {function(any, ...any): void}
+     */
+    static stdConsole;
+    /**
+     * @private
      * @type {number}
      */
     static envTagLen;
@@ -68,6 +73,16 @@ class WpwLogger
                 this.colors[c][1] = this.colorMap[this.options.colors.default];
             });
         }
+        WpwLogger.stdConsole = WpwLogger.stdConsole || console.log;
+        console.log = (/** @type {string} */ msg, /** @type {any} */ ...args) =>
+        {
+            if (!args.includes("internal")) {
+                this.write(msg, undefined, "", null, null, false, "webpack");
+            }
+            else {
+                WpwLogger.stdConsole.apply(console, [ msg, ...args.slice(1) ]);
+            }
+        };
     }
 
 
@@ -344,6 +359,14 @@ class WpwLogger
 
 
     /**
+     * Wrapper function for {@link write write()} to interface the wp infrastructure logger
+     * @see exports/stats.js Do not call internally.
+     * @param {string} msg
+     */
+    log(msg) { this.write(msg, undefined, "", null, null, false, "webpack"); }
+
+
+    /**
      * @param {string} name
      * @param {Record<string, any>} obj
      * @param {typedefs.WpwLoggerLevel} [level]
@@ -391,7 +414,7 @@ class WpwLogger
         if (colors.length === 0) {
             colors.push(...SEP_GRADIENT_COLORS);
         }
-        console.log(gradient(...colors).multiline(this.spmBanner(name, version), {interpolation: "hsv"}));
+        console.log(gradient(...colors).multiline(this.spmBanner(name, version), {interpolation: "hsv"}), "internal");
         logger.sep();
         if (subtitle) {
             logger.write(gradient(...BANNER_GRADIENT_COLORS).multiline(subtitle));
@@ -473,11 +496,19 @@ class WpwLogger
      */
     tag(tagMsg, bracketColor, msgColor)
     {
-        const bClr = bracketColor ||
-                    (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
-                    (this.options.color ? this.colors[this.options.color] : null) || this.colors.blue;
+        const bClr = bracketColor || this.tagBracketColor();
         return tagMsg ?
             (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
+    }
+
+
+    /**
+     * @private
+     */
+    tagBracketColor()
+    {
+        return (this.options.colors.tagBracket ? this.colors[this.options.colors.tagBracket] : null) ||
+               (this.options.color ? this.colors[this.options.color] : null) || this.colors.blue;
     }
 
 
@@ -657,29 +688,33 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      * @param {boolean | null | undefined} [isValue]
+     * @param {string | undefined} [tag]
      * @returns {this}
      */
-    write(msg, level, pad = "", icon, color, isValue)
+    write(msg, level, pad = "", icon, color, isValue, tag)
     {
         if (level !== undefined && level > this.options.level) { return this; }
         const opts = this.options,
-                basePad = this.options.pad.base || "",
-                msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
-                envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
-                envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
-                envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
-                envMsgClr = color || this.colors[opts.colors.default || "grey"],
-                envMsg = color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
-                                this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg),
-                envTagLen = WpwLogger.envTagLen + envTagClrLen,
-                envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                         this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
-                envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
-                tmStamp = opts.timestamp ? this.timestamp() : "",
-                linePad = isValue !== true ?
-                          basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
-                          + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0)) : "";
-        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
+              basePad = this.options.pad.base || "",
+              msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
+              envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
+              envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
+              envTagClrLen = (this.withColorLength(envTagMsgClr) * (!tag ? 2 : 1)) + (this.withColorLength(envTagClr) * (!tag ? 4 : 2)),
+              envMsgClr = color || this.colors[opts.colors.default || "grey"],
+              envMsg = !tag ? (color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
+                              this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg)) :
+                              (!(/\x1B\[/).test(msg) ? msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
+                              `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`) : msg),
+              envTagLen = WpwLogger.envTagLen + envTagClrLen,
+              envTag = tag && !opts.envTagDisable ? this.tag(tag, envTagClr, envTagMsgClr).padEnd(envTagLen) :
+                       (!opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
+                       this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : ""),
+              envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
+              tmStamp = opts.timestamp ? this.timestamp() : "",
+              linePad = isValue !== true ?
+                        basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
+                        + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0)) : "";
+        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
         return this;
     }
 
@@ -706,11 +741,6 @@ class WpwLogger
         );
     }
 
-
-    /**
-     * just a wrapper for {@link write write()} that satisfies the javascript `console` interface
-     */
-    log = this.write;
 }
 
 

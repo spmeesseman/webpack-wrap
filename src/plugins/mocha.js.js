@@ -41,23 +41,10 @@ class WpwMochaPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
-     *
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
-    apply(compiler)
-    {
-        this.onApply(compiler
-        // {
-        //     someTaskName: {
-        //         hook: "compilation",
-        //         stage: "ADDITIONS",
-        //         statsProperty: "istanbul",
-        //         callback: this.istanbulTags.bind(this)
-        //     }
-        // }
-        );
+    onApply() {
+        return;
     }
 
 }

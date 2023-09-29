@@ -35,13 +35,9 @@ class WpwCleanPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @member apply
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
-     * @returns {void}
      */
-    apply(compiler)
+    onApply()
     {
 		const options = /** @type {typedefs.WpwPluginTapOptions} */({});
 
@@ -81,10 +77,7 @@ class WpwCleanPlugin extends WpwPlugin
 				};
 			}
 
-			this.onApply(compiler, options);
-		}
-		else {
-			this.onApply(compiler);
+			return options;
 		}
 	}
 

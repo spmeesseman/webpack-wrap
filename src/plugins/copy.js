@@ -33,16 +33,14 @@ class WpwCopyPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions | undefined}
      */
-    apply(compiler)
+    onApply()
     {
 		if (this.buildOptions.entryModuleNoHash)
 		{
-			this.onApply(compiler,
-			{
+			return {
 				copyModulesWithoutFilenameHash: {
 					hook: "compilation",
 					stage: "ADDITIONAL",
@@ -56,10 +54,7 @@ class WpwCopyPlugin extends WpwPlugin
 					hookCompilation: "processAssets",
 					callback: this.sourcemap.bind(this)
 				}
-			});
-		}
-		else {
-			this.onApply(compiler);
+			};
 		}
     }
 

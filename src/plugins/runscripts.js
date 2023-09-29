@@ -32,11 +32,10 @@ class WpwRunScriptsPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
         const customTaps = /** @type {typedefs.WpwPluginTapOptions} */({});
         const pluginOptions = pickNot(this.buildOptions, ...WpwPluginConfigRunScriptsKeys);
@@ -54,8 +53,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
             }
         });
 
-        this.onApply(compiler, Object.assign(customTaps,
-        /** @type {typedefs.WpwPluginTapOptions} */({
+        return {
             runScriptsInitialize: {
                 hook: "initialize",
                 callback: () => this.runScripts("initialize")
@@ -77,7 +75,7 @@ class WpwRunScriptsPlugin extends WpwPlugin
                 hook: "done",
                 callback: () => this.runScripts("done")
             }
-        })));
+        };
     }
 
 

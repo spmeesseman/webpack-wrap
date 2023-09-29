@@ -63,15 +63,9 @@ class WpwLogHooksPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
-    apply(compiler)
-    {
-        this.onApply(compiler, {});
-		this.hookSteps();
-    }
+    onApply() { this.hookSteps(); }
 
 
 	/**
@@ -90,21 +84,15 @@ class WpwLogHooksPlugin extends WpwPlugin
 				/** @type {typedefs.WebpackHook} */(
 				compilationHook).tap(
 					{ stage, name: `${this.name}_${hook}_${processAssetStage}` },
-					(/** @type {any} */_arg) =>
-					{
-						this.writeBuildTag(`${hook}::${processAssetStage}`);
-					}
+					(/** @type {any} */_arg) => this.writeBuildTag(`${hook}::${processAssetStage}`)
 				);
 			}
-			else
+			else if (isFunction(/** @type {typedefs.WebpackHook} */(compilationHook).tap))
 			{
-				if (isFunction(/** @type {typedefs.WebpackHook} */(compilationHook).tap))
+				/** @type {typedefs.WebpackHook} */(compilationHook).tap(`${this.name}_${hook}`, (/** @type {any} */_arg) =>
 				{
-					/** @type {typedefs.WebpackHook} */(compilationHook).tap(`${this.name}_${hook}`, (/** @type {any} */_arg) =>
-					{
-						this.writeBuildTag(hook);
-					});
-				}
+					this.writeBuildTag(hook);
+				});
 			}
 		}
 	};
@@ -200,7 +188,6 @@ class WpwLogHooksPlugin extends WpwPlugin
 				this.addCompilationHook("statsNormalize");
 				this.addCompilationHook("statsFactory");
 				this.addCompilationHook("statsPrinter");
-				this.addCompilationHook("normalModuleLoader");
 			}
 			if (this.logger.level >= 4)
 			{

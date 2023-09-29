@@ -47,6 +47,12 @@ const level = (loglevel) =>
  */
 const stats = (build) =>
 {
+
+	apply(build.wpc.infrastructureLogging, {
+		colors: true,
+		console: build.logger
+	});
+
 	const logLevel = build.logger.level || build.cmdLine.loglevel || build.log.level || 0;
 	if (logLevel !== 0 && logLevel !== "none") // && build.exports.stats)
 	{
@@ -61,11 +67,7 @@ const stats = (build) =>
 			// warningsFilter: /Cannot find module \'common\' or its corresponding type declarations/
 		});
 
-		apply(build.wpc.infrastructureLogging, {
-			colors: true,
-			level: level(logLevel)
-		});
-
+		apply(build.wpc.infrastructureLogging, { level: level(logLevel) });
 		if (logLevel === 5) {
 			apply(build.wpc.infrastructureLogging, { debug: true });
 		}

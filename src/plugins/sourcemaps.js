@@ -47,26 +47,21 @@ class WpwSourceMapsPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions | undefined}
      */
-    apply(compiler)
+    onApply()
     {
         if (this.buildOptions.syncHash !== false)
         {
-            this.onApply(compiler,
-            {
+            return {
                 renameSourceMaps: {
                     hook: "compilation",
                     stage: "DEV_TOOLING",
                     hookCompilation: "processAssets",
                     callback: this.renameMap.bind(this)
                 }
-            });
-        }
-        else {
-            this.onApply(compiler);
+            };
         }
     }
 

@@ -40,14 +40,12 @@ class WpwUploadPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             uploadDebugSupportFiles: {
                 async: true,
                 hook: "afterEmit",
@@ -58,7 +56,7 @@ class WpwUploadPlugin extends WpwPlugin
                 hook: "done",
                 callback: this.cleanup.bind(this)
             }
-        });
+        };
     }
 
 

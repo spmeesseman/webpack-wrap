@@ -57,12 +57,11 @@ class WpwBaseTaskPlugin extends WpwPlugin
      * Called by webpack runtime to initialize this plugin
 	 *
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
      */
-    apply(compiler)
+    onApply()
     {
 		const taskOwner = capitalize(this.buildOptionsKey);
-		this.onApply(compiler, applyIf(
+		return applyIf(
         {
 			[`startBuildFor${taskOwner}`]: {
 				async: true,
@@ -81,7 +80,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 				hook: "beforeRun",
 				callback: this.injectVirtualEntryFile.bind(this)
 			}
-        }, this.options.hooks));
+        }, this.options.hooks);
     }
 
 

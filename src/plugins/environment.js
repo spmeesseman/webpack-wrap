@@ -19,19 +19,17 @@ const typedefs = require("../types/typedefs");
 class WpwEnvironmentPlugin extends WpwPlugin
 {
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
-     * @param {typedefs.WebpackCompiler} compiler the compiler instance
+     * @returns {typedefs.WpwPluginTapOptions}
      */
-    apply(compiler)
+    onApply()
     {
-        this.onApply(compiler,
-        {
+        return {
             finishEnvironmentInitialization: {
                 hook: "environment",
                 callback: this.environment.bind(this)
             }
-        });
+        };
     }
 
 
