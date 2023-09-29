@@ -70,6 +70,12 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			this.build.wpc.module.rules.push({ include, test, options, loader });
 		}
+
+		include = join(basePath, "@spmeesseman", "type-utils", "node_modules", ...include.split("/"));
+		if (existsSync(include))
+		{
+			this.build.wpc.module.rules.push({ include, test, options, loader });
+		}
 	}
 
 
@@ -420,17 +426,16 @@ class WpwRulesExport extends WpwWebpackExport
 	tests()
 	{
 		const build= this.build;
-		if (build.source.type === "typescript")
+		build.wpc.module.rules.push(
 		{
-			build.wpc.module.rules.push(
-			{
-				test: /\.tsx?$/,
-				include: build.getSrcPath(),
-				use: this.getSourceLoader("babel"),
-				exclude: getExcludes(build, true)
-			});
-		}
-
+			test: new RegExp(`${build.source.dotext}x?$`),
+			include: build.getSrcPath(),
+			use: this.getSourceLoader("babel"),
+			exclude: getExcludes(build, true)
+		});
+		//
+		// Remove the referened non-existent required internal module nyc
+		//
 		this.addVendorReplaceRule(
 			/index\.js$/, "nyc",
 			[[ "selfCoverageHelper = require('../self-coverage-helper')", "selfCoverageHelper = { onExit () {} }" ]]

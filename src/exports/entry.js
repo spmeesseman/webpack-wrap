@@ -218,19 +218,14 @@ class WpwEntryExport extends WpwWebpackExport
 
 	/**
 	 * @override
-	 * @throws {WpwError}
 	 */
 	tests()
 	{
-		const build = this.build,
-			  testsPath = build.getSrcPath({ build: build.name, stat: true });
-		if (testsPath)
-		{
-			apply(build.wpc.entry, {
-				...this.testRunner(testsPath),
-				...this.testSuite(testsPath)
-			});
-		}
+		const testsPath = this.build.getSrcPath();
+		apply(this.build.wpc.entry, {
+			...this.testRunner(testsPath),
+			...this.testSuite(testsPath)
+		});
 	}
 
 

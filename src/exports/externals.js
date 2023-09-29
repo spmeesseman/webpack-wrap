@@ -51,7 +51,7 @@ const externals = (build) =>
 
 	if (extEnabled)
 	{
-		if (extCfg.presets)
+		if (extCfg.presets !== false)
 		{
 			if (build.target.startsWith("web")) {
 				build.logger.write("   set externals preset to 'web'", 2);

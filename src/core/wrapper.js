@@ -15,6 +15,7 @@ const JSON5 = require("json5");
 const WpwBase = require("./base");
 const WpwBuild = require("./build");
 const typedefs = require("../types/typedefs");
+const WpwEventManager = require("./eventmgr");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
@@ -54,6 +55,11 @@ class WpwWrapper extends WpwBase
      * @type {typedefs.WpwBuildBaseConfig}
      */
     development;
+    /**
+     * @readonly
+     * @type {WpwEventManager}
+     */
+    eventManager;
     /**
      * @type {typedefs.WpwLog}
      */
@@ -134,11 +140,13 @@ class WpwWrapper extends WpwBase
     constructor(argv, arge)
     {
         super({ argv, arge });
+        this.eventManager = new WpwEventManager();
         this.initConfig(argv, arge);
         this.initLogger();
         this.createBuildConfigs();
         validateSchema(this, "WpwSchema", this.logger);
         this.createBuilds();
+        this.disposables.push(this.eventManager);
     };
 
 
@@ -199,7 +207,7 @@ class WpwWrapper extends WpwBase
 
 
     /**
-     * Base entry function on startup
+     * Startup function to be called by bin/wpwrap or webpack.config.js.
      *
      * @param {typedefs.WebpackRuntimeArgs} argv
      * @param {typedefs.WpwRuntimeEnvArgs} arge
@@ -286,6 +294,13 @@ class WpwWrapper extends WpwBase
      * @returns {Omit<typedefs.IWpwBuildBaseConfig, "builds">}
      */
     getBasePropertyConfig(config) { return pickNot(pick(config, ...WpwBuildBaseConfigKeys), "builds"); }
+
+
+    /**
+     * @param {string} nameOrType
+     * @returns {typedefs.WpwBuild | undefined}
+     */
+    getBuild(nameOrType) { return this.builds.find(b => b.type === nameOrType || b.name === nameOrType); }
 
 
     /**

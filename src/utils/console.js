@@ -407,7 +407,11 @@ class WpwLogger
     };
 
 
-    sep() { this.write("-".padEnd(this.separatorLength, "-")); }
+    /**
+     * @param {typedefs.WpwLoggerLevel} [level]
+     * @param {string | undefined | null | 0 | false} [icon]
+     */
+    sep(level, icon) { this.write("-".padEnd(this.separatorLength, "-"), level, "", icon); }
 
 
     /**

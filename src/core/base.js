@@ -76,7 +76,9 @@ class WpwBase
         }
     }
 
-
+    /**
+     * @returns {Promise<any>}
+     */
     async dispose()
     {
         for (const d of this.disposables.splice(0))

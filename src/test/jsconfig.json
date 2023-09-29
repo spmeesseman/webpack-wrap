@@ -1,0 +1,35 @@
+{
+    "extends": "../../jsconfig.json",
+    "compilerOptions": {
+		"isolatedModules": false,
+        "outDir": "../../dist/test",
+		"baseUrl": ".",
+		"rootDir": ".",
+		"sourceMap": false,
+		"inlineSourceMap": true,
+		"tsBuildInfoFile": "../../node_modules/.cache/tsconfig.test.tsbuildinfo",
+        "paths": {
+			":types": [ "../../dist/types" ]
+		} // ,
+		// "typeRoots": [ "../../types/dist" ]
+    },
+	"include": [
+		"./**/*",
+        "../../dist/types/types.d.ts"
+	],
+    "exclude": [
+        "**/.coverage",
+        "**/.nyc_output",
+        "**/.vscode",
+        "**/.vscode-test",
+        "**/bin",
+        "**/dist",
+        "**/doc",
+        "**/node_modules",
+        "**/res",
+        "**/script",
+        "**/test-fixture",
+        "**/types",
+        "types"
+    ]
+}

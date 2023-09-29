@@ -38,11 +38,11 @@
  *//** */
 
 import { RequireKeys } from "./generic";
+import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
-import { WpwBuildOptions, WpwBuildOptionsKey, WpwPluginConfigWaitItem } from "./rc";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance,
-    WebpackCompilationHookStage, WebpackCompilation, WebpackAsyncHook
+    WebpackCompilationHookStage, WebpackCompilation
 } from "./webpack";
 
 
@@ -56,7 +56,7 @@ type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
 
 type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
-type WpwPluginHookHandlerResult = WpwPluginHookWaitStage | void | Promise<void> | Promise<WpwPluginHookWaitStage>;
+type WpwPluginHookHandlerResult = void | Promise<void> | WpwPluginHookWaitStage | Promise<WpwPluginHookWaitStage>;
 
 type WpwPluginWrappedHookHandlerSync = (...args: any[]) => void;
 
@@ -64,7 +64,7 @@ type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => Promise<void>;
 
 type WpwPluginWrappedHookHandler = WpwPluginWrappedHookHandlerAsync | WpwPluginWrappedHookHandlerSync;
 
-type WpwPluginHookHandler = string | ((...args: any[]) => WpwPluginHookHandlerResult) | Promise<WpwPluginHookHandlerResult>;
+type WpwPluginHookHandler = string | ((...args: any[]) => WpwPluginHookHandlerResult);
 
 type WpwPluginTapOptions  = Record<string, WpwPluginBaseTapOptions | WpwPluginCompilationTapOptions>;
 

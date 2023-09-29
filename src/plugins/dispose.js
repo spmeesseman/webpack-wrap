@@ -21,6 +21,18 @@ const { findFilesSync } = require("../utils");
  */
 class WpwDisposePlugin extends WpwPlugin
 {
+    static buildDisposeCount = 0;
+
+
+    /**
+     * @param {typedefs.IWpwBaseModuleOptions} options
+     */
+    constructor(options)
+    {
+        super(options);
+    }
+
+
     /**
      * Called by webpack runtime to initialize this plugin
      * @override
@@ -38,7 +50,7 @@ class WpwDisposePlugin extends WpwPlugin
         });
     }
 
-    dispose()
+    async dispose()
     {
         this.logger.write("build complete, perform shutdown stage cleanup", 2);
         let tmpPath = join(this.build.getTempPath(), this.build.name);
@@ -49,7 +61,11 @@ class WpwDisposePlugin extends WpwPlugin
         if (findFilesSync("*", { cwd: tmpPath }).length === 0) {
             rmSync(tmpPath, { recursive: true, force: true });
         }
-        return this.build.dispose();
+        await this.build.dispose();
+        if (++WpwDisposePlugin.buildDisposeCount === this.build.buildCount)
+        {
+            return this.build.wrapper.dispose();
+        }
     }
 }
 

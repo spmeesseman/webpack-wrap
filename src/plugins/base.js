@@ -36,7 +36,6 @@ const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
-const WpwPluginWaitManager = require("./wait");
 const WpwBaseModule = require("../core/basemodule");
 const { isFunction, execAsync, asArray, isString } = require("../utils");
 
@@ -48,11 +47,6 @@ const { isFunction, execAsync, asArray, isString } = require("../utils");
  */
 class WpwPlugin extends WpwBaseModule
 {
-    /**
-     * @private
-     * @type {WpwPluginWaitManager}
-     */
-    static eventManager = new WpwPluginWaitManager();
     /**
      * @private
      * @type {boolean | undefined}
@@ -98,6 +92,18 @@ class WpwPlugin extends WpwBaseModule
         this.plugins = [];
         this.cache = new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName));
     }
+
+
+	/**
+	 * @private
+	 * @param {string} message
+	 * @param {WpwError | typedefs.WebpackError | Error | undefined} [error]
+	 * @throws {WpwError}
+	 */
+	addError(message, error)
+	{
+        this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
+	}
 
 
     /**
@@ -154,7 +160,7 @@ class WpwPlugin extends WpwBaseModule
                 isValidSnapshot = await this.checkSnapshotValid(cacheEntry.snapshot);
             }
             catch (e) {
-                this.handleError("failed while checking snapshot", e);
+                this.addError("failed while checking snapshot", e);
                 return result;
             }
             if (isValidSnapshot)
@@ -177,7 +183,7 @@ class WpwPlugin extends WpwBaseModule
                 result.snapshot = await this.createSnapshot(startTime, filePath);
             }
             catch (e) {
-                this.handleError("failed while creating snapshot", e);
+                this.addError("failed while creating snapshot", e);
                 return result;
             }
             if (source && result.snapshot)
@@ -190,7 +196,7 @@ class WpwPlugin extends WpwBaseModule
                     result.source = source;
                 }
                 catch (e) {
-                    this.handleError("failed while caching snapshot", e);
+                    this.addError("failed while caching snapshot", e);
                     return result;
                 }
             }
@@ -343,17 +349,6 @@ class WpwPlugin extends WpwBaseModule
     getVendorPlugin(_applyFirst) { return undefined; }
 
 
-	/**
-	 * @private
-	 * @param {string} message
-	 * @param {WpwError | typedefs.WebpackError | Error | undefined} [error]
-	 * @throws {WpwError}
-	 */
-	handleError(message, error)
-	{
-        this.build.addMessage({ code: WpwError.Code.ERROR_GENERAL, message, compilation: this.compilation, error });
-	}
-
     /**
      * @protected
      * @param {string|any} hook
@@ -406,6 +401,14 @@ class WpwPlugin extends WpwBaseModule
         for (const p of this.plugins.filter(p => !!p.applyFirst)) { p.apply.call(p, compiler); }
 
         //
+        // Plugin wait hook
+        //
+        const waitConfig = this.build.options.wait;
+        if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
+            compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
+        }
+
+        //
         // Add all internal WpwPlugin hooks
         //
         if (options)
@@ -430,13 +433,11 @@ class WpwPlugin extends WpwBaseModule
                     hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
                 }
                 else
-                {   if (this.isAsyncHook(hook))
-                    {
+                {   if (this.isAsyncHook(hook)) {
                         /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
                     }
                     else {
-                        this.handleError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
-                        return;
+                        return this.addError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
                     }
                 }
             }
@@ -513,14 +514,12 @@ class WpwPlugin extends WpwBaseModule
                         tapOpts.hookCompilation = "processAssets";
                     }
                     else {
-                        this.handleError("Invalid hook parameters: stage and hookCompilation not specified");
-                        return;
+                        return this.addError("Invalid hook parameters: stage and hookCompilation not specified");
                     }
                 }
                 else if (tapOpts.hookCompilation === "processAssets" && !tapOpts.stage)
                 {
-                    this.handleError("Invalid hook parameters: stage not specified for processAssets");
-                    return;
+                    return this.addError("Invalid hook parameters: stage not specified for processAssets");
                 }
                 this.tapCompilationStage(name, compilation, tapOpts);
             });
@@ -541,35 +540,33 @@ class WpwPlugin extends WpwBaseModule
               name = `${this.name}_${options.stage}`,
               hook = compilation.hooks[options.hookCompilation];
 
-        if (this.isTapable(hook))
+        if (!this.isTapable(hook)) { return; }
+
+        if (stageEnum && options.hookCompilation === "processAssets")
         {
-            if (stageEnum && options.hookCompilation === "processAssets")
-            {
-                const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
-                if (!options.async) {
-                    /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
-                }
-                else {
-                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
-                }
+            const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
+            if (!options.async) {
+                /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
             }
-            else
-            {
-                if (!options.async) {
-                    /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
-                }
-                else {
-                    if (this.isAsyncHook(hook)) {
-                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
-                    }
-                    else {
-                        this.handleError(`Invalid async hook specified: ${options.hook}`);
-                        return;
-                    }
-                }
+            else {
+                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
             }
-            this.tapStatsPrinter(name, options);
         }
+        else
+        {
+            if (!options.async) {
+                /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
+            }
+            else {
+                if (this.isAsyncHook(hook)) {
+                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
+                }
+                else {
+                    return this.addError(`Invalid async hook specified: ${options.hook}`);
+                }
+            }
+        }
+        this.tapStatsPrinter(name, options);
     }
 
 
@@ -581,17 +578,15 @@ class WpwPlugin extends WpwBaseModule
     tapStatsPrinter(name, options)
     {
         const property = options.statsProperty;
-        if (property)
+        if (!property) { return; }
+        this.compilation.hooks.statsPrinter.tap(name, (stats) =>
         {
-            this.compilation.hooks.statsPrinter.tap(name, (stats) =>
-            {
-                const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) => {
-                      const statsColor = context[this.build.log.color || "green"];
-                      return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
-                };
-                stats.hooks.print.for(`asset.info.${property}`).tap(name, printFn);
-            });
-        }
+            const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) => {
+                    const statsColor = context[this.build.log.color || "green"];
+                    return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
+            };
+            stats.hooks.print.for(`asset.info.${property}`).tap(name, printFn);
+        });
     }
 
 
@@ -603,19 +598,15 @@ class WpwPlugin extends WpwBaseModule
      */
 	validateApplyOptions(compiler, options)
     {
-        if (options)
+        if (!options) { return; }
+        for (const o of Object.values(options))
         {
-            for (const o of Object.values(options))
+            if (!o.hook) {
+                return this.addError("Invalid hook parameters specified: hook name is undefined");
+            }
+            if (o.async && !this.isAsyncHook(compiler.hooks[o.hook]))
             {
-                if (!o.hook) {
-                    this.handleError("Invalid hook parameters specified:hook name is undefined");
-                    return;
-                }
-                if (o.async && !this.isAsyncHook(compiler.hooks[o.hook]))
-                {
-                    this.handleError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
-                    return;
-                }
+                return this.addError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
             }
         }
     }
@@ -639,15 +630,13 @@ class WpwPlugin extends WpwBaseModule
         if (enabled && asArray(validation).every(o => isFunction(o) ? o(build) : buildOptions[o[0]] === o[1]))
         {
             const plugin = new clsType({ build, buildOptions });
-            // plugin.buildOptions = buildOptions;
             const _getVendorPlugins = (/** @type {true | undefined} */ applyFirst) =>
             {
                 const plugins = asArray(plugin.getVendorPlugin(applyFirst));
                 plugins.slice().reverse().forEach((p, i, a) => { if (!p) { plugins.splice(a.length - 1 - i, 1); }});
                 plugin.plugins.push(...plugins);
             };
-            _getVendorPlugins(true);
-            _getVendorPlugins();
+            _getVendorPlugins(true); _getVendorPlugins();
             return plugin;
         }
     }
@@ -664,11 +653,10 @@ class WpwPlugin extends WpwBaseModule
      */
     wrapCallback(message, options, async)
     {
-        let cb;
+        let /** @type {typedefs.WpwPluginWrappedHookHandler} */cb;
         const logger = this.logger,
-              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
+              callback = isString(options.callback) ? /** @type {Exclude<typedefs.WpwPluginHookHandler, string>} */(this[options.callback]) : options.callback,
               logMsg = this.breakProp(message),
-              eMgr= WpwPlugin.eventManager,
               wait = this.build.options.wait;
 
         if (async !== true)
@@ -676,10 +664,10 @@ class WpwPlugin extends WpwBaseModule
             cb = (/** @type {...any} */...args) =>
             {
                 logger.start(logMsg, 1);
-                const result = callback(...args);
+                const result = /** @type {typedefs.WpwPluginHookWaitStage} */(callback(...args)) || undefined;
                 logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-                if (result) {
-                    eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
+                if (!this.build.hasError) {
+                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result);
                 }
             };
         }
@@ -688,32 +676,30 @@ class WpwPlugin extends WpwBaseModule
             cb = async (/** @type {...any} */...args) =>
             {
                 logger.start(logMsg, 1);
-                const result = await callback(...args);
+                const result = await callback(...args) || undefined;
                 logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-                if (result) {
-                    eMgr.emit(`${this.name}_${options.hook}`, this.name, result);
+                if (!this.build.hasError) {
+                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result);
                 }
             };
         }
 
-        if (wait?.items)
-        {
-            const delayedCb = cb;
-            wait.items.forEach((waitConfig) =>
-            {   //
-                // We wait for the last item in the array to complete i.e emit it's 'done' event
-                // so just set the return cb to the last array items event registration
-                //
-                cb = () => {
-                    eMgr.register({
-                        mode: waitConfig.mode,
-                        source: this.buildOptionsKey,
-                        name: waitConfig.name,
-                        callback: () => delayedCb
-                    });
-                };
-            }, this);
-        }
+        // if (!this.build.isOnlyBuild && wait?.items)
+        // {
+        //     for (const waitConfig of wait.items.filter(i => !!this.build.getBuild(i.name)))
+        //     {
+        //         return /** @type {R} */(() =>
+        //         {
+        //             this.build.eventManager.register({
+        //                 mode: waitConfig.mode,
+        //                 source: this.buildOptionsKey,
+        //                 name: waitConfig.name,
+        //                 callback: cb
+        //             });
+        //         });
+        //     }
+        // }
+
         return /** @type {R} */(cb);
     }
 

@@ -969,7 +969,7 @@
                     }
                 },
                 "presets": {
-                    "type": "boolean"
+                    "$ref": "#/definitions/BooleanDefaultTrue"
                 },
                 "raw": {
                     "type": "object",
@@ -2605,10 +2605,6 @@
                 "dts_bundle": {
                     "type": "boolean",
                     "description": "modification to fix bug when using **/*.d.ts in dts-bundle's config.main"
-                },
-                "nyc": {
-                    "type": "boolean",
-                    "description": "modification to remove un-resolvable testing function "
                 },
                 "source_map_plugin": {
                     "type": "boolean",

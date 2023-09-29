@@ -389,6 +389,7 @@
 /** @typedef {import("./plugin").WpwPluginTapOptions} WpwPluginTapOptions */
 /** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */
 /** @typedef {import("./plugin").WpwPluginWaitOptions} WpwPluginWaitOptions */
+/** @typedef {import("./plugin").WpwPluginHookWaitStage} WpwPluginHookWaitStage */
 /** @typedef {import("./plugin").WpwPluginBaseTapOptions} WpwPluginBaseTapOptions */
 /** @typedef {import("./plugin").WpwPluginBaseTaskOptions} WpwPluginBaseTaskOptions */
 /** @typedef {import("./plugin").WpwPluginMultiWaitOptions} WpwPluginMultiWaitOptions */

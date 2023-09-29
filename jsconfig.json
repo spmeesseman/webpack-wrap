@@ -51,6 +51,7 @@
         "schema",
         "script",
         "test-fixture",
+        "src/test",
         "src/types/**",
         "src/plugins/analyze/visualizer.js"
     ]

@@ -83,7 +83,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
             const errorMap = scripts.reduce((p, c, i) => apply(p, { [relativePath(baseDir, c.path)]: codes[i] }, {}));
             return build.addMessage({
                 code: WpwError.Code.ERROR_SCRIPT_FAILED,
-                compilation: this.compilation ,
+                compilation: this.compilation,
                 message: "script execution(s) exited with non-zero exit code(s)",
                 detail: "error map: " + JSON.stringify(errorMap)
             });

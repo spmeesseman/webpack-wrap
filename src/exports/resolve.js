@@ -12,6 +12,7 @@ const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
 const { apply, isFunction, WpwError, pushUniq, isArray, asArray, resolvePath} = require("../utils");
+const { existsSync } = require("fs");
 
 
 /**
@@ -200,13 +201,9 @@ class WpwResolveExport extends WpwWebpackExport
 	 */
 	tests()
 	{
-		const testsOptions = this.build.options.testsuite;
-		if (testsOptions && testsOptions.enabled)
-		{
-			//
-		}
-		else {
-			this.build.addMessage({ code: WpwError.Code.WARNING_CONFIG_INVALID_EXPORTS, message: "exports.resolve.tests" });
+		const spmTestUtilsPath = join(this.build.getBasePath(), "node_modules", "@spmeesseman", "test-utils", "node_modules");
+		if (existsSync(spmTestUtilsPath)) {
+			this.build.wpc.resolve.modules?.push(spmTestUtilsPath);
 		}
 	}
 
