@@ -76,17 +76,22 @@ class WpwWaitPlugin extends WpwPlugin
      */
     onApply()
     {
-		return {
-            registerWaitBeforeRun: {
-                async: true,
-                hook: "beforeRun",
-                callback: this.start.bind(this)
-            },
+        /** @type {typedefs.WpwPluginTapOptions} */
+		const cfg =  {
             emitWaitAfterDone: {
                 hook: "afterDone",
                 callback: this.done.bind(this)
             }
         };
+        if (this.buildOptions.items && this.buildOptions.items.length > 0)
+        {
+            cfg.registerWaitBeforeRun = {
+                async: true,
+                hook: "beforeRun",
+                callback: this.start.bind(this)
+            };
+        }
+        return cfg;
     }
 
 
@@ -125,6 +130,7 @@ class WpwWaitPlugin extends WpwPlugin
                 waitItem.source = this.build.name;
                 this.logger.write(`start wait period for '${waitItem.name}'`, 2);
 
+                const _done = (resolve) => { pushUniq(WpwWaitPlugin.donePlugins, waitItem.name); clearTimeout(timeoutId); resolve(); };
                 const _timeout = (/** @type {(value: void | PromiseLike<void>) => void} */ resolve) =>
                 {
                     timeoutId = setTimeout((resolve) =>
@@ -145,17 +151,14 @@ class WpwWaitPlugin extends WpwPlugin
                             WpwWaitPlugin.onPluginEvent.on(`${waitItem.name}_done`, () =>
                             {
                                 this.logger.write(`   received event 'done' from '${waitItem.name}', resume waiting build '${waitItem.source}'`, 2);
-                                pushUniq(WpwWaitPlugin.donePlugins, waitItem.name);
-                                clearTimeout(timeoutId);
-                                resolve();
+                                _done(resolve);
                             });
                         }
                         else
                         {   this.pollFile(waitItem).then(() =>
                             {
                                 this.logger.write(`file '${waitItem.name}' exists, resume waiting build '${waitItem.source}'`, 2);
-                                pushUniq(WpwWaitPlugin.donePlugins, waitItem.name);
-                                resolve();
+                                _done(resolve);
                             });
                         }
                     }))
