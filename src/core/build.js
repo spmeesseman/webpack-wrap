@@ -191,13 +191,6 @@ class WpwBuild extends WpwBase
         {
             this.setOptionEnabled("licensefiles");
         }
-
-        if (!this.isOnlyBuild && this.wrapper.builds.find(b => b.options.wait?.enabled && b.options.wait.items?.find(i => i.name === this.name)))
-        {
-            this.options.wait = apply(this.options.wait, { enabled: true });
-            applyIf(this.options.wait, { mode: "event "});
-            this.setOptionEnabled("wait", false);
-        }
     }
 
 
@@ -468,10 +461,10 @@ class WpwBuild extends WpwBase
     setOptionEnabled(option, addSuggestion, ...properties)
     {
         let cfg = this.options[option];
-        if (!(cfg && cfg.enabled === false))
+        if (!(cfg && cfg.enabled === false) || addSuggestion === false)
         {
             if (!cfg) { cfg = this.options[option] = {}; }
-            properties.filter(p => cfg[p] !== false).forEach((p) =>
+            properties.filter(p => cfg[p] !== false || addSuggestion === false).forEach((p) =>
             {
                 cfg[p] = true;
                 if (addSuggestion !== false)

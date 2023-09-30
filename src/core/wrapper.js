@@ -198,6 +198,21 @@ class WpwWrapper extends WpwBase
     }
 
 
+	/**
+	 * @private
+	 */
+    configureDependencies()
+    {
+        for (const build of this.builds)
+        {
+            if (!build.isOnlyBuild && !!this.builds.find(b => b.options.wait?.enabled && !!b.options.wait.items?.find(i => i.name === build.name || i.name === build.type)))
+            {
+                build.options.wait = applyIf(build.options.wait, { enabled: true, mode: "event" });
+            }
+        }
+    }
+
+
     /**
      * Startup function to be called by bin/wpwrap or webpack.config.js.
      *
@@ -220,6 +235,7 @@ class WpwWrapper extends WpwBase
             .map(b => new WpwBuild(b, this))
         );
         this.maybeAddTypesBuild();
+        this.configureDependencies();
         this.builds.forEach(b => b.webpackExports());
         if (this.builds.length === 0)
         {
