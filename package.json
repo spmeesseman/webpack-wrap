@@ -38,7 +38,7 @@
         "build-test-suite": "webpack --env build=tests --env mode=test --config ./webpack.config.js",
         "build-types": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
         "clean-all_w_schema": "npm run clean-all && npm run clean-schema",
-        "clean-all": "npm run clean-app && npm run clean-docs && npm run clean-examples && npm run clean-schema && npm run clean-coverage && rimraf dist && rimraf node_modules/.cache/wpwrap",
+        "clean-all": "npm run clean-app && npm run clean-docs && npm run clean-examples && npm run clean-coverage && rimraf dist && rimraf node_modules/.cache/wpwrap",
         "clean-app": "rimraf dist/webpack-wrap.*js && rimraf dist/vendor.*js && rimraf dist/runtime.*js && rimraf node_modules/.cache/wpwrap/webpack/webpack-wrap*",
         "clean-coverage": "rimraf .nyc_output && rimraf .coverage",
         "clean-docs": "rimraf dist/doc && rimraf node_modules/.cache/wpwrap/webpack/docs*",

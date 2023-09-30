@@ -446,7 +446,8 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Called by extending WpwPlugin instance on the webpack runtime's call to apply()
+     * May be implemented by extending WpwPlugin if internal hooks are to be set up.
+     * All plugins either (1) have internal hooks, (2) wrap a vendor plugin, or (3) both.
      *
      * @abstract
      * @protected
