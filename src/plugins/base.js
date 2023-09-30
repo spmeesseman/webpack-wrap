@@ -75,7 +75,7 @@ class WpwPlugin extends WpwBaseModule
     plugins;
     /**
      * @private
-     * @type {Record<string, any>}
+     * @type {typedefs.WpwPluginStats}
      */
     stats;
     /**
@@ -96,7 +96,11 @@ class WpwPlugin extends WpwBaseModule
 	constructor(options)
     {
         super(options);
-        apply(this, { stats: {}, plugins: [], cache: new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName)) });
+        apply(this, {
+            plugins: [],
+            stats: { hooksProcessed: 0, hookCount: 0 },
+            cache: new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName))
+        });
     }
 
 
@@ -122,10 +126,10 @@ class WpwPlugin extends WpwBaseModule
         //
         // Set up a plugin wait hook if necessary
         //
-        const waitConfig = this.build.options.wait;
-        if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
-            compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
-        }
+        // const waitConfig = this.build.options.wait;
+        // if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
+        //     compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
+        // }
         //
         // Set up a hook so that the compiltion instance can be stored before it actually begins,
         // and the compilation dependencies can be logged if a high enough logging level is set
@@ -652,24 +656,12 @@ class WpwPlugin extends WpwBaseModule
         const logger = this.logger,
               callback = isString(options.callback) ? /** @type {Exclude<typedefs.WpwPluginHookHandler, string>} */(this[options.callback]) : options.callback,
               logMsg = this.breakProp(message);
-
         return /** @type {R} */((/** @type {...any} */...args) =>
         {
-            const _done = (/** @type {typedefs.WpwPluginHookWaitStage | void} */ result) =>
-            {
-                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-                ++this.stats[this.buildOptionsKey].hooksProcessed;
-                if (!this.build.hasError)
-                {
-                    this.build.eventManager.emit(`${this.name}_${options.hook}`, this.name, result || undefined);
-                    if (this.stats[this.buildOptionsKey] === this.stats[this.buildOptionsKey].hookCount) {
-                        this.build.eventManager.emit(`${this.buildOptionsKey}_${options.hook}`, this.name, result || undefined);
-                    }
-                }
-            };
             logger.start(logMsg, 1);
-            const result = callback(...args);
-            if (isPromise(result)) { result.then(_done); } else { _done(result); }
+            const result = callback(...args),
+                  _done = () => logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
+            if (isPromise(result)) { result.then(_done); } else { _done(); }
         });
     }
 

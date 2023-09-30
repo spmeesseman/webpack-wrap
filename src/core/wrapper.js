@@ -15,7 +15,6 @@ const JSON5 = require("json5");
 const WpwBase = require("./base");
 const WpwBuild = require("./build");
 const typedefs = require("../types/typedefs");
-const WpwEventManager = require("./eventmgr");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
@@ -55,11 +54,6 @@ class WpwWrapper extends WpwBase
      * @type {typedefs.WpwBuildBaseConfig}
      */
     development;
-    /**
-     * @readonly
-     * @type {WpwEventManager}
-     */
-    eventManager;
     /**
      * @type {typedefs.WpwLog}
      */
@@ -140,13 +134,11 @@ class WpwWrapper extends WpwBase
     constructor(argv, arge)
     {
         super({ argv, arge });
-        this.eventManager = new WpwEventManager();
         this.initConfig(argv, arge);
         this.initLogger();
         this.createBuildConfigs();
         validateSchema(this, "WpwSchema", this.logger);
         this.createBuilds();
-        this.disposables.push(this.eventManager);
     };
 
 
@@ -373,10 +365,10 @@ class WpwWrapper extends WpwBase
             for (const b of this.builds)
             {
                 const dependsOnTypes = (isObject(b.entry) && b.entry.dependOn === "types") ||
-                                        b.options.wait?.items?.find(w => w.name === "types");
+                                        b.options.wait?.items?.find(w => w.name === "types" || w.name === typesBuild.name);
                 if (!this.isSingleBuild || dependsOnTypes)
                 {
-                    if (asArray(b.options.wait?.items).find(t => t.name === "types"))
+                    if (asArray(b.options.wait?.items).find(t => t.name === "types" || t.name === typesBuild.name))
                     {
                         this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
                         break;

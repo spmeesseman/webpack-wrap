@@ -18,7 +18,7 @@ const { readFile, writeFile } = require("fs/promises");
 
 const DTS_MODE = false;           // if `true`, output as .d.ts. and "declare" all types
 const DISABLE_VALIDATION = false; // if `true`, don't run tsc --noEmit on output files
-const DISABLE_WPW_LOGGER = false; // if `true`, don't init a WpwLogger (necessary when constants.js does not previously exist)
+const DISABLE_WPW_LOGGER = !existsSync(resolve(__dirname, "../src/types/constants.js"));
 
 const outputFileDesc = "Provides implementation types matching the .wpwrc.json configuration file schema";
 const autoGenMessage = "This file was auto generated using the 'json-to-typescript' utility";
@@ -616,6 +616,9 @@ cliWrap(async () =>
         });
         logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
     }
+    else {
+        console.log("rc files do not exist, disabled wpwlogger for this run");
+    }
 
     let result = { code: 0 };
     const inputFile = "spm.schema.wpw.json",
@@ -683,12 +686,15 @@ cliWrap(async () =>
         await writeIndexJs();
     }
 
+    const msg = !DISABLE_VALIDATION ? " [tsc validated]" : " [no tsc validation]";
     if (logger)
     {
         logger.blank(undefined, logger?.icons.color.success);
-        const msg = !DISABLE_VALIDATION ? " [tsc validated]" : " [no tsc validation]";
         logger.success("types and typings created successfully" + msg, undefined, "", true);
         logger.blank(undefined, logger?.icons.color.success);
+    }
+    else {
+        console.log("types and typings created successfully" + msg);
     }
 
 })();

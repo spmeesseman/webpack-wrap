@@ -17,32 +17,29 @@ const typedefs = require("../types/typedefs");
  */
 const optimization = (build) =>
 {
-	if (build.options.optimization)
+	apply(build.wpc, { parallelism: 1 + build.buildCount });
+	if (build.type === "app")
 	{
-		apply(build.wpc, { parallelism: 1 + build.buildCount });
-		if (build.type === "app")
+		build.wpc.optimization =
 		{
-			build.wpc.optimization =
+			runtimeChunk: "single",
+			splitChunks: false
+		};
+		if (build.target !== "web")
+		{
+			build.wpc.optimization.splitChunks =
 			{
-				runtimeChunk: "single",
-				splitChunks: false
-			};
-			if (build.target !== "web")
-			{
-				build.wpc.optimization.splitChunks =
-				{
-					cacheGroups: {
-						vendor: {
-							test: /node_modules/,
-							name: "vendor",
-							chunks: "all"
-						}
+				cacheGroups: {
+					vendor: {
+						test: /node_modules/,
+						name: "vendor",
+						chunks: "all"
 					}
-				};
-				if (build.mode === "production")
-				{
-					build.wpc.optimization.chunkIds = "deterministic";
 				}
+			};
+			if (build.mode === "production")
+			{
+				build.wpc.optimization.chunkIds = "deterministic";
 			}
 		}
 	}

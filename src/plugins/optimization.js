@@ -22,16 +22,13 @@ const webpack = requireResolve("webpack");
 const optimization = (build) =>
 {
 	const plugins = [];
-	if (build.options.optimization)
+	if (build.target === "web")
 	{
-		if (build.target === "web")
-		{
-			plugins.push(new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
-		}
-		if (build.type !== "webapp")
-		{
-			plugins.push(new webpack.NoEmitOnErrorsPlugin());
-		}
+		plugins.push(new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }));
+	}
+	if (build.type !== "webapp")
+	{
+		plugins.push(new webpack.NoEmitOnErrorsPlugin());
 	}
 	return plugins;
 };

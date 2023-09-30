@@ -7,7 +7,10 @@ module.exports = {
     },
     parser: "@typescript-eslint/parser",
     parserOptions: {
-        project: "jsconfig.json",
+        project: [
+            "jsconfig.json",
+            "src/test/jsconfig.json"
+        ],
         ecmaVersion: 2020,
         sourceType: "module",
         createDefaultProgram: true

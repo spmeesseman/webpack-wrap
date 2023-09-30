@@ -478,9 +478,9 @@
                                     "devtool", "entry", "environment", "experiments",
                                     "externals", "html", "ignore", "ignorewarnings",
                                     "istanbul", "jsdoc", "licensefiles", "loghooks",
-                                    "minification", "mocha", "optimization", "progress",
-                                    "resolve", "rules", "runscripts", "runtimevars",
-                                    "scm", "script", "stats", "testsuite", "tscheck",
+                                    "minification", "mocha", "progress", "resolve",
+                                    "rules", "runscripts", "runtimevars", "scm",
+                                    "script", "stats", "testsuite", "tscheck",
                                     "types", "upload", "vendormod", "wait"
                                 ]
                             }
@@ -588,9 +588,6 @@
                 },
                 "mocha": {
                     "$ref": "#/definitions/WpwPluginConfigMocha"
-                },
-                "optimization": {
-                    "$ref": "#/definitions/WpwModuleConfig"
                 },
                 "output": {
                     "$ref": "#/definitions/WpwExportConfigOutput"
@@ -2732,16 +2729,10 @@
             ],
             "properties": {
                 "mode": {
-                    "oneOf": [{
-                        "const": "file"
-                    },
-                    {
-                        "const": "event"
-                    }]
+                    "$ref": "#/definitions/WpwPluginConfigWaitMode"
                 },
                 "source": {
                     "type": "string",
-                    "maxLength": 0,
                     "readOnly": true
                 },
                 "name": {
@@ -2750,11 +2741,13 @@
                 },
                 "interval": {
                     "type": "number",
+                    "default": 1000,
                     "description": "for `file` mode, # of milliseconds between each check (ignored in `event` mode)"
                 },
                 "timeout": {
                     "type": "number",
-                    "description": "for `file` mode, # of max seconds to wait before failing (ignored in `event` mode)"
+                    "default": 30000,
+                    "description": "# of milliseconds to wait before failing"
                 }
             },
             "examples": [{
@@ -2764,6 +2757,16 @@
             {
                 "type": "file",
                 "name": "dist/somefilename.js"
+            }]
+        },
+        "WpwPluginConfigWaitMode": {
+            "$id": "#/WpwPluginConfigWaitMode",
+            "default": "event",
+            "oneOf": [{
+                "const": "file"
+            },
+            {
+                "const": "event"
             }]
         },
         "WpwPluginConfigWeb": {

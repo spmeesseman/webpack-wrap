@@ -149,6 +149,7 @@
 /** @typedef {import("./rc").WpwPluginConfigMochaKey} WpwPluginConfigMochaKey */
 /** @typedef {import("./rc").WpwPluginConfigTypesKey} WpwPluginConfigTypesKey */
 /** @typedef {import("./rc").WpwPluginConfigWaitItem} WpwPluginConfigWaitItem */
+/** @typedef {import("./rc").WpwPluginConfigWaitMode} WpwPluginConfigWaitMode */
 /** @typedef {import("./constants").isWebpackLibraryType} isWebpackLibraryType */
 /** @typedef {import("./constants").isWpwBuildOptionsKey} isWpwBuildOptionsKey */
 /** @typedef {import("./constants").isWpwSourceExtension} isWpwSourceExtension */
@@ -213,9 +214,11 @@
 /** @typedef {import("./rc").WpwPluginConfigTypesBundler} WpwPluginConfigTypesBundler */
 /** @typedef {import("./rc").WpwPluginConfigVendorModKey} WpwPluginConfigVendorModKey */
 /** @typedef {import("./constants").isWpwWebpackCompilerHook} isWpwWebpackCompilerHook */
+/** @typedef {import("./constants").WpwPluginConfigWaitModes} WpwPluginConfigWaitModes */
 /** @typedef {import("./rc").DefinitionsDirectoryPathGlob} DefinitionsDirectoryPathGlob */
 /** @typedef {import("./rc").WpwPluginConfigJsDocTemplate} WpwPluginConfigJsDocTemplate */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsKey} WpwPluginConfigRunScriptsKey */
+/** @typedef {import("./constants").isWpwPluginConfigWaitMode} isWpwPluginConfigWaitMode */
 /** @typedef {import("./constants").WpwExportConfigCacheModes} WpwExportConfigCacheModes */
 /** @typedef {import("./constants").WpwPluginConfigJsDocModes} WpwPluginConfigJsDocModes */
 /** @typedef {import("./rc").WpwExportConfigDevToolMapType} WpwExportConfigDevToolMapType */

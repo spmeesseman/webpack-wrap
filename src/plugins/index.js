@@ -31,6 +31,7 @@ const tscheck = require("./tscheck");
 const upload = require("./upload");
 const vendormod = require("./vendormod");
 const visualizer = require("./analyze/visualizer");
+const wait = require("./wait");
 const web = require("./html");
 
 const analyze = { analyzer, circular, visualizer };
@@ -39,5 +40,5 @@ const analyze = { analyzer, circular, visualizer };
 module.exports = {
     analyze, banner, clean, copy, dispose, environment, ignore, istanbul,
     jsdoc, licensefiles, loghooks, optimization, progress, runtimevars, scm,
-    sourcemaps, testsuite, tscheck, types, upload, vendormod, web
+    sourcemaps, testsuite, tscheck, types, upload, vendormod, wait, web
 };

@@ -19,7 +19,7 @@ const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
-const { objUtils, typeUtils, pushUniq, merge } = require("@spmeesseman/type-utils");
+const { objUtils, typeUtils, merge, apply, applyIf } = require("@spmeesseman/type-utils");
 const { printBuildStart, printBuildProperties, printWpcProperties, utils, validateSchema } = require("../utils");
 
 
@@ -132,7 +132,6 @@ class WpwBuild extends WpwBase
 
     get buildCount() { return this.wrapper.buildCount; }
     get cmdLine() { return this.wrapper.args; }
-    get eventManager() { return this.wrapper.eventManager; }
     get hasError() { return this.errors.length > 0; }
     get hasErrorOrWarning() { return this.hasError || this.hasWarning; }
     get hasWarning() { return this.warnings.length > 0; }
@@ -153,7 +152,7 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "jsdoc")
         {
-            this.setOptionEnabled("externals", "all");
+            this.setOptionEnabled("externals", false, "all");
         }
         else if (this.type === "script")
         {
@@ -167,7 +166,7 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "tests")
         {
-            this.setOptionEnabled("externals", "all", "presets");
+            this.setOptionEnabled("externals", true, "all", "presets");
         }
         else if (this.type === "webapp")
         {
@@ -180,17 +179,24 @@ class WpwBuild extends WpwBase
 
         if (this.options.devtool?.mode === "plugin")
         {
-            this.setOptionEnabled("vendormod", "source_map_plugin");
+            this.setOptionEnabled("vendormod", true, "source_map_plugin");
         }
 
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
         {
-            this.setOptionEnabled("experiments");
+            this.setOptionEnabled("experiments", false);
         }
 
         if (this.mode === "production" && this.type !== "jsdoc" && this.type !== "types")
         {
             this.setOptionEnabled("licensefiles");
+        }
+
+        if (!this.isOnlyBuild && this.wrapper.builds.find(b => b.options.wait?.enabled && b.options.wait.items?.find(i => i.name === this.name)))
+        {
+            this.options.wait = apply(this.options.wait, { enabled: true });
+            applyIf(this.options.wait, { mode: "event "});
+            this.setOptionEnabled("wait", false);
         }
     }
 
@@ -454,7 +460,12 @@ class WpwBuild extends WpwBase
         this.logger.write(`initializing configured build '${this.name}'`, 1);
     }
 
-    setOptionEnabled(option, ...properties)
+    /**
+     * @param {string} option
+     * @param {boolean} [addSuggestion]
+     * @param {...string} properties
+     */
+    setOptionEnabled(option, addSuggestion, ...properties)
     {
         let cfg = this.options[option];
         if (!(cfg && cfg.enabled === false))
@@ -463,11 +474,14 @@ class WpwBuild extends WpwBase
             properties.filter(p => cfg[p] !== false).forEach((p) =>
             {
                 cfg[p] = true;
-                this.addMessage({
-                    code: WpwError.Code.INFO_AUTO_ENABLED_OPTION,
-                    message: `the '${option}.${p}' build option was auto-enabled`,
-                    suggest: `explicitly enable/disable '${option}.${p}' in .wpcrc to silence this message`
-                });
+                if (addSuggestion !== false)
+                {
+                    this.addMessage({
+                        code: WpwError.Code.INFO_AUTO_ENABLED_OPTION,
+                        message: `the '${option}.${p}' build option was auto-enabled`,
+                        suggest: `explicitly enable/disable '${option}.${p}' in .wpcrc to silence this message`
+                    });
+                }
             });
         }
     }
