@@ -145,7 +145,7 @@ class WpwPlugin extends WpwBaseModule
         // Add all internal WpwPlugin hooks
         //
         const options = this.onApply();
-        if (!this.build.hasError) { return; }
+        if (this.build.hasError) { return; }
         if (options)
         {
             this.validateApplyOptions(compiler, options);
@@ -557,8 +557,7 @@ class WpwPlugin extends WpwBaseModule
             }
         }
         else
-        {
-            if (!options.async) {
+        {   if (!options.async) {
                 /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
             }
             else {
@@ -635,8 +634,7 @@ class WpwPlugin extends WpwBaseModule
         {
             const plugin = new clsType({ build, buildOptions });
             plugin.plugins.push(
-                ...asArray(plugin.getVendorPlugin(true)).filter(p => !!p),
-                ...asArray(plugin.getVendorPlugin()).filter(p => !!p)
+                ...asArray(plugin.getVendorPlugin(true)).filter(p => !!p), ...asArray(plugin.getVendorPlugin()).filter(p => !!p)
             );
             return plugin;
         }
@@ -654,14 +652,17 @@ class WpwPlugin extends WpwBaseModule
     wrapCallback(message, options)
     {
         const logger = this.logger,
-              callback = isString(options.callback) ? /** @type {Exclude<typedefs.WpwPluginHookHandler, string>} */(this[options.callback]) : options.callback,
+              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
               logMsg = this.breakProp(message);
         return /** @type {R} */((/** @type {...any} */...args) =>
         {
             logger.start(logMsg, 1);
             const result = callback(...args),
                   _done = () => logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-            if (isPromise(result)) { result.then(_done); } else { _done(); }
+            if (isPromise(result)) {
+                return result.then(_done);
+            }
+            _done();
         });
     }
 

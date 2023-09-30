@@ -54,8 +54,6 @@ class WpwBaseTaskPlugin extends WpwPlugin
 
 
     /**
-     * Called by webpack runtime to initialize this plugin
-	 *
      * @override
      */
     onApply()

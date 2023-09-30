@@ -223,7 +223,7 @@ class WpwWrapper extends WpwBase
         this.builds.forEach(b => b.webpackExports());
         if (this.builds.length === 0)
         {
-            this.logger.warning("no builds created, dumping configurations:");
+            this.logger.warning("0 builds found, dumping all configurations:");
             this.logger.write(JSON.stringify(this.buildConfigs, null, 4), undefined, "", this.logger.icons.color.warning);
             this.logger.write("exit");
         }
@@ -370,6 +370,7 @@ class WpwWrapper extends WpwBase
                 {
                     if (asArray(b.options.wait?.items).find(t => t.name === "types" || t.name === typesBuild.name))
                     {
+                        this.logger.write(`auto-enable dependecy types build '${typesBuild.name}`, 2);
                         this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
                         break;
                     }
