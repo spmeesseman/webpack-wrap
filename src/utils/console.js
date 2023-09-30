@@ -9,6 +9,7 @@ const { applySchemaDefaults } = require("./schema");
 const { apply, merge, typeUtils } = require("@spmeesseman/type-utils");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
 
+const WEBPACK = "webpack";
 const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
 const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
 
@@ -76,8 +77,8 @@ class WpwLogger
         WpwLogger.stdConsole = WpwLogger.stdConsole || console.log;
         console.log = (/** @type {string} */ msg, /** @type {any} */ ...args) =>
         {
-            if (!args.includes("internal")) {
-                this.write(msg, undefined, "", null, null, false, "webpack");
+            if (args[0] !== ("internal")) {
+                this.write(msg, undefined, "", null, null, false, WEBPACK);
             }
             else {
                 WpwLogger.stdConsole.apply(console, [ msg, ...args.slice(1) ]);
@@ -97,8 +98,9 @@ class WpwLogger
      */
     applyOptions = (options) =>
     {
-        const opts = this.options = merge(applySchemaDefaults(/** @type {typedefs.IWpwLog} */({}), "WpwLog"), options);
-        let len = opts.envTag1.length + opts.envTag2.length + 6;
+        const opts = this.options = merge(applySchemaDefaults(/** @type {typedefs.IWpwLog} */({}), "WpwLog"), options),
+              tag2Len = opts.envTag2.length;
+        let len = opts.envTag1.length + tag2Len + 6 + (this.options.level > 0 && WEBPACK.length > tag2Len ? WEBPACK.length - tag2Len : 0);
         WpwLogger.envTagLen = !WpwLogger.envTagLen || len > WpwLogger.envTagLen ? len : WpwLogger.envTagLen;
         len = opts.pad.value;
         WpwLogger.valuePadLen = !WpwLogger.valuePadLen || len > WpwLogger.valuePadLen ? len : WpwLogger.valuePadLen;
@@ -699,22 +701,20 @@ class WpwLogger
               msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
               envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
               envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
-              envTagClrLen = (this.withColorLength(envTagMsgClr) * (!tag ? 2 : 1)) + (this.withColorLength(envTagClr) * (!tag ? 4 : 2)),
+              envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
               envMsgClr = color || this.colors[opts.colors.default || "grey"],
-              envMsg = !tag ? (color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
-                              this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg)) :
-                              (!(/\x1B\[/).test(msg) ? msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
-                              `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`) : msg),
+              envMsg = color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
+                              this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg),
               envTagLen = WpwLogger.envTagLen + envTagClrLen,
-              envTag = tag && !opts.envTagDisable ? this.tag(tag, envTagClr, envTagMsgClr).padEnd(envTagLen) :
-                       (!opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                       this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : ""),
+              envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
+                      this.tag(opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
               envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
               tmStamp = opts.timestamp ? this.timestamp() : "",
               linePad = isValue !== true ?
                         basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
                         + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0)) : "";
-        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
+
+        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`);
         return this;
     }
 
