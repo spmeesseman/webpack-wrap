@@ -121,10 +121,23 @@ class WpwWaitPlugin extends WpwPlugin
             const waitItem = this.buildOptions.items?.find(i => !!this.build.getBuild(i.name));
             if (waitItem && !WpwWaitPlugin.donePlugins.includes(waitItem.name))
             {
+                let timeoutId;
                 waitItem.source = this.build.name;
                 this.logger.write(`start wait period for '${waitItem.name}'`, 2);
+
+                const _timeout = (/** @type {(value: void | PromiseLike<void>) => void} */ resolve) =>
+                {
+                    timeoutId = setTimeout((resolve) =>
+                    {
+                        this.logger.write(`resume waiting build '${waitItem.source}'`, 2);
+                        this.logger.write(`   timeout occurred, wait event on '${waitItem.name} not triggered`, 2);
+                        resolve();
+                    }, waitItem.timeout || 30000, resolve);
+                };
+
                 return Promise.race(
                 [
+                    new Promise(_timeout),
                     /** @type {Promise<void>} */(new Promise((resolve) =>
                     {
                         if (waitItem.mode === "event")
@@ -133,6 +146,7 @@ class WpwWaitPlugin extends WpwPlugin
                             {
                                 this.logger.write(`   received event 'done' from '${waitItem.name}', resume waiting build '${waitItem.source}'`, 2);
                                 pushUniq(WpwWaitPlugin.donePlugins, waitItem.name);
+                                clearTimeout(timeoutId);
                                 resolve();
                             });
                         }
@@ -144,13 +158,7 @@ class WpwWaitPlugin extends WpwPlugin
                                 resolve();
                             });
                         }
-                    })),
-                    /** @type {Promise<void>} */(new Promise(resolve => setTimeout(() =>
-                    {
-                        this.logger.write(`resume waiting build '${waitItem.source}'`, 2);
-                        this.logger.write(`   timeout occurred, wait event on '${waitItem.name} not triggered`, 2);
-                        resolve();
-                    }, waitItem.timeout || 30000)))
+                    }))
                 ]);
             }
         }
