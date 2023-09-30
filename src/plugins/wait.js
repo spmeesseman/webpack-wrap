@@ -102,7 +102,7 @@ class WpwWaitPlugin extends WpwPlugin
      */
     pollFile(waitConfig)
     {
-        const _poll = (/** @type {() => void} */ resolve) =>
+        const _poll = (/** @type {any} */ resolve) =>
         {
             if (existsSync(waitConfig.name))
             {
@@ -131,7 +131,7 @@ class WpwWaitPlugin extends WpwPlugin
                 this.logger.write(`start wait period for '${waitItem.name}'`, 2);
 
                 const _done = (resolve) => { pushUniq(WpwWaitPlugin.donePlugins, waitItem.name); clearTimeout(timeoutId); resolve(); };
-                const _timeout = (/** @type {(value: void | PromiseLike<void>) => void} */ resolve) =>
+                const _timeout = (/** @type {any} */ resolve) =>
                 {
                     timeoutId = setTimeout((resolve) =>
                     {

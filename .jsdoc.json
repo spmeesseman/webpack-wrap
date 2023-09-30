@@ -90,6 +90,7 @@
         ],
         "exclude": [
             "node_modules",
+            "src/test",
             "src/types"
         ],
         "includePattern": ".+\\.js(doc|x)?$",
