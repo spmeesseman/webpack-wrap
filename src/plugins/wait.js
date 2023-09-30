@@ -53,16 +53,19 @@ class WpwWaitPlugin extends WpwPlugin
 
 
     /**
-     * @param {typedefs.WpwBuild} build
+     * @private
      */
-    done(build)
+    done()
     {
-        pushUniq(WpwWaitPlugin.donePlugins, build.name);
-        if (!build.hasError)
+        pushUniq(WpwWaitPlugin.donePlugins, this.build.name);
+        if (!this.build.hasError)
         {
-            const event = `${build.name}_done`;
-            this.logger.write(`emit event '${event}' from build '${build.name}'`, 3);
+            const event = `${this.build.name}_done`;
+            this.logger.write(`emit event '${event}' from build '${this.build.name}'`, 3);
             WpwWaitPlugin.onPluginEvent.emit(event, "done");
+            if (this.build.type !== this.build.name) {
+                WpwWaitPlugin.onPluginEvent.emit(`${this.build.type}_done`, "done");
+            }
         }
     }
 
