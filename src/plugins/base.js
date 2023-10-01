@@ -53,7 +53,7 @@ class WpwPlugin extends WpwBaseModule
      * @private
      * @type {boolean | undefined}
      */
-    static compilationTapped;
+    static dependenciesLogged;
 
     /**
      * @protected
@@ -168,7 +168,7 @@ class WpwPlugin extends WpwBaseModule
                 }
                 else
                 {   if (this.isAsyncHook(hook)) {
-                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
+                        /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, true));
                     }
                     else {
                         return this.addError(`Invalid async hook parameters specified: ${tapOpts.hook}`);
@@ -464,9 +464,9 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compilation = compilation;
         this.wpCacheCompilation = compilation.getCache(this.cacheName);
-        if (!WpwPlugin.compilationTapped) {
+        if (!WpwPlugin.dependenciesLogged) {
             compilation.hooks.beforeCodeGeneration.tap("onBeforeCodeGeneration_" + this.name, () => this.printCompilationDependencies());
-            WpwPlugin.compilationTapped = true;
+            WpwPlugin.dependenciesLogged = true;
         }
     }
 
@@ -554,7 +554,7 @@ class WpwPlugin extends WpwBaseModule
                 /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
             }
             else {
-                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
+                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
             }
         }
         else
@@ -563,7 +563,7 @@ class WpwPlugin extends WpwBaseModule
             }
             else {
                 if (this.isAsyncHook(hook)) {
-                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options));
+                    /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
                 }
                 else {
                     return this.addError(`Invalid async hook specified: ${options.hook}`);
@@ -648,23 +648,34 @@ class WpwPlugin extends WpwBaseModule
      * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
      * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpwPluginBaseTapOptions} options
+     * @param {T} [async]
      * @returns {R} WpwPluginWrappedHookHandler
      */
-    wrapCallback(message, options)
+    wrapCallback(message, options, async)
     {
+        let /** @type {typedefs.WpwPluginWrappedHookHandler} */cb;
         const logger = this.logger,
               callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
               logMsg = this.breakProp(message);
-        return /** @type {R} */((/** @type {...any} */...args) =>
+        if (async !== true)
         {
-            logger.start(logMsg, 1);
-            const result = callback(...args),
-                  _done = () => logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-            if (isPromise(result)) {
-                return result.then(_done);
-            }
-            _done();
-        });
+            cb = (/** @type {...any} */...args) =>
+            {
+                logger.start(logMsg, 1);
+                callback(...args);
+                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
+            };
+        }
+        else
+        {
+            cb = async (/** @type {...any} */...args) =>
+            {
+                logger.start(logMsg, 1);
+                await callback(...args);
+                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
+            };
+        }
+        return /** @type {R} */(cb);
     }
 
 }

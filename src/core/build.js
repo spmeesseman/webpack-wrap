@@ -148,11 +148,11 @@ class WpwBuild extends WpwBase
 
         if (this.type === "app")
         {
-            this.setOptionEnabled("optimization");
+            this.setOptionEnabled("output", false, "hash");
         }
         else if (this.type === "jsdoc")
         {
-            this.setOptionEnabled("externals", false, "all");
+            this.setOptionEnabled("externals", true, "all");
         }
         else if (this.type === "script")
         {
@@ -166,7 +166,7 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "tests")
         {
-            this.setOptionEnabled("externals", true, "all", "presets");
+            this.setOptionEnabled("externals", false, "all", "presets");
         }
         else if (this.type === "webapp")
         {
@@ -179,15 +179,15 @@ class WpwBuild extends WpwBase
 
         if (this.options.devtool?.mode === "plugin")
         {
-            this.setOptionEnabled("vendormod", true, "source_map_plugin");
+            this.setOptionEnabled("vendormod", false, "source_map_plugin");
         }
 
         if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
         {
-            this.setOptionEnabled("experiments", false);
+            this.setOptionEnabled("experiments", true);
         }
 
-        if (this.mode === "production" && this.type !== "jsdoc" && this.type !== "types")
+        if (this.mode === "production" && this.type !== "jsdoc" && this.type !== "script" && this.type !== "types")
         {
             this.setOptionEnabled("licensefiles");
         }
@@ -455,19 +455,19 @@ class WpwBuild extends WpwBase
 
     /**
      * @param {string} option
-     * @param {boolean} [addSuggestion]
+     * @param {boolean} [force]
      * @param {...string} properties
      */
-    setOptionEnabled(option, addSuggestion, ...properties)
+    setOptionEnabled(option, force, ...properties)
     {
         let cfg = this.options[option];
-        if (!(cfg && cfg.enabled === false) || addSuggestion === false)
+        if (!(cfg && cfg.enabled === false) || force === true)
         {
             if (!cfg) { cfg = this.options[option] = {}; }
-            properties.filter(p => cfg[p] !== false || addSuggestion === false).forEach((p) =>
+            properties.filter(p => cfg[p] !== false || force === true).forEach((p) =>
             {
                 cfg[p] = true;
-                if (addSuggestion !== false)
+                if (force !== true)
                 {
                     this.addMessage({
                         code: WpwError.Code.INFO_AUTO_ENABLED_OPTION,

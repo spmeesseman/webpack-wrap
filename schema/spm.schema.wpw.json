@@ -1043,16 +1043,15 @@
             "minProperties": 1,
             "additionalProperties": false,
             "default": {
-                "enabled": true,
-                "immutable": true
+                "enabled": true
             },
             "properties": {
                 "enabled": {
                     "$ref": "#/definitions/BooleanDefaultTrue",
                     "readOnly": true
                 },
-                "immutable": {
-                    "$ref": "#/definitions/BooleanDefaultTrue"
+                "hash": {
+                    "type": "boolean"
                 }
             },
             "if": {
@@ -3498,10 +3497,40 @@
         "WpwWebpackCompilationHook": {
             "$id": "#/WpwWebpackCompilationHook",
             "oneOf": [{
+                "const": "assetPath"
+            },
+            {
                 "const": "buildModule"
             },
             {
+                "const": "executeModule"
+            },
+            {
+                "const": "log"
+            },
+            {
+                "const": "chunkIds"
+            },
+            {
+                "const": "moduleIds"
+            },
+            {
                 "const": "rebuildModule"
+            },
+            {
+                "const": "stillValidModule"
+            },
+            {
+                "const": "succeedModule"
+            },
+            {
+                "const": "addEntry"
+            },
+            {
+                "const": "failedEntry"
+            },
+            {
+                "const": "succeedEntry"
             },
             {
                 "const": "seal"
@@ -3519,6 +3548,12 @@
                 "const": "afterProcessAssets"
             },
             {
+                "const": "beforeChunks"
+            },
+            {
+                "const": "afterChunks"
+            },
+            {
                 "const": "beforeHash"
             },
             {
@@ -3528,7 +3563,61 @@
                 "const": "contentHash"
             },
             {
+                "const": "chunkHash"
+            },
+            {
+                "const": "chunkAsset"
+            },
+            {
+                "const": "moduleAsset"
+            },
+            {
+                "const": "needAdditionalPass"
+            },
+            {
+                "const": "childCompiler"
+            },
+            {
+                "const": "shouldRecord"
+            },
+            {
+                "const": "record"
+            },
+            {
+                "const": "recordChunks"
+            },
+            {
+                "const": "recordModules"
+            },
+            {
+                "const": "shouldRecord"
+            },
+            {
                 "const": "finishModules"
+            },
+            {
+                "const": "finishRebuildingModule"
+            },
+            {
+                "const": "failedModules"
+            },
+            {
+                "const": "statsPreset"
+            },
+            {
+                "const": "statsNormalize"
+            },
+            {
+                "const": "statsFactory"
+            },
+            {
+                "const": "statsPrinter"
+            },
+            {
+                "const": "processWarnings"
+            },
+            {
+                "const": "processErrors"
             }]
         },
         "WpwWebhookCompilationHookStage": {
@@ -3591,13 +3680,37 @@
                 "const": "afterEnvironment"
             },
             {
+                "const": "infrastructureLog"
+            },
+            {
+                "const": "beforeRun"
+            },
+            {
                 "const": "run"
+            },
+            {
+                "const": "watchRun"
             },
             {
                 "const": "make"
             },
             {
+                "const": "finishMake"
+            },
+            {
                 "const": "afterPlugins"
+            },
+            {
+                "const": "afterResolvers"
+            },
+            {
+                "const": "normalModuleFactory"
+            },
+            {
+                "const": "contextModuleFactory"
+            },
+            {
+                "const": "entryOption"
             },
             {
                 "const": "beforeCompile"
@@ -3609,16 +3722,49 @@
                 "const": "afterCompile"
             },
             {
+                "const": "readRecords"
+            },
+            {
+                "const": "emitRecords"
+            },
+            {
                 "const": "thisCompilation"
             },
             {
                 "const": "compilation"
             },
             {
+                "const": "shouldEmit"
+            },
+            {
                 "const": "emit"
             },
             {
+                "const": "assetEmitted"
+            },
+            {
+                "const": "afterEmit"
+            },
+            {
                 "const": "done"
+            },
+            {
+                "const": "afterDone"
+            },
+            {
+                "const": "additionalPass"
+            },
+            {
+                "const": "watchClose"
+            },
+            {
+                "const": "shutdown"
+            },
+            {
+                "const": "invalid"
+            },
+            {
+                "const": "failed"
             }]
         },
         "WebpackConfigOverride": {

@@ -50,7 +50,7 @@ const { WpwError } = require("../utils/message");
 			filename: (pathData, _assetInfo) =>
 			{
 				const data = /** @type {typedefs.WebpackPathDataOutput} */(pathData);
-				return !this.buildOptions.immutable || WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
+				return !this.buildOptions.hash || WpwRegex.TestsChunk.test(data.chunk.name || "") ? "[name].js" : "[name].[contenthash].js";
 			}
 		});
     }

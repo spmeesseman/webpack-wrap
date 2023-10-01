@@ -82,7 +82,7 @@ class WpwPluginsExport extends WpwWebpackExport
 			plugins.licensefiles(build),       // compiler.hooks.compilation -> compilation.hooks.processAssets|ANALYSE
 			plugins.upload(build),             // compiler.hooks.afterDone
 			plugins.scm(build),                // compiler.hooks.done
-			plugins.dispose(build)             // compiler.hooks.shutdown
+			plugins.dispose(build)             // compiler.hooks.afterDone
 		);
 
 		build.wpc.plugins.slice().reverse().forEach((p, i, a) => { if (!p) { build.wpc.plugins.splice(a.length - 1 - i, 1); }});

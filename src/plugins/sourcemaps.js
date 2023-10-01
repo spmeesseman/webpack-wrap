@@ -39,7 +39,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
     {
         const devtoolConfig= build.options.devtool,
               outputConfig = build.options.output;
-        if (devtoolConfig && devtoolConfig.enabled && (outputConfig?.immutable !== false || devtoolConfig.syncHash !== false))
+        if (devtoolConfig && devtoolConfig.enabled && (outputConfig?.hash !== false || devtoolConfig.syncHash !== false))
         {
             return WpwSourceMapsPlugin.wrap(WpwSourceMapsPlugin, build, "devtool");
         }
@@ -114,12 +114,12 @@ class WpwSourceMapsPlugin extends WpwPlugin
         if (applyFirst && this.buildOptions.mode === "plugin")
         {
             const outputOptions = this.build.options.output || {},
-                  immutable = outputOptions.immutable !== false;
+            hash = outputOptions.hash !== false;
 
             return new webpack.SourceMapDevToolPlugin(
             {
                 test: /\.(js|jsx)($|\?)/i,
-                filename: immutable ? "[name].[contenthash].js.map" : "[name].js.map",
+                filename: hash ? "[name].[contenthash].js.map" : "[name].js.map",
                 exclude: /(?:node_modules|(?:vendor|runtime|tests)(?:\.[a-f0-9]{16,})?\.js)/,
                 //
                 // The bundled node_modules will produce reference tags within the main entry point
@@ -140,7 +140,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
                     }
                     return `${info.absoluteResourcePath}`;
                 },
-                fallbackModuleFilenameTemplate: immutable ? "[absolute-resource-path]?[hash]" : "[absolute-resource-path]"
+                fallbackModuleFilenameTemplate: hash ? "[absolute-resource-path]?[hash]" : "[absolute-resource-path]"
             });
         }
     };

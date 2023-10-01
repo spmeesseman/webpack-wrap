@@ -10,9 +10,9 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const { isFunction } = require("../utils");
 const typedefs = require("../types/typedefs");
-const { apply } = require("@spmeesseman/type-utils");
+const { isWpwWebpackCompilerHook } = require("../utils");
+const { apply, isFunction } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -128,6 +128,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 	 */
 	hookSteps()
 	{
+		this.addCompilerHook("infrastructureLog");
 		this.addCompilerHook("environment");
 		this.addCompilerHook("afterEnvironment");
 		this.addCompilerHook("entryOption");
@@ -210,6 +211,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 			}
 		});
 		this.addCompilerHook("make");
+		this.addCompilerHook("finishMake");
 		this.addCompilerHook("afterCompile", /** @param {typedefs.WebpackCompilation} compilation */(compilation) =>
 		{
 			// const stats = compilation.getStats();
@@ -231,13 +233,13 @@ class WpwLogHooksPlugin extends WpwPlugin
 		this.addCompilerHook("emit");
 		this.addCompilerHook("afterEmit");
 		this.addCompilerHook("done");
-		this.addCompilerHook("shutdown", () =>
+		this.addCompilerHook("afterDone", () =>
 		{
 			const end = Date.now();
 			apply(this, { end, elapsed: end - this.start });
 			this.logger.value("total time elapsed", this.timeElapsed());
 		});
-		this.addCompilerHook("afterDone");
+		this.addCompilerHook("shutdown");
 		this.addCompilerHook("additionalPass");
 		this.addCompilerHook("failed", /** @param {Error} e */(e) => { this.logger.error(e); });
 		this.addCompilerHook("invalid");
@@ -272,8 +274,9 @@ class WpwLogHooksPlugin extends WpwPlugin
 			this.last = Date.now();
 			this.elapsed = this.last - this.start;
 			const l = this.logger,
-				  tag = `italic(elapsed:${this.timeElapsed()}ms)`;
-			l.valuestar(`build stage hook ${l.tag(tag, l.colors.white)}`, hook);
+				  tag = `italic(elapsed:${this.timeElapsed()}ms)`,
+				  hookType = isWpwWebpackCompilerHook(hook) ? "compiler" : "compilation";
+			l.valuestar(`${hookType} hook ${l.tag(tag, l.colors.white)}`, hook);
 		}
 	};
 

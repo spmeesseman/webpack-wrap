@@ -91,28 +91,32 @@ class WpwCleanPlugin extends WpwPlugin
 
 
 	/**
-     * @param {typedefs.WebpackCompilation} compilation the compiler instance
+     * @param {typedefs.WebpackCompilation} compilation
 	 * @returns {Promise<void>}
      */
 	async buildAssets(compilation)
 	{
 		const distPath = this.build.getDistPath(),
 			  compilerOptions = this.build.source.config.compilerOptions;
+		this.logger.write("check for existing assets", 1);
 		if (await existsAsync(distPath))
 		{
-			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
-			for (const file of files) {
+			const files = (await readdir(distPath)).filter(this.isOutputFile, this);
+			for (const file of files)
+			{
+				this.logger.value("   delete asset", file, 1);
 				await unlink(join(distPath, file));
 			}
 			return this.rmdirIfEmpty(distPath);
 		}
-		if (compilerOptions.outDir)
+		if (compilerOptions.outDir && compilerOptions.outDir !== distPath)
 		{
 			const configOutDir = resolvePath(this.build.getContextPath(), compilerOptions.outDir);
 			if (await existsAsync(configOutDir))
 			{
-				const files = (await readdir(configOutDir)).filter(p => this.fileNameHashRegex().test(p));
+				const files = (await readdir(configOutDir)).filter(this.isOutputFile, this);
 				for (const file of files) {
+					this.logger.value("   delete asset", file, 1);
 					await unlink(join(configOutDir, file));
 				}
 				return this.rmdirIfEmpty(configOutDir);
@@ -122,13 +126,14 @@ class WpwCleanPlugin extends WpwPlugin
 
 
 	/**
-     * @param {typedefs.WebpackCompilation} compilation the compiler instance
+     * @param {typedefs.WebpackCompilation} compilation
 	 * @returns {Promise<void>}
      */
 	async buildCaches(compilation)
 	{
 		const compilerOptions = this.build.source.config.compilerOptions,
 			  buildInfoFile = compilerOptions.tsBuildInfoFile;
+		this.logger.write("check for existing caches", 1);
 		if (buildInfoFile && await existsAsync(buildInfoFile))
 		{
 			await unlink(buildInfoFile);
@@ -146,63 +151,6 @@ class WpwCleanPlugin extends WpwPlugin
 		}
 	}
 
-
-	/**
-	 * @returns {RegExp}
-	 */
-    fileNameHashRegex = () => new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`);
-
-
-	/**
-     * @param {string} dir the compiler instance
-	 * @returns {Promise<void>}
-     */
-	async rmdirIfEmpty(dir)
-	{
-		if (await existsAsync(dir) && (await readdir(dir)).length === 0) {
-			return rmdir(dir);
-		}
-	}
-
-
-    /**
-	 * Removes stale hashed assets (un-hashed assets are not included)
-     * @param {typedefs.WebpackStats} stats the compiler instance
-	 * @returns {Promise<void>}
-     */
-	async staleAssets(stats)
-	{
-		const distPath = this.build.getDistPath();
-		if (this.build.options.output?.immutable && await existsAsync(distPath))
-		{
-			const files = (await readdir(distPath)).filter(p => this.fileNameHashRegex().test(p));
-			for (const file of files)
-			{
-				const assets = stats.compilation.getAssets(),
-					  cleanItUpSon = !assets.find(a => a.name === file && file.startsWith(this.fileNameStrip(a.name, true)));
-				if (cleanItUpSon) {
-					await unlink(join(distPath, file));
-				}
-			}
-			return this.rmdirIfEmpty(distPath);
-		}
-	}
-
-
-	/**
-     * @param {typedefs.WebpackCompilation} _compilation the compiler instance
-	 * @returns {Promise<void>}
-     */
-	async webpackCache(_compilation)
-	{
-		if (this.build.options.cache)
-		{
-			const wpCacheDir = /** @type {typedefs.WebpackFileCacheOptions} */(this.wpc.cache).cacheDirectory;
-			if (wpCacheDir && await existsAsync(wpCacheDir)) {
-				return rmdir(wpCacheDir);
-			}
-		}
-	}
 
 
 	/**
@@ -241,7 +189,71 @@ class WpwCleanPlugin extends WpwPlugin
 			}
 			return new CleanWebpackPlugin(options);
 		}
-	};
+	}
+
+
+	/**
+	 * @param {string} path
+	 * @returns {boolean}
+	 */
+    isOutputFile(path)
+	{
+		if (this.build.options.output?.hash && !(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`).test(path))) {
+			return false;
+		}
+		return !!this.compilation.getAssets().find(a => Object.keys(this.build.wpc.entry).includes(this.fileNameStrip(a.name, true)));
+	}
+
+
+	/**
+     * @param {string} dir
+	 * @returns {Promise<void>}
+     */
+	async rmdirIfEmpty(dir)
+	{
+		if (await existsAsync(dir) && (await readdir(dir)).length === 0) {
+			return rmdir(dir);
+		}
+	}
+
+
+    /**
+	 * Removes stale hashed assets (un-hashed assets are not included)
+     * @param {typedefs.WebpackStats} stats
+	 * @returns {Promise<void>}
+     */
+	async staleAssets(stats)
+	{
+		const assets = stats.compilation.getAssets(),
+			  distPath = this.build.getDistPath();
+		this.logger.write("check for stale assets", 1);
+		if (await existsAsync(distPath))
+		{
+			const files = (await readdir(distPath)).filter(this.isOutputFile, this);
+			for (const file of files.filter(f => !assets.find(a => a.name === f)))
+			{
+				this.logger.value("   delete stale asset", file, 1);
+				await unlink(join(distPath, file));
+			}
+			await this.rmdirIfEmpty(distPath);
+		}
+	}
+
+
+	/**
+     * @param {typedefs.WebpackCompilation} _compilation the compiler instance
+	 * @returns {Promise<void>}
+     */
+	async webpackCache(_compilation)
+	{
+		if (this.build.options.cache)
+		{
+			const wpCacheDir = /** @type {typedefs.WebpackFileCacheOptions} */(this.wpc.cache).cacheDirectory;
+			if (wpCacheDir && await existsAsync(wpCacheDir)) {
+				return rmdir(wpCacheDir);
+			}
+		}
+	}
 
 }
 
