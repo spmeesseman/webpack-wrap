@@ -48,7 +48,7 @@ interface IWpwBaseModule extends IWpwBase
     build: WpwBuildInstance;
 }
 
-interface IWpwBase extends IDisposable
+interface IWpwBase
 {
     readonly name: string;
     readonly initialConfig: any;

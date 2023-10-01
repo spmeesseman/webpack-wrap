@@ -644,38 +644,29 @@ class WpwPlugin extends WpwBaseModule
 
     /**
      * @private
-     * @template {boolean} T
+     * @template {boolean | undefined} T
      * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
      * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpwPluginBaseTapOptions} options
-     * @param {T} [async]
+     * @param {T} [_async]
      * @returns {R} WpwPluginWrappedHookHandler
      */
-    wrapCallback(message, options, async)
+    wrapCallback(message, options, _async)
     {
-        let /** @type {typedefs.WpwPluginWrappedHookHandler} */cb;
         const logger = this.logger,
               callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
               logMsg = this.breakProp(message);
-        if (async !== true)
+        return /** @type {R} */((/** @type {...any} */...args) =>
         {
-            cb = (/** @type {...any} */...args) =>
-            {
-                logger.start(logMsg, 1);
-                callback(...args);
-                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-            };
-        }
-        else
-        {
-            cb = async (/** @type {...any} */...args) =>
-            {
-                logger.start(logMsg, 1);
-                await callback(...args);
-                logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-            };
-        }
-        return /** @type {R} */(cb);
+            logger.start(logMsg, 1);
+            const result = callback(...args),
+                  _done = () => logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
+            if (isPromise(result)) {
+                result.then((r) => { _done(); return r; });
+            }
+            else { _done(); }
+            return result;
+        });
     }
 
 }

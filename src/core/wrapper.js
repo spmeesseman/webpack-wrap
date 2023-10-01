@@ -296,6 +296,12 @@ class WpwWrapper extends WpwBase
     }
 
 
+    dispose()
+    {
+        this.logger.dispose();
+    }
+
+
     /**
      * @private
      * @param {typedefs.IWpwBuildBaseConfig} config

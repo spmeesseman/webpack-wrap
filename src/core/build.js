@@ -25,10 +25,13 @@ const { printBuildStart, printBuildProperties, printWpcProperties, utils, valida
 
 /**
  * @extends {WpwBase}
+ * @implements {typedefs.IDisposable}
  * @implements {typedefs.IWpwBuildConfig}
  */
 class WpwBuild extends WpwBase
 {
+    static disposeCount = 0;
+
     /**
      * @type {boolean}
      */
@@ -37,6 +40,10 @@ class WpwBuild extends WpwBase
      * @type {boolean}
      */
     debug;
+    /**
+     * @type {typedefs.IDisposable[]}
+     */
+    disposables;
     /**
      * @type {typedefs.WpwWebpackEntry}
      */
@@ -107,6 +114,7 @@ class WpwBuild extends WpwBase
     wpc;
     /**
      * @readonly
+     * @private
      * @type {typedefs.WpwWrapper}
      */
     wrapper;
@@ -119,7 +127,7 @@ class WpwBuild extends WpwBase
     constructor(config, wrapper)
     {
         super(config);
-        objUtils.apply(this, { info: [], errors: [], warnings: [], wrapper });
+        objUtils.apply(this, { disposables: [], info: [], errors: [], warnings: [], wrapper });
         this.initConfig(config);
         this.initLogger();
         this.configureDependencies();
@@ -194,10 +202,7 @@ class WpwBuild extends WpwBase
     }
 
 
-    /**
-     * @override
-     */
-    async dispose()
+    dispose()
     {
         const l = this.logger;
         if (this.info.length > 0) {
@@ -217,9 +222,10 @@ class WpwBuild extends WpwBase
         //     l.write("ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
         //     this.errors.splice(0).forEach(e => l.error(e));
         // }
-        for (const d of this.disposables.splice(0)) {
-            const result = d.dispose();
-            if (typeUtils.isPromise(result)) { await result; }
+        this.disposables.splice(0).forEach(d => d.dispose());
+        if (++WpwBuild.disposeCount === this.buildCount)
+        {
+            this.wrapper.dispose();
         }
     }
 

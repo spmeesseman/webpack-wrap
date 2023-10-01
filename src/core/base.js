@@ -13,20 +13,15 @@
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
-const { apply, isObject, isPromise, pickNot, clone, pushReturn } = require("@spmeesseman/type-utils");
+const { apply, isObject, pickNot, clone } = require("@spmeesseman/type-utils");
 
 
 /**
  * @abstract
  * @implements {typedefs.IWpwBase}
- * @implements {typedefs.IDisposable}
  */
 class WpwBase
 {
-    /**
-     * @type {typedefs.IDisposable[]}
-     */
-    disposables;
     /**
      * @type {typedefs.IWpwGlobalEnvironment}
      */
@@ -71,22 +66,10 @@ class WpwBase
                 this.logger = logger;
             }
             else {
-                this.logger = pushReturn(this.disposables, new WpwLogger(logger));
+                this.logger = new WpwLogger(logger);
             }
         }
     }
-
-    /**
-     * @returns {Promise<any>}
-     */
-    async dispose()
-    {
-        for (const d of this.disposables.splice(0))
-        {
-            const result = d.dispose();
-            if (isPromise(result)) { await result; }
-        }
-    };
 
 
 

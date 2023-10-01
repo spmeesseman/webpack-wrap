@@ -96,7 +96,6 @@ class WpwBaseModule extends WpwBase
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
         this.virtualFileRelPath = relativePath(this.build.getContextPath(), this.virtualFilePath);
-        this.build.disposables.push(this);
     }
 
 
