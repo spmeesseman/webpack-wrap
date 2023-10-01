@@ -49,6 +49,7 @@ const printBuildProperties = (build, wrapper, logIcon) =>
     l.value("   name", build.name, 1, "", logIcon);
     l.value("   type", build.type, 1, "", logIcon);
     l.value("   target", build.target, 1, "", logIcon);
+    l.value("   mode", build.mode, 1, "", logIcon);
     l.value("   source code type", build.source.type, 2, "", logIcon);
     l.value("   is vscode extension", !!build.vscode && !!build.vscode.type, 2, "", logIcon);
     l.value("   logging level", build.log.level, 2, "", logIcon);

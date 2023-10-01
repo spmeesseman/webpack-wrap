@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @file exports/ignorewarnings.js
+ * @file src/exports/ignorewarnings.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
@@ -19,14 +19,11 @@ const typedefs = require("../types/typedefs");
  */
 const ignorewarnings = (build) =>
 {
-   if (build.options.ignorewarnings?.enabled === true && !build.cmdLine.verbosity && build.logger.level <= 2)
+   if (build.options.ignorewarnings?.enabled === true && !build.cmdLine.verbosity && build.logger.level <= 3)
    {
 		build.wpc.ignoreWarnings = [
 			/Critical dependency\: the request of a dependency is an expression/,
 			/Critical dependency\: require function is used in a way in which dependencies cannot be statically extracted/
-			// {
-			// 	module: /module2\.js\?[34]/, // A RegExp
-			// }
 		];
 	}
 };

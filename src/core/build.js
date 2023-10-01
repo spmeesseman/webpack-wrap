@@ -153,10 +153,54 @@ class WpwBuild extends WpwBase
 	 */
     configureDependencies()
     {
+        this.configureDependenciesByMode();
+        this.configureDependenciesByType();
+        if (this.options.devtool?.mode === "plugin")
+        {
+            this.setOptionEnabled("vendormod", false, "source_map_plugin");
+        }
+        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
+        {
+            this.setOptionEnabled("experiments", true);
+        }
+    }
 
+
+    configureDependenciesByMode()
+    {
+
+        if (this.mode === "production")
+        {
+            if (this.type !== "jsdoc" && this.type !== "script" && this.type !== "types")
+            {
+                this.setOptionEnabled("licensefiles");
+            }
+        }
+        else if (this.mode === "development")
+        {
+            if (this.options.output?.hash)
+            {
+                this.options.output.hash = false;
+            }
+        }
+        else if (this.mode === "none" || this.mode === "test")
+        {
+            if (this.options.output?.hash)
+            {
+                this.options.output.hash = false;
+            }
+        }
+    }
+
+
+    configureDependenciesByType()
+    {
         if (this.type === "app")
         {
-            this.setOptionEnabled("output", false, "hash");
+            if (this.mode === "production")
+            {
+                this.setOptionEnabled("output", false, "hash");
+            }
         }
         else if (this.type === "jsdoc")
         {
@@ -183,21 +227,6 @@ class WpwBuild extends WpwBase
         if (this.type !== "types" && this.source.type === "typescript") // && this.source.options.ts?.loader !== "babel")
         {
             this.setOptionEnabled("tscheck");
-        }
-
-        if (this.options.devtool?.mode === "plugin")
-        {
-            this.setOptionEnabled("vendormod", false, "source_map_plugin");
-        }
-
-        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
-        {
-            this.setOptionEnabled("experiments", true);
-        }
-
-        if (this.mode === "production" && this.type !== "jsdoc" && this.type !== "script" && this.type !== "types")
-        {
-            this.setOptionEnabled("licensefiles");
         }
     }
 
@@ -511,7 +540,7 @@ class WpwBuild extends WpwBase
     webpackExports()
     {
         const l = this.logger;
-        let logIcon = this.logger.icons.color.info;
+        let logIcon;
         printBuildStart(this);
         try
         {   const wpc = webpackExports(this);
@@ -519,14 +548,14 @@ class WpwBuild extends WpwBase
             {
                 l.write("webpack configuration builder reported errors for this build", undefined, "", l.icons.color.error);
                 this.errors.splice(0).forEach(e => { l.blank(undefined, l.icons.color.error); l.error(e); });
-                throw new Error("falied to build webpack configuration, check details in log output");
+                throw new Error("failed to build webpack exports configuration, check details in log output");
             }
             merge(wpc, this.wrapper.overrides, this.wrapper[this.wrapper.mode].overrides, this.overrides);
             return wpc;
         }
         catch (e)
         {   l.blank(undefined, l.icons.color.error);
-            l.error("Error encountered creating the webpack configuration for export, dumping current configurations:");
+            l.error("Error encountered creating the webpack exports configuration, dumping current configurations:");
             logIcon = l.icons.color.error;
             throw e;
         }

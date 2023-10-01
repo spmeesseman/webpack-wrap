@@ -7,7 +7,7 @@ const { apply, isString, isFunction } = require("@spmeesseman/type-utils");
 const { WpwError } = require("../utils/message");
 
 /**
- * @file exports/output.js
+ * @file src/exports/output.js
  * @version 0.0.1
  * @license MIT
  * @copyright Scott P Meesseman 2023
