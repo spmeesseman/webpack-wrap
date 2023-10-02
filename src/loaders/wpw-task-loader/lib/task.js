@@ -56,7 +56,7 @@ const schema = {
 };
 
 
-async function jsdocLoader(source, map, meta)
+async function taskLoader(source, map, meta)
 {
     // let data = source, hash, newHash, cacheEntry, persistedCache;
     // const options = this.getOptions(),
@@ -277,4 +277,4 @@ async function jsdocLoader(source, map, meta)
 }
 
 
-module.exports = jsdocLoader;
+module.exports = taskLoader;

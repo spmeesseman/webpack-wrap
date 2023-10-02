@@ -198,21 +198,6 @@ class WpwWrapper extends WpwBase
     }
 
 
-	/**
-	 * @private
-	 */
-    configureDependencies()
-    {
-        for (const build of this.builds)
-        {
-            if (!build.isOnlyBuild && !!this.builds.find(b => b.options.wait?.enabled && !!b.options.wait.items?.find(i => i.name === build.name || i.name === build.type)))
-            {
-                build.options.wait = applyIf(build.options.wait, { enabled: true, mode: "event" });
-            }
-        }
-    }
-
-
     /**
      * Startup function to be called by bin/wpwrap or webpack.config.js.
      *
@@ -234,15 +219,77 @@ class WpwWrapper extends WpwBase
             )
             .map(b => new WpwBuild(b, this))
         );
-        this.maybeAddTypesBuild();
-        this.configureDependencies();
-        this.builds.forEach(b => b.webpackExports());
-        if (this.builds.length === 0)
+        this.createDependencyBuilds();
+        if (this.builds.length > 0)
         {
-            this.logger.warning("0 builds found, dumping all configurations:");
+            for (const build of this.builds) { build.webpackExports(); }
+        }
+        else
+        {   this.logger.warning("0 builds found, dumping all configurations:");
             this.logger.write(JSON.stringify(this.buildConfigs, null, 4), undefined, "", this.logger.icons.color.warning);
             this.logger.write("exit");
         }
+    }
+
+
+	/**
+	 * @private
+	 */
+    createDependencyBuilds()
+    {
+        const dependentBuilds = [];
+
+        for (const build of this.builds)
+        {
+            for (const config of this.buildConfigs.filter(c => c.name !== build.name))
+            {
+                const waitsOn = build.options.wait?.items?.find(w => w.name === config.name),
+                      dependsOn = !!waitsOn || (isObject(build.entry) && build.entry.dependOn === config.name);
+
+                if (!waitsOn && !dependsOn) { continue; }
+
+                let isBuilt,
+                    depBuild = this.builds.find(b => b.name === config.name);
+                if (config.type === "types" && config.options.types?.bundle) {
+                    isBuilt = existsSync(join(config.paths.dist, config.name + ".d.ts"));
+                }
+                else {
+                    isBuilt = existsSync(config.paths.dist);
+                }
+
+                if (isBuilt && !depBuild) { continue; }
+
+                if (dependsOn)
+                {
+                    build.options.wait = apply(build.options.wait, { enabled: true });
+                    applyIf(build.options.wait, { mode: "event" });
+                }
+
+                if (!depBuild)
+                {
+                    this.logger.write(`auto-enable dependency build '${config.name}`, 2);
+                    depBuild = new WpwBuild(apply(config, { auto: true }), this);
+                    dependentBuilds.push(depBuild);
+                }
+                else if (!depBuild.options.wait || !depBuild.options.wait.enabled)
+                {
+                    this.logger.write(`auto-apply wait options to dependency build '${config.name}`, 2);
+                }
+
+                depBuild.options.wait = apply(depBuild.options.wait, { enabled: true });
+                applyIf(depBuild.options.wait, { mode: "event" });
+            }
+        }
+
+        // for (const build of this.builds)
+        // {
+        //     if (!build.isOnlyBuild && !!this.builds.find(b => b.options.wait?.enabled && !!b.options.wait.items?.find(i => i.name === build.name || i.name === build.type)))
+        //     {
+        //         build.options.wait = applyIf(build.options.wait, { enabled: true, mode: "event" });
+        //     }
+        // }
+
+        this.builds.push(...dependentBuilds);
     }
 
 
@@ -382,19 +429,26 @@ class WpwWrapper extends WpwBase
     maybeAddTypesBuild()
     {
         const typesBuild = this.getBuildConfig("types");
-        if (typesBuild && this.args.build !== typesBuild.name && (!this.isSingleBuild || !existsSync(typesBuild.paths.dist)))
+        if (typesBuild && this.args.build !== typesBuild.name && this.args.build !== typesBuild.type)
         {
-            for (const b of this.builds)
+            const isBuilt = existsSync(
+                                typesBuild.options.types?.bundle ?
+                                join(typesBuild.paths.dist, typesBuild.name + ".d.ts") : typesBuild.paths.dist
+                            );
+            if (!isBuilt)
             {
-                const dependsOnTypes = (isObject(b.entry) && b.entry.dependOn === "types") ||
-                                        b.options.wait?.items?.find(w => w.name === "types" || w.name === typesBuild.name);
-                if (!this.isSingleBuild || dependsOnTypes)
+                for (const b of this.builds)
                 {
-                    if (asArray(b.options.wait?.items).find(t => t.name === "types" || t.name === typesBuild.name))
+                    const dependsOnTypes = (isObject(b.entry) && b.entry.dependOn === "types") ||
+                                            b.options.wait?.items?.find(w => w.name === "types" || w.name === typesBuild.name);
+                    if (!this.isSingleBuild || dependsOnTypes)
                     {
-                        this.logger.write(`auto-enable dependecy types build '${typesBuild.name}`, 2);
-                        this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
-                        break;
+                        if (asArray(b.options.wait?.items).find(t => t.name === "types" || t.name === typesBuild.name))
+                        {
+                            this.logger.write(`auto-enable dependecy types build '${typesBuild.name}`, 2);
+                            this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
+                            break;
+                        }
                     }
                 }
             }

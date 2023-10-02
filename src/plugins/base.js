@@ -74,10 +74,11 @@ class WpwPlugin extends WpwBaseModule
      */
     plugins;
     /**
-     * @private
-     * @type {typedefs.WpwPluginStats}
+     * @readonly
+     * @protected
+     * @type {boolean}
      */
-    stats;
+    isTaskTypeBuild;
     /**
      * @protected
      * @type {typedefs.WebpackCacheFacade}
@@ -467,6 +468,26 @@ class WpwPlugin extends WpwBaseModule
         if (!WpwPlugin.dependenciesLogged) {
             compilation.hooks.beforeCodeGeneration.tap("onBeforeCodeGeneration_" + this.name, () => this.printCompilationDependencies());
             WpwPlugin.dependenciesLogged = true;
+        }
+    }
+
+
+    /**
+     * @protected
+     * @param {typedefs.WebpackAsset[]} [assets]
+     */
+    printAssets(assets)
+    {
+        assets = assets || this.compilation.getAssets();
+        if (assets.length > 0)
+        {
+            if (assets.length <= 10 || this.logger.level >= 4) {
+                this.logger.value("   current assets", assets.map(a => a.name).join(", "), 3);
+            }
+            else {
+                this.logger.value("   current assets", assets.slice(0, 10).map(a => a.name).join(", ") +
+                                `[ + ${assets.length - 10} more ...increase logging level to view all ]`, 3);
+            }
         }
     }
 

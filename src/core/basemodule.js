@@ -9,14 +9,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { glob } = require("glob");
 const WpwBase = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { clone } = require("@spmeesseman/type-utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 const { WpwAbstractFunctionError } = require("../utils/message");
-const { lowerCaseFirstChar, relativePath } = require("../utils/utils");
+const { lowerCaseFirstChar, relativePath, findFilesSync } = require("../utils/utils");
 
 
 /**
@@ -117,23 +116,21 @@ class WpwBaseModule extends WpwBase
      * @protected
      * @param {string} dir
      * @param {typedefs.WpwSourceExtension | typedefs.WpwSourceDotExtensionApp} ext
+     * @param {boolean | undefined} [recurse]
+     * @param {string | string[] | undefined} [ignore]
      * @returns {typedefs.IWpwWebpackEntryImport}
      */
-    createEntryObjFromDir(dir, ext)
+    createEntryObjFromDir(dir, ext, recurse, ignore)
     {
+        const pattern = !recurse ? `*${ext}` : `**/*${ext}`;
         if (!ext.startsWith(".")) {
             ext = /** @type {typedefs.WpwSourceDotExtensionApp} */("." + ext);
         }
-        return glob.sync(
-            `*${ext}`, {
-                absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: 1
+        return findFilesSync(
+            pattern, {
+                absolute: false, cwd: dir, dotRelative: false, posix: true, maxDepth: !recurse ? 1 : undefined, ignore
             }
-        )
-        .reduce((obj, e)=>
-        {
-            obj[e.replace(ext, "")] = `./${e}`;
-            return obj;
-        }, {});
+        ).reduce((obj, e)=> {  obj[e.replace(ext, "")] = `./${e}`; return obj; }, {});
     };
 
 

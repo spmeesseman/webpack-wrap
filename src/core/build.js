@@ -18,8 +18,8 @@ const webpackExports = require("../exports");
 const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/console");
 const { isAbsolute, relative, sep } = require("path");
+const { objUtils, typeUtils, merge } = require("@spmeesseman/type-utils");
 const { isWpwBuildType, isWebpackTarget } = require("../types/constants");
-const { objUtils, typeUtils, merge, apply, applyIf } = require("@spmeesseman/type-utils");
 const { printBuildStart, printBuildProperties, printWpcProperties, utils, validateSchema } = require("../utils");
 
 
@@ -138,6 +138,8 @@ class WpwBuild extends WpwBase
     }
 
 
+    get builds() { return this.wrapper.builds; }
+    get buildConfigs() { return this.wrapper.buildConfigs; }
     get buildCount() { return this.wrapper.buildCount; }
     get cmdLine() { return this.wrapper.args; }
     get hasError() { return this.errors.length > 0; }
@@ -183,7 +185,7 @@ class WpwBuild extends WpwBase
                 this.options.output.hash = false;
             }
         }
-        else if (this.mode === "none" || this.mode === "test")
+        else // if (this.mode === "none" || this.mode === "test")
         {
             if (this.options.output?.hash)
             {
@@ -224,9 +226,12 @@ class WpwBuild extends WpwBase
         {
         }
 
-        if (this.type !== "types" && this.source.type === "typescript") // && this.source.options.ts?.loader !== "babel")
+        if (this.type !== "types")
         {
-            this.setOptionEnabled("tscheck");
+            if (this.source.type === "typescript")
+            {
+                this.setOptionEnabled("tscheck");
+            }
         }
     }
 
@@ -242,18 +247,8 @@ class WpwBuild extends WpwBase
             l.warning("NON-FATAL WARNINGS FOR THIS BUILD:");
             this.warnings.splice(0).forEach(w => l.warning(w));
         }
-        // if (this.errors.length > 0) {
-        //     //
-        //     // Removed 9/24/23 - errors are added to compilation.errors array, and reported by the
-        //     // wp infrastructure logger when it exits.  seems redundant to print them here too.
-        //     // laving commented in case something changes and we put it back
-        //     //
-        //     l.write("ERRORS FOR THIS BUILD:", undefined, "", l.icons.color.error);
-        //     this.errors.splice(0).forEach(e => l.error(e));
-        // }
         this.disposables.splice(0).forEach(d => d.dispose());
-        if (++WpwBuild.disposeCount === this.buildCount)
-        {
+        if (++WpwBuild.disposeCount === this.buildCount) {
             this.wrapper.dispose();
         }
     }

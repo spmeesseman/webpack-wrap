@@ -187,12 +187,11 @@ class WpwResolveExport extends WpwWebpackExport
 	 */
 	script()
 	{
-		const build = this.build,
-			  config = build.options.script;
-		if (config && config.enabled !== false)
-		{
-
-		}
+		// const build = this.build,
+		// 	  config = build.options.script;
+		// if (config && config.enabled !== false)
+		// {
+		// }
 	}
 
 

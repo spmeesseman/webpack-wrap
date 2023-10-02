@@ -11,7 +11,6 @@
  *
  *//** */
 
-const { glob } = require("glob");
 const { existsSync } = require("fs");
 const WpwWebpackExport = require("./base");
 const WpwError = require("../utils/message");
@@ -30,7 +29,7 @@ class WpwEntryExport extends WpwWebpackExport
 	 * @private
 	 * @type {string}
 	 */
-	globTestSuiteFiles= "**/*.{test,tests,spec,specs}.ts";
+	globTestSuiteFiles= "**/*.{test,tests,spec,specs}";
 
 
     /**
@@ -44,6 +43,23 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	app()
 	{
+		const build = this.build,
+			  entryPath = this.appEntryPath();
+		if (entryPath && !build.hasError)
+		{
+			apply(build.wpc.entry, { [build.name]: { import: entryPath }});
+			if (build.debug)
+			{
+				apply(build.wpc.entry, { [`${build.name}.debug`]: { import: entryPath, layer: "debug" }});
+				const releaseEntry = /** @type {typedefs.IWpwWebpackEntryObject} */(build.wpc.entry[build.name]);
+				releaseEntry.layer = "release";
+			}
+		}
+	};
+
+
+	appEntryPath()
+	{
 		let entryPathAbs;
 		const build = this.build,
 			  entry = build.entry;
@@ -52,7 +68,7 @@ class WpwEntryExport extends WpwWebpackExport
 		{
 			entryPathAbs = entry;
 			if (!isAbsolute(entry)) {
-				entryPathAbs = resolvePath(build.getContextPath(), entryPathAbs);
+				entryPathAbs = resolvePath(build.getContextPath({ build: "app" }), entryPathAbs);
 			}
 			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
 			if (!existsSync(entryPathAbs)) {
@@ -64,7 +80,7 @@ class WpwEntryExport extends WpwWebpackExport
 		{
 			entryPathAbs = build.pkgJson.main;
 			if (!isAbsolute(entryPathAbs)) {
-				entryPathAbs = resolvePath(build.getBasePath(), entryPathAbs);
+				entryPathAbs = resolvePath(build.getBasePath({ build: "app" }), entryPathAbs);
 			}
 			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
 			if (!existsSync(entryPathAbs)) {
@@ -74,7 +90,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 		if (!entryPathAbs)
 		{
-			entryPathAbs = normalize(`${build.getSrcPath()}/${build.name}${build.source.dotext}`);
+			entryPathAbs = normalize(`${build.getSrcPath({ build: "app" })}/${build.name}${build.source.dotext}`);
 			if (!existsSync(entryPathAbs)) {
 				entryPathAbs = undefined;
 			}
@@ -105,19 +121,8 @@ class WpwEntryExport extends WpwWebpackExport
 			return;
 		}
 
-		apply(build.wpc.entry, {
-			[build.name]: { import: entryPath }
-		});
-
-		if (build.debug)
-		{
-			apply(build.wpc.entry, {
-				[`${build.name}.debug`]: { import: entryPath, layer: "debug" }
-			});
-			const releaseEntry = /** @type {typedefs.IWpwWebpackEntryObject} */(build.wpc.entry[build.name]);
-			releaseEntry.layer = "release";
-		}
-	};
+		return entryPath;
+	}
 
 
 	/**
@@ -177,41 +182,44 @@ class WpwEntryExport extends WpwWebpackExport
 
 	/**
 	 * @override
-	 * @throws {WpwError}
 	 */
-	script()
-	{
-		const build = this.build,
-			  config = build.options.script;
-		if (config && config.enabled !== false)
-		{
-
-		}
-	}
+	jsdoc() { this.task(this.build.options.jsdoc); }
 
 
 	/**
 	 * @override
+	 * @throws {WpwError}
 	 */
-	jsdoc()
+	script() { this.task(this.build.options.script, true); }
+
+
+	/**
+	 * @private
+	 * @param {typedefs.WpwBuildOptionsConfig<any>} config
+	 * @param {boolean | undefined} [noEntry]
+	 */
+	task(config, noEntry)
 	{
-		const build = this.build,
-			  config = build.options.jsdoc;
+		const build = this.build;
 		if (config && config.enabled !== false)
 		{
-			if (isObject(build.entry))
+			if (!noEntry)
 			{
-				let entry = 0;
-				build.logger.write("   apply defined entry point path [file dependencies]", 3);
-				apply(build.wpc.entry, build.entry);
-				Object.values(build.entry).forEach((value) => {
-					apply(build.wpc.entry, { [`entry${++entry}`]: value });
-				});
+				const entry = build.entry || this.appEntryPath();
+				if (isObject(entry))
+				{
+					let entryNum = 0;
+					build.logger.write("   apply dependency entry point path for file dependencies", 3);
+					apply(build.wpc.entry, entry);
+					Object.values(build.entry).forEach((value) => {
+						apply(build.wpc.entry, { [`entry${++entryNum}`]: value });
+					});
+				}
+				else if (isString(entry)) {
+					apply(build.wpc.entry, { entry1: `./${forwardSlash(entry)}` });
+				}
 			}
-			else {
-				apply(build.wpc.entry, { entry1: `./${forwardSlash(build.entry)}` });
-			}
-			apply(build.wpc.entry, { [ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}` });
+			apply(build.wpc.entry, { [build.name]: `./${forwardSlash(this.virtualFileRelPath)}`});
 		}
 	}
 
@@ -221,53 +229,12 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	tests()
 	{
+		const dotext = this.build.source.dotext;
 		const testsPath = this.build.getSrcPath();
 		apply(this.build.wpc.entry, {
-			...this.testRunner(testsPath),
-			...this.testSuite(testsPath)
+			...this.createEntryObjFromDir(testsPath, dotext, true, [ this.globTestSuiteFiles + dotext ]),
+			...this.createEntryObjFromDir(testsPath, dotext, true)
 		});
-	}
-
-
-	/**
-	 * @private
-	 * @param {string} testsPathAbs
-	 * @returns {typedefs.IWpwWebpackEntryImport}
-	 */
-	testRunner(testsPathAbs)
-	{
-		return glob.sync(
-			`**/*${this.build.source.dotext}`, {
-				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true, ignore: [ this.globTestSuiteFiles ]
-			}
-		)
-		.reduce((obj, e)=>
-		{
-			obj[e.replace(this.build.source.dotext, "")] = {
-				import: `./${e}`
-			};
-			return obj;
-		}, {});
-	}
-
-
-	/**
-	 * @private
-	 * @param {string} testsPathAbs
-	 * @returns {typedefs.IWpwWebpackEntryImport}
-	 */
-	testSuite(testsPathAbs)
-	{
-		return glob.sync(
-			this.globTestSuiteFiles, {
-				absolute: false, cwd: testsPathAbs, dotRelative: false, posix: true
-			}
-		)
-		.reduce((obj, e)=>
-		{
-			obj[e.replace(".ts", "")] = { import: `./${e}`, dependOn: "runTest" };
-			return obj;
-		}, {});
 	}
 
 
@@ -276,14 +243,7 @@ class WpwEntryExport extends WpwWebpackExport
 	 */
 	types()
 	{
-		const build = this.build,
-			  typesConfig = build.options.types;
-		if (typesConfig && typesConfig.mode === "plugin")
-		{
-			apply(build.wpc.entry, {
-				[ build.name ]: `./${forwardSlash(this.virtualFileRelPath)}`
-			});
-		}
+		if (this.build.options.types?.mode === "plugin") { this.task(this.build.options.types); }
 	}
 
 

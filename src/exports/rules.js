@@ -253,52 +253,37 @@ class WpwRulesExport extends WpwWebpackExport
 	 * @override
 	 * @throws {WpwError}
 	 */
-	jsdoc()
-	{
-		const build = this.build,
-			  jsdocConfig = this.build.options.jsdoc;
-
-		if (!build.wpc.entry[build.name]) {
-			build.addMessage({
-				code: WpwError.Code.ERROR_CONFIG_INVALID_EXPORTS,
-				message: "rules[types]: wpc.entry must be initialized before wpc.rules"
-			});
-			return;
-		}
-
-		if (jsdocConfig && jsdocConfig.enabled !== false)
-		{
-			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
-			build.wpc.module.rules.push(
-			{
-				loader: "wpw-jsdoc-loader",
-				include: this.build.global.cacheDir,
-				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
-				options: {
-					entry: build.entry,
-					config: jsdocConfig,
-					ext: build.source.dotext,
-					outDir: build.getDistPath(),
-					inputDir: build.getSrcPath(),
-					virtualFile: this.virtualFilePath
-				}
-			});
-		}
-	}
+	jsdoc() { this.task(this.build.options.jsdoc); }
+	// jsdoc()
+	// {
+	// 	const build = this.build,
+	// 		  jsdocConfig = this.build.options.jsdoc;
+	//
+	// 	if (jsdocConfig && jsdocConfig.enabled !== false)
+	// 	{
+	// 		build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
+	// 		build.wpc.module.rules.push(
+	// 		{
+	// 			loader: "wpw-jsdoc-loader",
+	// 			include: this.build.global.cacheDir,
+	// 			test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
+	// 			options: {
+	// 				entry: build.entry,
+	// 				config: jsdocConfig,
+	// 				ext: build.source.dotext,
+	// 				outDir: build.getDistPath(),
+	// 				inputDir: build.getSrcPath(),
+	// 				virtualFile: this.virtualFilePath
+	// 			}
+	// 		});
+	// 	}
+	// }
 
 
 	/**
 	 * @override
 	 */
-	script()
-	{
-		const build = this.build,
-			  config = build.options.script;
-		if (config && config.enabled !== false)
-		{
-
-		}
-	}
+	script() { this.task(this.build.options.script); }
 
 
 	/**
@@ -421,6 +406,34 @@ class WpwRulesExport extends WpwWebpackExport
 
 
 	/**
+	 * @private
+	 * @param {typedefs.WpwBuildOptionsConfig<any>} config
+	 */
+	task(config)
+	{
+		const build = this.build;
+		if (config && config.enabled !== false)
+		{
+			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
+			build.wpc.module.rules.push(
+			{
+				loader: "wpw-task-loader",
+				include: this.build.global.cacheDir,
+				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
+				options: {
+					config,
+					entry: build.entry,
+					ext: build.source.dotext,
+					outDir: build.getDistPath(),
+					inputDir: build.getSrcPath(),
+					virtualFile: this.virtualFilePath
+				}
+			});
+		}
+	}
+
+
+	/**
 	 * @override
 	 */
 	tests()
@@ -456,26 +469,10 @@ class WpwRulesExport extends WpwWebpackExport
 	 */
 	types()
 	{
-		const build = this.build,
-			  typesConfig = build.options.types;
-
-		if (typesConfig && (typesConfig.mode === "loader" || typesConfig.mode === "plugin"))
+		const config = this.build.options.types;
+		if (config && (config.mode === "loader" || config.mode === "plugin"))
 		{
-			build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
-			build.wpc.module.rules.push(
-			{
-				loader: "wpw-types-loader",
-				include: this.build.global.cacheDir,
-				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
-				options: {
-					entry: build.entry,
-					config: typesConfig,
-					ext: build.source.dotext,
-					outDir: build.getDistPath(),
-					inputDir: build.getSrcPath(),
-					virtualFile: this.virtualFilePath
-				}
-			});
+			this.task(config);
 		}
 	}
 

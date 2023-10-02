@@ -388,7 +388,6 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./plugin").IWpwPlugin} IWpwPlugin */
-/** @typedef {import("./plugin").WpwPluginStats} WpwPluginStats */
 /** @typedef {import("./plugin").WpwPluginOptions} WpwPluginOptions */
 /** @typedef {import("./plugin").WpwPluginTapOptions} WpwPluginTapOptions */
 /** @typedef {import("./plugin").WpwPluginHookHandler} WpwPluginHookHandler */
@@ -460,6 +459,7 @@
 /** @typedef {import("./webpack").WebpackHook} WebpackHook */
 /** @typedef {import("./webpack").WebpackMode} WebpackMode */
 /** @typedef {import("./webpack").WebpackType} WebpackType */
+/** @typedef {import("./webpack").WebpackAsset} WebpackAsset */
 /** @typedef {import("./webpack").WebpackChunk} WebpackChunk */
 /** @typedef {import("./webpack").WebpackEntry} WebpackEntry */
 /** @typedef {import("./webpack").WebpackError} WebpackError */

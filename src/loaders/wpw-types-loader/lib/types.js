@@ -25,7 +25,6 @@ const baseDir= resolve(__dirname, "../../../..");
 /** @type {typedefs.JsonSchema} */
 const schema = {
     type: "object",
-    $id: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.loader.types.json",
     properties: {
         test: {
             type: "string"
@@ -52,7 +51,7 @@ const schema = {
                     type: "string"
                 },
                 config: {
-                    $ref: "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/WpwPluginConfigTypes"
+                    type: "object"
                 }
             }
         }

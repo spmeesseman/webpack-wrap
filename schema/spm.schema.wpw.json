@@ -11,7 +11,7 @@
     "properties": {
         "$schema": {
             "type": "string",
-            "pattern": "^(?:file(?:.*?)[/\\\\]|https:\\/\\/app[0-9]\\.spmeesseman\\.com\\/res\\/app\\/webpack-wrap\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?\\/schema)\\/spm\\.schema\\.wpw\\.json$"
+            "pattern": "^(?:file:\\/\\/\\/.*?|\\..*?|https:\\/\\/app[0-9]\\.spmeesseman\\.com\\/res\\/app\\/webpack-wrap\\/v[0-9]+\\.[0-9]+\\.[0-9]+(?:-(?:-pre|alpha|beta)\\.[0-9]+)?)\\/schema\\/spm\\.schema\\.wpw\\.json$"
         },
         "builds": {
             "$ref": "#/definitions/WpwBuildConfigs"
@@ -481,7 +481,7 @@
                                     "minification", "mocha", "progress", "resolve",
                                     "rules", "runscripts", "runtimevars", "scm",
                                     "script", "stats", "testsuite", "tscheck",
-                                    "types", "upload", "vendormod", "wait"
+                                    "types", "upload", "vendormod", "wait", "web"
                                 ]
                             }
                         }

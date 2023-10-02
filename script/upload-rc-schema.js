@@ -18,7 +18,7 @@ const WpwLogger = require("../src/utils/console");
 // Run from script directtory so we work regardless of where cwd is set
 //
 
-/** @type {WpwLogger} */
+/** @type {WpwLogger | undefined} */
 let logger;
 
 const localSourcePath = resolve(__dirname, "..", "schema");
@@ -39,15 +39,18 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
                 };
 
 
-cliWrap(async () =>
+cliWrap(async(argv) =>
 {
     if (!host || !user || !rBasePath ||  !sshAuth || !sshAuthFlag)
     {
         throw new Error("Required environment variables for upload are not set");
     }
 
-    logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "upload", level: 5 });
-    logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+    const quiet = argv.includes("--quiet") || argv.includes("-q");
+    if (!quiet) {
+        logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "upload", level: 5 });
+        logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+    }
 
     const plinkCmds = [
         `mkdir ${rBasePath}/webpack-wrap`,
@@ -76,7 +79,7 @@ cliWrap(async () =>
         `${user}@${host}:"${rBasePath}/webpack-wrap/v${version}"` // uploaded, and created if not exists
     ];
 
-    logger.log(`   plink: create / clear remmote directory: ${rBasePath}/webpack-wrap/v${version}/schema`);
+    logger?.log(`   plink: create / clear remmote directory: ${rBasePath}/webpack-wrap/v${version}/schema`);
     await execAsync({
         logger,
         logPad: "   ",
@@ -84,7 +87,7 @@ cliWrap(async () =>
         command: "plink " + plinkArgs.join(" ")
     });
 
-    logger.log(`   pscp: upload files from ${localSourcePath}`);
+    logger?.log(`   pscp: upload files from ${localSourcePath}`);
     await execAsync({
         logger,
         logPad: "   ",
@@ -92,7 +95,9 @@ cliWrap(async () =>
         command: "pscp " + pscpArgs.join(" ")
     });
 
-    logger.blank(undefined, logger.icons.color.success);
-    logger.success("successfully uploaded rc schema", undefined, "", true);
-    logger.blank(undefined, logger.icons.color.success);
-})();
+    if (logger) {
+        logger.blank(undefined, logger.icons.color.success);
+        logger.success("successfully uploaded rc schema", undefined, "", true);
+        logger.blank(undefined, logger.icons.color.success);
+    }
+})(process.argv.slice(2));

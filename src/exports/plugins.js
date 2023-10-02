@@ -65,6 +65,7 @@ class WpwPluginsExport extends WpwWebpackExport
 			plugins.progress(build),           // n/a - reports progress from webpack engine
 			plugins.clean(build),              // compiler.hooks.emit, compiler.hooks.done
 			plugins.jsdoc(build),              // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
+			plugins.script(build),             // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
 			plugins.types(build),              // compiler.hooks.compilation - compilation.hooks.processAssets|ADDITIONAL
 			plugins.testsuite(build),          // compiler.hooks.beforeCompile - build tests / test suite
 			plugins.banner(build),             // compiler.hooks.compilation -> compilation.hooks.processAssets

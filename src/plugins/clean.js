@@ -16,7 +16,7 @@ const typedefs = require("../types/typedefs");
 const { readdir, unlink, rmdir } = require("fs/promises");
 const { WpwBuildOptionsKeys } = require("../types/constants");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { existsAsync, apply, resolvePath } = require("../utils");
+const { existsAsync, apply, resolvePath, findFiles, forwardSlash, relativePath } = require("../utils");
 
 
 /**
@@ -198,10 +198,12 @@ class WpwCleanPlugin extends WpwPlugin
 	 */
     isOutputFile(path)
 	{
+		path = forwardSlash(path);
 		if (this.build.options.output?.hash && !(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`).test(path))) {
 			return false;
 		}
-		return !!this.compilation.getAssets().find(a => Object.keys(this.build.wpc.entry).includes(this.fileNameStrip(a.name, true)));
+		return !!this.compilation.getAssets().find(a => a.name === this.fileNameStrip(path)) ||
+			   !!Object.keys(this.build.wpc.entry).includes(this.fileNameStrip(path, true));
 	}
 
 
@@ -224,18 +226,25 @@ class WpwCleanPlugin extends WpwPlugin
      */
 	async staleAssets(stats)
 	{
-		const assets = stats.compilation.getAssets(),
-			  distPath = this.build.getDistPath();
-		this.logger.write("check for stale assets", 1);
-		if (await existsAsync(distPath))
+		const build = this.build,
+			  logger = this.logger,
+			  assets = stats.compilation.getAssets(),
+			  cwd = build.getDistPath();
+		logger.value("check for stale assets in output directory", cwd, 1);
+		logger.value("   current compilation asset count", assets.length, 2);
+		this.printAssets(assets);
+		if (await existsAsync(cwd))
 		{
-			const files = (await readdir(distPath)).filter(this.isOutputFile, this);
-			for (const file of files.filter(f => !assets.find(a => a.name === f)))
+			const ignore = build.buildConfigs.filter(c => !!c.paths.dist && c.name !== this.name && c.paths.dist !== cwd)
+										     .map(c => relativePath(cwd, c.paths.dist));
+			const files = (await findFiles("*", { cwd, ignore }))
+						  .filter(f => this.isOutputFile(f) && !assets.find(a => a.name === forwardSlash(f)));
+			for (const file of files)
 			{
-				this.logger.value("   delete stale asset", file, 1);
-				await unlink(join(distPath, file));
+				logger.value("   delete stale asset", file, 1);
+				await unlink(join(cwd, file));
 			}
-			await this.rmdirIfEmpty(distPath);
+			await this.rmdirIfEmpty(cwd);
 		}
 	}
 

@@ -40,6 +40,12 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	 * @type {string}
 	 */
 	buildPathTemp;
+    /**
+     * @override
+	 * @protected
+     * @type {boolean}
+     */
+    isTaskTypeBuild = true;
 
 
     /**

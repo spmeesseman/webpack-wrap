@@ -12,6 +12,7 @@
 
 const { EOL } = require("os");
 const { existsSync } = require("fs");
+const WpwLogger = require("../src/utils/console");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
@@ -122,7 +123,7 @@ const moduleExports = [];
 /** @type {[ string, "type" | "enum", string ][]} */
 const typedefs = [];
 
-/** @type {WpwLogger} */
+/** @type {WpwLogger | undefined} */
 let logger;
 
 // @ts-ignore
@@ -606,18 +607,14 @@ const writeTypedefsJs = async () =>
 };
 
 
-cliWrap(async () =>
+cliWrap(async(argv) =>
 {
-    if (!DISABLE_WPW_LOGGER)
+    if (!(DISABLE_WPW_LOGGER || argv.includes("--quiet") || argv.includes("-q")))
     {
-        const WpwLogger = require("../src/utils/console");
         logger = new WpwLogger({
             envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
         });
         logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
-    }
-    else {
-        console.log("rc files do not exist, disabled wpwlogger for this run");
     }
 
     let result = { code: 0 };
@@ -687,14 +684,10 @@ cliWrap(async () =>
     }
 
     const msg = !DISABLE_VALIDATION ? " [tsc validated]" : " [no tsc validation]";
-    if (logger)
-    {
+    if (logger) {
         logger.blank(undefined, logger?.icons.color.success);
         logger.success("types and typings created successfully" + msg, undefined, "", true);
         logger.blank(undefined, logger?.icons.color.success);
     }
-    else {
-        console.log("types and typings created successfully" + msg);
-    }
 
-})();
+})(process.argv.slice(2));

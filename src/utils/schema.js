@@ -149,23 +149,6 @@ const getSchema = (key) =>
     {
         try {
             schemas[sKey] = JSON5.parse(readFileSync(getSchemaFile(sKey), "utf8"));
-            // const schema = {
-            //    $ref: key ? `https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json#/${key}` :
-            //                "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json"
-            // };
-            // const ajv = new Ajv({loadSchema: loadSchema})
-            // ajv.compileAsync(schema).then(function (validate) {
-            // const valid = validate(data)
-            // // ...
-            // })
-            // const schema_user = require("./schema_user.json")
-            // const validate = ajv.getSchema("https://example.com/user.json")
-            // || ajv.compile(schema_user)
-            // async function loadSchema(uri) {
-            //     const res = await request.json(uri)
-            //     if (res.statusCode >= 400) throw new Error("Loading error: " + res.statusCode)
-            //     return res.body
-            // }
         }
         catch (e) {
             throw WpwError.get({ code: WpwError.Code.ERROR_SCHEMA, message: "failed to read schema file", error: e });
