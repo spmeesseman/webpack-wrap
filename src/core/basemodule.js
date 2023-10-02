@@ -11,7 +11,7 @@
 const WpwBase = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { clone } = require("@spmeesseman/type-utils");
+const { clone, isString, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 const { WpwAbstractFunctionError } = require("../utils/message");
 const { lowerCaseFirstChar, relativePath, findFilesSync } = require("../utils/utils");
@@ -30,7 +30,7 @@ class WpwBaseModule extends WpwBase
     build;
     /**
      * @protected
-     * @type {typedefs.WpwBuildOptionsConfig<any>}
+     * @type {typedefs.WpwBuildOptionsConfig<typedefs.WpwBuildOptionsKey>}
      */
     buildOptions;
     /**
@@ -89,7 +89,7 @@ class WpwBaseModule extends WpwBase
             this.buildOptions = options.buildOptions;
         }
         else {
-            this.buildOptions = clone(this.build.options[this.buildOptionsKey]);
+            this.buildOptions = clone(this.build.options[this.optionsKey]);
         }
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
 		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
@@ -97,8 +97,7 @@ class WpwBaseModule extends WpwBase
     }
 
 
-    get baseName() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, ""); }
-    get buildOptionsKey() { return /** @type {typedefs.WpwBuildOptionsKey} */(this.baseName.toLowerCase()); }
+    get optionsKey() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, "").toLowerCase(); }
     get cacheName() { return `${this.build.name}_${this.build.mode}_${this.build.wpc.target}`.toLowerCase(); }
 
 
@@ -109,6 +108,17 @@ class WpwBaseModule extends WpwBase
 	 * @throws {typedefs.WpwError}
      */
 	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }
+
+
+    /**
+     * Break property name into separate spaced words at each camel cased character
+     *
+     * @protected
+     * @param {string} prop
+     * @returns {string} string
+     */
+    breakProp(prop) { return prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
+                                 .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase(); }
 
 
     /**
@@ -154,7 +164,7 @@ class WpwBaseModule extends WpwBase
      */
     initGlobalCache()
     {
-        const baseProp = this.globalBaseProperty = lowerCaseFirstChar(this.baseName);
+        const baseProp = this.globalBaseProperty = this.optionsKey;
         if (!this.global[baseProp]) {
             this.global[baseProp] = {};
         }
@@ -162,6 +172,34 @@ class WpwBaseModule extends WpwBase
         this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.global[p]).forEach(
             (/** @type {string} */p) => { this.global[p] = {}; }
         );
+    }
+
+
+    /**
+     * @param {string | undefined} [key]
+     * @param {boolean | undefined} [objects]
+     * @param {boolean | undefined} [arrays]
+     */
+    logOptions(key, objects, arrays)
+    {
+        const logger = this.logger;
+        const _logProperty = (/** @type {string} */ key, /** @type {any} */ value) =>
+        {
+            if (isPrimitive(value)) {
+                logger.value(`   ${this.breakProp(key)}`, value, 1);
+            }
+            else if (arrays !== false && isArray(value)) {
+                logger.value(`   # of ${key}`, value.length, 1);
+                // logger.write(`   ${key}:`, 2);
+                // value.forEach((v) => logger.write(`   ${v}:`, 2));
+                logger.value(`   ${this.breakProp(key)}`, value, 2);
+            }
+            else if (objects !== false && isObject(value)) {
+                logger.value(`   ${this.breakProp(key)}`, value, 2);
+            }
+        };
+        logger.write("build options:", 1);
+        Object.entries(!key ? this.buildOptions : this.build.options[key]).forEach(([ key, value ]) => _logProperty(key, value));
     }
 
 
@@ -175,7 +213,7 @@ class WpwBaseModule extends WpwBase
         if (!options.build) {
             throw this.validationError("build");
         }
-        const key = this.buildOptionsKey;
+        const key = this.optionsKey;
         if (!key || (!this.pluginsNoOpts.includes(key) && !isWpwBuildOptionsKey(key)))
         {
             throw this.validationError("buildkey", `invalid option[key], '${key}' does not exist in build options`);

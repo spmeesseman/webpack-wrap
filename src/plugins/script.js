@@ -13,7 +13,7 @@ const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { apply, isString, isArray, asArray, isDirectory } = require("@spmeesseman/type-utils");
-const { existsAsync, findFiles, relativePath } = require("../utils");
+const { existsAsync, findFiles, relativePath, resolvePath } = require("../utils");
 
 
 /**
@@ -54,12 +54,9 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 	 */
     async executeScriptsBuild(_assets)
     {
-		this.logBuildInfo();
-
-        let numFilesProcessed = 0;
+		this.logScriptOptions();
         const build = this.build,
               logger = build.logger,
-              baseDir = build.getBasePath(),
               scripts = this.buildOptions.scripts;
         //
         // Execute scripts
@@ -77,83 +74,64 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
             }
         }
 
-        if (!codes.every(c => c === 0 || c === null))
-        {
-            const errorMap = scripts.reduce((p, c, i) => apply(p, { [relativePath(baseDir, c.path)]: codes[i] }, {}));
-            return build.addMessage({
-                code: WpwError.Code.ERROR_SCRIPT_FAILED,
-                compilation: this.compilation,
-                message: "script execution(s) exited with non-zero exit code(s)",
-                detail: "error map: " + JSON.stringify(errorMap)
-            });
+        //
+        // Check success on all script executions
+        //
+        if (!codes.every(c => c === 0)) {
+            logger.write("   one or more script executions failed, check log output for details", 1);
+            return;
         }
+        logger.write("   scripts execution successful", 1);
 
-        logger.write("   scripts execution successful", 2);
-
-        if (this.buildOptions.output)
-        {
-            for (const path of asArray(this.buildOptions.output))
-            {   //
-                // Ensure output file or directory exists
-                //
-                if (!(await existsAsync(path)))
-                {
-                    build.addMessage({
-                        code: WpwError.Code.ERROR_SCRIPT_FAILED,
-                        compilation: this.compilation,
-                        message: "scripts build failed - output path doesn't exist",
-                        detail: `configured output path: ${path}`
-                    });
-                    continue;
-                }
-                //
-                // Process output files
-                //
-                logger.write("   start process output files", 2);
-                const files = isDirectory(path) ? await findFiles("**/*.*", { cwd: path, absolute: true }) : [ path ];
-                for (const filePath of files)
-                {
-                    const data = await readFile(filePath),
-                        filePathRel = relative(path, filePath).replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
-                        source = new this.compiler.webpack.sources.RawSource(data);
-
-                    const info = /** @type {typedefs.WebpackAssetInfo} */({
-                        immutable: true,
-                        javascriptModule: false,
-                        script: true
-                    });
-
-                    logger.value("      emit asset", filePathRel, 4);
-                    this.compilation.emitAsset(filePathRel, source, info);
-                    ++numFilesProcessed;
-                }
-                logger.write(`   successfully processed bold(${numFilesProcessed}) of ${files.length} output files`, 2);
+        //
+        // Process output files
+        //
+        for (const path of asArray(this.buildOptions.output))
+        {   //
+            // Ensure output file or directory exists
+            //
+            if (!(await existsAsync(path)))
+            {
+                build.addMessage({
+                    code: WpwError.Code.ERROR_SCRIPT_FAILED,
+                    compilation: this.compilation,
+                    message: "scripts build failed - output path doesn't exist",
+                    detail: `configured output path: ${path}`
+                });
+                continue;
             }
-        }
-        else {
-            logger.write("   successfully processed script build (0 output files)", 2);
+            //
+            // Process output files
+            //
+            logger.write("   start process output files", 2);
+            const files = isDirectory(path) ? await findFiles("**/*.*", { cwd: path, absolute: true }) :
+                                              [ resolvePath(build.getContextPath(), path) ];
+            for (const file of files)
+            {
+                const data = await readFile(file),
+                      filePathRel = relativePath(path, file, { psx: true }), // .replace(/^.*?[\\\/][0-9]+\.[0-9]+\.[0-9]+[\\\/]/, ""),
+                      source = new this.compiler.webpack.sources.RawSource(data);
+                const info = /** @type {typedefs.WebpackAssetInfo} */(
+                {
+                    immutable: true,
+                    javascriptModule: false,
+                    script: true
+                });
+                logger.value("      emit asset", filePathRel, 4);
+                this.compilation.emitAsset(filePathRel, source, info);
+            }
+            logger.write(`   successfully processed bold(${files.length}) output files`, 2);
         }
     }
 
 
-    logBuildInfo()
+    logScriptOptions()
     {
-        const logger = this.logger;
-        logger.write("execute scripts build", 1);
-		logger.value("   mode", this.buildOptions.mode, 1);
-		logger.value("   # of scripts to execute", this.buildOptions.scripts.length, 1);
-		logger.write("   scripts:", 2);
-        this.buildOptions.scripts.forEach((script) => logger.write("      " + script, 2));
-        if (isString(this.buildOptions.output)) {
-		    logger.value("   output directory", this.buildOptions.output, 1);
-        }
-        else if (isArray(this.buildOptions.output)) {
-            logger.write("   output paths:", 2);
-            this.buildOptions.scripts.forEach((path) => logger.write("      " + path, 2));
-        }
-        else {
-            logger.value("   output directory", "n/a", 1);
-        }
+        this.logOptions("script", true, false);
+		this.logger.write("   script commands:", 2);
+        this.buildOptions.scripts.forEach((script) => {
+            this.logger.write(`      ${script.type} ${script.path}${script.args ? " " + script.args.join(" ") : ""}`, 2);
+        });
     }
 
 }

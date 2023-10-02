@@ -125,10 +125,10 @@ class WpwCleanPlugin extends WpwPlugin
 
 
 	/**
-     * @param {typedefs.WebpackCompilation} compilation
+     * @param {typedefs.WebpackCompilation} _compilation
 	 * @returns {Promise<void>}
      */
-	async buildCaches(compilation)
+	async buildCaches(_compilation)
 	{
 		const compilerOptions = this.build.source.config.compilerOptions,
 			  buildInfoFile = compilerOptions.tsBuildInfoFile;
@@ -143,7 +143,7 @@ class WpwCleanPlugin extends WpwPlugin
 			await Promise.all([
 				WpwBuildOptionsKeys
 				.filter((p => !!buildOptions[p]))
-				.map(p => join(this.global.cacheDir, this.cacheFilename(this.build.mode, p)))
+				.map(p => join(this.global.cacheDir, this.cacheFilename(p)))
 				.filter(path => existsSync(path))
 				.map(path => unlink(path))
 			]);

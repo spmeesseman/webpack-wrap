@@ -292,7 +292,8 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
             //     this.cache.set(persistedCache);
             // }
 
-            const info = /** @type {typedefs.WebpackAssetInfo} */({
+            const info = /** @type {typedefs.WebpackAssetInfo} */(
+            {
                 // contenthash: newHash,
                 immutable: true, // true // newHash === persistedCache[filePathRel],
                 javascriptModule: false,

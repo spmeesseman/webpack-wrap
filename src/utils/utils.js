@@ -16,9 +16,10 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, isDirectory, merge, apply, pushUniq, applyIf } = require("@spmeesseman/type-utils");
+const { asArray, isDirectory, apply, pushUniq } = require("@spmeesseman/type-utils");
 
 const globOptions = {
+    dot: true,
     ignore: [ "**/node_modules/**", "**/.vscode*/**", "**/build/**", "**/dist/**", "**/res*/**", "**/doc*/**" ]
 };
 

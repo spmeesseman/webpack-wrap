@@ -110,7 +110,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			      isBundleEnabled = bundleOptions === true || bundleOptionsIsCfg;
 			if (isBundleEnabled && bundleOptionsIsCfg && bundleOptions.bundler === "dts-bundle")
 			{
-				await dtsBundle(this.build, this.compilation, this.buildOptionsKey);
+				await dtsBundle(this.build, this.compilation, this.optionsKey);
 			}
 			else {
 				await this.emit();
@@ -197,11 +197,12 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		const files = await findFiles("**/*.d.ts", { cwd: this.buildPathTemp, absolute: true });
 		for (const file of files)
 		{
-			const assetPath = relativePath(this.buildPathTemp, file),
+			const assetPath = relativePath(this.buildPathTemp, file, { psx: true }),
 				  dirPathRealAbs = dirname(file),
 				  data = await readFile(file),
 				  source = new this.compiler.webpack.sources.RawSource(data);
-			const info = /** @type {typedefs.WebpackAssetInfo} */({
+			const info = /** @type {typedefs.WebpackAssetInfo} */(
+			{
 				immutable: false,
 				javascriptModule: false,
 				types: true

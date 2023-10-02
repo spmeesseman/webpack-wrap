@@ -2336,7 +2336,7 @@
                     "$ref": "#/definitions/WpwPluginConfigRunScriptsMode"
                 },
                 "output": {
-                    "description": "directory or directories where output files from scripts build can be found, or alternatively, the specific output file path(s)",
+                    "description": "directory or directories where output files from scripts build can be found, or alternatively, the specific output file path(s). note that this location(s) should be a temp build directory as all output files will be emitted to the 'dist' directory",
                     "oneOf": [{
                         "$ref": "#/definitions/FileOrDirectoryPath"
                     },

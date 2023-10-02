@@ -78,7 +78,8 @@
                     "output": "examples",
                     "scripts": [{
                         "type": "node",
-                        "path": "script/create-examples.js"
+                        "path": "script/create-examples.js",
+                        "args": [ "--quiet" ]
                     }]
                 }
             }
@@ -98,11 +99,13 @@
                     ],
                     "scripts": [{
                         "type": "node",
-                        "path": "script/generate-rc-types.js"
+                        "path": "script/generate-rc-types.js",
+                        "args": [ "--quiet" ]
                     },
                     {
                         "type": "node",
-                        "path": "script/upload-rc-schema.js"
+                        "path": "script/upload-rc-schema.js",
+                        "args": [ "--quiet" ]
                     }]
                 }
             }

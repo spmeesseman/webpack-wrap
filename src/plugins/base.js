@@ -98,8 +98,7 @@ class WpwPlugin extends WpwBaseModule
         super(options);
         apply(this, {
             plugins: [],
-            stats: { hooksProcessed: 0, hookCount: 0 },
-            cache: new WpwCache(this.build, this.cacheFilename(this.build.mode, this.baseName))
+            cache: new WpwCache(this.build, this.cacheFilename())
         });
     }
 
@@ -110,7 +109,10 @@ class WpwPlugin extends WpwBaseModule
 	 * @param {WpwError | typedefs.WebpackError | Error | undefined} [error]
 	 * @throws {WpwError}
 	 */
-	addError(message, error) { this.build.addMessage({ code: WpwError.Code.ERROR_PLUGIN_FAILED, message, compilation: this.compilation, error }); }
+	addError(message, error)
+    {
+        this.build.addMessage({ code: WpwError.Code.ERROR_PLUGIN_FAILED, message, compilation: this.compilation, error });
+    }
 
 
     /**
@@ -185,24 +187,12 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Break property name into separate spaced words at each camel cased character
-     *
-     * @private
-     * @param {string} prop
-     * @returns {string} string
-     */
-    breakProp(prop) { return prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
-                                 .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase(); }
-
-
-    /**
      * Wpw plugin cache  name ("not" webpack cache)
      *
      * @protected
-     * @param {string} mode
-     * @param {string} name
+     * @param {string} [key]
      */
-    cacheFilename(mode, name) { return `plugincache_${mode}_${name}.json`; }
+    cacheFilename(key) { return `plugincache_${this.build.mode}_${key || this.optionsKey}.json`; }
 
 
     /**
@@ -643,13 +633,13 @@ class WpwPlugin extends WpwBaseModule
      * @template {WpwPlugin} T
      * @param {typedefs.WpwPluginConstructor<T>} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper
-     * @param {typedefs.WpwBuildOptionsKey} buildOptionsKey
+     * @param {typedefs.WpwBuildOptionsKey} optionsKey
      * @param {typedefs.WpwModuleOptionsValidationArgs | typedefs.WpwModuleOptionsValidationArgs[]} [validation]
      * @returns {T | undefined} T | undefined
      */
-    static wrap(clsType, build, buildOptionsKey, validation)
+    static wrap(clsType, build, optionsKey, validation)
     {
-        const buildOptions = build.options[buildOptionsKey],
+        const buildOptions = build.options[optionsKey],
               enabled = buildOptions && buildOptions.enabled !== false;
         if (enabled && asArray(validation).every(o => isFunction(o) ? o(build) : buildOptions[o[0]] === o[1]))
         {

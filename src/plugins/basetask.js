@@ -63,22 +63,22 @@ class WpwBaseTaskPlugin extends WpwPlugin
      */
     onApply()
     {
-		const taskOwner = capitalize(this.buildOptionsKey);
+		const taskOwner = capitalize(this.optionsKey);
 		return applyIf(
         {
-			[`startBuildFor${taskOwner}`]: {
+			[`execute${taskOwner}Build`]: {
 				async: true,
                 hook: "compilation",
 				stage: "ADDITIONAL",
-				statsProperty: this.buildOptionsKey,
+				statsProperty: this.optionsKey,
                 callback: this.buildTask.bind(this)
             },
-			[`startCleanupFor${taskOwner}`]: {
+			[`execute${taskOwner}Cleanup`]: {
 				async: true,
 				hook: "done",
 				callback: this.cleanTask.bind(this)
 			},
-			[`injectVirtualEntryFileFor${taskOwner}`]: {
+			[`inject${taskOwner}VirtualEntryFileFor`]: {
 				async: true,
 				hook: "beforeRun",
 				callback: this.injectVirtualEntryFile.bind(this)
