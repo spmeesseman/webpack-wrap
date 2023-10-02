@@ -8,7 +8,6 @@ const { isObject } = require("@spmeesseman/type-utils");
 /**
  * @file src/plugins/analyze/analyzer.js
  * @version 0.0.1
- * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */

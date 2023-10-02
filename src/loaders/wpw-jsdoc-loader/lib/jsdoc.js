@@ -3,7 +3,6 @@
 /**
  * @file src/loaders/wpw-jsdoc-loader/lib/jsdoc.js
  * @version 0.0.1
- * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *

@@ -9,7 +9,6 @@
  * !!!   - run a plink command manually to generate and trust the fingerprints:
  * !!!       plink -ssh -batch -pw <PWD> smeesseman@app1.spmeesseman.com "echo hello"
  * @version 0.0.1
- * @license MIT
  * @copyright Scott P Meesseman 2023
  * @author Scott Meesseman @spmeesseman
  *//** */
