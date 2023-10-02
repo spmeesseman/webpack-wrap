@@ -1,5 +1,5 @@
 {
-    "$schema": "https://app1.spmeesseman.com/res/app/webpack-wrap/v0.0.1/schema/spm.schema.wpw.json",
+    "$schema": "./schema/spm.schema.wpw.json",
     "builds": [{
         "name": "webpack-wrap",
         "target": "node",
