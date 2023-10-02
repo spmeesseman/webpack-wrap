@@ -78,7 +78,7 @@ class WpwBaseTaskPlugin extends WpwPlugin
 				hook: "done",
 				callback: this.cleanTask.bind(this)
 			},
-			[`inject${taskOwner}VirtualEntryFileFor`]: {
+			[`inject${taskOwner}VirtualEntryFile`]: {
 				async: true,
 				hook: "beforeRun",
 				callback: this.injectVirtualEntryFile.bind(this)

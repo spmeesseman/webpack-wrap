@@ -74,16 +74,19 @@ class WpwLogger
                 this.colors[c][1] = this.colorMap[this.options.colors.default];
             });
         }
-        WpwLogger.stdConsole = WpwLogger.stdConsole || console.log;
-        console.log = (/** @type {string} */ msg, /** @type {any} */ ...args) =>
+        if (!WpwLogger.stdConsole)
         {
-            if (args[0] !== ("internal")) {
-                this.write(msg, undefined, "", null, null, false, WEBPACK);
-            }
-            else {
-                WpwLogger.stdConsole.apply(console, [ msg, ...args.slice(1) ]);
-            }
-        };
+            WpwLogger.stdConsole = console.log;
+            console.log = (/** @type {string} */ msg, /** @type {any} */ ...args) =>
+            {
+                if (args[0] !== ("internal")) {
+                    this.write(msg, undefined, "", null, null, false, WEBPACK);
+                }
+                else {
+                    WpwLogger.stdConsole.apply(console, [ msg, ...args.slice(1) ]);
+                }
+            };
+        }
     }
 
 
@@ -361,11 +364,12 @@ class WpwLogger
 
 
     /**
-     * Wrapper function for {@link write write()} to interface the wp infrastructure logger
+     * Wrapper function for {@link write write()} to intercept raw console.log calls from webpack
      * @see exports/stats.js Do not call internally.
      * @param {string} msg
+     * @param {...any} args
      */
-    log(msg) { this.write(msg, undefined, "", null, null, false, "webpack"); }
+    log(msg, ...args) { this.write(msg, undefined, "", null, null, false, args && args[0] === "internal" ? undefined : "webpack"); }
 
 
     /**

@@ -61,12 +61,12 @@ async function taskLoader(source, map, meta)
     // const options = this.getOptions(),
     //         identifier = 3;
     const resourcePath = forwardSlash(urlToRequest(this.resourcePath));
-    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "jsdoc", level: 5 });
+    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "task", level: 5 });
     logger.write("process loader request", 3);
     logger.value("   path", resourcePath, 3);
 
     const options = this.getOptions();
-    validate(schema, options, { name: "JsDoc Loader", baseDataPath: "options" });
+    validate(schema, options, { name: "Task Build Loader", baseDataPath: "options" });
 
     // this.clearDependencies();
     // const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });

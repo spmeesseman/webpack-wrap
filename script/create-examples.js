@@ -20,25 +20,6 @@ const { readFile, writeFile, mkdir } = require("fs/promises");
 /** @type {WpwLogger | undefined} */
 let logger;
 
-const exampleRootDir = resolve(__dirname, "../examples");
-const exampleDirs = [
-    resolve(exampleRootDir, "jsdoc"),
-    resolve(exampleRootDir, "webpack"),
-    resolve(exampleRootDir, "wpwrc")
-];
-
-const wpwrcWpwInput = resolve(__dirname, "../.wpwrc.json");
-const wpwrcWpwOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.basic.json");
-
-const vscodeTeInput = resolve(__dirname, "../../../vscode-taskexplorer/.wpwrc.json");
-const vscodeTeOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.vscode.json");
-
-const jsdocWpwInput = resolve(__dirname, "../.jsdoc.json");
-const jsdocWpwOutput = resolve(exampleRootDir, "jsdoc/.jsdoc.wpwrc.json");
-
-const webpackConfigInput = resolve(__dirname, "../webpack.config.js");
-const webpackConfigOutput = resolve(exampleRootDir, "webpack/webpack.config.js");
-
 //
 // Command line runtime wrapper
 //
@@ -54,8 +35,36 @@ cliWrap(async(argv) =>
         logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "examples" });
         logger.printBanner("create-examples.js", "0.0.1", "generating webpack-wrap example files");
     }
+
+    let exampleRootDir = resolve(__dirname, "../examples");
+    const outputDirIdx = argv.findIndex(a => a === "--output");
+    if (outputDirIdx !== -1) {
+        exampleRootDir = resolve(__dirname, `../${argv[outputDirIdx + 1]}`);
+    }
+    else {
+        exampleRootDir = resolve(__dirname, "../examples");
+    }
+
+    const exampleDirs = [
+        resolve(exampleRootDir, "jsdoc"),
+        resolve(exampleRootDir, "webpack"),
+        resolve(exampleRootDir, "wpwrc")
+    ];
+
+    const wpwrcWpwInput = resolve(__dirname, "../.wpwrc.json");
+    const wpwrcWpwOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.basic.json");
+
+    const vscodeTeInput = resolve(__dirname, "../../../vscode-taskexplorer/.wpwrc.json");
+    const vscodeTeOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.vscode.json");
+
+    const jsdocWpwInput = resolve(__dirname, "../.jsdoc.json");
+    const jsdocWpwOutput = resolve(exampleRootDir, "jsdoc/.jsdoc.wpwrc.json");
+
+    const webpackConfigInput = resolve(__dirname, "../webpack.config.js");
+    const webpackConfigOutput = resolve(exampleRootDir, "webpack/webpack.config.js");
+
     //
-    // CREATE DIRS FOR NEW PROJECT CHECK-OUTS / CLONES
+    // CREATE ALL OUTPUT DIRS IF NOT ALREADY EXIST
     //
     try { await mkdir(exampleRootDir, { recursive: true }); } catch {}
     for (const d of exampleDirs) {

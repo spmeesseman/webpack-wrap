@@ -121,7 +121,7 @@ const execAsync = async (options) =>
             {
                 const msgHasError = WpwRegex.MessageContainsError.test(m);
                 if (logger && (options.stdout || msgHasError)) {
-                    logger.log(`${logPad}${hdr} ${logger.withColor(m, logger.colors.grey)}`);
+                    logger.log(`${logPad}${hdr} ${logger.withColor(m, logger.colors.grey)}`, "internal");
                 }
                 if (msgHasError) { pushUniq(errors, m); }
             });
@@ -135,7 +135,7 @@ const execAsync = async (options) =>
     {
         if (logger) {
             const clrCode = logger.withColor(code?.toString(), code === 0 ? logger.colors.green : logger.colors.red);
-            logger.log(`${logPad}${program} returned exit code bold(${clrCode})`);
+            logger.log(`${logPad}${program} returned exit code bold(${clrCode})`, "internal");
         }
         exitCode = code;
         _out("stdout", stdout);
