@@ -11,10 +11,11 @@
 const { validate } = require("schema-utils");
 const { urlToRequest } = require("loader-utils");
 const typedefs = require("../../../types/typedefs");
-const WpwLogger = require("../../../utils/console");
-const { forwardSlash, findFiles } = require("../../../utils/utils");
+const { asArray, isDirectory } = require("@spmeesseman/type-utils");
+const { forwardSlash, findFiles, resolvePath, relativePath } = require("../../../utils/utils");
+const { dirname, resolve } = require("path");
 
-/** @type {WpwLogger} */
+/** @type {typedefs.WebpackLogger} */
 let logger;
 
 
@@ -55,25 +56,61 @@ const schema = {
 };
 
 
-async function taskLoader(source, map, meta)
+/**
+ * @param {typedefs.WebpackLoaderContext} context
+ * @param {string} source
+ * @param {any} map
+ * @param {any} meta
+ * @returns {Promise<[ string, any, any ]>}
+ */
+async function taskLoader(context, source, map, meta)
 {
+
     // let data = source, hash, newHash, cacheEntry, persistedCache;
     // const options = this.getOptions(),
     //         identifier = 3;
     const resourcePath = forwardSlash(urlToRequest(this.resourcePath));
-    logger = logger || new WpwLogger({ envTag1: "loader", envTag2: "task", level: 5 });
-    logger.write("process loader request", 3);
-    logger.value("   path", resourcePath, 3);
+    logger = context.getLogger(); /* logger || new WpwLogger(
+    {
+        envTag1: "loader",
+        envTag2: "task",
+        level: 5,
+        color: "white",
+        colors: {
+            default: "grey", buildBracket: "white", buildText: "yellow"
+        }
+    });*/
+    logger.log("process loader request");
+    logger.log("   path: " + resourcePath);
 
-    const options = this.getOptions();
+    const options = context.getOptions();
     validate(schema, options, { name: "Task Build Loader", baseDataPath: "options" });
 
-    // this.clearDependencies();
-    // const files = await findFiles(`**/*${options.ext}`, { absolute: true, cwd: options.inputDir });
-    // for (const file of files) {
-    //     this.addDependency(file);
-    //     logger.value("   add dependency", file, 5);
-    // }
+    // context.clearDependencies();
+    if (options.config.scripts)
+    {
+        for (const script of options.config.scripts)
+        {
+            for (const path of asArray(script.input))
+            {
+                let files;
+                if (isDirectory(path)) {
+                    files = await findFiles("**/*.*", { absolute: false, cwd: this.rootContext });
+                }
+                else {
+                    files = [ relativePath(this.rootContext, path, { psx: true }) ];
+                }
+                for (const file of files) {
+                    const absFile = resolve(this.rootContext, file);
+                    context.addDependency(absFile);
+                    context.addBuildDependency(absFile);
+                    context.addContextDependency(dirname(absFile));
+                    context._compilation?.fileDependencies.add(file);
+                    logger.log("   add dependency " + file);
+                }
+            };
+        }
+    }
 
     return [ source, map, meta ];
 

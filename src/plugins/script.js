@@ -12,7 +12,7 @@ const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { apply, isString, isArray, asArray, isDirectory } = require("@spmeesseman/type-utils");
+const { apply, isString, isArray, asArray, isDirectory, pushReturn } = require("@spmeesseman/type-utils");
 const { existsAsync, findFiles, relativePath, resolvePath } = require("../utils");
 
 
@@ -86,7 +86,8 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
         //
         // Process output files
         //
-        for (const path of asArray(this.buildOptions.output))
+        const outputFiles = asArray(this.buildOptions.scripts.map(s => asArray(s.output)).reduce((p, c) => pushReturn(p, ...c), []));
+        for (const path of outputFiles)
         {   //
             // Ensure output file or directory exists
             //

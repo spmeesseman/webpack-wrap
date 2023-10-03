@@ -7,11 +7,13 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+const { existsSync } = require("fs");
 const { join, resolve } = require("path");
 const WpwWebpackExport = require("./base");
+const { resolvePath } = require("../utils");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { apply, isFunction, WpwError, pushUniq, isArray, asArray, resolvePath} = require("../utils");
-const { existsSync } = require("fs");
+const { apply, isFunction, pushUniq, isArray, asArray} = require("@spmeesseman/type-utils");
 
 
 /**

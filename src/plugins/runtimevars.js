@@ -9,8 +9,9 @@
  *//** */
 
 const WpwPlugin = require("./base");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { isString, apply, isObjectEmpty, merge, WpwError } = require("../utils");
+const { isString, apply, isObjectEmpty, merge } = require("@spmeesseman/type-utils");
 
 
 /**

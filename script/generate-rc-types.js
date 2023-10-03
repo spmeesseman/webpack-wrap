@@ -394,10 +394,11 @@ const wpwreplace =
     removeComments: (data) => data.replace(/\/\*\*(?:[^]*?)\*\//g, "").replace(/\/\* eslint\-disable \*\/$/gm, ""),
     removeOrFormatNumberedDupTypes: (data) =>
     {
-        return data.replace(/\& (?:[A-Za-z]*?)1;\n/g, ";")
-                   .replace(/export type (?:.*?)[0-9] = (?:.*?);\n\n/g, "")
-                   .replace(/export type Wpw(?:.*?)[0-9] = (?:[^]*?)["a-z];\n\n/g, "")
-                   .replace(/(.*?): Wpw(.*?)[0-9];\n/g, (_, m1, m2) => `${m1}: Wpw${m2};\n`);
+        return data.replace(/\& (?:[A-Za-z]*?)[1-9];\n/g, ";")
+                   .replace(/[1-9] \| (.*?)[1-9]\[\];\n/g,  (_, m) => ` | ${m}[];\n`)
+                   .replace(/export type (?:.*?)[1-9] = (?:.*?);\n\n/g, "")
+                   .replace(/export type Wpw(?:.*?)[1-9] = (?:[^]*?)["a-z];\n\n/g, "")
+                   .replace(/(.*?): Wpw(.*?)[1-9](\[\]|);\n/g, (_, m1, m2, m3) => `${m1}: Wpw${m2}${m3};\n`);
     },
     removeZeroLengthConstraints: (data) => data.replace(/: \[\]/g, ": string[]"),
     replaceBooleanTypedefs: (data) =>

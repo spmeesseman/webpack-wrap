@@ -2,9 +2,9 @@
 
 const WpwRegex = require("../utils/regex");
 const WpwWebpackExport = require("./base");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { apply, isString, isFunction } = require("@spmeesseman/type-utils");
-const { WpwError } = require("../utils/message");
 
 /**
  * @file src/exports/output.js

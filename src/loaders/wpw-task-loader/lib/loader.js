@@ -4,7 +4,7 @@ const wpwLoader = require("./task");
 function loaderAsync(source, map, meta)
 {
     const callback = this.async();
-	wpwLoader.call(this, source, map, meta)
+	wpwLoader.call(this, this, source, map, meta)
     .then(
         (args) => callback(null, ...args),
         (err) => callback(err)
@@ -14,7 +14,7 @@ function loaderAsync(source, map, meta)
 function loader (source, map, meta)
 {
     this.cacheable();
-    this.callback(null, wpwLoader.call(this, source, map, meta), map);
+    this.callback(null, wpwLoader.call(this, this, source, map, meta), map);
 }
 
 

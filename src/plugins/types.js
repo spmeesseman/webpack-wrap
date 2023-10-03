@@ -12,11 +12,12 @@
 const { existsSync } = require("fs");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const dtsBundle = require("../utils/dtsbundle");
 const WpwBaseTaskPlugin = require("./basetask");
 const { resolve, join, dirname } = require("path");
 const { rm, unlink, readFile, access } = require("fs/promises");
 const { apply, isObject, clone } = require("@spmeesseman/type-utils");
-const { dtsBundle, findFiles, relativePath, resolvePath } = require("../utils");
+const { findFiles, relativePath, resolvePath } = require("../utils");
 
 
 /**

@@ -11,11 +11,11 @@
 const WpwPlugin = require("./base");
 const { resolve } = require("path");
 const { existsSync } = require("fs");
-const typedefs = require("../types/typedefs");
-const { dtsBundle, merge, isString, findFiles } = require("../utils");
-const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const { unlink } = require("fs/promises");
-const { config } = require("process");
+const typedefs = require("../types/typedefs");
+const dtsBundle = require("../utils/dtsbundle");
+const { merge, isString, findFiles } = require("../utils");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 
 /**

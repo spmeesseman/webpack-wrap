@@ -13,14 +13,15 @@ const os = require("os");
 const JSON5 = require("json5");
 const WpwBase = require("./base");
 const WpwBuild = require("./build");
+const { resolvePath } = require("../utils");
+const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const WpwLogger = require("../utils/console");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
 const { validateSchema, getSchemaVersion, applySchemaDefaults } = require("../utils/schema");
-const {
-    WpwError, apply, pick, isString, merge,asArray, isObject, WpwLogger, applyIf, resolvePath, pickNot
-} = require("../utils");
+const { apply, pick, isString, merge, asArray, isObject, applyIf, pickNot } = require("@spmeesseman/type-utils");
 
 
 /**

@@ -23,6 +23,8 @@ type WpwLogColorValue = 0 | 1 | 3 | 4 | 7 | 22 | 23 | 24 | 27 | 31 | 32 | 33 | 3
 
 type WpwLogColorMapping = [ WpwLogColorValue, WpwLogColorValue ];
 
+type WpwLogColorExtMapping = [ number, number, number ];
+
 type WpwLogIconString = `${string}`;
 // type WpwLogIconString2 = `${string}${keyof WpwLoggerIconBaseSet}${string}`;
 
@@ -63,6 +65,7 @@ export {
     WpwLoggerIconColorSet,
     WpwLogColor,
     WpwLogColorMapping,
+    WpwLogColorExtMapping,
     WpwLogColorValue,
     WpwLoggerIcon,
     WpwLoggerIconSet,

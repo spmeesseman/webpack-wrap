@@ -15,7 +15,7 @@
 
 const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
-const { WpwRegex } = require("../utils");
+const WpwRegex = require("../utils/regex");
 const { join, basename } = require("path");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");

@@ -11,10 +11,10 @@
 const WpwBase = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
-const { clone, isString, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 const { WpwAbstractFunctionError } = require("../utils/message");
 const { lowerCaseFirstChar, relativePath, findFilesSync } = require("../utils/utils");
+const { clone, isString, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -186,7 +186,9 @@ class WpwBaseModule extends WpwBase
         const _logProperty = (/** @type {string} */ key, /** @type {any} */ value) =>
         {
             if (isPrimitive(value)) {
-                logger.value(`   ${this.breakProp(key)}`, value, 1);
+                if (key !== "enabled") {
+                    logger.value(`   ${this.breakProp(key)}`, value, 1);
+                }
             }
             else if (arrays !== false && isArray(value)) {
                 logger.value(`   # of ${key}`, value.length, 1);
