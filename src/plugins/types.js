@@ -92,7 +92,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		}
 		else if (method === "tsc")
 		{
-			rc = await this.execTsBuild(source.configFile, this.configToArgs(options), this.buildPathTemp);
+			rc = await this.execTsBuild(source.configFile, this.configToArgs(options), this.virtualBuildPath);
 		}
 		else
 		{   build.addMessage({
@@ -153,7 +153,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 			  //        if separate, use buildinfofile specified in config file
 			  //
 			  tsBuildInfoFile = resolve(basePath, "./node_modules/.cache/wpwrap/tsconfig.types.tsbuildinfo"),
-			  declarationDir = this.buildPathTemp;
+			  declarationDir = this.virtualBuildPath;
 
 		/** @type {typedefs.WpwSourceConfigCompilerOptions} */
 		const programOptions = {
@@ -195,10 +195,10 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 	 */
 	async emit()
 	{
-		const files = await findFiles("**/*.d.ts", { cwd: this.buildPathTemp, absolute: true });
+		const files = await findFiles("**/*.d.ts", { cwd: this.virtualBuildPath, absolute: true });
 		for (const file of files)
 		{
-			const assetPath = relativePath(this.buildPathTemp, file, { psx: true }),
+			const assetPath = relativePath(this.virtualBuildPath, file, { psx: true }),
 				  dirPathRealAbs = dirname(file),
 				  data = await readFile(file),
 				  source = new this.compiler.webpack.sources.RawSource(data);

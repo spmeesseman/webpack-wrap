@@ -34,11 +34,6 @@ const { applyIf, isFunction, isPromise, isString } = require("@spmeesseman/type-
  */
 class WpwBaseTaskPlugin extends WpwPlugin
 {
-	/**
-	 * @protected
-	 * @type {string}
-	 */
-	buildPathTemp;
     /**
      * @override
 	 * @protected
@@ -54,7 +49,6 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	{
 		super(options);
 		this.validateBaseTaskOptions();
-		this.buildPathTemp = join(this.build.getTempPath(), this.build.type, "virtual");
 	}
 
 
@@ -73,11 +67,11 @@ class WpwBaseTaskPlugin extends WpwPlugin
 				statsProperty: this.optionsKey,
                 callback: this.buildTask.bind(this)
             },
-			[`execute${taskOwner}Cleanup`]: {
-				async: true,
-				hook: "done",
-				callback: this.cleanTask.bind(this)
-			},
+			// [`execute${taskOwner}Cleanup`]: {
+			// 	async: true,
+			// 	hook: "done",
+			// 	callback: this.cleanTask.bind(this)
+			// },
 			[`inject${taskOwner}VirtualEntryFile`]: {
 				async: true,
 				hook: "beforeRun",
@@ -99,30 +93,30 @@ class WpwBaseTaskPlugin extends WpwPlugin
 		}
 		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
 		if (virtualEntryFile) {
-			this.logger.write(`   delete virtual entry asset '${virtualEntryFile}' from compilation`, 3);
+			this.logger.write(`   remove virtual entry file '${virtualEntryFile}' from compilation assets`, 3);
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
 		const realEntryFiles = Object.keys(assets).filter(f => (/entry[0-9](?:.*?)\.js/).test(f));
 		realEntryFiles.forEach((realEntryFile) => {
-			this.logger.write(`   delete entry asset '${realEntryFile}' from compilation`, 3);
+			this.logger.write(`   remove entry file '${realEntryFile}' from compilation assets`, 3);
 			this.compilation.deleteAsset(realEntryFile);
 		});
 	};
 
 
-	/**
-	 * @private
-	 * @param {typedefs.WebpackStats} _stats
-	 */
-	async cleanTask(_stats)
-	{
-		if (await existsAsync(this.virtualFilePath)) {
-			await unlink(this.virtualFilePath);
-		}
-		if (await existsAsync(this.buildPathTemp)) {
-			await rm(this.buildPathTemp, { recursive: true, force: true });
-		}
-	};
+	// /**
+	//  * @private
+	//  * @param {typedefs.WebpackStats} _stats
+	//  */
+	// async cleanTask(_stats)
+	// {
+	// 	if (await existsAsync(this.virtualFilePath)) {
+	// 		await unlink(this.virtualFilePath);
+	// 	}
+	// 	if (await existsAsync(this.buildPathTemp)) {
+	// 		await rm(this.buildPathTemp, { recursive: true, force: true });
+	// 	}
+	// };
 
 
 	/**
@@ -131,9 +125,12 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	 */
 	async injectVirtualEntryFile(_compiler)
 	{
-		const dummyCode = "console.log('dummy source');",
-			  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
-        await writeFile(this.virtualFilePath, source);
+		if (!(await existsAsync(this.virtualFilePath)))
+		{
+			const dummyCode = "console.log('dummy source');",
+				  source = `export default () => { ${JSON.stringify(dummyCode)}; }`;
+        	await writeFile(this.virtualFilePath, source);
+		}
 	}
 
 

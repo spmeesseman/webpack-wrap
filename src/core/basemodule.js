@@ -15,6 +15,9 @@ const { isWpwBuildOptionsKey } = require("../types/constants");
 const { WpwAbstractFunctionError } = require("../utils/message");
 const { lowerCaseFirstChar, relativePath, findFilesSync } = require("../utils/utils");
 const { clone, isString, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
+const { join } = require("path");
+const { mkdir } = require("fs");
+const { mkdirSync } = require("fs");
 
 
 /**
@@ -52,6 +55,16 @@ class WpwBaseModule extends WpwBase
      * @type {string[]}
      */
     pluginsNoOpts = [ "dispose", "sourcemaps" ];
+	/**
+	 * @protected
+	 * @type {string}
+	 */
+	virtualBuildPath;
+	/**
+	 * @protected
+	 * @type {string}
+	 */
+	virtualDirPath;
     /**
      * @protected
      * @type {string}
@@ -92,8 +105,11 @@ class WpwBaseModule extends WpwBase
             this.buildOptions = clone(this.build.options[this.optionsKey]);
         }
 		this.virtualFile = `${this.build.name}${this.build.source.dotext}`;
-		this.virtualFilePath = `${this.build.global.cacheDir}/${this.virtualFile}`;
+        this.virtualDirPath = join(this.build.global.cacheDir, this.build.name, `${this.build.target}-${this.build.mode}`);
+        this.virtualBuildPath = join(this.virtualDirPath, "build");
+		this.virtualFilePath = join(this.virtualDirPath, this.virtualFile);
         this.virtualFileRelPath = relativePath(this.build.getContextPath(), this.virtualFilePath);
+        try { mkdirSync(this.virtualBuildPath, { recursive: true }); } catch{}
     }
 
 

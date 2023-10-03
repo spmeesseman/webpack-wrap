@@ -192,22 +192,6 @@ class WpwRulesExport extends WpwWebpackExport
 		{
 			build.logger.write(`   create rules for build '${build.name}' [ type: ${build.type} ]`, 2);
 			this[build.type]();
-			// if (build.logger.level >= 3)
-			// {
-			// 	build.wpc.module.rules.push({
-			// 		include: this.build.getSrcPath(),
-			// 		exclude: getExcludes(build),
-			// 		test: (path) => {
-			// 			console.log(path);
-			// 			return false; // (/\.(j|t)sx?$/).test(path);
-			// 		},
-			// 		// loader: resolve(__dirname, "../loaders/dts.js"),
-			// 		// loader: "wpw-logrequest-loader",
-			// 		// options: {
-			// 		// 	inputDir: build.getSrcPath()
-			// 		// }
-			// 	});
-			// }
 		}
 		else {
 			this.build.addMessage({ code: WpwError.Code.ERROR_SHITTY_PROGRAMMER, message: `exports.rules.build[${build.type}]` });
@@ -253,30 +237,6 @@ class WpwRulesExport extends WpwWebpackExport
 	 * @throws {WpwError}
 	 */
 	jsdoc() { this.task(this.build.options.jsdoc); }
-	// jsdoc()
-	// {
-	// 	const build = this.build,
-	// 		  jsdocConfig = this.build.options.jsdoc;
-	//
-	// 	if (jsdocConfig && jsdocConfig.enabled !== false)
-	// 	{
-	// 		build.logger.write(`   add rule for virtual entry file '${this.virtualFile}'`, 2);
-	// 		build.wpc.module.rules.push(
-	// 		{
-	// 			loader: "wpw-jsdoc-loader",
-	// 			include: this.build.global.cacheDir,
-	// 			test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
-	// 			options: {
-	// 				entry: build.entry,
-	// 				config: jsdocConfig,
-	// 				ext: build.source.dotext,
-	// 				outDir: build.getDistPath(),
-	// 				inputDir: build.getSrcPath(),
-	// 				virtualFile: this.virtualFilePath
-	// 			}
-	// 		});
-	// 	}
-	// }
 
 
 	/**
@@ -417,7 +377,7 @@ class WpwRulesExport extends WpwWebpackExport
 			build.wpc.module.rules.push(
 			{
 				loader: "wpw-task-loader",
-				include: this.build.global.cacheDir,
+				include: this.virtualDirPath,
 				test: new RegExp(`[\\\\\\/]${this.virtualFile}$`),
 				options: {
 					config,

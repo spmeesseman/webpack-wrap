@@ -72,6 +72,9 @@
             "log": {
                 "color": "blue"
             },
+            "paths": {
+                "dist": "dist/examples"
+            },
             "options": {
                 "script": {
                     "mode": "synchronous",
