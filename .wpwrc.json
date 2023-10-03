@@ -75,11 +75,16 @@
             "options": {
                 "script": {
                     "mode": "synchronous",
-                    "output": "examples",
                     "scripts": [{
                         "type": "node",
+                        "output": "examples",
                         "path": "script/create-examples.js",
-                        "args": [ "--quiet" ]
+                        "args": [ "--quiet" ],
+                        "input": [
+                            ".wpcrc.json",
+                            "webpack.config",
+                            "../../vscode-taskexplorer/.wpcrc.json"
+                        ]
                     }]
                 }
             }
@@ -93,14 +98,14 @@
             "options": {
                 "script": {
                     "mode": "parallel",
-                    "output": [
-                        "src/types/rc.ts",
-                        "src/types/constants.js"
-                    ],
                     "scripts": [{
                         "type": "node",
                         "path": "script/generate-rc-types.js",
-                        "args": [ "--quiet" ]
+                        "args": [ "--quiet" ],
+                        "output": [
+                            "src/types/rc.ts",
+                            "src/types/constants.js"
+                        ]
                     },
                     {
                         "type": "node",
