@@ -47,21 +47,10 @@ cliWrap(async(argv) =>
 
     const exampleDirs = [
         resolve(exampleRootDir, "jsdoc"),
+        resolve(exampleRootDir, "plugin"),
         resolve(exampleRootDir, "webpack"),
         resolve(exampleRootDir, "wpwrc")
     ];
-
-    const wpwrcWpwInput = resolve(__dirname, "../.wpwrc.json");
-    const wpwrcWpwOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.basic.json");
-
-    const vscodeTeInput = resolve(__dirname, "../../../vscode-taskexplorer/.wpwrc.json");
-    const vscodeTeOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.vscode.json");
-
-    const jsdocWpwInput = resolve(__dirname, "../.jsdoc.json");
-    const jsdocWpwOutput = resolve(exampleRootDir, "jsdoc/.jsdoc.wpwrc.json");
-
-    const webpackConfigInput = resolve(__dirname, "../webpack.config.js");
-    const webpackConfigOutput = resolve(exampleRootDir, "webpack/webpack.config.js");
 
     //
     // CREATE ALL OUTPUT DIRS IF NOT ALREADY EXIST
@@ -74,6 +63,8 @@ cliWrap(async(argv) =>
     //
     // WEBPACK.CONFIG.JS
     //
+    const webpackConfigInput = resolve(__dirname, "../webpack.config.js");
+    const webpackConfigOutput = resolve(exampleRootDir, "webpack/webpack.config.js");
     logger?.log("Create webpack.config file");
     let content = await readFile(webpackConfigInput, "utf8");
     content = content.replace("./src/core/wrapper", "node_modules/@spmeesseman/webpack-wrap/dist/webpack-wrap/core/wrapper")
@@ -84,7 +75,9 @@ cliWrap(async(argv) =>
     //
     // WPWRC
     //
-    logger?.log("Create basic wpwrc config file");
+    const wpwrcWpwInput = resolve(__dirname, "../.wpwrc.json");
+    const wpwrcWpwOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.basic.json");
+    logger?.log("Create wpwrc basic config file");
     content = await readFile(wpwrcWpwInput, "utf8");
     content = content.replace(/wpwrap|wp-wrap/g, "exapp")
                      .replace(/Webpack(-| )Wrap/g, (_, m) => `Example${m}App`)
@@ -94,6 +87,8 @@ cliWrap(async(argv) =>
     //
     // VSCODE WPWRC
     //
+    const vscodeTeInput = resolve(__dirname, "../../../vscode-taskexplorer/.wpwrc.json");
+    const vscodeTeOutput = resolve(exampleRootDir, "wpwrc/.wpwrc.vscode.json");
     logger?.log("Create vscode wpwrc config file");
     content = await readFile(vscodeTeInput, "utf8");
     content = content.replace(/taskexplorer/g, "examplevsc")
@@ -103,7 +98,9 @@ cliWrap(async(argv) =>
     //
     // JSDOC
     //
-    logger?.log("Create basic jsdoc config file");
+    const jsdocWpwInput = resolve(__dirname, "../.jsdoc.json");
+    const jsdocWpwOutput = resolve(exampleRootDir, "jsdoc/.jsdoc.wpwrc.json");
+    logger?.log("Create jsdoc basic config file");
     content = await readFile(jsdocWpwInput, "utf8");
     content = content.replace(/",\s+docdash": [^]*?\n {4}\},?\r?\n/g, "")
                      .replace(/",\s+theme_opts": [^]*?\n {8}\},?\r?\n/g, "");
@@ -124,6 +121,15 @@ cliWrap(async(argv) =>
     content = await readFile(jsdocWpwInput, "utf8");
     content = content.replace(/",\s+theme_opts": [^]*?\n {8}\},?\r?\n/g, "");
     await writeFile(jsdocWpwOutput, content);
+
+    //
+    // PLUGIN
+    //
+    const wpwPluginTemplateInput = resolve(__dirname, "../schema/template/plugin.js");
+    const wpwPluginTemplateOutput = resolve(exampleRootDir, "plugin/template.basic.js");
+    logger?.log("Create plugin basic template file");
+    content = await readFile(wpwPluginTemplateInput, "utf8");
+    await writeFile(wpwPluginTemplateOutput, content);
 
     //
     // DONE
