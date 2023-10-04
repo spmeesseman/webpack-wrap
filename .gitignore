@@ -5,3 +5,4 @@ res/doc*
 src/types/rc.ts
 src/types/constants.js
 .coverage
+examples
