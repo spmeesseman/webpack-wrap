@@ -15,6 +15,7 @@
 /** @typedef {import("./rc").WpwLogKey} WpwLogKey */
 /** @typedef {import("./rc").WpwLogPad} WpwLogPad */
 /** @typedef {import("./rc").WpwVsCode} WpwVsCode */
+/** @typedef {import("./rc").FilePathJs} FilePathJs */
 /** @typedef {import("./rc").IWpwLogPad} IWpwLogPad */
 /** @typedef {import("./rc").IWpwSchema} IWpwSchema */
 /** @typedef {import("./rc").IWpwVsCode} IWpwVsCode */
@@ -45,13 +46,16 @@
 /** @typedef {import("./rc").WpwFilePathJson} WpwFilePathJson */
 /** @typedef {import("./rc").WpwLogTrueColor} WpwLogTrueColor */
 /** @typedef {import("./rc").WpwModuleConfig} WpwModuleConfig */
+/** @typedef {import("./rc").WpwPluginConfig} WpwPluginConfig */
 /** @typedef {import("./rc").WpwSourceConfig} WpwSourceConfig */
 /** @typedef {import("./rc").WpwWebpackEntry} WpwWebpackEntry */
 /** @typedef {import("./constants").WpwLogColors} WpwLogColors */
 /** @typedef {import("./rc").IWpwBuildOptions} IWpwBuildOptions */
 /** @typedef {import("./rc").IWpwModuleConfig} IWpwModuleConfig */
+/** @typedef {import("./rc").IWpwPluginConfig} IWpwPluginConfig */
 /** @typedef {import("./rc").IWpwSourceConfig} IWpwSourceConfig */
 /** @typedef {import("./rc").WpwDirectoryPath} WpwDirectoryPath */
+/** @typedef {import("./rc").WpwPluginConfigs} WpwPluginConfigs */
 /** @typedef {import("./rc").WpwSourceOptions} WpwSourceOptions */
 /** @typedef {import("./rc").WpwVersionString} WpwVersionString */
 /** @typedef {import("./constants").isWpwLogColor} isWpwLogColor */
@@ -72,6 +76,7 @@
 /** @typedef {import("./rc").WpwBuildBaseConfig} WpwBuildBaseConfig */
 /** @typedef {import("./rc").WpwBuildOptionsKey} WpwBuildOptionsKey */
 /** @typedef {import("./rc").WpwModuleConfigKey} WpwModuleConfigKey */
+/** @typedef {import("./rc").WpwPluginConfigKey} WpwPluginConfigKey */
 /** @typedef {import("./rc").WpwPluginConfigWeb} WpwPluginConfigWeb */
 /** @typedef {import("./rc").WpwSourceConfigKey} WpwSourceConfigKey */
 /** @typedef {import("./rc").WpwSourceExtension} WpwSourceExtension */

@@ -78,7 +78,7 @@
             "options": {
                 "script": {
                     "mode": "synchronous",
-                    "scripts": [{
+                    "items": [{
                         "type": "node",
                         "output": "examples",
                         "path": "script/create-examples.js",
@@ -101,7 +101,7 @@
             "options": {
                 "script": {
                     "mode": "parallel",
-                    "scripts": [{
+                    "items": [{
                         "type": "node",
                         "path": "script/generate-rc-types.js",
                         "args": [ "--quiet" ],
@@ -131,6 +131,12 @@
                 "jsdoc": {
                     "mode": "auto",
                     "title": "Webpack-Wrap Source Documentation"
+                },
+                "wait": {
+                    "items": [{
+                        "mode": "event",
+                        "name": "examples"
+                    }]
                 }
             },
             "paths": {

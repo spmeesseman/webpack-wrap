@@ -34,6 +34,9 @@
         "pkgJson": {
             "$ref": "#/definitions/WpwPackageJson"
         },
+        "plugins": {
+            "$ref": "#/definitions/WpwPluginConfigs"
+        },
         "production": {
             "$ref": "#/definitions/WpwBuildBaseConfig"
         },
@@ -161,6 +164,12 @@
             "descriptiont": "relative or absolute path to a file",
             "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\w\\.\\-\\\\/]+)?\\.[a-z0-9\\.]+$"
         },
+        "FilePathJs": {
+            "$id": "#/FilePathJs",
+            "$ref": "#/definitions/FilePath",
+            "description": "relative or absolute path to a javascript (module) file",
+            "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\w\\.\\-\\\\/]+)?\\.js$"
+        },
         "FilePathJson": {
             "$id": "#/WpwFilePathJson",
             "$ref": "#/definitions/FilePath",
@@ -231,6 +240,9 @@
                 },
                 "paths": {
                     "$ref": "#/definitions/WpwRcPaths"
+                },
+                "plugins": {
+                    "$ref": "#/definitions/WpwPluginConfigs"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwSourceConfig"
@@ -514,14 +526,17 @@
                 "log": {
                     "$ref": "#/definitions/WpwLog"
                 },
-                "paths": {
-                    "$ref": "#/definitions/WpwRcPaths"
-                },
                 "options": {
                     "$ref": "#/definitions/WpwBuildOptions"
                 },
                 "overrides": {
                     "$ref": "#/definitions/WebpackConfigOverride"
+                },
+                "paths": {
+                    "$ref": "#/definitions/WpwRcPaths"
+                },
+                "plugins": {
+                    "$ref": "#/definitions/WpwPluginConfigs"
                 },
                 "source": {
                     "$ref": "#/definitions/WpwSourceConfig"
@@ -1628,6 +1643,40 @@
                 "definition"
             ]
         },
+        "WpwPluginConfigs": {
+            "$id": "#/WpwPluginConfigs",
+            "type": "array",
+            "uniqueItems": true,
+            "minItems": 0,
+            "items": {
+                "$ref": "#/definitions/WpwPluginConfig"
+            }
+        },
+        "WpwPluginConfig": {
+            "$id": "#/WpwPluginConfig",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "name", "options"
+            ],
+            "properties": {
+                "path": {
+                    "$ref": "#/definitions/FilePathJs"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 11,
+                    "maxLength": 64,
+                    "pattern": "^Wpw(.*?)Plugin",
+                    "description": "plugin class name, must be of the form `Wpw[PLUGIN_NAME]Plugin"
+                },
+                "options": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "options object for the plugin"
+                }
+            }
+        },
         "WpwPluginConfigAnalyze": {
             "$id": "#/WpwPluginConfigAnalyze",
             "type": "object",
@@ -2294,7 +2343,7 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-                "scripts"
+                "items"
             ],
             "properties": {
                 "enabled": {
@@ -2317,7 +2366,7 @@
                 "mode": {
                     "$ref": "#/definitions/WpwPluginConfigScriptMode"
                 },
-                "scripts": {
+                "items": {
                     "type": "array",
                     "minItems": 1,
                     "items": {
@@ -2376,7 +2425,7 @@
             "minProperties": 1,
             "additionalProperties": false,
             "required": [
-                "scripts"
+                "items"
             ],
             "properties": {
                 "enabled": {
@@ -2385,7 +2434,7 @@
                 "mode": {
                     "$ref": "#/definitions/WpwPluginConfigScriptMode"
                 },
-                "scripts": {
+                "items": {
                     "type": "array",
                     "minItems": 1,
                     "items": {

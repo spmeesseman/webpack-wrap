@@ -129,6 +129,7 @@ cliWrap(async(argv) =>
     const wpwPluginTemplateOutput = resolve(exampleRootDir, "plugin/template.basic.js");
     logger?.log("Create plugin basic template file");
     content = await readFile(wpwPluginTemplateInput, "utf8");
+    content = content.replace(/\/\/ @ts-check/g, "@ts-check");
     await writeFile(wpwPluginTemplateOutput, content);
 
     //

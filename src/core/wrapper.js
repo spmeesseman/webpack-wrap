@@ -80,6 +80,10 @@ class WpwWrapper extends WpwBase
      */
     pkgJsonPath;
     /**
+     * @type {typedefs.WpwPluginConfig[]}
+     */
+    plugins;
+    /**
      * @type {typedefs.WpwBuildOptions}
      */
     options;
@@ -235,41 +239,41 @@ class WpwWrapper extends WpwBase
     {
         const dependentBuilds = [];
 
-        for (const build of this.builds)
+        for (const build of this.builds.filter(b => !!b.options.wait || (isObject(b.entry) &&!!b.entry.dependOn)))
         {
-            for (const config of this.buildConfigs.filter(c => c.name !== build.name))
+            if (isObject(build.entry) && build.entry.dependOn)
             {
-                const waitsOn = build.options.wait?.items?.find(w => w.name === config.name),
-                      dependsOn = !!waitsOn || (isObject(build.entry) && build.entry.dependOn === config.name);
+                build.options.wait = apply(build.options.wait, { enabled: true });
+                applyIf(build.options.wait, { mode: "event", items: [{ name: Object.keys(build.entry)[0] }]});
+            }
 
-                if (!waitsOn && !dependsOn) { continue; }
+            const wait = /** @type {typedefs.IWpwPluginConfigWait} */(build.options.wait);
+            for (const waitConfig of asArray(wait.items))
+            {
+                let isBuilt = false;
+                const depBuildConfig = this.buildConfigs.find(b => b.name === waitConfig.name);
 
-                let isBuilt,
-                    depBuild = this.builds.find(b => b.name === config.name);
-                if (config.type === "types" && config.options.types?.bundle) {
-                    isBuilt = existsSync(join(config.paths.dist, config.name + ".d.ts"));
+                if (!depBuildConfig) { continue; }
+
+                if (depBuildConfig.type === "types" && depBuildConfig.options.types?.bundle) {
+                    isBuilt = existsSync(join(depBuildConfig.paths.dist, depBuildConfig.name + ".d.ts"));
                 }
                 else {
-                    isBuilt = existsSync(config.paths.dist);
+                    isBuilt = existsSync(depBuildConfig.paths.dist); // || (depBuildConfig.output && );
                 }
 
+                let depBuild = this.builds.find(b => b.name === depBuildConfig.name);
                 if (isBuilt && !depBuild) { continue; }
-
-                if (dependsOn)
-                {
-                    build.options.wait = apply(build.options.wait, { enabled: true });
-                    applyIf(build.options.wait, { mode: "event" });
-                }
 
                 if (!depBuild)
                 {
-                    this.logger.write(`auto-enable dependency build '${config.name}`, 2);
-                    depBuild = new WpwBuild(apply(config, { auto: true }), this);
+                    this.logger.write(`auto-enable dependency build '${depBuildConfig.name}`, 2);
+                    depBuild = new WpwBuild(apply(depBuildConfig, { auto: true }), this);
                     dependentBuilds.push(depBuild);
                 }
                 else if (!depBuild.options.wait || !depBuild.options.wait.enabled)
                 {
-                    this.logger.write(`auto-apply wait options to dependency build '${config.name}`, 2);
+                    this.logger.write(`auto-apply wait options to dependency build '${waitConfig.name}`, 2);
                 }
 
                 depBuild.options.wait = apply(depBuild.options.wait, { enabled: true });
@@ -400,7 +404,7 @@ class WpwWrapper extends WpwBase
             schemaVersion: getSchemaVersion(),
             mode: this.getMode(arge, argv, true),
             arge, argv, args: apply({}, arge, argv),
-            buildConfigs: [], errors: [], pkgJson: {}, warnings: []
+            buildConfigs: [], errors: [], pkgJson: {}, plugins: [], warnings: []
         });
         applySchemaDefaults(this, "WpwSchema");
         this.applyJsonFromFile(this, ".wpwrc.json");

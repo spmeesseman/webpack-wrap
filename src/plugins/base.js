@@ -667,29 +667,31 @@ class WpwPlugin extends WpwBaseModule
      */
     wrapCallback(name, options, async)
     {
-        const l = this.logger,
-              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback;
-        let startMsg = this.breakProp(name);
-        if (options.stage && options.hookCompilation === "processAssets") {
-            startMsg = startMsg.padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
-        }
-        const doneMsg = startMsg.replace("      ", "");
         return /** @type {R} */((/** @type {...any} */...args) =>
         {
-            l.start(startMsg, 1);
+            const l = this.logger;
+            let hookConfigName = this.breakProp(name);
+            l.start(hookConfigName, 1);
+            if (options.stage && options.hookCompilation === "processAssets") {
+                hookConfigName = hookConfigName.padEnd(l.valuePad - 3) + l.tag(`processassets: ${options.stage} stage`);
+            }
             const eCt = this.build.errorCount,
+                  doneMsg = hookConfigName.replace("      ", ""),
+                  callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
                   _done = () => { if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg); };
             if (eCt === 0 || options.forceRun)
             {
+                l.staticPad = "   ";
                 const result = callback(...args);
                 if (isPromise(result)) { result.then(() => { _done(); }, () => { _done(); }); } else { _done(); }
+                l.staticPad = "";
                 return result;
             }
             else
             {   if (!async) {
-                    l.start(`skip plugin hook - ${startMsg}`);
+                    l.start(`skip plugin hook - ${hookConfigName}`);
                 }
-                else { return new Promise(() => l.start(`skip plugin hook - ${startMsg}`)); }
+                else { return new Promise(() => l.start(`skip plugin hook - ${hookConfigName}`)); }
             }
         });
     }

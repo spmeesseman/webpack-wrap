@@ -7,13 +7,12 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const { relative } = require("path");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
-const { apply, isString, isArray, asArray, isDirectory, pushReturn } = require("@spmeesseman/type-utils");
 const { existsAsync, findFiles, relativePath, resolvePath } = require("../utils");
+const { apply, asArray, isDirectory, pushReturn } = require("@spmeesseman/type-utils");
 
 
 /**
@@ -39,7 +38,6 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 	static create = (build) => WpwScriptPlugin.wrap(this, build, "script");
 
 
-
     /**
      * @private
      * @param {typedefs.WpwPluginConfigRunScriptsItemDef} script
@@ -57,7 +55,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 		this.logScriptOptions();
         const build = this.build,
               logger = build.logger,
-              scripts = this.buildOptions.scripts;
+              scripts = this.buildOptions.items;
         //
         // Execute scripts
         //
@@ -86,7 +84,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
         //
         // Process output files
         //
-        const outputFiles = asArray(this.buildOptions.scripts.map(s => asArray(s.output)).reduce((p, c) => pushReturn(p, ...c), []));
+        const outputFiles = asArray(scripts.map(s => asArray(s.output)).reduce((p, c) => pushReturn(p, ...c), []));
         for (const path of outputFiles)
         {   //
             // Ensure output file or directory exists
@@ -130,7 +128,7 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
     {
         this.logOptions("script", true, false);
 		this.logger.write("   script commands:", 2);
-        this.buildOptions.scripts.forEach((script) => {
+        this.buildOptions.items.forEach((script) => {
             this.logger.write(`      ${script.type} ${script.path}${script.args ? " " + script.args.join(" ") : ""}`, 2);
         });
     }

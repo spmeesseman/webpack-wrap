@@ -51,6 +51,7 @@ class WpwCacheExport extends WpwWebpackExport
                 type: "filesystem",
                 cacheDirectory: join(build.global.cacheDir, "webpack"),
                 name: this.cacheName,
+                profile: build.logger.level >= 3 || !!this.buildOptions.verbose,
                 version: build.pkgJson.version,
                 buildDependencies: {
                     defaultWebpack: [ "webpack/lib/" ],
@@ -87,7 +88,7 @@ class WpwCacheExport extends WpwWebpackExport
                 cache.buildDependencies.config.push(resolve(basePath, depPath));
             }
 
-            if (!build.wpc.infrastructureLogging.debug && (build.logger.level === 4 || this.buildOptions.verbose))
+            if (!build.wpc.infrastructureLogging.debug && (build.logger.level >= 3 || this.buildOptions.verbose))
             {
                 applyIf(build.wpc.infrastructureLogging, { debug: /webpack\.cache/ });
             }

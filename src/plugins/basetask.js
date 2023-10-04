@@ -87,20 +87,22 @@ class WpwBaseTaskPlugin extends WpwPlugin
 	 */
 	async buildTask(assets)
 	{
-		const result = this[this.options.taskHandler](assets);
-		if (isPromise(result)) {
-			await result;
-		}
 		const virtualEntryFile = Object.keys(assets).find(f => f.endsWith(this.virtualFile));
 		if (virtualEntryFile) {
-			this.logger.write(`   remove virtual entry file '${virtualEntryFile}' from compilation assets`, 3);
+			this.logger.write(`remove virtual entry file '${virtualEntryFile}' from compilation assets`, 3);
 			this.compilation.deleteAsset(virtualEntryFile);
 		}
 		const realEntryFiles = Object.keys(assets).filter(f => (/entry[0-9](?:.*?)\.js/).test(f));
 		realEntryFiles.forEach((realEntryFile) => {
-			this.logger.write(`   remove entry file '${realEntryFile}' from compilation assets`, 3);
+			this.logger.write(`remove entry file '${realEntryFile}' from compilation assets`, 3);
 			this.compilation.deleteAsset(realEntryFile);
 		});
+		// const cache = this.compiler.getCache(this.cacheName);
+		// if (cache.store())
+		const result = this[this.options.taskHandler](assets);
+		if (isPromise(result)) {
+			await result;
+		}
 	};
 
 

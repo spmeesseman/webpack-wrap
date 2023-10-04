@@ -58,6 +58,10 @@ class WpwLogger
      */
     separatorLength = 125;
     /**
+     * @type {string}
+     */
+    staticPad = "";
+    /**
      * @private
      * @type {number}
      */
@@ -654,7 +658,7 @@ class WpwLogger
               envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
                       this.tag(tag || opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
               envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "";
-        return `${tmStamp}${basePad}${envIcon}${envTag}${pad || ""}`;
+        return `${tmStamp}${basePad}${envIcon}${envTag}${this.staticPad}${pad || ""}`;
     }
 
 
