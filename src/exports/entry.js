@@ -151,13 +151,12 @@ class WpwEntryExport extends WpwWebpackExport
 
 		if (!entryPathAbs)
 		{
-			build.addMessage({
+			return build.addMessage({
 				code: WpwError.Code.ERROR_CONFIG_PROPERTY,
 				message: "could not determine entry point",
 				suggest: "set the 'entry' property in the wpw build configuration",
 				detail: `build details: [wpc.entry: name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
 			});
-			return;
 		}
 
 		let entryPath = relativePath(build.getContextPath(), entryPathAbs);
@@ -165,13 +164,12 @@ class WpwEntryExport extends WpwWebpackExport
 
 		if (entryPathAbs.includes(build.getDistPath()))
 		{
-			build.addMessage({
+			return build.addMessage({
 				code: WpwError.Code.ERROR_CONFIG_PROPERTY,
 				message: "entry point cannot be a descendent of 'dist' path",
 				suggest: "set a valid 'entry' property in the wpw build configuration",
 				detail: `build details: [entry=${entryPath}] [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
 			});
-			return;
 		}
 
 		return entryPath;
