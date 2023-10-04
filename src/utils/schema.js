@@ -226,14 +226,15 @@ const refName = (/** @type {string} */ ref) => ref.replace("#/definitions/", "")
  * @param {any} config
  * @param {string} key
  * @param {typedefs.WpwLogger} [logger]
+ * @param {string | undefined} [logPad]
  * @throws {WpwError}
  */
-const validateSchema = (config, key, logger) =>
+const validateSchema = (config, key, logger, logPad = "   ") =>
 {
     const log = logger || { write: () => {}, withColor: () => "", colors: { italic: [ 0, 0 ] } },
           code = WpwError.Code.ERROR_SCHEMA,
           schemaFile = getSchemaFile(key);
-    log.write("validate schema `" + log.withColor(schemaFile, log.colors.italic) + "`", 1);
+    log.write("validate schema `" + log.withColor(schemaFile, log.colors.italic) + "`", 1, logPad);
     try
     {
         const schema = getSchema(key);
@@ -242,7 +243,7 @@ const validateSchema = (config, key, logger) =>
             const enumKeys = WpwKeysEnum[key || "WpwSchema"],
                   baseConfig = enumKeys ? pick(config, ...enumKeys) : config;
             validate(schema, baseConfig);
-            log.write("   schema validation successful", 1);
+            log.write("   schema validation successful", 1, logPad);
         }
         else {
             throw new WpwError({ code, message: `unable to load schema file ${schemaFile} [key=${key}]` });

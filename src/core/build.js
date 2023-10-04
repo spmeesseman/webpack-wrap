@@ -150,6 +150,44 @@ class WpwBuild extends WpwBase
     get pkgJsonFilePath() { return this.wrapper.pkgJsonFilePath; }
 
 
+    /**
+     * @param {typedefs.WpwMessageInfo} info
+     * @param {string} [pad]
+     */
+    addMessage(info, pad)
+    {
+        const l = this.logger,
+              icons = this.logger.icons,
+              compilation = info.compilation,
+              hasCompilation = compilation && typeUtils.isClass(compilation);
+        if (/WPW[0-2][0-9][0-9]/.test(info.code))
+        {
+            const i = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
+            this.info.push(i);
+        }
+        else if (/WPW[3-5][0-9][0-9]/.test(info.code))
+        {
+            const w = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
+            this.warnings.push(w);
+            if (hasCompilation) {
+                compilation.warnings.push(w);
+            }
+        }
+        else if (/WPW[6-8][0-9][0-9]/.test(info.code))
+        {
+            const e = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
+            this.errors.push(e);
+            if (hasCompilation) {
+                compilation.errors.push(e);
+            }
+        }
+        else if (/WPW9[0-9][0-9]/.test(info.code)) {
+            l.write("reserved message type", undefined, pad, icons.color.warning);
+        }
+        else { l.warning("unknown message type", pad); }
+    }
+
+
 	/**
 	 * @private
 	 */
@@ -251,47 +289,6 @@ class WpwBuild extends WpwBase
         if (++WpwBuild.disposeCount === this.buildCount) {
             this.wrapper.dispose();
         }
-    }
-
-
-    /**
-     * @param {typedefs.WpwMessageInfo} info
-     * @param {string} [pad]
-     */
-    addMessage(info, pad)
-    {
-        const l = this.logger,
-              icons = this.logger.icons,
-              compilation = info.compilation,
-              hasCompilation = compilation && typeUtils.isClass(compilation);
-        if (/WPW[0-2][0-9][0-9]/.test(info.code))
-        {
-            const i = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
-            // l.write(i.message, 1, pad, icons.blue.info, l.colors.white);
-            this.info.push(i);
-        }
-        else if (/WPW[3-5][0-9][0-9]/.test(info.code))
-        {
-            const w = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
-            // l.write(w.message, undefined, pad, icons.color.warning, l.colors.yellow);
-            this.warnings.push(w);
-            if (hasCompilation) {
-                compilation.warnings.push(w);
-            }
-        }
-        else if (/WPW[6-8][0-9][0-9]/.test(info.code))
-        {
-            const e = WpwError.get(objUtils.apply({ wpc: this.wpc, capture: this.addMessage }, info));
-            this.errors.push(e);
-            // l.write(info.message, undefined, pad, icons.color.error, l.colors.red);
-            if (hasCompilation) {
-                compilation.errors.push(e);
-            }
-        }
-        else if (/WPW9[0-9][0-9]/.test(info.code)) {
-            l.write("reserved message type", undefined, pad, icons.color.warning);
-        }
-        else { l.warning("unknown message type", pad); }
     }
 
 

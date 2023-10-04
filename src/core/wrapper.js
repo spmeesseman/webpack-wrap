@@ -136,9 +136,11 @@ class WpwWrapper extends WpwBase
         super({ argv, arge });
         this.initConfig(argv, arge);
         this.initLogger();
+        this.logger.start("initialize build wrapper", 1);
         this.createBuildConfigs();
         validateSchema(this, "WpwSchema", this.logger);
         this.createBuilds();
+        this.logger.success("build wrapper initialization complete", 1);
     };
 
 
@@ -173,7 +175,7 @@ class WpwWrapper extends WpwBase
             {
                 throw new WpwError({
                     code: WpwError.Code.ERROR_RESOURCE_MISSING,
-                    message: `Could not locate or parse '${basename(file)}', check existence or syntax`
+                    message: `could not locate or parse '${basename(file)}', check existence or syntax`
                 });
             }
             return this.applyJsonFromFile(dst, file, parentDir);
@@ -238,6 +240,7 @@ class WpwWrapper extends WpwBase
     createDependencyBuilds()
     {
         const dependentBuilds = [];
+        this.logger.write("   create dependency build configurations", 2);
 
         for (const build of this.builds.filter(b => !!b.options.wait || (isObject(b.entry) &&!!b.entry.dependOn)))
         {
@@ -258,22 +261,27 @@ class WpwWrapper extends WpwBase
                 if (depBuildConfig.type === "types" && depBuildConfig.options.types?.bundle) {
                     isBuilt = existsSync(join(depBuildConfig.paths.dist, depBuildConfig.name + ".d.ts"));
                 }
-                else {
-                    isBuilt = existsSync(depBuildConfig.paths.dist); // || (depBuildConfig.output && );
+                else if (depBuildConfig.type === "script" && depBuildConfig.options.script)
+                {
+                    asArray(depBuildConfig.options.script.items).forEach((s) =>
+                    {
+                        isBuilt ||= asArray(s.output).every(p => existsSync(resolvePath(this.pkgJsonPath, p)));
+                    });
                 }
+                else { isBuilt = existsSync(depBuildConfig.paths.dist); }
 
                 let depBuild = this.builds.find(b => b.name === depBuildConfig.name);
                 if (isBuilt && !depBuild) { continue; }
 
                 if (!depBuild)
                 {
-                    this.logger.write(`auto-enable dependency build '${depBuildConfig.name}`, 2);
+                    this.logger.write(`      auto-enable dependency build '${depBuildConfig.name}`, 2);
                     depBuild = new WpwBuild(apply(depBuildConfig, { auto: true }), this);
                     dependentBuilds.push(depBuild);
                 }
                 else if (!depBuild.options.wait || !depBuild.options.wait.enabled)
                 {
-                    this.logger.write(`auto-apply wait options to dependency build '${waitConfig.name}`, 2);
+                    this.logger.write(`      auto-apply wait options to dependency build '${waitConfig.name}`, 2);
                 }
 
                 depBuild.options.wait = apply(depBuild.options.wait, { enabled: true });
@@ -289,7 +297,14 @@ class WpwWrapper extends WpwBase
         //     }
         // }
 
-        this.builds.push(...dependentBuilds);
+        if (dependentBuilds.length > 0)
+        {
+            this.builds.push(...dependentBuilds);
+            this.logger.write(`   added ${dependentBuilds.length} dependency build configurations`, 2);
+        }
+        else {
+            this.logger.write("   0 dependency build configurations found", 2);
+        }
     }
 
 
@@ -298,7 +313,7 @@ class WpwWrapper extends WpwBase
 	 */
     createBuildConfigs()
     {
-        this.logger.write("merge all levels of build configurations to root config", 1);
+        this.logger.write("   merge and create build configurations", 1);
         const rootBaseConfig = this.getBasePropertyConfig(this),
               baseBuildConfigs = this.builds.splice(0),
               modeConfig = /** @type {typedefs.IWpwBuildBaseConfig} */(this[this.mode]),
@@ -417,7 +432,7 @@ class WpwWrapper extends WpwBase
      */
     initLogger()
     {
-        const name = `Webpack Build for ${this.pkgJson.displayName || this.pkgJson.scopedName.name}`,
+        const name = `Build ${this.pkgJson.displayName || this.pkgJson.scopedName.name}`,
               l = this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main", name }));
         l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
         l.write("   Argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);

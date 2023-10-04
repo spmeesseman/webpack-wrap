@@ -208,9 +208,8 @@ class WpwPlugin extends WpwBaseModule
         let data;
         const logger = this.logger,
               filePathRel = relative(outputDir, filePath),
-              /** @type {typedefs.CacheResult} */result = { file: basename(filePathRel), snapshot: null, source };
-
-        const cacheEntry = await this.getCacheEntry(filePath, identifier, null);
+              /** @type {typedefs.CacheResult} */result = { file: basename(filePathRel), snapshot: null, source },
+              cacheEntry = await this.getCacheEntry(filePath, identifier, null);
         if (cacheEntry && cacheEntry.snapshot)
         {
             let isValidSnapshot;
@@ -227,11 +226,8 @@ class WpwPlugin extends WpwBaseModule
                 logger.value("   snapshot valid", filePathRel, 4);
                 ({ source } = cacheEntry);
             }
-            else {
-                logger.write(`   snapshot for '${filePathRel}' is invalid`, 4);
-            }
+            else { logger.write(`   snapshot for '${filePathRel}' is invalid`, 4); }
         }
-
         if (!source)
         {
             const startTime = Date.now();
@@ -241,8 +237,8 @@ class WpwPlugin extends WpwBaseModule
             try {
                 result.snapshot = await this.createSnapshot(startTime, filePath);
             }
-            catch (e) {
-                this.addError("failed while creating snapshot", e);
+            catch (e)
+            {   this.addError("failed while creating snapshot", e);
                 return result;
             }
             if (source && result.snapshot)
@@ -254,13 +250,12 @@ class WpwPlugin extends WpwBaseModule
                     await this.wpCacheCompilation.storePromise(`${filePath}|${identifier}`, null, { source, snapshot: result.snapshot, hash });
                     result.source = source;
                 }
-                catch (e) {
-                    this.addError("failed while caching snapshot", e);
+                catch (e)
+                {   this.addError("failed while caching snapshot", e);
                     return result;
                 }
             }
         }
-
         return result;
     };
 
@@ -339,13 +334,8 @@ class WpwPlugin extends WpwBaseModule
         const result = await execAsync({
             command, program, logger: this.logger, logPad: "   ", execOptions: { cwd: this.wpc.context }, ignoreOut
         });
-        for (const message of result.errors)
-        {
-            this.build.addMessage({
-                message,
-                compilation: this.compilation,
-                code: WpwError.Code.ERROR_NON_ZERO_EXIT_CODE
-            });
+        for (const message of result.errors) {
+            this.build.addMessage({ message, compilation: this.compilation, code: WpwError.Code.ERROR_NON_ZERO_EXIT_CODE });
         }
         return result.code;
     };
@@ -385,9 +375,7 @@ class WpwPlugin extends WpwBaseModule
 	{
 		const {hashDigest, hashDigestLength, hashFunction, hashSalt } = this.compilation.outputOptions,
 			  hash = this.compiler.webpack.util.createHash(/** @type {string} */hashFunction);
-		if (hashSalt) {
-			hash.update(hashSalt);
-		}
+		if (hashSalt) { hash.update(hashSalt); }
 		return hash.update(source).digest(hashDigest).toString().slice(0, hashDigestLength);
 	}
 
@@ -480,7 +468,7 @@ class WpwPlugin extends WpwBaseModule
             }
             else {
                 this.logger.value("   current assets", assets.slice(0, 10).map(a => a.name).join(", ") +
-                                `[ + ${assets.length - 10} more ...increase logging level to view all ]`, 3);
+                                  `[ + ${assets.length - 10} more ...increase logging level to view all ]`, 3);
             }
         }
     }
@@ -523,9 +511,7 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compiler.hooks.compilation.tap(this.name, (compilation) =>
         {
-            if (compilation.getStats().hasErrors()) {
-                return;
-            }
+            if (compilation.getStats().hasErrors()) { return; }
             optionsArray.forEach(([ name, tapOpts ]) =>
             {
                 if (!tapOpts.hookCompilation)
@@ -575,13 +561,11 @@ class WpwPlugin extends WpwBaseModule
         {   if (!options.async) {
                 /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
             }
-            else {
-                if (this.isAsyncHook(hook)) {
+            else
+            {   if (this.isAsyncHook(hook)) {
                     /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise(name, this.wrapCallback(optionName, options, true));
                 }
-                else {
-                    return this.addError(`Invalid async hook specified: ${options.hook}`);
-                }
+                else { return this.addError(`Invalid async hook specified: ${options.hook}`); }
             }
         }
         this.tapStatsPrinter(name, options);
@@ -599,9 +583,10 @@ class WpwPlugin extends WpwBaseModule
         if (!property) { return; }
         this.compilation.hooks.statsPrinter.tap(name, (stats) =>
         {
-            const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) => {
-                    const statsColor = context[this.build.log.color || "green"];
-                    return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
+            const printFn = (/** @type {{}} */prop, /** @type {typedefs.WebpackStatsPrinterContext} */context) =>
+            {
+                const statsColor = context[this.build.log.color || "green"];
+                return prop ? statsColor?.(context.formatFlag?.(this.breakProp(property)) || "") || "" : "";
             };
             stats.hooks.print.for(`asset.info.${property}`).tap(name, printFn);
         });
@@ -622,8 +607,7 @@ class WpwPlugin extends WpwBaseModule
             if (!o.hook) {
                 return this.addError("Invalid hook parameters specified: hook name is undefined");
             }
-            if (o.async && !this.isAsyncHook(compiler.hooks[o.hook]))
-            {
+            if (o.async && !this.isAsyncHook(compiler.hooks[o.hook])) {
                 return this.addError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
             }
         }
@@ -677,21 +661,23 @@ class WpwPlugin extends WpwBaseModule
             }
             const eCt = this.build.errorCount,
                   doneMsg = hookConfigName.replace("      ", ""),
-                  callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
-                  _done = () => { if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg); };
+                  callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback;
+            const _done = () => {
+                l.staticPad = "";
+                if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg);
+            };
             if (eCt === 0 || options.forceRun)
             {
                 l.staticPad = "   ";
                 const result = callback(...args);
                 if (isPromise(result)) { result.then(() => { _done(); }, () => { _done(); }); } else { _done(); }
-                l.staticPad = "";
                 return result;
             }
             else
             {   if (!async) {
                     l.start(`skip plugin hook - ${hookConfigName}`);
                 }
-                else { return new Promise(() => l.start(`skip plugin hook - ${hookConfigName}`)); }
+                else { return new Promise((resolve) => { l.start(`skip plugin hook - ${hookConfigName}`); resolve(); }); }
             }
         });
     }
