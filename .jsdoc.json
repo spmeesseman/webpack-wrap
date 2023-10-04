@@ -86,7 +86,7 @@
     ],
     "source": {
         "include": [
-            "src", "examples/jsdoc"
+            "src", "dist/examples/jsdoc"
         ],
         "exclude": [
             "node_modules",

@@ -263,10 +263,15 @@ class WpwWrapper extends WpwBase
                 }
                 else if (depBuildConfig.type === "script" && depBuildConfig.options.script)
                 {
-                    asArray(depBuildConfig.options.script.items).forEach((s) =>
-                    {
-                        isBuilt ||= asArray(s.output).every(p => existsSync(resolvePath(this.pkgJsonPath, p)));
-                    });
+                    if (depBuildConfig.paths.dist && depBuildConfig.paths.dist !== "dist") {
+                        isBuilt = existsSync(depBuildConfig.paths.dist);
+                    }
+                    else
+                    {   asArray(depBuildConfig.options.script.items).forEach((s) =>
+                        {
+                            isBuilt ||= asArray(s.output).every(p => existsSync(resolvePath(this.pkgJsonPath, p)));
+                        });
+                    }
                 }
                 else { isBuilt = existsSync(depBuildConfig.paths.dist); }
 

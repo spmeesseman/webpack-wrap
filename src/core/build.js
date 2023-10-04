@@ -248,9 +248,11 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "script")
         {
+            this.setOptionEnabled("externals", false, "all", "presets");
         }
         else if (this.type === "types")
         {
+            this.setOptionEnabled("externals", false, "all", "presets");
             if (this.options.types?.mode === "tscheck")
             {
                 this.setOptionEnabled("tscheck");
@@ -302,17 +304,17 @@ class WpwBuild extends WpwBase
 
 
     /**
-     * @param {string} name
+     * @param {string} nameOrType
      * @returns {typedefs.WpwBuild | undefined}
      */
-    getBuild = (name) => this.wrapper.getBuild(name);
+    getBuild = (nameOrType) => this.wrapper.getBuild(nameOrType);
 
 
     /**
-     * @param {string} name
+     * @param {string} nameOrType
      * @returns {typedefs.IWpwBuildConfig | undefined}
      */
-    getBuildConfig = (name) => this.wrapper.getBuildConfig(name);
+    getBuildConfig = (nameOrType) => this.wrapper.getBuildConfig(nameOrType);
 
 
     /**

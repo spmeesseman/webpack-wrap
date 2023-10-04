@@ -15,7 +15,7 @@ const WpwWebpackExport = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { basename, isAbsolute, normalize } = require("path");
-const { relativePath, forwardSlash, resolvePath } = require("../utils");
+const { relativePath, forwardSlash, resolvePath, findFilesSync } = require("../utils");
 const { apply, isObjectEmpty, isString, isDirectory, isFunction, isObject } = require("@spmeesseman/type-utils");
 
 
@@ -63,10 +63,10 @@ class WpwEntryExport extends WpwWebpackExport
 		const build = this.build,
 			  entry = build.entry;
 
-		if (isString(entry)) // guaranteed to be a string, or undefined.  object type handled in create()
+		if (isString(entry))
 		{
 			entryPathAbs = entry;
-			if (!isAbsolute(entry)) {
+			if (!isAbsolute(entryPathAbs)) {
 				entryPathAbs = resolvePath(build.getContextPath({ build: "app" }), entryPathAbs);
 			}
 			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
@@ -74,24 +74,78 @@ class WpwEntryExport extends WpwWebpackExport
 				entryPathAbs = undefined;
 			}
 		}
-
-		if (!entryPathAbs && build.pkgJson.main)
+		else if (isObject(build.entry))
 		{
-			entryPathAbs = build.pkgJson.main;
-			if (!isAbsolute(entryPathAbs)) {
-				entryPathAbs = resolvePath(build.getBasePath({ build: "app" }), entryPathAbs);
+			const ePath = Object.values(build.entry)[0];
+			if (isString(ePath)) {
+				entryPathAbs = ePath;
 			}
-			entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
-			if (!existsSync(entryPathAbs)) {
-				entryPathAbs = undefined;
+			else {
+				entryPathAbs = ePath?.import;
+			}
+			if (entryPathAbs)
+			{
+				if (!isAbsolute(entryPathAbs)) {
+					entryPathAbs = resolvePath(build.getContextPath({ build: "app" }), entryPathAbs);
+				}
+				if (!existsSync(entryPathAbs)) {
+					entryPathAbs = undefined;
+				}
 			}
 		}
 
 		if (!entryPathAbs)
 		{
-			entryPathAbs = normalize(`${build.getSrcPath({ build: "app" })}/${build.name}${build.source.dotext}`);
-			if (!existsSync(entryPathAbs)) {
-				entryPathAbs = undefined;
+			const mainBuildConfig = build.getBuildConfig("app");
+			if (mainBuildConfig)
+			{
+				if (mainBuildConfig.entry)
+				{
+					if (isString(mainBuildConfig.entry)) {
+						entryPathAbs = mainBuildConfig.entry;
+					}
+					else if (isObject(mainBuildConfig.entry))
+					{
+						const ePath = Object.values(mainBuildConfig.entry)[0];
+						if (isString(ePath)) {
+							entryPathAbs = ePath;
+						}
+						else {
+							entryPathAbs = ePath?.import;
+						}
+					}
+					if (entryPathAbs) {
+						if (!isAbsolute(entryPathAbs)) {
+							entryPathAbs = resolvePath(build.getBasePath({ build: "app" }), entryPathAbs);
+						}
+					}
+				}
+				if (!entryPathAbs || !existsSync(entryPathAbs))
+				{
+					entryPathAbs = normalize(`${mainBuildConfig.paths.src}/${mainBuildConfig.name}.${build.source.ext}`);
+					if (!existsSync(entryPathAbs))
+					{
+						entryPathAbs = findFilesSync(
+							`**/${mainBuildConfig.name}.${build.source.ext}`,
+							{ cwd: mainBuildConfig.paths.src, absolute: true, maxDepth: 3 }
+						)[0];
+						if (!entryPathAbs || !existsSync(entryPathAbs)) {
+							entryPathAbs = undefined;
+						}
+					}
+				}
+			}
+
+			if (!entryPathAbs && build.pkgJson.main)
+			{
+				entryPathAbs = build.pkgJson.main;
+				if (!isAbsolute(entryPathAbs)) {
+					entryPathAbs = resolvePath(build.getBasePath({ build: "app" }), entryPathAbs);
+				}
+				entryPathAbs = normalize(`${entryPathAbs.replace(/\.js$/, "")}.js`);
+				if (!existsSync(entryPathAbs)) {
+					entryPathAbs = undefined;
+				}
 			}
 		}
 
@@ -101,7 +155,7 @@ class WpwEntryExport extends WpwWebpackExport
 				code: WpwError.Code.ERROR_CONFIG_PROPERTY,
 				message: "could not determine entry point",
 				suggest: "set the 'entry' property in the wpw build configuration",
-				detail: `build details: [name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
+				detail: `build details: [wpc.entry: name=${build.name}] [type=${build.type}] [mode=${build.mode}]`
 			});
 			return;
 		}
@@ -156,7 +210,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 		build.logger.start("create entry points", 1);
 
-		if (isObject(build.entry) && build.type !== "jsdoc" && build.type !== "types")
+		if (isObject(build.entry) && build.type !== "jsdoc" && build.type !== "script" && build.type !== "types")
 		{
 			if (isObjectEmpty(build.entry))
 			{
