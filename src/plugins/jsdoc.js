@@ -15,7 +15,9 @@ const typedefs = require("../types/typedefs");
 const WpwBaseTaskPlugin = require("./basetask");
 const { apply, isDirectory } = require("@spmeesseman/type-utils");
 const { join, relative, resolve, extname, sep } = require("path");
-const { relativePath, existsAsync, findFiles, findExPath, forwardSlash, resolvePath, isWpwPluginConfigJsDocTheme, isWpwPluginConfigJsDocTemplate } = require("../utils");
+const {
+    relativePath, existsAsync, findFiles, findExPath, forwardSlash, resolvePath, isWpwPluginConfigJsDocTemplate
+} = require("../utils");
 
 
 /**
@@ -225,14 +227,12 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 	 */
     async executeJsDoc(args, _assets)
     {
-        let numFilesProcessed = 0;
         const build = this.build,
               logger = build.logger,
               outDir = this.virtualBuildPath;
               // persistedCache = this.cache.get();
 
         const cmdLineArgs = args.join(" ");
-
         logger.write("   execute jsdoc module", 1);
         logger.value("      cmd line args", cmdLineArgs, 2);
 
@@ -328,9 +328,8 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
             logger.value("      emit asset", filePathRel, 4);
             this.compilation.emitAsset(filePathRel, source, info);
-            ++numFilesProcessed;
 		}
-        logger.write(`   processed bold(${numFilesProcessed}) of ${files.length} output files`, 3);
+        logger.write(`   processed bold(${files.length}) output files`, 3);
     }
 
     /*

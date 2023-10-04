@@ -73,6 +73,7 @@ interface WpwPluginBaseTapOptions
     hook: WebpackCompilerHookName;
     hookCompilation?: WebpackCompilationHookName;
     callback: WpwPluginHookHandler;
+    forceRun?: boolean;
     stage?: WebpackCompilationHookStage;
     statsProperty?: string;
     waitStage?: WpwPluginHookWaitStage;

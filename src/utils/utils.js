@@ -10,7 +10,7 @@
 
 const { glob } = require("glob");
 const WpwRegex = require("./regex");
-const { existsSync } = require("fs");
+const { existsSync, readFileSync } = require("fs");
 const { promisify } = require("util");
 const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
@@ -351,6 +351,28 @@ const lowerCaseFirstChar = (s, removeSpaces) =>
 
 
 /**
+ * Get a random integer betwen min and max, inclusive
+ *
+ * @param {number} [max] The maximum number to return
+ * @param {number} [min] The minimum number to return
+ * @returns {number}
+ */
+const randomNumber = (max, min) =>
+{
+    const rnd = Math.random();
+    if (!max && max !== 0) {
+        max = 100000;
+    }
+    if (!min) {
+        min = 0;
+    }
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(rnd * (max - min + 1) + min);
+};
+
+
+/**
  * @template {typedefs.WpwGetRelPathOptions | undefined} O
  * @template {O extends { stat: true } ? string | undefined : string} R
  * @param {string} baseDir base directory
@@ -430,7 +452,11 @@ const resolvePath = (baseDir, p, o) =>
 };
 
 
+const wpwVersion = () => JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version;
+
+
 module.exports = {
-    asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp, getExcludes,
-    lowerCaseFirstChar, requireResolve, relativePath, resolvePath, findExPath, findExPathSync, forwardSlash
+    asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
+    getExcludes, lowerCaseFirstChar, randomNumber, requireResolve, relativePath, resolvePath,
+    findExPath, findExPathSync, forwardSlash, wpwVersion
 };

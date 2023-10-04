@@ -47,8 +47,8 @@ cliWrap(async(argv) =>
 
     const quiet = argv.includes("--quiet") || argv.includes("-q");
     if (!quiet) {
-        logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "upload", level: 5 });
-        logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+        const name = "generating rc configuration file type definitions";
+        logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "upload", level: 5 });
     }
 
     const plinkCmds = [

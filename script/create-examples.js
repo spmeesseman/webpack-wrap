@@ -32,8 +32,8 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
 cliWrap(async(argv) =>
 {
     if (!(argv.includes("--quiet") || argv.includes("-q"))) {
-        logger = new WpwLogger({ envTag1: "wpwrap", envTag2: "examples" });
-        logger.printBanner("create-examples.js", "0.0.1", "generating webpack-wrap example files");
+        const name = "generating rc configuration file type definitions";
+        logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "examples" });
     }
 
     let exampleRootDir = resolve(__dirname, "../examples");

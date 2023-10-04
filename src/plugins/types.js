@@ -31,7 +31,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 	constructor(options)
 	{
 		super(apply({ taskHandler: "buildTypes", hooks: {
-			cleanTypesTemporaryFiles: WpwTypesPlugin.compilerHookConfig("done", "cleanTempFiles", true)
+			cleanTypesTemporaryFiles: WpwTypesPlugin.compilerHookConfig("done", "cleanTempFiles", true, true)
 		} }, options));
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"types">} */(this.buildOptions); // reset for typings
 	}

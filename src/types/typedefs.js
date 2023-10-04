@@ -78,7 +78,6 @@
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
 /** @typedef {import("./constants").isWpwRcPathsKey} isWpwRcPathsKey */
 /** @typedef {import("./constants").isWpwSourceType} isWpwSourceType */
-/** @typedef {import("./constants").WpwLogColorExts} WpwLogColorExts */
 /** @typedef {import("./constants").WpwWebpackModes} WpwWebpackModes */
 /** @typedef {import("./rc").IWpwBuildBaseConfig} IWpwBuildBaseConfig */
 /** @typedef {import("./rc").IWpwPluginConfigWeb} IWpwPluginConfigWeb */
@@ -86,7 +85,6 @@
 /** @typedef {import("./rc").WpwPluginConfigCopy} WpwPluginConfigCopy */
 /** @typedef {import("./rc").WpwPluginConfigWait} WpwPluginConfigWait */
 /** @typedef {import("./rc").WpwSourceOptionsKey} WpwSourceOptionsKey */
-/** @typedef {import("./constants").isWpwLogColorExt} isWpwLogColorExt */
 /** @typedef {import("./constants").isWpwWebpackMode} isWpwWebpackMode */
 /** @typedef {import("./constants").WpwLogTrueColors} WpwLogTrueColors */
 /** @typedef {import("./rc").IWpwPluginConfigCopy} IWpwPluginConfigCopy */
@@ -359,6 +357,13 @@
  * @property {string} [logPad] a padding to prepend any log messages with
  * @property {boolean} [stdout]
  */
+
+
+/***********************************************************************************************************************
+ * LOADERS
+ ***********************************************************************************************************************/
+
+/** @typedef {[ string, any, any ]} WpwLoaderResult */
 
 
 /***********************************************************************************************************************

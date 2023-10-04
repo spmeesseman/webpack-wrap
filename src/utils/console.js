@@ -6,12 +6,14 @@ const WpwError = require("./message");
 const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { applySchemaDefaults } = require("./schema");
-const { apply, merge, typeUtils } = require("@spmeesseman/type-utils");
+const { randomNumber, wpwVersion } = require("./utils");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
+const { apply, merge, typeUtils, pushUniq } = require("@spmeesseman/type-utils");
 
 const WEBPACK = "webpack";
-const BANNER_GRADIENT_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue" ];
-const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple", "blue" ];
+const SEP_GRADIENT_COLORS_COUNT = 7;
+const BANNER_GRADIENT_COLORS_COUNT = 6;
+const GRADIENT_X_COLORS = [ "purple", "blue", "pink", "green", "purple", "blue", "orange", "white", "cyan", "magenta", "purple" ];
 
 
 /**
@@ -19,6 +21,11 @@ const SEP_GRADIENT_COLORS = [ "red", "purple", "cyan", "pink", "green", "purple"
  */
 class WpwLogger
 {
+    /**
+     * @private
+     * @type {boolean | undefined}
+     */
+    static initialized;
     /**
      * @private
      * @type {function(any, ...any): void}
@@ -49,7 +56,7 @@ class WpwLogger
      * @private
      * @type {number}
      */
-    separatorLength;
+    separatorLength = 125;
     /**
      * @private
      * @type {number}
@@ -63,7 +70,6 @@ class WpwLogger
     constructor(options)
     {
         this.applyOptions(options);
-        this.separatorLength = 125;
         this.tzOffset = (new Date()).getTimezoneOffset() * 60000;
         const infoIconClr = this.options.colors.infoIcon || this.options.color || this.options.colors.buildBracket;
         this.infoIcon = infoIconClr ?  this.withColor(this.icons.info, this.colors[infoIconClr]) : this.icons.color.info;
@@ -87,9 +93,9 @@ class WpwLogger
                 }
             };
         }
+        this.printBanner(options.name);
+        WpwLogger.initialized = true;
     }
-
-
     /** @returns {typedefs.WpwLoggerLevel} */
     get level() { return this.options.level; }
     get valuePad() { return WpwLogger.valuePadLen; }
@@ -158,6 +164,9 @@ class WpwLogger
         yellow: [ this.colorMap.yellow, this.colorMap.system ]
     };
 
+
+    // TODO - extended colors
+    // example gradient using extended colors:  \x1B[38;2;0;128;0mg\x1B[39m\x1B[38;2;32;144;32me\x1B[39m\x1B[38;2;64;160;64mn\x1B[39m\x1B[38;2;96;176;96me\x1B[...
     /** @type {Record<typedefs.WpwLogColorExt, typedefs.WpwLogColorExtMapping>} */
     colorsExt = {
         aliceblue: [ 240, 248, 255 ],
@@ -165,57 +174,53 @@ class WpwLogger
         aqua: [ 0, 255, 255 ],
         aquamarine: [ 127, 255, 212 ],
         azure: [ 240, 255, 255 ],
-        // beige: [ 245, 245, 220 ],
-        // bisque: [ 255, 228, 196 ],
+        beige: [ 245, 245, 220 ],
+        bisque: [ 255, 228, 196 ],
         black: [ 0, 0, 0 ],
-        // blanchedalmond: [ 255, 235, 205 ],
+        blanchedalmond: [ 255, 235, 205 ],
         blue: [ 0, 0, 255 ],
-        // blueviolet: [ 138, 43, 226 ],
-        // brown: [ 165, 42, 42 ],
-        // burlywood: [ 222, 184, 135 ],
-        // cadetblue: [ 95, 158, 160 ],
-        // chartreuse: [ 127, 255, 0 ],
-        // chocolate: [ 210, 105, 30 ],
-        // coral: [ 255, 127, 80 ],
-        // cornflowerblue: [ 100, 149, 237 ],
-        // cornsilk: [ 255, 248, 220 ],
-        // crimson: [ 220, 20, 60 ],
+        blueviolet: [ 138, 43, 226 ],
+        brown: [ 165, 42, 42 ],
+        burlywood: [ 222, 184, 135 ],
+        cadetblue: [ 95, 158, 160 ],
+        chartreuse: [ 127, 255, 0 ],
+        chocolate: [ 210, 105, 30 ],
+        coral: [ 255, 127, 80 ],
+        cornflowerblue: [ 100, 149, 237 ],
+        cornsilk: [ 255, 248, 220 ],
+        crimson: [ 220, 20, 60 ],
         cyan: [ 0, 255, 255 ],
-        // darkblue: [ 0, 0, 139 ],
-        // darkcyan: [ 0, 139, 139 ],
-        // darkgoldenrod: [ 184, 134, 11 ],
-        // darkgray: [ 169, 169, 169 ],
-        // darkgreen: [ 0, 100, 0 ],
-        // darkgrey: [ 169, 169, 169 ],
-        // darkkhaki: [ 189, 183, 107 ],
-        // darkmagenta: [ 139, 0, 139 ],
-        // darkolivegreen: [ 85, 107, 47 ],
-        // darkorange: [ 255, 140, 0 ],
-        // darkorchid: [ 153, 50, 204 ],
-        // darkred: [ 139, 0, 0 ],
-        // darksalmon: [ 233, 150, 122 ],
-        // darkseagreen: [ 143, 188, 143 ],
-        // darkslateblue: [ 72, 61, 139 ],
-        // darkslategray: [ 47, 79, 79 ],
-        // darkslategrey: [ 47, 79, 79 ],
-        // darkturquoise: [ 0, 206, 209 ],
-        // darkviolet: [ 148, 0, 211 ],
-        // deeppink: [ 255, 20, 147 ],
-        // deepskyblue: [ 0, 191, 255 ],
-        // dimgray: [ 105, 105, 105 ],
-        // dimgrey: [ 105, 105, 105 ],
-        // dodgerblue: [ 30, 144, 255 ],
-        // firebrick: [ 178, 34, 34 ],
-        // floralwhite: [ 255, 250, 240 ],
-        // forestgreen: [ 34, 139, 34 ],
-        // fuchsia: [ 255, 0, 255 ],
-        // gainsboro: [ 220, 220, 220 ],
-        // ghostwhite: [ 248, 248, 255 ],
-        // gold: [ 255, 215, 0 ],
-        // goldenrod: [ 218, 165, 32 ],
-        // gray: [ 128, 128, 128 ],
+        darkblue: [ 0, 0, 139 ],
+        darkcyan: [ 0, 139, 139 ],
+        darkgoldenrod: [ 184, 134, 11 ],
+        darkgreen: [ 0, 100, 0 ],
+        darkgrey: [ 169, 169, 169 ],
+        darkkhaki: [ 189, 183, 107 ],
+        darkmagenta: [ 139, 0, 139 ],
+        darkolivegreen: [ 85, 107, 47 ],
+        darkorange: [ 255, 140, 0 ],
+        darkorchid: [ 153, 50, 204 ],
+        darkred: [ 139, 0, 0 ],
+        darksalmon: [ 233, 150, 122 ],
+        darkseagreen: [ 143, 188, 143 ],
+        darkslateblue: [ 72, 61, 139 ],
+        darkslategrey: [ 47, 79, 79 ],
+        darkturquoise: [ 0, 206, 209 ],
+        darkviolet: [ 148, 0, 211 ],
+        deeppink: [ 255, 20, 147 ],
+        deepskyblue: [ 0, 191, 255 ],
+        dimgrey: [ 105, 105, 105 ],
+        dodgerblue: [ 30, 144, 255 ],
+        firebrick: [ 178, 34, 34 ],
+        floralwhite: [ 255, 250, 240 ],
+        forestgreen: [ 34, 139, 34 ],
+        fuchsia: [ 255, 0, 255 ],
+        gainsboro: [ 220, 220, 220 ],
+        ghostwhite: [ 248, 248, 255 ],
+        gold: [ 255, 215, 0 ],
+        goldenrod: [ 218, 165, 32 ],
         green: [ 0, 128, 0 ],
-        // greenyellow: [ 173, 255, 47 ],
+        greenyellow: [ 173, 255, 47 ],
         grey: [ 128, 128, 128 ],
         // honeydew: [ 240, 255, 240 ],
         // hotpink: [ 255, 105, 180 ],
@@ -311,7 +316,6 @@ class WpwLogger
     };
 
 
-
     dispose = () =>
     {
         const msg = !this.options.envTagDisable ? this.withColor("force reset console color to system default", this.colors.grey) : "";
@@ -325,6 +329,20 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
     error = (msg, pad, color) => this.write(this.formatObjectMessage(msg), undefined, pad, this.icons.color.error, color);
+
+
+    /**
+     * @param {any} msg
+     * @param {typedefs.WpwLoggerLevel} [level]
+     * @param {string} [pad]
+     * @param {boolean} [errorIcon]
+     * @returns {this}
+     */
+    failed(msg, level, pad, errorIcon)
+    {
+        if (level !== undefined && level > this.options.level) { return this; }
+        return this.writeMsgTag(msg, "failed", level, pad, null, this.colors.red, errorIcon ? this.icons.color.error : null);
+    }
 
 
     /**
@@ -342,7 +360,6 @@ class WpwLogger
             {
                 msg = msg.replace(new RegExp(`${cKey}\\((.*?)\\)`, "g"), (_, g1) => this.withColor(g1, this.colors[cKey]));
             }
-            return msg;
         }
         return this.formatObjectMessage(msg);
     }
@@ -351,9 +368,10 @@ class WpwLogger
     /**
      * @private
      * @param {any} msg
+     * @param {boolean | undefined} [isValue]
      * @returns {string}
      */
-    formatObjectMessage(msg)
+    formatObjectMessage(msg, isValue)
     {
         let sMsg = "";
         if (typeUtils.isString(msg))
@@ -435,7 +453,85 @@ class WpwLogger
         {
             sMsg = "nulled";
         }
-        return sMsg;
+        return this.formatToMaxLine(sMsg, isValue);
+    }
+
+
+    /**
+     * @param {string} msg
+     * @param {boolean | undefined} [isValue]
+     */
+    formatToMaxLine(msg, isValue)
+    {
+        let breakMsg = msg; // 0x1B\[0x1B indicates gradient e.g. [ESC][38;2;0;128;0mg[ESC][39m[ESC][38;2;32;144;32me[ESC][39m...
+        if ((/\x1B\[[0-9]{1,2}m\x1B/).test(msg)) { return breakMsg;}
+        const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
+              maxLine = (this.options.valueMaxLineLength || 100) + (!isValue ? this.options.pad.value : 0);
+        if (msg.replace(rgxColorStart, "").length > maxLine && !msg.trim().includes("\n"))
+        {
+            const vPad = !isValue ? 0 : WpwLogger.valuePadLen,
+                  rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
+            let match, xPad, clrLen,
+                vMsg = "",
+                v = msg.substring(0, maxLine),
+                lV = v.substring(v.length - 6);
+            msg = msg.substring(maxLine);
+            while ((match = rgxColorStartEnd.exec(v)) !== null)
+            {
+                clrLen = match[0].length - match[1].length;
+                xPad = clrLen < msg.length ? clrLen : msg.length;
+                v += msg.substring(0, xPad);
+                msg = msg.substring(xPad);
+                lV = v.substring(v.length - 6);
+            }
+            while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
+            {
+                v += msg.substring(0, 1);
+                msg = msg.substring(1);
+                lV = v.substring(v.length - 6);
+                if (rgxColorStart.test(lV) && msg[0] === "]")
+                {
+                    v += msg.substring(0, 3);
+                    msg = msg.substring(3);
+                    lV = v.substring(v.length - 6);
+                }
+            }
+            vMsg += v;
+            // this.write(vMsg, level, pad, icon, color);
+            breakMsg = vMsg;
+            while (msg.replace(rgxColorStart, "").length > maxLine)
+            {
+                vMsg = msg.substring(0, maxLine);
+                msg = msg.substring(maxLine);
+                lV = vMsg.substring(vMsg.length - 6);
+                while ((match = rgxColorStartEnd.exec(v)) !== null)
+                {
+                    clrLen = match[0].length - match[1].length;
+                    xPad = clrLen < msg.length ? clrLen : msg.length;
+                    xPad = match[0].length - match[1].length < msg.length ? match[0].length - match[1].length : msg.length;
+                    vMsg += msg.substring(0, xPad);
+                    msg = msg.substring(xPad);
+                    lV = vMsg.substring(vMsg.length - 6);
+                }
+                while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
+                {
+                    vMsg += msg.substring(0, 1);
+                    msg = msg.substring(1);
+                    lV = vMsg.substring(vMsg.length - 6);
+                }
+                xPad = /\x1B/.test(vMsg) ? 0 : 2;
+                vMsg = "".padStart(vPad + xPad) + vMsg;
+                // this.write(vMsg, level, pad, icon, color);
+                breakMsg += `\n${vMsg}`;
+            }
+            if (msg.length > 0) {
+                xPad = /\x1B/.test(msg) ? 0 : 2;
+                vMsg = "".padStart(vPad + xPad) + msg;
+                // this.write(vMsg, level, pad, icon, color);
+                breakMsg += `\n${vMsg}`;
+            }
+        }
+        return breakMsg.trimEnd();
     }
 
 
@@ -465,6 +561,21 @@ class WpwLogger
         }
         return this.colors[this.options.colors.infoIcon || this.options.color || "blue"];
     }
+
+
+    /**
+     * @private
+     * @param {number} colorCount
+     */
+    gradientColors(colorCount)
+    {
+         const bColors = [],
+               gColors = [ ...GRADIENT_X_COLORS, ...Object.keys(this.colorsExt) ];
+         while (bColors.length < colorCount) {
+             pushUniq(bColors, gColors[randomNumber(gColors.length - 1, 0)]);
+         }
+         return bColors;
+     }
 
 
     /** @type {typedefs.WpwLoggerIconSet} */
@@ -526,6 +637,28 @@ class WpwLogger
 
 
     /**
+     * @private
+     * @param {string | undefined} [pad]
+     * @param {string | undefined | null | 0 | false} [icon]
+     * @param {string | undefined} [tag]
+     */
+    messagePrefix(pad, icon, tag)
+    {
+        const opts = this.options,
+              basePad = this.options.pad.base || "",
+              tmStamp = opts.timestamp ? this.timestamp() : "",
+              envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
+              envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
+              envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
+              envTagLen = WpwLogger.envTagLen + envTagClrLen,
+              envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
+                      this.tag(tag || opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
+              envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "";
+        return `${tmStamp}${basePad}${envIcon}${envTag}${pad || ""}`;
+    }
+
+
+    /**
      * @param {string} name
      * @param {Record<string, any>} obj
      * @param {typedefs.WpwLoggerLevel} [level]
@@ -547,44 +680,23 @@ class WpwLogger
 
 
     /**
-     * @param {string} name
-     * @param {string} version
-     * @param {string} title
-     * @param {tinycolor.ColorInput[]} colors
+     * @private
+     * @param {string | undefined} [title]
      */
-    printBanner(name, version, title, ...colors) { WpwLogger.printBanner(name, version, title, undefined, this, ...colors); }
-
-
-    /**
-     * @param {string} name
-     * @param {string} version
-     * @param {string} subtitle
-     * @param {function(WpwLogger): unknown | null | undefined} [cb]
-     * @param {WpwLogger} [logger]
-     * @param {tinycolor.ColorInput[]} colors
-     */
-    static printBanner(name, version, subtitle, cb, logger, ...colors)
+    printBanner(title)
     {
-        const instLogger = !!logger;
-        logger = logger || new WpwLogger({ color: "cyan", colors: { default: "grey" }, level: 5, pad: { value: 100 }});
-        apply(logger.options, { envTagDisable: true });
-        logger.sep();
-        // console.log(gradient.rainbow(spmBanner(version), {interpolation: "hsv"}));
-        if (colors.length === 0) {
-            colors.push(...SEP_GRADIENT_COLORS);
-        }
-        console.log(gradient(...colors).multiline(this.spmBanner(name, version), {interpolation: "hsv"}), "internal");
-        logger.sep();
-        if (subtitle) {
-            logger.write(gradient(...BANNER_GRADIENT_COLORS).multiline(subtitle));
-            logger.sep();
-        }
-        cb?.(logger);
-        if (!instLogger) {
-            logger.dispose();
-        }
-        else {
-            apply(logger.options, { envTagDisable: false });
+        if (!WpwLogger.initialized)
+        {
+            apply(this.options, { envTagDisable: true });
+            this.sep();
+            const banner = this.spmBanner();
+            console.log(gradient(...this.gradientColors(BANNER_GRADIENT_COLORS_COUNT)).multiline(banner, {interpolation: "hsv"}), "internal");
+            this.sep();
+            if (title) {
+                this.write(gradient(...this.gradientColors(SEP_GRADIENT_COLORS_COUNT)).multiline(title));
+                this.sep();
+            }
+            apply(this.options, { envTagDisable: false });
         }
     };
 
@@ -598,22 +710,20 @@ class WpwLogger
 
     /**
      * @private
-     * @param {string} name
-     * @param {string} version
      * @returns {string}
      */
-    static spmBanner(name, version)
+    spmBanner()
     {
-        const vPadStart = 8 - version.length + (version.length % 2 === 0 ? 1 : 0),
+        const version = wpwVersion(),
+              vPadStart = 8 - version.length + (version.length % 2 === 0 ? 1 : 0),
               vPadEnd = 8 - version.length,
-              v = ("".padStart(vPadStart) + version + "".padEnd(vPadEnd)).slice(0, 11),
-              n = "".padEnd(29 - (name.length / 2)) + name;
+              v = ("".padStart(vPadStart) + version + "".padEnd(vPadEnd)).slice(0, 11);
        return `           ___ ___ _/\\ ___  __ _/^\\_ __  _ __  __________________   ____/^\\.  __//\\.____ __   ____  _____
           (   ) _ \\|  \\/  |/  _^ || '_ \\| '_ \\(  ______________  ) /  _^ | | / //\\ /  __\\:(  /  __\\// ___)
           \\ (| |_) | |\\/| (  (_| || |_) ) |_) )\\ \\          /\\/ / (  (_| | ^- //_| |  __/\\ \\/|/ __/| //
         ___)  ) __/|_|  | ^/\\__\\__| /__/| /__/__) ) Version \\  / /^\\__\\__| |\\ \\--._/\\_\\__ \\  /\\_\\__|_|
        (_____/|_|       | /       |_|   |_| (____/${v}\\/ /        |/  \\:(           \\/
-                        |/${n}`;
+                        |/                  @spmeesseman/webpack-wrap`;
     };
 
 
@@ -692,93 +802,16 @@ class WpwLogger
     value(msg, value, level, pad, icon, color)
     {
         if (level !== undefined && level > this.options.level) { return this; }
-
-        let val = value, vMsg = (this.formatMessage(msg) || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
         const vPad = WpwLogger.valuePadLen,
               rgxColorStartEnd = /\x1B\[[0-9]{1,2}m(.*?)\x1B\[[0-9]{1,2}m/gi;
-
+        let vMsg = (this.formatMessage(msg) || ""),/** @type {RegExpExecArray | null} */match, colorSpace = 0;
         while ((match = rgxColorStartEnd.exec(vMsg)) !== null) {
             colorSpace += match[0].length - match[1].length;
         }
         vMsg = vMsg.padEnd(vPad + colorSpace - (pad || "").length);
-
-        if (val || typeUtils.isPrimitive(val))
-        {
-            const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
-                  maxLine = this.options.valueMaxLineLength || 100;
-
-            vMsg += (!typeUtils.isString(val) || !rgxColorStart.test(val) ? ": " : "");
-            val = this.formatObjectMessage(val);
-
-            if (typeUtils.isString(val) && val.replace(rgxColorStart, "").length > maxLine && !val.trim().includes("\n"))
-            {
-                let xPad, clrLen,
-                    v = val.substring(0, maxLine),
-                    lV = v.substring(v.length - 6);
-                val = val.substring(maxLine);
-                while ((match = rgxColorStartEnd.exec(v)) !== null)
-                {
-                    clrLen = match[0].length - match[1].length;
-                    xPad = clrLen < val.length ? clrLen : val.length;
-                    v += val.substring(0, xPad);
-                    val = val.substring(xPad);
-                    lV = v.substring(v.length - 6);
-                }
-                while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
-                {
-                    v += val.substring(0, 1);
-                    val = val.substring(1);
-                    lV = v.substring(v.length - 6);
-                    if (rgxColorStart.test(lV) && val[0] === "]")
-                    {
-                        v += val.substring(0, 3);
-                        val = val.substring(3);
-                        lV = v.substring(v.length - 6);
-                    }
-                }
-                vMsg += v;
-                this.write(vMsg, level, pad, icon, color);
-                while (val.replace(rgxColorStart, "").length > maxLine)
-                {
-                    vMsg = val.substring(0, maxLine);
-                    val = val.substring(maxLine);
-                    lV = vMsg.substring(vMsg.length - 6);
-                    while ((match = rgxColorStartEnd.exec(v)) !== null)
-                    {
-                        clrLen = match[0].length - match[1].length;
-                        xPad = clrLen < val.length ? clrLen : val.length;
-                        xPad = match[0].length - match[1].length < val.length ? match[0].length - match[1].length : val.length;
-                        vMsg += val.substring(0, xPad);
-                        val = val.substring(xPad);
-                        lV = vMsg.substring(vMsg.length - 6);
-                    }
-                    while (/\x1B/.test(lV) && !rgxColorStart.test(lV))
-                    {
-                        vMsg += val.substring(0, 1);
-                        val = val.substring(1);
-                        lV = vMsg.substring(vMsg.length - 6);
-                    }
-                    xPad = /\x1B/.test(vMsg) ? 0 : 2;
-                    vMsg = "".padStart(vPad + xPad) + vMsg;
-                    this.write(vMsg, level, pad, icon, color);
-                }
-                if (val.length > 0) {
-                    xPad = /\x1B/.test(val) ? 0 : 2;
-                    vMsg = "".padStart(vPad + xPad) + val;
-                    this.write(vMsg, level, pad, icon, color);
-                }
-                return this;
-            }
-            else {
-                vMsg += val;
-            }
-        }
-        else if (val === undefined) {
-            vMsg += ": undefined";
-        }
-        else {
-            vMsg += ": null";
-        }
+        const rgxColorStart = /\x1B\[[0-9]{1,2}m/;
+        vMsg += (!typeUtils.isString(value) || !rgxColorStart.test(value) ? ": " : "");
+        vMsg += this.formatObjectMessage(value, true);
         return this.write(vMsg, level, pad, icon, color, true);
     }
 
@@ -864,24 +897,17 @@ class WpwLogger
         if (level !== undefined && level > this.options.level) { return this; }
         const opts = this.options,
               basePad = this.options.pad.base || "",
-              msgPad = (/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "",
+              msgPad = !isValue ? ((/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "") : "",
               envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
-              envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
-              envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
               envMsgClr = color || this.colors[opts.colors.default || "grey"],
               envMsg = !tag ? (color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
                               this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg)) :
-                              (!(/\x1B\[/).test(msg) ? msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
-                              `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`) : msg),
-              envTagLen = WpwLogger.envTagLen + envTagClrLen,
-              envTag = !opts.envTagDisable ? (this.tag(opts.envTag1, envTagClr, envTagMsgClr) +
-                      this.tag(tag || opts.envTag2, envTagClr, envTagMsgClr)).padEnd(envTagLen) : "",
-              envIcon = !opts.envTagDisable ? (typeUtils.isString(icon) ? icon + " " : this.infoIcon + " ") : "",
+                              (!(/\x1B\[/).test(msg) ? this.formatMessage(msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
+                              `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`)) : this.formatMessage(msg)),
               tmStamp = opts.timestamp ? this.timestamp() : "",
-              linePad = isValue !== true ?
-                        basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
-                        + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0)) : "";
-        console.log(`${tmStamp}${basePad}${envIcon}${envTag}${pad}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
+              linePad = basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
+                        + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0));
+        console.log(`${this.messagePrefix(pad, icon, tag)}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
         return this;
     }
 

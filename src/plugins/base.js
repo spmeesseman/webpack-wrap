@@ -285,12 +285,13 @@ class WpwPlugin extends WpwBaseModule
      * @param {typedefs.WebpackCompilationHookStage} stage
      * @param {typedefs.WpwPluginHookHandler} callback
      * @param {boolean} [async]
+     * @param {boolean} [forceRun]
      * @param {string} [statsProperty]
      * @returns {typedefs.WpwPluginCompilationTapOptions} WpwPluginTapOptions
      */
-    static compilationHookConfig(hook, stage, callback, async, statsProperty)
+    static compilationHookConfig(hook, stage, callback, async, forceRun, statsProperty)
     {
-        return { async: !!async, hook: "compilation", stage, hookCompilation: hook, callback, statsProperty };
+        return { async: !!async, hook: "compilation", stage, hookCompilation: hook, callback, forceRun, statsProperty };
     }
 
 
@@ -299,10 +300,14 @@ class WpwPlugin extends WpwBaseModule
      * @param {typedefs.WebpackCompilerHookName} hook
      * @param {typedefs.WpwPluginHookHandler} callback
      * @param {boolean} [async]
+     * @param {boolean} [forceRun]
      * @param {string} [statsProperty]
      * @returns {typedefs.WpwPluginBaseTapOptions} WpwPluginTapOptions
      */
-    static compilerHookConfig(hook, callback, async, statsProperty) { return { async: !!async, hook, callback, statsProperty }; }
+    static compilerHookConfig(hook, callback, async, forceRun, statsProperty)
+    {
+        return { async: !!async, hook, callback, forceRun, statsProperty };
+    }
 
 
 	/**
@@ -559,12 +564,11 @@ class WpwPlugin extends WpwBaseModule
 
         if (stageEnum && options.hookCompilation === "processAssets")
         {
-            const logMsg = this.breakProp(optionName).padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
             if (!options.async) {
-                /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(logMsg, options));
+                /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(optionName, options));
             }
             else {
-                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(logMsg, options, true));
+                /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(optionName, options, true));
             }
         }
         else
@@ -656,26 +660,37 @@ class WpwPlugin extends WpwBaseModule
      * @private
      * @template {boolean | undefined} T
      * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
-     * @param {string} message If camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
+     * @param {string} name tap options hook name, if camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpwPluginBaseTapOptions} options
-     * @param {T} [_async]
+     * @param {T} [async]
      * @returns {R} WpwPluginWrappedHookHandler
      */
-    wrapCallback(message, options, _async)
+    wrapCallback(name, options, async)
     {
-        const logger = this.logger,
-              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
-              logMsg = this.breakProp(message);
+        const l = this.logger,
+              callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback;
+        let startMsg = this.breakProp(name);
+        if (options.stage && options.hookCompilation === "processAssets") {
+            startMsg = startMsg.padEnd(this.build.logger.valuePad - 3) + this.logger.tag(`processassets: ${options.stage} stage`);
+        }
+        const doneMsg = startMsg.replace("      ", "");
         return /** @type {R} */((/** @type {...any} */...args) =>
         {
-            logger.start(logMsg, 1);
-            const result = callback(...args),
-                  _done = () => logger.success(logMsg.replace("       ", "      ").replace(/^start /, ""), 1);
-            if (isPromise(result)) {
-                result.then((r) => { _done(); return r; });
+            l.start(startMsg, 1);
+            const eCt = this.build.errorCount,
+                  _done = () => { if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg); };
+            if (eCt === 0 || options.forceRun)
+            {
+                const result = callback(...args);
+                if (isPromise(result)) { result.then(() => { _done(); }, () => { _done(); }); } else { _done(); }
+                return result;
             }
-            else { _done(); }
-            return result;
+            else
+            {   if (!async) {
+                    l.start(`skip plugin hook - ${startMsg}`);
+                }
+                else { return new Promise(() => l.start(`skip plugin hook - ${startMsg}`)); }
+            }
         });
     }
 

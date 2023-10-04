@@ -11,6 +11,7 @@
 const typedefs = require("../types/typedefs");
 const { WpwBuildOptionsKeys } = require("../types/constants");
 const { pickNot } = require("@spmeesseman/type-utils");
+const { wpwVersion } = require("./utils");
 
 let buildCount = 0;
 
@@ -37,7 +38,7 @@ const printBuildProperties = (build, wrapper, logIcon) =>
     l.value("   mode", wrapper.mode, 1, "", logIcon);
     l.value("   logging level", wrapper.log.level, 1, "", logIcon);
     l.value("   app version", build.pkgJson.version, 1, "", logIcon);
-    l.value("   wpw version", wrapper.wpwVersion, 2, "", logIcon);
+    l.value("   wpw version", wpwVersion(), 2, "", logIcon);
     l.value("   wpw schema version", wrapper.schemaVersion, 2, "", logIcon);
     l.value("   # of active builds", build.buildCount, 2, "", logIcon);
     l.value("   active build names", wrapper.builds.map(a => a.name).join(", "), 2, "", logIcon);

@@ -611,10 +611,8 @@ cliWrap(async(argv) =>
 {
     if (!(DISABLE_WPW_LOGGER || argv.includes("--quiet") || argv.includes("-q")))
     {
-        logger = new WpwLogger({
-            envTag1: "wpwrap", envTag2: "rctypes", colors: { default: "grey" }, level: 5, pad: { value: 100 }
-        });
-        logger.printBanner("generate-rc-types.js", "0.0.1", "generating rc configuration file type definitions");
+        const name = "generating rc configuration file type definitions";
+        logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "rctypes", level: 5 });
     }
 
     let result = { code: 0 };

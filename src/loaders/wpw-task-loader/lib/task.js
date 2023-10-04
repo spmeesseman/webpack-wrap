@@ -60,7 +60,7 @@ const schema = {
  * @param {string} source
  * @param {any} map
  * @param {any} meta
- * @returns {Promise<[ string, any, any ]>}
+ * @returns {Promise<typedefs.WpwLoaderResult>}
  */
 async function taskLoader(context, source, map, meta)
 {

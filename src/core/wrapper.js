@@ -115,10 +115,6 @@ class WpwWrapper extends WpwBase
      * @type {typedefs.WpwVsCode}
      */
     vscode;
-    /**
-     * @type {typedefs.WpwVersionString}
-     */
-    wpwVersion;
 
 
     /**
@@ -404,8 +400,7 @@ class WpwWrapper extends WpwBase
             schemaVersion: getSchemaVersion(),
             mode: this.getMode(arge, argv, true),
             arge, argv, args: apply({}, arge, argv),
-            buildConfigs: [], errors: [], pkgJson: {}, warnings: [],
-            wpwVersion: JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version
+            buildConfigs: [], errors: [], pkgJson: {}, warnings: []
         });
         applySchemaDefaults(this, "WpwSchema");
         this.applyJsonFromFile(this, ".wpwrc.json");
@@ -418,58 +413,12 @@ class WpwWrapper extends WpwBase
      */
     initLogger()
     {
-        this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main" }));
-        this.printBanner();
-    }
-
-
-    /**
-     * @private
-     */
-    maybeAddTypesBuild()
-    {
-        const typesBuild = this.getBuildConfig("types");
-        if (typesBuild && this.args.build !== typesBuild.name && this.args.build !== typesBuild.type)
-        {
-            const isBuilt = existsSync(
-                                typesBuild.options.types?.bundle ?
-                                join(typesBuild.paths.dist, typesBuild.name + ".d.ts") : typesBuild.paths.dist
-                            );
-            if (!isBuilt)
-            {
-                for (const b of this.builds)
-                {
-                    const dependsOnTypes = (isObject(b.entry) && b.entry.dependOn === "types") ||
-                                            b.options.wait?.items?.find(w => w.name === "types" || w.name === typesBuild.name);
-                    if (!this.isSingleBuild || dependsOnTypes)
-                    {
-                        if (asArray(b.options.wait?.items).find(t => t.name === "types" || t.name === typesBuild.name))
-                        {
-                            this.logger.write(`auto-enable dependecy types build '${typesBuild.name}`, 2);
-                            this.builds.push(new WpwBuild(apply(typesBuild, { auto: true }), this));
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * @private
-     */
-    printBanner()
-    {
-        const name = this.pkgJson.displayName || this.pkgJson.scopedName.name;
-        WpwLogger.printBanner(name, this.pkgJson.version || "1.0.0", ` Start Webpack Build for ${this.pkgJson.name}`,
-            (l) => {
-                l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
-                l.write("   Argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);
-                l.write("   Env   : " + l.withColor(this.jsonStringifySafe(this.arge), l.colors.grey), 1, "", 0, l.colors.white);
-                l.sep();
-            }, this.logger
-        );
+        const name = `Webpack Build for ${this.pkgJson.displayName || this.pkgJson.scopedName.name}`,
+              l = this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main", name }));
+        l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
+        l.write("   Argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);
+        l.write("   Env   : " + l.withColor(this.jsonStringifySafe(this.arge), l.colors.grey), 1, "", 0, l.colors.white);
+        l.sep();
     }
 
 

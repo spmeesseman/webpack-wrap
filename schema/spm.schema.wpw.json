@@ -46,14 +46,8 @@
         "test": {
             "$ref": "#/definitions/WpwBuildBaseConfig"
         },
-        "version": {
-            "$ref": "#/definitions/VersionString"
-        },
         "vscode": {
             "$ref": "#/definitions/WpwVsCode"
-        },
-        "wpwVersion": {
-            "$ref": "#/definitions/VersionString"
         }
     },
     "definitions":
@@ -1164,6 +1158,11 @@
                         "description": "Logging level 5 - Verbose"
                     }]
                 },
+                "name": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 32
+                },
                 "pad": {
                     "type": "object",
                     "title": "WpwLogPad",
@@ -1264,6 +1263,135 @@
             },
             {
                 "const": "azure"
+            },
+            {
+                "const": "beige"
+            },
+            {
+                "const": "bisque"
+            },
+            {
+                "const": "blanchedalmond"
+            },
+            {
+                "const": "blueviolet"
+            },
+            {
+                "const": "brown"
+            },
+            {
+                "const": "burlywood"
+            },
+            {
+                "const": "cadetblue"
+            },
+            {
+                "const": "chartreuse"
+            },
+            {
+                "const": "chocolate"
+            },
+            {
+                "const": "coral"
+            },
+            {
+                "const": "cornflowerblue"
+            },
+            {
+                "const": "cornsilk"
+            },
+            {
+                "const": "crimson"
+            },
+            {
+                "const": "darkblue"
+            },
+            {
+                "const": "darkcyan"
+            },
+            {
+                "const": "darkgoldenrod"
+            },
+            {
+                "const": "darkgreen"
+            },
+            {
+                "const": "darkgrey"
+            },
+            {
+                "const": "darkkhaki"
+            },
+            {
+                "const": "darkmagenta"
+            },
+            {
+                "const": "darkolivegreen"
+            },
+            {
+                "const": "darkorange"
+            },
+            {
+                "const": "darkorchid"
+            },
+            {
+                "const": "darkred"
+            },
+            {
+                "const": "darksalmon"
+            },
+            {
+                "const": "darkseagreen"
+            },
+            {
+                "const": "darkslateblue"
+            },
+            {
+                "const": "darkslategrey"
+            },
+            {
+                "const": "darkturquoise"
+            },
+            {
+                "const": "darkviolet"
+            },
+            {
+                "const": "deeppink"
+            },
+            {
+                "const": "deepskyblue"
+            },
+            {
+                "const": "dimgrey"
+            },
+            {
+                "const": "dodgerblue"
+            },
+            {
+                "const": "firebrick"
+            },
+            {
+                "const": "floralwhite"
+            },
+            {
+                "const": "forestgreen"
+            },
+            {
+                "const": "fuchsia"
+            },
+            {
+                "const": "gainsboro"
+            },
+            {
+                "const": "ghostwhite"
+            },
+            {
+                "const": "gold"
+            },
+            {
+                "const": "goldenrod"
+            },
+            {
+                "const": "greenyellow"
             }]
         },
         "WpwModuleName": {

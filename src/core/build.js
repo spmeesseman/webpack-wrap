@@ -141,6 +141,7 @@ class WpwBuild extends WpwBase
     get buildConfigs() { return this.wrapper.buildConfigs; }
     get buildCount() { return this.wrapper.buildCount; }
     get cmdLine() { return this.wrapper.args; }
+    get errorCount() { return this.errors.length; }
     get hasError() { return this.errors.length > 0; }
     get hasErrorOrWarning() { return this.hasError || this.hasWarning; }
     get hasWarning() { return this.warnings.length > 0; }
