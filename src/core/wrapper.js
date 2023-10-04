@@ -358,10 +358,7 @@ class WpwWrapper extends WpwBase
     }
 
 
-    dispose()
-    {
-        this.logger.dispose();
-    }
+    dispose() { this.logger.dispose(); }
 
 
     /**
@@ -480,9 +477,7 @@ class WpwWrapper extends WpwBase
                 if (options[k].enabled === false) {
                     delete options[k];
                 }
-                else {
-                    options[k].enabled = true;
-                }
+                else { options[k].enabled = true; }
             }
             else if (options[k] === true) {
                 options[k].enabled = { enabled: true };
