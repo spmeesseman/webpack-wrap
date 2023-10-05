@@ -68,7 +68,7 @@ class WpwLicenseFilesPlugin extends WpwPlugin
                 l.value("   current filename", file, 2);
                 if (!file.includes(".debug"))
                 {
-                    const rgx = new RegExp(`\.[a-f0-9]{${this.hashDigestLength}}\.js\.LICENSE(?:\.[a-z]+)?`);
+                    const rgx = new RegExp(`(?:\.[a-f0-9]{${this.hashDigestLength}})?\.js\.LICENSE(?:\.[a-z]+)?`);
                     const newFile = file.replace(rgx, ".LICENSE");
                     l.value("   new filename", newFile, 2);
                     l.value("   asset info", JSON.stringify(asset.info), 3);
