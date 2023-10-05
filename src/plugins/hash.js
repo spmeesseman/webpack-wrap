@@ -113,15 +113,15 @@ class WpwHashPlugin extends WpwPlugin
      * Reads stored / cached content hashes from file
      *
      * @private
-     * @param {typedefs.WebpackCompilationParams} params
+     * @param {typedefs.WebpackCompilationParams} _params
      */
-    readAssetState(params)
+    readAssetState(_params)
     {
         const cache = this.cache.get();
         // apply(this.globalCache, cache);
         merge(this.globalCache, cache);
-        merge(this.globalCache.previous, { ...this.globalCache.current });
-        merge(this.globalCache.current, { ...this.globalCache.next });
+        this.globalCache.previous = merge(this.globalCache.previous, this.globalCache.current);
+        this.globalCache.current = merge(this.globalCache.current, this.globalCache.next);
         this.globalCache.next = {};
         this.logAssetInfo(true);
     };
@@ -186,10 +186,23 @@ class WpwHashPlugin extends WpwPlugin
      */
     updateAssetState(chunk)
     {
-        if (chunk.name) {
-            this.logger.write(`update asset contenthash for chunk '${chunk.name}'`, 1);
-		    this.globalCache.next[chunk.name] = chunk.contentHash.javascript;
-            this.logAssetInfo();
+        if (chunk.name)
+        {
+            const hash = chunk.contentHash.javascript;
+            if (hash)
+            {
+                this.logger.value(`update '${chunk.name}' contenthash`, hash, 1);
+                this.globalCache.next[chunk.name] = hash;
+                if (!this.globalCache.current[chunk.name]) {
+                    this.globalCache.current[chunk.name] = hash;
+                }
+            }
+            else {
+                this.build.addMessage({
+                    code: WpwError.Code.ERROR_GENERAL,
+                    message: "failed to extrat contenthash from chunk " + chunk.name
+                });
+            }
         }
     };
 

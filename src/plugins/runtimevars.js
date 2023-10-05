@@ -123,7 +123,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      */
     sourceUpdateHashVars(sourceCode)
     {
-        Object.entries(this.globalCache.next).forEach(([ chunkName, hash ]) =>
+        Object.entries(this.global.hash.next).forEach(([ chunkName, hash ]) =>
         {
             const regex = new RegExp(`(?:interface_[0-9]+\\.)?__WPWRAP__\\.contentHash(?:\\.|\\[")${chunkName}(?:"\\])? *(,|\r|\n)`, "gm");
             sourceCode = sourceCode.replace(regex, (_v, g) =>`"${hash}"${g}`);

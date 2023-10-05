@@ -810,7 +810,7 @@ class WpwLogger
         while ((match = rgxColorStartEnd.exec(vMsg)) !== null) {
             colorSpace += match[0].length - match[1].length;
         }
-        vMsg = vMsg.padEnd(vPad + colorSpace - (pad || "").length);
+        vMsg = vMsg.padEnd(vPad + colorSpace - (pad || "").length - (this.staticPad || "").length);
         const rgxColorStart = /\x1B\[[0-9]{1,2}m/;
         vMsg += (!typeUtils.isString(value) || !rgxColorStart.test(value) ? ": " : "");
         vMsg += this.formatObjectMessage(value, true);
