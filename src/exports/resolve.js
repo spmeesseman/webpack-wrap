@@ -36,6 +36,12 @@ class WpwResolveExport extends WpwWebpackExport
 
 
 	/**
+     * @override
+     */
+	static create = WpwResolveExport.wrap.bind(this);
+
+
+	/**
 	 * @override
 	 */
 	app()
@@ -66,15 +72,7 @@ class WpwResolveExport extends WpwWebpackExport
 
 
 	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-     */
-	static create = (build) => { const e = new this({ build}); e.create(); return e; };
-
-
-	/**
 	 * @override
-	 * @throws {WpwError}
 	 */
 	create()
 	{

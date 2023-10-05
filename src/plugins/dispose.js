@@ -9,9 +9,9 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const typedefs = require("../types/typedefs");
-const { existsSync, rmSync } = require("fs");
 const { join, dirname } = require("path");
+const { existsSync, rmSync } = require("fs");
+const typedefs = require("../types/typedefs");
 const { findFilesSync } = require("../utils");
 
 

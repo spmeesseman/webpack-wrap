@@ -98,6 +98,26 @@ class WpwWebpackExport extends WpwBaseModule
         this.build.addMessage({ code: ABSTRACT_ERROR, message: `name[${this.name}][build][webapp]` });
     }
 
+
+    /**
+     * Wraps a vendor plugin to give it access to the WpwBuild instance, and couples it with
+     * the the WpwPlugin instance.
+     *
+     * @param {typedefs.WpwBuild} build current build wrapper
+     * @returns {WpwWebpackExport | undefined} WpwPlugin | undefined
+     */
+    static wrap(build)
+    {
+        const buildOptions = build.options[this.optionsKey]; // ,
+        //       enabled = buildOptions && buildOptions.enabled !== false;
+        // if (enabled && this.validate(buildOptions, build))
+        // {
+            const wpExport = new this({ build, buildOptions });
+            wpExport.create();
+            return wpExport;
+        // }
+    }
+
 }
 
 

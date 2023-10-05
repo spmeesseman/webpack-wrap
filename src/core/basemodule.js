@@ -133,7 +133,7 @@ class WpwBaseModule extends WpwBase
 	/**
      * @abstract
      * @param {any[]} _args
-	 * @returns {typedefs.IWpwPlugin | undefined | never}
+	 * @returns {typedefs.IWpwExport | typedefs.IWpwPlugin | undefined | never}
 	 * @throws {typedefs.WpwError}
      */
 	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }

@@ -20,7 +20,6 @@
  *
  *//** */
 
-const { join } = require("path");
 const WpwPlugin = require("./base");
 const WpwError = require("../utils/message");
 const { writeFile } = require("fs/promises");

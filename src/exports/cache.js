@@ -31,9 +31,8 @@ class WpwCacheExport extends WpwWebpackExport
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
      */
-	static create = (build) => { const e = new this({ build }); e.create(); return e; };
+	static create = WpwCacheExport.wrap.bind(this);
 
 
     /**

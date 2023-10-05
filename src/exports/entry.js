@@ -38,6 +38,12 @@ class WpwEntryExport extends WpwWebpackExport
 
 
 	/**
+     * @override
+     */
+	static create = WpwEntryExport.wrap.bind(this);
+
+
+	/**
 	 * @override
 	 */
 	app()
@@ -177,16 +183,7 @@ class WpwEntryExport extends WpwWebpackExport
 
 
 	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-     */
-	static create = (build) => { const e = new this({ build }); e.create(); return e; };
-
-
-	/**
 	 * @override
-     * @protected
-	 * @throws {WpwError}
 	 */
 	create()
 	{

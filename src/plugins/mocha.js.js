@@ -30,21 +30,14 @@ class WpwMochaPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwMochaPlugin | undefined}
      */
-	static create(build)
-	{
-		return build.options.types?.enabled ? new WpwMochaPlugin({ build }) : undefined;
-	}
+	static create = WpwMochaPlugin.wrap.bind(this);
 
 
     /**
      * @override
      */
-    onApply() {
-        return;
-    }
+    onApply() {}
 
 }
 

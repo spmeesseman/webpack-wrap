@@ -8,10 +8,10 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
+ const plugins = require("../plugins");
 // const wpwPlugins = require("../plugins");
 const WpwWebpackExport = require("./base");
 const typedefs = require("../types/typedefs");
-const plugins = require("../plugins");
 
 
 /**
@@ -30,12 +30,12 @@ class WpwPluginsExport extends WpwWebpackExport
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
      */
-	static create = (build) => { const e = new this({ build }); e.create(); return e; };
+	static create = WpwPluginsExport.wrap.bind(this);
 
 
 	/**
+	 * @override
 	 */
 	create = () =>
 	{

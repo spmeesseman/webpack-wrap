@@ -11,7 +11,8 @@
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
 const { execSync } = require("child_process");
-const { execAsync, pickNot, capitalize } = require("../utils");
+const { execAsync, capitalize } = require("../utils");
+const { pickNot, asArray } = require("@spmeesseman/type-utils");
 const { WpwPluginConfigRunScriptsKeys } = require("../types/constants");
 
 
@@ -28,6 +29,12 @@ class WpwRunScriptsPlugin extends WpwPlugin
 		super(options);
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runscripts">} */(this.buildOptions);
 	}
+
+
+	/**
+     * @override
+     */
+	static create = WpwRunScriptsPlugin.wrap.bind(this);
 
 
     /**
@@ -92,27 +99,26 @@ class WpwRunScriptsPlugin extends WpwPlugin
      */
     runScripts = async (stage) =>
     {
-        const options = /** @type {typedefs.WpwPluginConfigRunScripts} */(this.build.options.runscripts);
-        if (options[stage])
+        for (const scriptDef of asArray(this.buildOptions.scripts))
         {
-            const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
-            if (stageOptions.async)
+            if (scriptDef.async)
             {
-                if (stageOptions.mode === "parallel")
+                if (scriptDef.mode === "parallel")
                 {
                     await Promise.all(
-                        stageOptions.scripts.map(script => execAsync({ command: this.buildCommand(script) }))
+                        scriptDef.items.map(script => execAsync({ command: this.buildCommand(script) }))
                     );
                 }
                 else {
-                    for (const script of stageOptions.scripts) {
+                    for (const script of scriptDef.items) {
                         await execAsync({ command: this.buildCommand(script), logger: this.build.logger, logPad: "   " });
                     }
                 }
             }
-            else {
-                const stageOptions = /** @type {typedefs.WpwPluginConfigRunScriptsItem} */(options[stage]);
-                for (const script of stageOptions.scripts) { execSync(this.buildCommand(script)); }
+            else
+            {   for (const script of scriptDef.items) {
+                    execSync(this.buildCommand(script));
+                }
             }
         }
     };
@@ -120,15 +126,4 @@ class WpwRunScriptsPlugin extends WpwPlugin
 }
 
 
-/**
- * Returns a `WpwLoggerHookStagesPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.loghooks`
- * property to a boolean value of  `true` or `false`
- *
- * @param {typedefs.WpwBuild} build
- * @returns {WpwRunScriptsPlugin | undefined}
- */
-const runscripts = (build) => build.options.runscripts ? new WpwRunScriptsPlugin({ build }) : undefined;
-
-
-module.exports = runscripts;
+module.exports = WpwRunScriptsPlugin.create;

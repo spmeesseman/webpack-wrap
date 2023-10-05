@@ -10,10 +10,10 @@
 
 const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
-const { apply, isString } = require("../utils");
 const { join, posix } = require("path");
 const typedefs = require("../types/typedefs");
 const CopyPlugin = require("copy-webpack-plugin");
+const { apply, isString } = require("@spmeesseman/type-utils");
 
 
 /**

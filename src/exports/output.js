@@ -33,9 +33,8 @@ const { apply, isString, isFunction } = require("@spmeesseman/type-utils");
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
      */
-	static create = (build) => { const e = new this({ build }); e.create(); return e; };
+	static create = WpwOutputExport.wrap.bind(this);
 
 
     /**

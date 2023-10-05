@@ -38,6 +38,12 @@ class WpwUploadPlugin extends WpwPlugin
     }
 
 
+	/**
+     * @override
+     */
+	static create = WpwUploadPlugin.wrap.bind(this);
+
+
     /**
      * @override
      * @returns {typedefs.WpwPluginTapOptions}
@@ -230,14 +236,4 @@ class WpwUploadPlugin extends WpwPlugin
 }
 
 
-/**
- * Returns a `WpBuildUploadPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.upload`
- * property to a boolean value of `true` or `false`
- * @param {typedefs.WpwBuild} build
- * @returns {WpwUploadPlugin | undefined} plugin instance
- */
-const upload = (build) => build.options.upload?.enabled ? new WpwUploadPlugin({ build }) : undefined;
-
-
-module.exports = upload;
+module.exports = WpwUploadPlugin.create;

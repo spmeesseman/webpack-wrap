@@ -8,7 +8,7 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
- const WpwPlugin = require("./base");
+const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");

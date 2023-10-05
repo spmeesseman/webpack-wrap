@@ -12,10 +12,11 @@ const WpwPlugin = require("./base");
 const { existsSync } = require("fs");
 const { join, posix } = require("path");
 const typedefs = require("../types/typedefs");
+const { apply } = require("@spmeesseman/type-utils");
 const { readdir, unlink, rmdir } = require("fs/promises");
 const { WpwBuildOptionsKeys } = require("../types/constants");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
-const { existsAsync, apply, resolvePath, findFiles, forwardSlash, relativePath } = require("../utils");
+const { existsAsync, resolvePath, findFiles, forwardSlash, relativePath } = require("../utils");
 
 
 /**

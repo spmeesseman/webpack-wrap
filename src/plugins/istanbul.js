@@ -9,8 +9,8 @@
  *//** */
 
 const WpwPlugin = require("./base");
-const { apply } = require("../utils");
 const typedefs = require("../types/typedefs");
+const { apply } = require("@spmeesseman/type-utils");
 
 
 /**

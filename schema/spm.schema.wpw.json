@@ -2444,6 +2444,25 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "scripts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/WpwPluginConfigRunScript"
+                    }
+                }
+            }
+        },
+        "WpwPluginConfigRunScript": {
+            "$id": "#/WpwPluginConfigRunScript",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "items"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
                 "async": {
                     "type": "boolean"
                 },

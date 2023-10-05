@@ -32,6 +32,12 @@ class WpwVendorModPlugin extends WpwPlugin
 	}
 
 
+	/**
+     * @override
+     */
+	static create = WpwVendorModPlugin.wrap.bind(this);
+
+
     /**
      * @override
      * @returns {typedefs.WpwPluginTapOptions}
@@ -186,14 +192,4 @@ class WpwVendorModPlugin extends WpwPlugin
 }
 
 
-/**
- * Returns a `WpwVendorModPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.vendormod`
- * property to a boolean value of  `true` or `false`
- * @param {typedefs.WpwBuild} build
- * @returns {WpwVendorModPlugin | undefined}
- */
-const vendormod = (build) => build.options.vendormod?.enabled ? new WpwVendorModPlugin({ build }) : undefined;
-
-
-module.exports = vendormod;
+module.exports = WpwVendorModPlugin.create;

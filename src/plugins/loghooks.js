@@ -28,11 +28,6 @@ class WpwLogHooksPlugin extends WpwPlugin
 	 * @private
 	 * @type {number}
 	 */
-	end;
-	/**
-	 * @private
-	 * @type {number}
-	 */
 	last;
 	/**
 	 * @private
@@ -48,7 +43,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 	{
 		super(options);
 		const start = Date.now();
-		apply(this, { elapsed: 0, end: 0, last: 0, start, startLast: start });
+		apply(this, { elapsed: 0, last: 0, start, startLast: start });
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"loghooks">} */(this.buildOptions); // reset for typings
 	}
 
@@ -250,8 +245,7 @@ class WpwLogHooksPlugin extends WpwPlugin
 			this.addCompilerHook("done");
 			this.addCompilerHook("afterDone", () =>
 			{
-				const end = Date.now();
-				apply(this, { end, elapsed: end - this.start });
+				this.elapsed = Date.now() - this.start;
 				this.logger.value("total time elapsed", this.timeElapsed());
 			});
 			this.addCompilerHook("shutdown");

@@ -22,6 +22,11 @@ class WpwScmPlugin extends WpwPlugin
      */
 	constructor(options) { super(options); }
 
+	/**
+     * @override
+     */
+	static create = WpwScmPlugin.wrap.bind(this);
+
 
     /**
      * @override
@@ -78,11 +83,4 @@ class WpwScmPlugin extends WpwPlugin
 }
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {WpwScmPlugin | undefined}
- */
-const scm = (build) => build.options.scm ? new WpwScmPlugin({ build }) : undefined;
-
-
-module.exports = scm;
+module.exports = WpwScmPlugin.create;

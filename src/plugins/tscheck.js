@@ -12,9 +12,10 @@ const WpwPlugin = require("./base");
 const { resolve } = require("path");
 const { existsSync } = require("fs");
 const { unlink } = require("fs/promises");
+const { findFiles } = require("../utils");
 const typedefs = require("../types/typedefs");
 const dtsBundle = require("../utils/dtsbundle");
-const { merge, isString, findFiles } = require("../utils");
+const { merge, isString } = require("@spmeesseman/type-utils");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
 

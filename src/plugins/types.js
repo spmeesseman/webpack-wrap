@@ -16,8 +16,8 @@ const dtsBundle = require("../utils/dtsbundle");
 const WpwBaseTaskPlugin = require("./basetask");
 const { resolve, join, dirname } = require("path");
 const { rm, unlink, readFile, access } = require("fs/promises");
-const { apply, isObject, clone } = require("@spmeesseman/type-utils");
 const { findFiles, relativePath, resolvePath } = require("../utils");
+const { apply, isObject, clone } = require("@spmeesseman/type-utils");
 
 
 /**
