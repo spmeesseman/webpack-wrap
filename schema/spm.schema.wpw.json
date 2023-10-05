@@ -2217,7 +2217,7 @@
                 "enabled": true,
                 "compiler": true,
                 "compilation": {
-                    "processAssets": true
+                    "default": true
                 }
             },
             "properties": {
@@ -2235,7 +2235,7 @@
                 "enabled": true,
                 "compiler": true,
                 "compilation": {
-                    "all": true
+                    "default": true
                 }
             },
             {
@@ -2273,10 +2273,13 @@
                 "all": {
                     "type": "boolean"
                 },
+                "default": {
+                    "type": "boolean"
+                },
                 "deprecated": {
                     "type": "boolean"
                 },
-                "hashing": {
+                "hash": {
                     "type": "boolean"
                 },
                 "optimization": {
@@ -2284,77 +2287,6 @@
                 },
                 "processAssets": {
                     "type": "boolean"
-                }
-            },
-            "dependencies": {
-                "hashing": {
-                    "if": {
-                        "properties": {
-                            "hashing": {
-                                "const": true
-                            }
-                        }
-                    },
-                    "then": {
-                        "anyOf": [{
-                            "properties": {
-                                "all": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "all": {
-                                    "const": false
-                                }
-                            }
-                        }]
-                    }
-                },
-                "optimization": {
-                    "if": {
-                        "properties": {
-                            "optimization": {
-                                "const": true
-                            }
-                        }
-                    },
-                    "then": {
-                        "anyOf": [{
-                            "properties": {
-                                "all": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "all": {
-                                    "const": false
-                                }
-                            }
-                        }]
-                    }
-                },
-                "processAssets": {
-                    "if": {
-                        "properties": {
-                            "processAssets": {
-                                "const": true
-                            }
-                        }
-                    },
-                    "then": {
-                        "anyOf": [{
-                            "properties": {
-                                "all": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "all": {
-                                    "const": false
-                                }
-                            }
-                        }]
-                    }
                 }
             }
         },

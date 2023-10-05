@@ -24,7 +24,7 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      */
 	constructor(options)
     {
-        super(apply(options, { globalCacheProps: [ "current", "next", "previous" ] }));
+        super(options);
         this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runtimevars">} */(this.buildOptions); // reset for typings
     }
 
@@ -68,16 +68,10 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      */
     runtimeVars(assets)
     {
-        const hashMap = this.globalCache.next,
-              updates = /** @type {string[]} */([]);
+        const updates = /** @type {string[]} */([]);
         this.logger.write("replace runtime placeholder variables", 1);
 		Object.entries(assets).forEach(([ file ]) =>
 		{
-            const asset = this.compilation.getAsset(file);
-            if (asset && isString(asset.info.contenthash))
-            {
-                hashMap[this.fileNameStrip(file, true)] = asset.info.contenthash;
-            }
             if (this.isEntryAsset(file)) {
                 this.logger.value("   queue asset for variable replacement", file, 3);
                 updates.push(file);

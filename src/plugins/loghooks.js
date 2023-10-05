@@ -127,123 +127,142 @@ class WpwLogHooksPlugin extends WpwPlugin
 	 */
 	hookSteps()
 	{
-		this.addCompilerHook("infrastructureLog");
-		this.addCompilerHook("environment");
-		this.addCompilerHook("afterEnvironment");
-		this.addCompilerHook("entryOption");
-		this.addCompilerHook("afterPlugins");
-		this.addCompilerHook("afterResolvers");
-		this.addCompilerHook("initialize");
-		this.addCompilerHook("beforeRun");
-		this.addCompilerHook("run");
-		this.addCompilerHook("normalModuleFactory");
-		this.addCompilerHook("contextModuleFactory");
-		this.addCompilerHook("beforeCompile");
-		this.addCompilerHook("compile");
-		this.addCompilerHook("thisCompilation");
-		this.addCompilerHook("compilation", (/** @type {typedefs.WebpackCompilation} */compilation) =>
+		if (this.buildOptions.compiler)
 		{
-			this.compilation = compilation;
-			if (this.logger.level >= 2)
-			{
-				this.addCompilationHook("additionalAssets");
-				this.addCompilationHook("processAssets", "additional");
-				this.addCompilationHook("processAssets", "pre_process");
-				this.addCompilationHook("processAssets", "derived");
-				this.addCompilationHook("processAssets", "additions");
-				this.addCompilationHook("processAssets", "optimize");
-				this.addCompilationHook("processAssets", "optimize_count");
-				this.addCompilationHook("processAssets", "optimize_compatibility");
-				this.addCompilationHook("processAssets", "optimize_size");
-				this.addCompilationHook("processAssets", "dev_tooling");
-				this.addCompilationHook("processAssets", "optimize_inline");
-				this.addCompilationHook("processAssets", "summarize");
-				this.addCompilationHook("processAssets", "optimize_hash");
-				this.addCompilationHook("processAssets", "optimize_transfer");
-				this.addCompilationHook("processAssets", "analyse");
-				this.addCompilationHook("processAssets", "report");
-			}
-			if (this.logger.level >= 3)
-			{
-				this.addCompilationHook("beforeCodeGeneration");
-				this.addCompilationHook("beforeRuntimeRequirements");
-				this.addCompilationHook("contentHash");
-				this.addCompilationHook("recordHash");
-				this.addCompilationHook("record");
-				this.addCompilationHook("processAdditionalAssets");
-				this.addCompilationHook("needAdditionalSeal");
-				this.addCompilationHook("afterSeal");
-				this.addCompilationHook("renderManifest");
-				this.addCompilationHook("fullHash");
-				this.addCompilationHook("chunkHash");
-				this.addCompilationHook("moduleAsset");
-				this.addCompilationHook("chunkAsset");
-				this.addCompilationHook("assetPath");
-				this.addCompilationHook("needAdditionalPass");
-				this.addCompilationHook("childCompiler");
-				this.addCompilationHook("log");
-				this.addCompilationHook("processWarnings");
-				this.addCompilationHook("processErrors");
-				// this.addCompilationHook("statsPreset"); // receive runtime deprecation error
-				this.addCompilationHook("statsNormalize");
-				this.addCompilationHook("statsFactory");
-				this.addCompilationHook("statsPrinter");
-			}
-			if (this.logger.level >= 4)
-			{
-				this.addCompilationHook("beforeModuleHash");
-				this.addCompilationHook("afterModuleHash");
-				this.addCompilationHook("afterCodeGeneration");
-				this.addCompilationHook("afterRuntimeRequirements");
-				this.addCompilationHook("beforeHash");
-				this.addCompilationHook("afterHash");
-				this.addCompilationHook("beforeModuleAssets");
-				this.addCompilationHook("shouldGenerateChunkAssets");
-				this.addCompilationHook("beforeChunkAssets");
-				this.addCompilationHook("additionalChunkAssets");
-				this.addCompilationHook("optimizeAssets");
-				this.addCompilationHook("optimizeChunkAssets");
-				this.addCompilationHook("afterOptimizeChunkAssets");
-				this.addCompilationHook("afterOptimizeAssets");
-				this.addCompilationHook("afterProcessAssets");
-				this.addCompilationHook("afterSeal");
-			}
-		});
-		this.addCompilerHook("make");
-		this.addCompilerHook("finishMake");
-		this.addCompilerHook("afterCompile", /** @param {typedefs.WebpackCompilation} compilation */(compilation) =>
+			this.addCompilerHook("infrastructureLog");
+			this.addCompilerHook("environment");
+			this.addCompilerHook("afterEnvironment");
+			this.addCompilerHook("entryOption");
+			this.addCompilerHook("afterPlugins");
+			this.addCompilerHook("afterResolvers");
+			this.addCompilerHook("initialize");
+			this.addCompilerHook("beforeRun");
+			this.addCompilerHook("run");
+			this.addCompilerHook("normalModuleFactory");
+			this.addCompilerHook("contextModuleFactory");
+			this.addCompilerHook("beforeCompile");
+			this.addCompilerHook("compile");
+			this.addCompilerHook("thisCompilation");
+		}
+		if (this.buildOptions.compilation)
 		{
-			// const stats = compilation.getStats();
-			// stats.toJson().
-			if (this.logger.level >= 4)
+			this.addCompilerHook("compilation", (/** @type {typedefs.WebpackCompilation} */compilation) =>
 			{
-				const assets = compilation.getAssets();
-				this.logger.write("compilation step completed, listing all assets", 4, "", null, this.logger.colors.white);
-				for (const asset of assets)
+				this.compilation = compilation;
+				const options = /** @type {typedefs.IWpwPluginConfigLogHooksCompilation} */(this.buildOptions.compilation);
+				if (options.all || options.default || options.processAssets)
 				{
-					this.logger.writeMsgTag(asset.name, "ASSET", 4, "   ", null, this.logger.colors.grey);
-					this.logger.value("   asset info", JSON.stringify(asset.info), 5);
+					this.addCompilationHook("additionalAssets");
+					this.addCompilationHook("processAssets", "additional");
+					this.addCompilationHook("processAssets", "pre_process");
+					this.addCompilationHook("processAssets", "derived");
+					this.addCompilationHook("processAssets", "additions");
+					this.addCompilationHook("processAssets", "optimize");
+					this.addCompilationHook("processAssets", "optimize_count");
+					this.addCompilationHook("processAssets", "optimize_compatibility");
+					this.addCompilationHook("processAssets", "optimize_size");
+					this.addCompilationHook("processAssets", "dev_tooling");
+					this.addCompilationHook("processAssets", "optimize_inline");
+					this.addCompilationHook("processAssets", "summarize");
+					this.addCompilationHook("processAssets", "optimize_hash");
+					this.addCompilationHook("processAssets", "optimize_transfer");
+					this.addCompilationHook("processAssets", "analyse");
+					this.addCompilationHook("processAssets", "report");
+					this.addCompilationHook("afterProcessAssets");
 				}
-			}
-		});
-		this.addCompilerHook("shouldEmit");
-		this.addCompilerHook("emit");
-		this.addCompilerHook("assetEmitted");
-		this.addCompilerHook("emit");
-		this.addCompilerHook("afterEmit");
-		this.addCompilerHook("done");
-		this.addCompilerHook("afterDone", () =>
+				if (options.all || options.default)
+				{
+					this.addCompilationHook("beforeCodeGeneration");
+					this.addCompilationHook("afterCodeGeneration");
+					this.addCompilationHook("beforeRuntimeRequirements");
+					this.addCompilationHook("afterRuntimeRequirements");
+					this.addCompilationHook("record");
+					this.addCompilationHook("processAdditionalAssets");
+					this.addCompilationHook("seal");
+					this.addCompilationHook("afterSeal");
+					this.addCompilationHook("needAdditionalSeal");
+					this.addCompilationHook("renderManifest");
+					this.addCompilationHook("beforeModuleAssets");
+					this.addCompilationHook("moduleAsset");
+					this.addCompilationHook("assetPath");
+					this.addCompilationHook("chunkAsset");
+					this.addCompilationHook("beforeChunkAssets");
+					this.addCompilationHook("shouldGenerateChunkAssets");
+					this.addCompilationHook("needAdditionalPass");
+					this.addCompilationHook("childCompiler");
+					this.addCompilationHook("log");
+					this.addCompilationHook("processWarnings");
+					this.addCompilationHook("processErrors");
+					this.addCompilationHook("statsNormalize");
+					this.addCompilationHook("statsFactory");
+					this.addCompilationHook("statsPrinter");
+				}
+				if (options.all || options.hash)
+				{
+					this.addCompilationHook("beforeHash");
+					this.addCompilationHook("afterHash");
+					this.addCompilationHook("beforeModuleHash");
+					this.addCompilationHook("afterModuleHash");
+					this.addCompilationHook("fullHash");
+					this.addCompilationHook("chunkHash");
+					this.addCompilationHook("contentHash");
+					this.addCompilationHook("recordHash");
+				}
+				if (options.all || options.optimization)
+				{
+					this.addCompilationHook("optimizeAssets");
+					this.addCompilationHook("afterOptimizeChunkAssets");
+					this.addCompilationHook("afterOptimizeAssets");
+				}
+				if (options.deprecated)
+				{
+					this.addCompilationHook("statsPreset");
+					this.addCompilationHook("additionalChunkAssets");
+					this.addCompilationHook("optimizeChunkAssets");
+				}
+			});
+		}
+		else {
+			this.addCompilerHook("compilation");
+		}
+		if (this.buildOptions.compiler)
 		{
-			const end = Date.now();
-			apply(this, { end, elapsed: end - this.start });
-			this.logger.value("total time elapsed", this.timeElapsed());
-		});
-		this.addCompilerHook("shutdown");
-		this.addCompilerHook("additionalPass");
-		this.addCompilerHook("failed", /** @param {Error} e */(e) => { this.logger.error(e); });
-		this.addCompilerHook("invalid");
-		this.addCompilerHook("watchRun");
-		this.addCompilerHook("watchClose");
+			this.addCompilerHook("make");
+			this.addCompilerHook("finishMake");
+			this.addCompilerHook("afterCompile", /** @param {typedefs.WebpackCompilation} compilation */(compilation) =>
+			{
+				// const stats = compilation.getStats();
+				// stats.toJson().
+				if (this.logger.level >= 4)
+				{
+					const assets = compilation.getAssets();
+					this.logger.write("compilation step completed, listing all assets", 4, "", null, this.logger.colors.white);
+					for (const asset of assets)
+					{
+						this.logger.writeMsgTag(asset.name, "ASSET", 4, "   ", null, this.logger.colors.grey);
+						this.logger.value("   asset info", JSON.stringify(asset.info), 5);
+					}
+				}
+			});
+			this.addCompilerHook("shouldEmit");
+			this.addCompilerHook("emit");
+			this.addCompilerHook("assetEmitted");
+			this.addCompilerHook("emit");
+			this.addCompilerHook("afterEmit");
+			this.addCompilerHook("done");
+			this.addCompilerHook("afterDone", () =>
+			{
+				const end = Date.now();
+				apply(this, { end, elapsed: end - this.start });
+				this.logger.value("total time elapsed", this.timeElapsed());
+			});
+			this.addCompilerHook("shutdown");
+			this.addCompilerHook("additionalPass");
+			this.addCompilerHook("failed", /** @param {Error} e */(e) => { this.logger.error(e); });
+			this.addCompilerHook("invalid");
+			this.addCompilerHook("watchRun");
+			this.addCompilerHook("watchClose");
+		}
 	}
 
 

@@ -194,26 +194,16 @@ class WpwBuild extends WpwBase
     configureDependencies()
     {
         this.configureDependenciesByMode();
+        this.configureDependenciesByOptions();
         this.configureDependenciesByType();
-        if (this.options.devtool?.mode === "plugin")
-        {
-            this.setOptionEnabled("vendormod", false, "source_map_plugin");
-        }
-        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
-        {
-            this.setOptionEnabled("experiments", true);
-        }
-        if ((this.options.copy && this.options.copy.enabled !== false) ||
-            (this.options.runtimevars && this.options.runtimevars.enabled !== false))
-        {
-            this.setOptionEnabled("hash", true);
-        }
     }
 
 
+	/**
+	 * @private
+	 */
     configureDependenciesByMode()
     {
-
         if (this.mode === "production")
         {
             if (this.type !== "jsdoc" && this.type !== "script" && this.type !== "types")
@@ -243,6 +233,30 @@ class WpwBuild extends WpwBase
     }
 
 
+	/**
+	 * @private
+	 */
+    configureDependenciesByOptions()
+    {
+        if (this.options.devtool?.mode === "plugin")
+        {
+            this.setOptionEnabled("vendormod", false, "source_map_plugin");
+        }
+        if (this.debug) // as of wp 5.87, 'layers' are experimental, and used for creating release/debug modules
+        {
+            this.setOptionEnabled("experiments", true);
+        }
+        if ((this.options.copy && this.options.copy.enabled !== false) ||
+            (this.options.runtimevars && this.options.runtimevars.enabled !== false))
+        {
+            this.setOptionEnabled("hash", true);
+        }
+    }
+
+
+	/**
+	 * @private
+	 */
     configureDependenciesByType()
     {
         if (this.type === "app")
@@ -489,6 +503,7 @@ class WpwBuild extends WpwBase
         this.logger.write(`initializing configured build '${this.name}'`, 1);
     }
 
+
     /**
      * @param {string} option
      * @param {boolean} [force]
@@ -514,6 +529,7 @@ class WpwBuild extends WpwBase
             });
         }
     }
+
 
     /**
      * @private

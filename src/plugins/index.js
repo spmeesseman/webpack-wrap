@@ -23,6 +23,7 @@ const jsdoc = require("./jsdoc");
 const optimization = require("./optimization");
 const loghooks = require("./loghooks");
 const progress = require("./progress");
+const release = require("./release");
 const scm = require("./scm");
 const script = require("./script");
 const sourcemaps = require("./sourcemaps");
@@ -40,6 +41,6 @@ const analyze = { analyzer, circular, visualizer };
 
 module.exports = {
     analyze, banner, clean, copy, dispose, environment, hash, ignore, istanbul,
-    jsdoc, licensefiles, loghooks, optimization, progress, runtimevars, scm,
-    script, sourcemaps, testsuite, tscheck, types, upload, vendormod, wait, web
+    jsdoc, licensefiles, loghooks, optimization, progress, release, runtimevars,
+    scm, script, sourcemaps, testsuite, tscheck, types, upload, vendormod, wait, web
 };

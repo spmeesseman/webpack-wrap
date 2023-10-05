@@ -30,15 +30,14 @@
  *         file:///c:\Projects\@spmeesseman\webpack-wrap\src\exports\plugins.js
  *//** */
 
- const WpwCache = require("../utils/cache");
+const { execAsync} = require("../utils");
+const WpwCache = require("../utils/cache");
 const { readFile } = require("fs/promises");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { relative, basename } = require("path");
 const WpwBaseModule = require("../core/basemodule");
-const { isFunction, execAsync, asArray, isString } = require("../utils");
-const { apply } = require("@spmeesseman/type-utils");
-const { isPromise } = require("util/types");
+const { apply, asArray, isFunction, isPromise, isString  } = require("@spmeesseman/type-utils");
 
 
 /**

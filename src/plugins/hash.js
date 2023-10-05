@@ -44,12 +44,20 @@ class WpwHashPlugin extends WpwPlugin
     onApply()
     {
         return {
-            getContenthashInfo: {
-                hook: "compilation",
-                stage: "PRE_PROCESS",
+            readPreviousContentashState: {
+                hook: "beforeCompile",
                 callback: this.readAssetState.bind(this)
             },
-            saveNewContentHashInfo: {
+            verifyPreviousContentashState: {
+                hook: "finishMake",
+                callback: this.verifyAssetState.bind(this)
+            },
+            updateContenthashState: {
+                hook: "compilation",
+                hookCompilation: "chunkAsset",
+                callback: this.updateAssetState.bind(this)
+            },
+            saveContenthashState: {
                 hook: "afterEmit",
                 callback: this.saveAssetState.bind(this)
             }
@@ -105,22 +113,32 @@ class WpwHashPlugin extends WpwPlugin
      * Reads stored / cached content hashes from file
      *
      * @private
-     * @param {typedefs.WebpackCompilationAssets} assets
+     * @param {typedefs.WebpackCompilationParams} params
      */
-    readAssetState(assets)
+    readAssetState(params)
     {
-        const build = this.build,
-              logger = build.logger,
-              hashCurrent = this.globalCache.current,
-              cache = this.cache.get();
+        const cache = this.cache.get();
         // apply(this.globalCache, cache);
         merge(this.globalCache, cache);
         merge(this.globalCache.previous, { ...this.globalCache.current });
         merge(this.globalCache.current, { ...this.globalCache.next });
         this.globalCache.next = {};
         this.logAssetInfo(true);
-        logger.write("validate cached hashes for all entry assets", 2);
-        Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
+    };
+
+
+    /**
+     * Reads stored / cached content hashes from file
+     *
+     * @private
+     * @param {typedefs.WebpackCompilation} compilation
+     */
+    verifyAssetState(compilation)
+    {
+        const build = this.build,
+              logger = build.logger,
+              hashCurrent = this.globalCache.current;
+        Object.entries(compilation.getAssets()).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
 		{
             const chunkName = this.fileNameStrip(file, true),
                   asset = this.compilation.getAsset(file);
@@ -128,7 +146,7 @@ class WpwHashPlugin extends WpwPlugin
             {
                 if (isString(asset.info.contenthash))
                 {
-                    if (!hashCurrent[chunkName] || hashCurrent[chunkName] !==  asset.info.contenthas)
+                    if (!hashCurrent[chunkName] || hashCurrent[chunkName] !==  asset.info.contenthash)
                     {
                         hashCurrent[chunkName] = asset.info.contenthash;
                         logger.write(`updated ${hashCurrent[chunkName] ? "stale" : ""} contenthash for italic(${file})`, 2);
@@ -144,6 +162,7 @@ class WpwHashPlugin extends WpwPlugin
                 }
             }
         });
+        this.logAssetInfo();
     };
 
 
@@ -159,6 +178,47 @@ class WpwHashPlugin extends WpwPlugin
         this.cache.save();
         this.logAssetInfo();
     }
+
+
+    /**
+     * @private
+     * @param {typedefs.WebpackChunk} chunk
+     */
+    updateAssetState(chunk)
+    {
+        if (chunk.name) {
+            this.logger.write(`update asset contenthash for chunk '${chunk.name}'`, 1);
+		    this.globalCache.next[chunk.name] = chunk.contentHash.javascript;
+            this.logAssetInfo();
+        }
+    };
+
+
+    /**
+     * @private
+     */
+    updateAssetState2()
+    {
+        Object.entries(this.compilation.getAssets()).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
+		{
+            const chunkName = this.fileNameStrip(file, true),
+                  asset = this.compilation.getAsset(file);
+            if (asset && asset.info.contenthash)
+            {
+                if (isString(asset.info.contenthash))
+                {
+                    this.globalCache.next[chunkName] = asset.info.contenthash;
+                }
+                else {
+                    this.build.addMessage({
+                        code: WpwError.Code.ERROR_GENERAL,
+                        message: "Non-string content hash not supported yet: " + asset.name
+                    });
+                }
+            }
+        });
+        this.logAssetInfo();
+    };
 
 }
 

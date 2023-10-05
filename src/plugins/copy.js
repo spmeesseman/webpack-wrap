@@ -125,7 +125,7 @@ class WpwCopyPlugin extends WpwPlugin
 			if (asset && asset.info.copied && !asset.info.related?.sourceMap)
 			{
 				const chunkName = this.fileNameStrip(file, true),
-					  srcAssetFile = `${chunkName}.${this.globalCache.next[chunkName]}.js`,
+					  srcAssetFile = `${chunkName}.${this.global.hash.next[chunkName]}.js`,
 					  srcAsset = this.compilation.getAsset(srcAssetFile);
 				l.writeMsgTag(file, "chunk: " + chunkName);
 				l.value("   source asset filename", srcAssetFile, 2);

@@ -8,16 +8,15 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const WpwBase = require("./base");
+ const { mkdirSync } = require("fs");
+ const { join } = require("path");
+ const WpwBase = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
+const { relativePath, findFilesSync } = require("../utils");
 const { isWpwBuildOptionsKey } = require("../types/constants");
 const { WpwAbstractFunctionError } = require("../utils/message");
-const { lowerCaseFirstChar, relativePath, findFilesSync } = require("../utils/utils");
-const { clone, isString, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
-const { join } = require("path");
-const { mkdir } = require("fs");
-const { mkdirSync } = require("fs");
+const { clone, isArray, isPrimitive, isObject } = require("@spmeesseman/type-utils");
 
 
 /**

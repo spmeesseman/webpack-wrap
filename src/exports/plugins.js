@@ -81,7 +81,8 @@ class WpwPluginsExport extends WpwWebpackExport
 			plugins.analyze.visualizer(build), // compiler.hooks.emit
 			plugins.analyze.circular(build),   // compiler.hooks.compilation -> compilation.hooks.optimizeModules
 			plugins.licensefiles(build),       // compiler.hooks.compilation -> compilation.hooks.processAssets|ANALYSE
-			plugins.upload(build),             // compiler.hooks.afterDone
+			plugins.release(build),            // compiler.hooks.done
+			plugins.upload(build),             // compiler.hooks.afterEmit, compiler.hooks.done
 			plugins.scm(build),                // compiler.hooks.done
 			plugins.dispose(build)             // compiler.hooks.shutdown
 		);
