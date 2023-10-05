@@ -14,11 +14,6 @@
             },
             "licensefiles": {
                 "enabled": true
-            },
-            "externals": {
-                "enabled": true,
-                "type": "commonjs",
-                "defaults": true
             }
         }
     },

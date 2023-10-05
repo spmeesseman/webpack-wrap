@@ -215,6 +215,11 @@ class WpwBuild extends WpwBase
             {
                 this.setOptionEnabled("licensefiles");
             }
+            if (this.type === "app")
+            {
+                this.setOptionEnabled("output", true, "hash");
+                this.setOptionEnabled("copy", true, "entryModuleNoHash");
+            }
         }
         else if (this.mode === "development")
         {
@@ -237,14 +242,11 @@ class WpwBuild extends WpwBase
     {
         if (this.type === "app")
         {
-            if (this.mode === "production")
-            {
-                this.setOptionEnabled("output", false, "hash");
-            }
+            this.setOptionEnabled("externals", false, "defaults");
         }
         else if (this.type === "jsdoc")
         {
-            this.setOptionEnabled("externals", true, "all");
+            this.setOptionEnabled("externals", false, "all");
         }
         else if (this.type === "script")
         {
