@@ -10,7 +10,7 @@
 const JSON5 = require("json5");
 const typedefs = require("../types/typedefs");
 const WpwError = require("../utils/message");
-const WpwLogger = require("../utils/console");
+const WpwLogger = require("../utils/log");
 const { spawnSync } = require("child_process");
 const { resolvePath, findFilesSync } = require("../utils");
 const { resolve, basename, join, dirname } = require("path");

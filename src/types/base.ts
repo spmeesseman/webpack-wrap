@@ -23,7 +23,7 @@ import { WpwBuildOptions, WpwBuildOptionsKey } from "./rc";
 
 type WpwBuildInstance = InstanceType<typeof import("../core/build")>;
 
-type WpwLoggerInstance = InstanceType<typeof import("../utils/console")>;
+type WpwLoggerInstance = InstanceType<typeof import("../utils/log")>;
 
 type WpwBuildOptionsConfig<T extends WpwBuildOptionsKey> = Exclude<WpwBuildOptions[T], undefined>;
 

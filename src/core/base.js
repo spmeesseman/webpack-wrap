@@ -11,7 +11,7 @@
 
 const globalEnv = require("../utils/global");
 const typedefs = require("../types/typedefs");
-const WpwLogger = require("../utils/console");
+const WpwLogger = require("../utils/log");
 const { apply, isObject, pickNot, clone } = require("@spmeesseman/type-utils");
 
 
