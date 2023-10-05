@@ -136,6 +136,7 @@
 /** @typedef {import("./rc").WpwFileOrDirectoryPath} WpwFileOrDirectoryPath */
 /** @typedef {import("./rc").WpwPluginConfigAnalyze} WpwPluginConfigAnalyze */
 /** @typedef {import("./rc").WpwPluginConfigCopyKey} WpwPluginConfigCopyKey */
+/** @typedef {import("./rc").WpwPluginConfigRelease} WpwPluginConfigRelease */
 /** @typedef {import("./rc").WpwPluginConfigWaitKey} WpwPluginConfigWaitKey */
 /** @typedef {import("./rc").WpwWebpackCompilerHook} WpwWebpackCompilerHook */
 /** @typedef {import("./constants").isWpwBuildConfigKey} isWpwBuildConfigKey */
@@ -145,6 +146,7 @@
 /** @typedef {import("./constants").WpwSourceExtensions} WpwSourceExtensions */
 /** @typedef {import("./rc").IWpwExportConfigDevTool} IWpwExportConfigDevTool */
 /** @typedef {import("./rc").IWpwPluginConfigAnalyze} IWpwPluginConfigAnalyze */
+/** @typedef {import("./rc").IWpwPluginConfigRelease} IWpwPluginConfigRelease */
 /** @typedef {import("./rc").WpwExportConfigCacheKey} WpwExportConfigCacheKey */
 /** @typedef {import("./rc").WpwFileOrDirectoryPaths} WpwFileOrDirectoryPaths */
 /** @typedef {import("./rc").WpwModuleConfigInternal} WpwModuleConfigInternal */
@@ -190,6 +192,7 @@
 /** @typedef {import("./rc").WpwExportConfigDevToolKey} WpwExportConfigDevToolKey */
 /** @typedef {import("./rc").WpwPluginConfigAnalyzeKey} WpwPluginConfigAnalyzeKey */
 /** @typedef {import("./rc").WpwPluginConfigJsDocTheme} WpwPluginConfigJsDocTheme */
+/** @typedef {import("./rc").WpwPluginConfigReleaseKey} WpwPluginConfigReleaseKey */
 /** @typedef {import("./rc").WpwPluginConfigRunScripts} WpwPluginConfigRunScripts */
 /** @typedef {import("./rc").WpwPluginConfigScriptArgs} WpwPluginConfigScriptArgs */
 /** @typedef {import("./rc").WpwPluginConfigScriptMode} WpwPluginConfigScriptMode */

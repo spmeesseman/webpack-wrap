@@ -119,7 +119,7 @@ class WpwCopyPlugin extends WpwPlugin
     {
 		const l = this.logger;
 		l.write("attach sourcemaps to all relative copied assets", 1);
-		Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
+		Object.entries(assets).filter(([ file ]) => this.isEntryAsset(file)).forEach(([ file ]) =>
 		{
 			const asset = this.compilation.getAsset(file);
 			if (asset && asset.info.copied && !asset.info.related?.sourceMap)
@@ -134,7 +134,7 @@ class WpwCopyPlugin extends WpwPlugin
 				if (srcAsset && srcAsset.info.related?.sourceMap)
 				{
 					l.write("attaching sourcemap", 1);
-					l.value("   copied asset filename", srcAssetFile, 2);
+					l.value("   copied asset filename", file, 2);
 					l.value("   source asset filename", srcAssetFile, 2);
 					l.value("   chunk name", chunkName, 3);
 					l.value("   source asset found", !!srcAsset, 3);

@@ -25,7 +25,16 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 	constructor(options)
     {
         super(apply(options, { globalCacheProps: [ "current", "next", "previous" ] }));
+        this.buildOptions = /** @type {typedefs.WpwBuildOptionsConfig<"runtimevars">} */(this.buildOptions); // reset for typings
     }
+
+
+	/**
+     * @override
+     * @param {typedefs.WpwBuild} build
+	 * @returns {WpwRuntimeVarsPlugin | undefined}
+     */
+	static create = (build) => WpwRuntimeVarsPlugin.wrap(this, build, "runtimevars");
 
 
     /**
@@ -35,20 +44,11 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
     onApply()
     {
         return {
-            getContenthashInfo: {
-                hook: "compilation",
-                stage: "PRE_PROCESS",
-                callback: this.preprocess.bind(this)
-            },
             replaceContenthashRuntimeVars: {
                 hook: "compilation",
                 stage: "ADDITIONS",
-                statsProperty: "runtimeVars",
+                statsProperty: this.optionsKey,
                 callback: this.runtimeVars.bind(this)
-            },
-            saveNewContentHashInfo: {
-                hook: "afterEmit",
-                callback: this.saveAssetState.bind(this)
             }
         };
     }
@@ -60,105 +60,6 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
      * @returns {typedefs.WebpackAssetInfo}
      */
     info = (info) => apply({ ...(info || {}) }, { runtimeVars: true });
-
-
-    /**
-     * @private
-     * @param {boolean} [rotated] `true` indicates that values were read and rotated
-     * i.e. `next` values were moved to `current`, and `next` is now blank
-     */
-    logAssetInfo = (rotated) =>
-    {
-        const logger = this.build.logger,
-              hashInfo = this.globalCache,
-              labelLength = this.build.log.pad.value || 45;
-        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.build.mode, logger.colors.italic)}`, 1);
-        logger.write("   previous:", 2);
-        if (!isObjectEmpty(hashInfo.current))
-        {
-            Object.keys(hashInfo.previous).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.current[k]), 2, "", 0, logger.colors.grey)
-            );
-        }
-        else if (!isObjectEmpty(hashInfo.previous) && rotated === true) {
-            logger.write("      there are no previous hashes stored", 2);
-        }
-        logger.write("   current:", 2);
-        if (!isObjectEmpty(hashInfo.current))
-        {
-            Object.keys(hashInfo.current).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.current[k]), 2, "", 0, logger.colors.grey)
-            );
-        }
-        else if (!isObjectEmpty(hashInfo.previous) && rotated === true) {
-            logger.write("      values cleared and moved to 'previous'", 2);
-        }
-        logger.write("   next:", 2);
-        if (!isObjectEmpty(hashInfo.next))
-        {
-            Object.keys(hashInfo.next).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.next[k]), 2, "", 0, logger.colors.grey)
-            );
-        }
-        else if (!isObjectEmpty(hashInfo.current) && rotated === true) {
-            logger.write("      values cleared and moved to 'current'", 2);
-        }
-    };
-
-
-    /**
-     * Collects content hashes from compiled assets
-     * @param {typedefs.WebpackCompilationAssets} assets
-     */
-    preprocess = (assets) =>
-    {
-        const build = this.build,
-              logger = build.logger,
-              hashCurrent = this.globalCache.current;
-        this.readAssetState();
-        logger.write("validate cached hashes for all entry assets", 2);
-        Object.entries(assets).filter(([ file, _ ]) => this.isEntryAsset(file)).forEach(([ file, _ ]) =>
-		{
-            const chunkName = this.fileNameStrip(file, true),
-                  asset = this.compilation.getAsset(file);
-            if (asset && asset.info.contenthash)
-            {
-                if (isString(asset.info.contenthash))
-                {
-                    if (!hashCurrent[chunkName] || hashCurrent[chunkName] !==  asset.info.contenthas)
-                    {
-                        hashCurrent[chunkName] = asset.info.contenthash;
-                        logger.write(`updated ${hashCurrent[chunkName] ? "stale" : ""} contenthash for italic(${file})`, 2);
-                        logger.value("   previous", hashCurrent[chunkName] || "n/a", 3);
-                        logger.value("   new", asset.info.contenthash, 3);
-                    }
-                }
-                else {
-                    this.build.addMessage({
-                        code: WpwError.Code.ERROR_GENERAL,
-                        message: "Non-string content hash not supported yet: " + asset.name
-                    });
-                }
-            }
-        });
-    };
-
-
-    /**
-     * Reads stored / cached content hashes from file
-     * @private
-     */
-    readAssetState()
-    {
-        const build = this.build,
-              cache = this.cache.get();
-        // apply(this.globalCache, cache);
-        merge(this.globalCache, cache);
-        merge(this.globalCache.previous, { ...this.globalCache.current });
-        merge(this.globalCache.current, { ...this.globalCache.next });
-        this.globalCache.next = {};
-        this.logAssetInfo(true);
-    };
 
 
     /**
@@ -187,19 +88,6 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
         );
         this.logger.write("runtime placeholder variable replacement completed", 2);
     };
-
-
-    /**
-     * Writes / caches asset content hashes to file
-     * @private
-     * @member saveAssetState
-     */
-    saveAssetState()
-    {
-        this.cache.set(this.globalCache);
-        this.cache.save();
-        this.logAssetInfo();
-    }
 
 
     /**
@@ -252,14 +140,4 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 }
 
 
-/**
- * Returns a `WpwRuntimeVarsPlugin` instance if appropriate for the current build
- * environment. Can be enabled/disable in .wpcrc.json by setting the `plugins.runtimevars`
- * property to a boolean value of  `true` or `false`
- * @param {typedefs.WpwBuild} build
- * @returns {WpwRuntimeVarsPlugin | undefined}
- */
-const runtimevars = (build) => build.options.runtimevars ? new WpwRuntimeVarsPlugin({ build }) : undefined;
-
-
-module.exports = runtimevars;
+module.exports = WpwRuntimeVarsPlugin.create;

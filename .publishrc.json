@@ -1,7 +1,7 @@
 {
     "projectName":              "webpack-wrap",
     "branch":                   "main",
-    "buildCommand":             "npm run rebuild-prod",
+    "buildCommand":             "npm run rebuild-all-production",
     "changelogFile":            "CHANGELOG.md",
     "distReleasePathSrc":       "dist",
     "githubAssets": [

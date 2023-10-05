@@ -203,6 +203,11 @@ class WpwBuild extends WpwBase
         {
             this.setOptionEnabled("experiments", true);
         }
+        if ((this.options.copy && this.options.copy.enabled !== false) ||
+            (this.options.runtimevars && this.options.runtimevars.enabled !== false))
+        {
+            this.setOptionEnabled("hash", true);
+        }
     }
 
 

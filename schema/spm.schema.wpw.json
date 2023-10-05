@@ -491,14 +491,12 @@
                         "options": {
                             "propertyNames": {
                                 "enum": [
-                                    "analyze", "banner", "cache", "clean", "copy",
-                                    "devtool", "entry", "environment", "experiments",
-                                    "externals", "html", "ignore", "ignorewarnings",
-                                    "istanbul", "jsdoc", "licensefiles", "loghooks",
-                                    "minification", "mocha", "progress", "resolve",
-                                    "rules", "runscripts", "runtimevars", "scm",
-                                    "script", "stats", "testsuite", "tscheck",
-                                    "types", "upload", "vendormod", "wait", "web"
+                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "entry",
+                                    "environment", "experiments", "externals", "hash", "html", "ignore",
+                                    "ignorewarnings", "istanbul", "jsdoc", "licensefiles", "loghooks",
+                                    "minification", "mocha", "progress", "release", "resolve", "rules",
+                                    "runscripts", "runtimevars", "scm", "script", "stats", "testsuite",
+                                    "tscheck", "types", "upload", "vendormod", "wait", "web"
                                 ]
                             }
                         }
@@ -582,6 +580,9 @@
                 "externals": {
                     "$ref": "#/definitions/WpwExportConfigExternals"
                 },
+                "hash": {
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
+                },
                 "html": {
                     "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
@@ -617,6 +618,9 @@
                 },
                 "progress": {
                     "$ref": "#/definitions/WpwModuleConfig"
+                },
+                "release": {
+                    "$ref": "#/definitions/WpwPluginConfigRelease"
                 },
                 "resolve": {
                     "$ref": "#/definitions/WpwModuleConfigInternal"
@@ -1407,6 +1411,84 @@
             },
             {
                 "const": "greenyellow"
+            },
+            {
+                "const": "honeydew"
+            },
+            {
+                "const": "hotpink"
+            },
+            {
+                "const": "indianred"
+            },
+            {
+                "const": "indigo"
+            },
+            {
+                "const": "ivory"
+            },
+            {
+                "const": "khaki"
+            },
+            {
+                "const": "lavender"
+            },
+            {
+                "const": "lavenderblush"
+            },
+            {
+                "const": "lawngreen"
+            },
+            {
+                "const": "lemonchiffon"
+            },
+            {
+                "const": "lightblue"
+            },
+            {
+                "const": "lightcoral"
+            },
+            {
+                "const": "lightcyan"
+            },
+            {
+                "const": "lightgoldenrodyellow"
+            },
+            {
+                "const": "lightgreen"
+            },
+            {
+                "const": "lightgrey"
+            },
+            {
+                "const": "lightpink"
+            },
+            {
+                "const": "lightsalmon"
+            },
+            {
+                "const": "lightseagreen"
+            },
+            {
+                "const": "lightskyblue"
+            },
+            {
+                "const": "lightslategrey"
+            },
+            {
+                "const": "lightsteelblue"
+            },
+            {
+                "const": "lightyellow"
+            },
+            {
+                "const": "lime"
+            },
+            {
+                "const": "limegreen"
+            },
+            {
+                "const": "linen"
             }]
         },
         "WpwModuleName": {
@@ -2337,6 +2419,87 @@
             {
                 "enabled": false
             }]
+        },
+        "WpwPluginConfigRelease": {
+            "$id": "#/WpwPluginConfigRelease",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "github": {
+                    "type": "boolean"
+                },
+                "gitlab": {
+                    "type": "boolean"
+                },
+                "npm": {
+                    "type": "boolean"
+                },
+                "preTag": {
+                    "type": "string",
+                    "default": "v"
+                },
+                "promptVersion": {
+                    "type": "boolean"
+                }
+            },
+            "examples": [{
+                "enabled": true
+            },
+            {
+                "enabled": false
+            }],
+            "dependencies": {
+                "github": {
+                    "if": {
+                        "properties": {
+                            "github": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "oneOf": [{
+                            "properties": {
+                                "gitlab": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "gitlab": {
+                                    "const": false
+                                }
+                            }
+                        }]
+                    }
+                },
+                "gitlab": {
+                    "if": {
+                        "properties": {
+                            "gitlab": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "oneOf": [{
+                            "properties": {
+                                "github": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "github": {
+                                    "const": false
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
         },
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
