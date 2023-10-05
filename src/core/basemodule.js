@@ -115,14 +115,7 @@ class WpwBaseModule extends WpwBase
     get optionsKey() { return this.constructor.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, "").toLowerCase(); }
     get cacheName() { return `${this.build.name}_${this.build.mode}_${this.build.wpc.target}`.toLowerCase(); }
 
-
-	/**
-     * @abstract
-     * @param {any[]} _args
-	 * @returns {WpwBase | undefined | never}
-	 * @throws {typedefs.WpwError}
-     */
-	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }
+    static get optionsKey() { return this.name.replace(/^Wpw|Plugin$|(?:Webpack)?Export$/g, "").toLowerCase(); }
 
 
     /**
@@ -134,6 +127,16 @@ class WpwBaseModule extends WpwBase
      */
     breakProp(prop) { return prop.replace(/_/g, "").replace(/[A-Z]{2,}/g, (v) => v[0] + v.substring(1).toLowerCase())
                                  .replace(/[a-z][A-Z]/g, (v) => `${v[0]} ${v[1]}`).toLowerCase(); }
+
+
+
+	/**
+     * @abstract
+     * @param {any[]} _args
+	 * @returns {typedefs.IWpwPlugin | undefined | never}
+	 * @throws {typedefs.WpwError}
+     */
+	static create(..._args) { throw new WpwAbstractFunctionError(`[${this.name}[create][static]`); }
 
 
     /**
@@ -221,8 +224,18 @@ class WpwBaseModule extends WpwBase
 
 
     /**
+     * @abstract
+     * @protected
+     * @param {typedefs.WpwBuildOptionsConfig<typedefs.WpwBuildOptionsKey>} _config
+     * @param {typedefs.WpwBuild} _build
+     * @returns {boolean}
+     */
+	static validate(_config, _build) { return true; }
+
+
+    /**
      * @private
-     * @param {typedefs.WpwBaseModuleOptions} options Plugin options to be applied
+     * @param {typedefs.WpwBaseModuleOptions} options
      * @throws {typedefs.WpwError}
      */
 	validateOptions(options)

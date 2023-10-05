@@ -39,10 +39,15 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwTypesPlugin | undefined}
      */
-	static create = (build) => WpwTypesPlugin.wrap(WpwTypesPlugin, build, "types", [[ "mode", "plugin" ]]);
+	static create =  WpwTypesPlugin.wrap.bind(this);
+
+
+	/**
+     * @override
+     * @param {typedefs.WpwBuildOptionsConfig<"types">} config
+     */
+	static validate = (config) => config.mode === "plugin";
 
 
 	/**

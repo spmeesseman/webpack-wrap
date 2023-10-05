@@ -617,20 +617,16 @@ class WpwPlugin extends WpwBaseModule
      * Wraps a vendor plugin to give it access to the WpwBuild instance, and couples it with
      * the the WpwPlugin instance.
      *
-     * @template {WpwPlugin} T
-     * @param {typedefs.WpwPluginConstructor<T>} clsType the extended WpwPlugin class type
      * @param {typedefs.WpwBuild} build current build wrapper
-     * @param {typedefs.WpwBuildOptionsKey} optionsKey
-     * @param {typedefs.WpwModuleOptionsValidationArgs | typedefs.WpwModuleOptionsValidationArgs[]} [validation]
-     * @returns {T | undefined} T | undefined
+     * @returns {WpwPlugin | undefined} WpwPlugin | undefined
      */
-    static wrap(clsType, build, optionsKey, validation)
+    static wrap(build)
     {
-        const buildOptions = build.options[optionsKey],
+        const buildOptions = build.options[this.optionsKey],
               enabled = buildOptions && buildOptions.enabled !== false;
-        if (enabled && asArray(validation).every(o => isFunction(o) ? o(build) : buildOptions[o[0]] === o[1]))
+        if (enabled && this.validate(buildOptions, build))
         {
-            const plugin = new clsType({ build, buildOptions });
+            const plugin = new this({ build, buildOptions });
             plugin.plugins.push(
                 ...asArray(plugin.getVendorPlugin(true)).filter(p => !!p), ...asArray(plugin.getVendorPlugin()).filter(p => !!p)
             );

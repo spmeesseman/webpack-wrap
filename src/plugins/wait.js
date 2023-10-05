@@ -45,10 +45,8 @@ class WpwWaitPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwWaitPlugin | undefined}
      */
-	static create = (build) => WpwWaitPlugin.wrap(WpwWaitPlugin, build, "wait");
+	static create = WpwWaitPlugin.wrap.bind(this);
 
 
     /**

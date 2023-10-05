@@ -55,10 +55,8 @@ class WpwLogHooksPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwLogHooksPlugin | undefined}
      */
-	static create = (build) => WpwPlugin.wrap(WpwLogHooksPlugin, build, "loghooks");
+	static create = WpwLogHooksPlugin.wrap.bind(this);
 
 
     /**

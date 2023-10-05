@@ -37,10 +37,16 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwJsDocPlugin | undefined}
      */
-	static create = (build) => WpwJsDocPlugin.wrap(this, build, "jsdoc", this.validateJsDocInstalled);
+	static create = WpwJsDocPlugin.wrap.bind(this);
+
+
+    /**
+     * @override
+     * @param {typedefs.WpwBuildOptionsConfig<"jsdoc">} _config
+     * @param {typedefs.WpwBuild} build
+     */
+    static validate = (_config, build) => existsSync(resolve(build.getBasePath(), "node_modules/jsdoc"));
 
 
 	/**
@@ -361,15 +367,6 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
 		logger.write(`   finished execution of jsdoc build @ italic(${relative(this.build.paths.base, outDir)})`, 3);
  	}
     */
-
-
-    /**
-     * @private
-     * @param {typedefs.WpwBuild} build
-     * @returns {boolean}
-     */
-    static validateJsDocInstalled = (build) => existsSync(resolve(build.getBasePath(), "node_modules/jsdoc"));
-
 }
 
 

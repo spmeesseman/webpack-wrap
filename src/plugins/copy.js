@@ -31,6 +31,12 @@ class WpwCopyPlugin extends WpwPlugin
 	}
 
 
+	/**
+     * @override
+     */
+	static create = WpwCopyPlugin.wrap.bind(this);
+
+
     /**
      * @override
      * @returns {typedefs.WpwPluginTapOptions | undefined}
@@ -56,14 +62,6 @@ class WpwCopyPlugin extends WpwPlugin
 			};
 		}
     }
-
-
-	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwCopyPlugin | undefined}
-     */
-	static create = (build) => WpwCopyPlugin.wrap(this, build, "copy");
 
 
 	/**

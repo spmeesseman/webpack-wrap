@@ -32,10 +32,8 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwScriptPlugin | undefined}
      */
-	static create = (build) => WpwScriptPlugin.wrap(this, build, "script");
+	static create = WpwScriptPlugin.wrap.bind(this);
 
 
     /**

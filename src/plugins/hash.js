@@ -31,10 +31,8 @@ class WpwHashPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwHashPlugin | undefined}
      */
-	static create = (build) => WpwHashPlugin.wrap(this, build, "hash");
+	static create = WpwHashPlugin.wrap.bind(this);
 
 
     /**

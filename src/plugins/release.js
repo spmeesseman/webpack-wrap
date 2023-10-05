@@ -31,10 +31,8 @@ class WpwReleasePlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwReleasePlugin | undefined}
      */
-	static create = (build) => WpwReleasePlugin.wrap(this, build, "release");
+	static create = WpwReleasePlugin.wrap.bind(this);
 
 
     /**

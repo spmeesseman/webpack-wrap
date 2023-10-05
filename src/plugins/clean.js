@@ -33,6 +33,12 @@ class WpwCleanPlugin extends WpwPlugin
 	}
 
 
+	/**
+     * @override
+     */
+	static create = WpwCleanPlugin.wrap.bind(this);
+
+
     /**
      * @override
      */
@@ -79,14 +85,6 @@ class WpwCleanPlugin extends WpwPlugin
 			return options;
 		}
 	}
-
-
-	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwCleanPlugin | undefined}
-     */
-	static create = (build) => WpwCleanPlugin.wrap(this, build, "clean");
 
 
 	/**

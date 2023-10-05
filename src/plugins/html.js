@@ -46,7 +46,7 @@ class WpwWebPlugin extends WpwPlugin
      * @param {typedefs.WpwBuild} build
 	 * @returns {WpwWebPlugin | undefined}
      */
-	static create = (build) => WpwWebPlugin.wrap(this, build, "html");
+	static create = WpwPlugin.wrap.bind(this);
 
 
     /**

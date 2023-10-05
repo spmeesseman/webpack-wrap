@@ -33,6 +33,12 @@ class WpwTsCheckPlugin extends WpwPlugin
 	}
 
 
+	/**
+     * @override
+     */
+	static create = WpwPlugin.wrap.bind(this);
+
+
     /**
      * @override
      * @returns {typedefs.WpwPluginTapOptions | undefined}
@@ -110,14 +116,6 @@ class WpwTsCheckPlugin extends WpwPlugin
 			await unlink(file);
 		}
 	};
-
-
-	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwTsCheckPlugin | undefined}
-     */
-	static create = (build) => WpwTsCheckPlugin.wrap(this, build, "tscheck");
 
 
 	/**

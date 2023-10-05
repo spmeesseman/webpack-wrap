@@ -31,10 +31,8 @@ class WpwRuntimeVarsPlugin extends WpwPlugin
 
 	/**
      * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwRuntimeVarsPlugin | undefined}
      */
-	static create = (build) => WpwRuntimeVarsPlugin.wrap(this, build, "runtimevars");
+	static create = WpwRuntimeVarsPlugin.wrap.bind(this);
 
 
     /**

@@ -8,11 +8,8 @@
  * @author Scott Meesseman @spmeesseman
  *//** */
 
-const { join } = require("path");
-const { existsSync } = require("fs");
 const WpwPlugin = require("./base");
 const typedefs = require("../types/typedefs");
-const { rename, unlink, readdir } = require("fs/promises");
 
 
 /**
@@ -30,8 +27,13 @@ class WpwLicenseFilesPlugin extends WpwPlugin
 	}
 
 
+	/**
+     * @override
+     */
+	static create = WpwLicenseFilesPlugin.wrap.bind(this);
+
+
     /**
-     * Called by webpack runtime to initialize this plugin
      * @override
      * @returns {typedefs.WpwPluginTapOptions}
      */
@@ -46,14 +48,6 @@ class WpwLicenseFilesPlugin extends WpwPlugin
             }
         };
     }
-
-
-	/**
-     * @override
-     * @param {typedefs.WpwBuild} build
-	 * @returns {WpwLicenseFilesPlugin | undefined}
-     */
-	static create = (build) => WpwPlugin.wrap(WpwLicenseFilesPlugin, build, "licensefiles");
 
 
     /**

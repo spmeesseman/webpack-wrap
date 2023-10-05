@@ -32,7 +32,6 @@ class WpwSourceMapsPlugin extends WpwPlugin
 	/**
      * @override
      * @param {typedefs.WpwBuild} build
-	 * @returns {WpwSourceMapsPlugin | undefined}
      */
 	static create = (build) =>
     {
@@ -40,7 +39,7 @@ class WpwSourceMapsPlugin extends WpwPlugin
               outputConfig = build.options.output;
         if (devtoolConfig && devtoolConfig.enabled && (outputConfig?.hash !== false || devtoolConfig.syncHash !== false))
         {
-            return WpwSourceMapsPlugin.wrap(WpwSourceMapsPlugin, build, "devtool");
+            return WpwSourceMapsPlugin.wrap(build);
         }
     };
 
