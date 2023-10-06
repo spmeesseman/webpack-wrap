@@ -90,6 +90,7 @@
         "helper"
     ],
     "main": "./dist/webpack-wrap.js",
+    "types": "./dist/types.d.ts",
     "bin": {
         "wpwrap": "./bin/wpwrap.js",
         "webpack-wrap": "./bin/wpwrap.js"

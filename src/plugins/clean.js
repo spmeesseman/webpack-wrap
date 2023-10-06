@@ -196,10 +196,7 @@ class WpwCleanPlugin extends WpwPlugin
 	 */
     isOutputFile(path)
 	{
-		path = forwardSlash(path);
-		if (this.build.options.output?.hash && !(new RegExp(`\\.[a-f0-9]{${this.hashDigestLength},}`).test(path))) {
-			return false;
-		}
+		path = forwardSlash(path).replace(".LICENSE", "");
 		return !!this.compilation.getAssets().find(a => a.name === this.fileNameStrip(path)) ||
 			   !!Object.keys(this.build.wpc.entry).includes(this.fileNameStrip(path, true));
 	}
@@ -246,7 +243,7 @@ class WpwCleanPlugin extends WpwPlugin
 			}
 			await this.rmdirIfEmpty(cwd);
 		}
-		logger.value(`deleted ${deleteCount} stale assets`, 1);
+		logger.value(`deleted ${deleteCount} stale asset(s)`, 1);
 	}
 
 

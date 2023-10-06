@@ -100,7 +100,8 @@ class WpwLogger
         this.printBanner(options.name);
         WpwLogger.initialized = true;
     }
-    /** @returns {typedefs.WpwLoggerLevel} */
+
+
     get level() { return this.options.level; }
     get valuePad() { return WpwLogger.valuePadLen; }
 
@@ -329,7 +330,7 @@ class WpwLogger
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    error = (msg, pad, color) => this.write(this.formatObjectMessage(msg), undefined, pad, this.icons.color.error, color);
+    error = (msg, pad, color) => this.write(msg, undefined, pad, this.icons.color.error, color);
 
 
     /**
@@ -465,7 +466,7 @@ class WpwLogger
     formatToMaxLine(msg, isValue)
     {
         let breakMsg = msg; // 0x1B\[0x1B indicates gradient e.g. [ESC][38;2;0;128;0mg[ESC][39m[ESC][38;2;32;144;32me[ESC][39m...
-        if ((/\x1B\[[0-9]{1,2}m\x1B/).test(msg)) { return breakMsg;}
+        if ((/\x1B\[[0-9]{1,2}m\x1B\[[0-9]{1,2};[0-9]/).test(msg)) { return breakMsg;}
         const rgxColorStart = /\x1B\[[0-9]{1,2}m/,
               maxLine = (this.options.valueMaxLineLength || 100) + (!isValue ? this.options.pad.value : 0);
         if (msg.replace(rgxColorStart, "").length > maxLine && !msg.trim().includes("\n"))
@@ -625,7 +626,7 @@ class WpwLogger
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      */
-    info = (msg, pad, color) => this.write(this.formatObjectMessage(msg), undefined, pad, this.icons.blue.info, color);
+    info = (msg, pad, color) => this.write(msg, undefined, pad, this.icons.blue.info, color);
 
 
     /**
@@ -859,7 +860,7 @@ class WpwLogger
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      * @returns {this}
      */
-    warning = (msg, pad, color) => this.write(this.formatObjectMessage(msg), undefined, pad, this.icons.color.warning, color);
+    warning = (msg, pad, color) => this.write(msg, undefined, pad, this.icons.color.warning, color);
 
 
     /**
@@ -906,7 +907,7 @@ class WpwLogger
                               (!(/\x1B\[/).test(msg) ? this.formatMessage(msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
                               `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`)) : this.formatMessage(msg)),
               tmStamp = opts.timestamp ? this.timestamp() : "",
-              linePad = basePad + pad + msgPad + "".padStart(WpwLogger.envTagLen + tmStamp.length
+              linePad = basePad + pad + msgPad + (this.staticPad || "") + "".padStart(WpwLogger.envTagLen + tmStamp.length +
                         + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0));
         console.log(`${this.messagePrefix(pad, icon, tag)}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
         return this;
