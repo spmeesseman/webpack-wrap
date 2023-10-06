@@ -59,7 +59,6 @@ class WpwPluginsExport extends WpwWebpackExport
 		build.wpc.plugins.push(
 			plugins.loghooks(build),           // n/a - logs all compiler.hooks.* when they run
 			plugins.wait(build),               // compiler.hooks.beforeRun
-			plugins.environment(build),        // compiler.hooks.environment
 			plugins.vendormod(build),          // compiler.hooks.afterEnvironment
 			plugins.progress(build),           // n/a - reports progress from webpack engine
 			plugins.clean(build),              // compiler.hooks.emit, compiler.hooks.done

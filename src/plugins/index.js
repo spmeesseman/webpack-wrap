@@ -14,7 +14,6 @@ const clean = require("./clean");
 const copy = require("./copy");
 const dispose = require("./dispose");
 const runtimevars = require("./runtimevars");
-const environment = require("./environment");
 const hash = require("./hash");
 const istanbul = require("./istanbul");
 const licensefiles = require("./licensefiles");
@@ -40,7 +39,7 @@ const analyze = { analyzer, circular, visualizer };
 
 
 module.exports = {
-    analyze, banner, clean, copy, dispose, environment, hash, ignore, istanbul,
-    jsdoc, licensefiles, loghooks, optimization, progress, release, runtimevars,
-    scm, script, sourcemaps, testsuite, tscheck, types, upload, vendormod, wait, web
+    analyze, banner, clean, copy, dispose, hash, ignore, istanbul, jsdoc,
+    licensefiles, loghooks, optimization, progress, release, runtimevars, scm,
+    script, sourcemaps, testsuite, tscheck, types, upload, vendormod, wait, web
 };
