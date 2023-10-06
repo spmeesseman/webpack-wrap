@@ -7,8 +7,8 @@ const gradient = require("gradient-string");
 const typedefs = require("../types/typedefs");
 const { applySchemaDefaults } = require("./schema");
 const { randomNumber, wpwVersion } = require("./utils");
+const { apply, merge, typeUtils } = require("@spmeesseman/type-utils");
 const { isWpwLogColor, WpwLogTrueColors } = require("../types/constants");
-const { apply, merge, typeUtils, pushUniq } = require("@spmeesseman/type-utils");
 
 const WEBPACK = "webpack";
 const SEP_GRADIENT_COLORS_COUNT = 7;
@@ -170,8 +170,6 @@ class WpwLogger
     };
 
 
-    // TODO - extended colors
-    // example gradient using extended colors:  \x1B[38;2;0;128;0mg\x1B[39m\x1B[38;2;32;144;32me\x1B[39m\x1B[38;2;64;160;64mn\x1B[39m\x1B[38;2;96;176;96me\x1B[...
     /** @type {Record<typedefs.WpwLogColorExt, typedefs.WpwLogColorExtMapping>} */
     colorsExt = {
         aliceblue: [ 240, 248, 255 ],
@@ -455,7 +453,7 @@ class WpwLogger
         {
             sMsg = "nulled";
         }
-        return this.formatToMaxLine(sMsg, isValue);
+        return this.formatToMaxLine(sMsg.trimEnd(), isValue);
     }
 
 
@@ -499,7 +497,6 @@ class WpwLogger
                 }
             }
             vMsg += v;
-            // this.write(vMsg, level, pad, icon, color);
             breakMsg = vMsg;
             while (msg.replace(rgxColorStart, "").length > maxLine)
             {
@@ -523,13 +520,11 @@ class WpwLogger
                 }
                 xPad = /\x1B/.test(vMsg) ? 0 : 2;
                 vMsg = "".padStart(vPad + xPad) + vMsg;
-                // this.write(vMsg, level, pad, icon, color);
                 breakMsg += `\n${vMsg}`;
             }
             if (msg.length > 0) {
                 xPad = /\x1B/.test(msg) ? 0 : 2;
                 vMsg = "".padStart(vPad + xPad) + msg;
-                // this.write(vMsg, level, pad, icon, color);
                 breakMsg += `\n${vMsg}`;
             }
         }
@@ -542,7 +537,7 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} icon
      * @returns {typedefs.WpwLogColorMapping}
      */
-    getIconcolorMapping(icon)
+    getIconColorMapping(icon)
     {
         if (icon)
         {
@@ -571,13 +566,13 @@ class WpwLogger
      */
     gradientColors(colorCount)
     {
-         const bColors = [],
-               gColors = [ ...GRADIENT_X_COLORS, ...Object.keys(this.colorsExt) ];
-         while (bColors.length < colorCount) {
-             pushUniq(bColors, gColors[randomNumber(gColors.length - 1, 0)]);
-         }
-         return bColors;
-     }
+        const bColors = [],
+              gColors = [ ...GRADIENT_X_COLORS, ...Object.keys(this.colorsExt) ];
+        while (bColors.length < colorCount) {
+            bColors.push(gColors[randomNumber(gColors.length - 1, 0)]);
+        }
+        return bColors;
+    }
 
 
     /** @type {typedefs.WpwLoggerIconSet} */
@@ -639,6 +634,35 @@ class WpwLogger
 
 
     /**
+     * @param {string} msg
+     * @param {string | undefined | null | 0 | false} [icon]
+     * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
+     * @param {string | undefined} [tag]
+     * @returns {string}
+     */
+    messageFormatted(msg, icon, color, tag)
+    {
+        const envMsgClr = color || this.colors[this.options.colors.default || "grey"];
+        if (!tag)
+        {
+            if (color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system) {
+                return this.withColor(this.formatMessage(msg), envMsgClr);
+            }
+        }
+        else if (!(/\x1B\[/).test(msg))
+        {
+            const envTagClr =  this.options.colors.buildBracket ? this.colors[this.options.colors.buildBracket] : this.getIconColorMapping(icon);
+            return this.formatMessage(
+                msg.replace(
+                    /\[(.*?)\] (.*?)$/gmi, (_, m, m2) => `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`
+                )
+            );
+        }
+        return this.formatMessage(msg);
+    }
+
+
+    /**
      * @private
      * @param {string | undefined} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
@@ -649,7 +673,7 @@ class WpwLogger
         const opts = this.options,
               basePad = this.options.pad.base || "",
               tmStamp = opts.timestamp ? this.timestamp() : "",
-              envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
+              envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconColorMapping(icon),
               envTagMsgClr = opts.colors.buildText ? this.colors[opts.colors.buildText] : this.colors.white,
               envTagClrLen = (this.withColorLength(envTagMsgClr) * 2) + (this.withColorLength(envTagClr) * 4),
               envTagLen = WpwLogger.envTagLen + envTagClrLen,
@@ -865,51 +889,55 @@ class WpwLogger
 
     /**
      * @param {string | undefined} msg
-     * @param {typedefs.WpwLogColorMapping} color color value
+     * @param {typedefs.WpwLogColorMapping | typedefs.WpwLogColorExtMapping} color color value
      * @param {boolean} [sticky]
      * @returns {string}
      */
-    withColor(msg, color, sticky) { return ("\x1B[" + color[0] + "m" + msg + (!sticky ? "\x1B[" + color[1] + "m" : "")); }
+    withColor(msg, color, sticky)
+    {
+        return color.length === 2 ? "\x1B[" + color[0] + "m" + msg + (!sticky ? "\x1B[" + color[1] + "m" : "") :
+            `\x1B[38;2;${color[0]};${color[1]};${color[2]}m${msg}` + (!sticky ? "\x1B[" + this.colorMap.system + "m" : "");
+    }
 
 
     /**
      * @private
-     * @param {typedefs.WpwLogColorMapping} color color value
+     * @param {typedefs.WpwLogColorMapping | typedefs.WpwLogColorExtMapping} color color value
      * @param {string} [msg] message to include in length calculation
      * @returns {number}
      */
     withColorLength(color, msg)
     {
-        return (2 + color[0].toString().length + 1 + (msg ? msg.length : 0) + 2 + color[1].toString().length + 1);
+        const c0 = color[0].toString().length + 1,
+              c1 = color[1].toString().length + 1;
+        const nLength = color.length === 2 ? c0 + c1 :
+                        c0 + c1 + color[2].toString().length + 1 + this.colorMap.system.toString().length + 1;
+        return 4 + nLength + (msg ? msg.length : 0);
     }
 
 
     /**
      * @param {string} msg
      * @param {typedefs.WpwLoggerLevel} [level]
-     * @param {string} [pad]
+     * @param {string | undefined} [pad]
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      * @param {boolean | null | undefined} [isValue]
      * @param {string | undefined} [tag]
      * @returns {this}
      */
-    write(msg, level, pad = "", icon, color, isValue, tag)
+    write(msg, level, pad, icon, color, isValue, tag)
     {
         if (level !== undefined && level > this.options.level) { return this; }
         const opts = this.options,
-              basePad = this.options.pad.base || "",
+              basePad = opts.pad.base || "",
+              envPre = this.messagePrefix(pad, icon, tag),
+              envMsg = this.messageFormatted(msg, icon, color, tag),
               msgPad = !isValue ? ((/^ /).test(msg) ? "".padStart(msg.length - msg.trimStart().length) : "") : "",
-              envTagClr =  opts.colors.buildBracket ? this.colors[opts.colors.buildBracket] : this.getIconcolorMapping(icon),
-              envMsgClr = color || this.colors[opts.colors.default || "grey"],
-              envMsg = !tag ? (color || !(/\x1B\[/).test(msg) || envMsgClr[0] !== this.colorMap.system ?
-                              this.withColor(this.formatMessage(msg), envMsgClr) : this.formatMessage(msg)) :
-                              (!(/\x1B\[/).test(msg) ? this.formatMessage(msg.replace(/\[(.*?)\] (.*?)$/gmi, (_, m, m2) =>
-                              `${this.tag(m, envTagClr, envMsgClr)} ${this.withColor(m2, envMsgClr)}`)) : this.formatMessage(msg)),
               tmStamp = opts.timestamp ? this.timestamp() : "",
-              linePad = basePad + pad + msgPad + (this.staticPad || "") + "".padStart(WpwLogger.envTagLen + tmStamp.length +
-                        + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0));
-        console.log(`${this.messagePrefix(pad, icon, tag)}${envMsg.trimEnd().replace(/\n/g, "\n" + linePad)}`, "internal");
+              linePad = basePad + (pad || "") + msgPad + (this.staticPad || "") + "".padStart(WpwLogger.envTagLen +
+                        tmStamp.length + 2 - (tmStamp ? this.withColorLength(this.colors.grey) : 0));
+        console.log(`${envPre}${envMsg.replace(/\n/g, "\n" + linePad)}`, "internal");
         return this;
     }
 
