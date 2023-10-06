@@ -5,7 +5,7 @@
 const { resolve } = require("path");
 const gradient = require("gradient-string");
 const { execAsync } = require("../src/utils/utils");
-const { wpwCliOptions } = require("../src/core/cli");
+const WpwOptions = require("../src/core/cli");
 const { parseArgs, displayHelp } = require("@spmeesseman/arg-parser");
 
 
@@ -22,7 +22,7 @@ const parserOpts = {
     enforceConstraints: false,
     ignorePositional: [ "-p", "--profile" ]
 };
-const options = parseArgs(wpwCliOptions, parserOpts);
+const options = parseArgs(WpwOptions, parserOpts);
 
 for (const o in options)
 {
@@ -39,7 +39,7 @@ if (options.help)
 ----------------------------------------------------------------------------
 `;
     process.stdout.write(gradient("cyan", "pink").multiline(title, {interpolation: "hsv"}));
-    displayHelp(wpwCliOptions);
+    displayHelp(WpwOptions);
     process.exit(0);
 }
 

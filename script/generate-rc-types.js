@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable import/no-extraneous-dependencies */
-// @ts-nocheck
+// @ts-check
 
 /**
  * @file utils/environment.js
@@ -11,7 +11,7 @@
 
 const { EOL } = require("os");
 const { existsSync } = require("fs");
-const WpwLogger = require("../src/utils/console");
+const WpwLogger = require("../src/utils/log");
 const { resolve, join, basename } = require("path");
 const { execAsync } = require("../src/utils/utils");
 const { readFile, writeFile } = require("fs/promises");
@@ -150,6 +150,7 @@ const parseTypesDts = async (/** @type {string} */hdr, /** @type {string} */data
 
     data = data
           .replace(/\r\n/g, "\n").replace(new RegExp(EOL,"g"), "\n")
+          // @ts-ignore
           .wpwreplace("removeComments")
           .wpwreplace("removeZeroLengthConstraints")
           .wpwreplace("removeOrFormatNumberedDupTypes")
@@ -509,7 +510,7 @@ const writeConstantsJs = async (/** @type {string} */hdr, /** @type {string} */d
               enumKeys = exported.filter(e => (/^ +Wpw(?:[a-zA-Z]*?)s$/).test(e))
                                  .map(e => `${e.replace(/(?:Key)?s$/, "")}: ${e.trimStart()}`);
         try {
-            await readFile(constantsPath, "utf8");
+            constantsData = await readFile(constantsPath, "utf8");
         } catch { constantsData = ""; }
 
         configToClassTypes.forEach(([ cfg, cls ]) =>
@@ -611,11 +612,11 @@ cliWrap(async(argv) =>
 {
     if (!(DISABLE_WPW_LOGGER || argv.includes("--quiet") || argv.includes("-q")))
     {
-        const name = "generating rc configuration file type definitions";
+        const name = "script: generate schema type definitions";
         logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "rctypes", level: 5 });
     }
 
-    let result = { code: 0 };
+    let result = {};
     const inputFile = "spm.schema.wpw.json",
           schemaDir = resolve(__dirname, "..", "schema"),
           indexPath = resolve(__dirname, "..", "src", "types", "index" + extension()),

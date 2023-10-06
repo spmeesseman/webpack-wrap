@@ -49,7 +49,7 @@ class WpwCleanPlugin extends WpwPlugin
 
 		if (this.buildOptions.enabled)
 		{
-			if (this.buildOptions.stale)
+			if (this.buildOptions.stale || this.buildOptions.full)
 			{
 				options.cleanStaleAssets = {
 					async: true,
@@ -89,10 +89,10 @@ class WpwCleanPlugin extends WpwPlugin
 
 
 	/**
-     * @param {typedefs.WebpackCompilation} compilation
+     * @param {typedefs.WebpackCompilation} _compilation
 	 * @returns {Promise<void>}
      */
-	async buildAssets(compilation)
+	async buildAssets(_compilation)
 	{
 		const distPath = this.build.getDistPath(),
 			  compilerOptions = this.build.source.config.compilerOptions;
@@ -224,6 +224,7 @@ class WpwCleanPlugin extends WpwPlugin
      */
 	async staleAssets(stats)
 	{
+		let deleteCount = 0;
 		const build = this.build,
 			  logger = this.logger,
 			  assets = stats.compilation.getAssets(),
@@ -241,9 +242,11 @@ class WpwCleanPlugin extends WpwPlugin
 			{
 				logger.value("   delete stale asset", file, 1);
 				await unlink(join(cwd, file));
+				++deleteCount;
 			}
 			await this.rmdirIfEmpty(cwd);
 		}
+		logger.value(`deleted ${deleteCount} stale assets`, 1);
 	}
 
 

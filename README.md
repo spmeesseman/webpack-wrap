@@ -12,8 +12,11 @@
   - [Installation](#installation)
   - [General Setup](#general-setup)
   - [Screenshots](#screenshots)
-- [Test Runner Options](#test-runner-options)
-- [Runtime Tracking Usage](#runtime-tracking-usage)
+  - [Command Line and Options](#command-line-and-options)
+    - [branch](#branch)
+    - [buildPreCommand](#buildprecommand)
+    - [changelogLineLen](#changeloglinelen)
+    - [changelogSkip](#changelogskip)
 
 ## Description
 
@@ -42,10 +45,54 @@ TODO
 
 TODO
 
-# Test Runner Options
+on of http basic auth using an API token, i.e. username:token
+
+## Command Line and Options
+
+The following command line arguments and publishrc options are supported.
 
 TODO
 
-# Runtime Tracking Usage
+options examples:
 
-TODO
+### branch
+
+|**Value Type**      |*__string__*|
+| :----------------- | :--------- |
+|**Value Default**   |*__trunk__*|
+|**Command Line Arg**|*__-b \| --branch__*|
+
+The branch to use.
+
+For SVN, this should include the path to the branches directory, e.g.:
+
+    branches/branch-name
+
+SVN branch support can only work if there is a 'per project' branching folder / structure.  It is assumed that the 'tags' folders is named by convention, i.e. '/tags'
+
+### buildPreCommand
+
+|**Value Type**      |*__string \| string[]__*|
+| :----------------- | :--------- |
+|**Value Default**   ||
+|**Command Line Arg**|*__n/a__*|
+
+A script or list of scripts to run for the build stage, before the build process is started.
+
+### changelogLineLen
+
+|**Value Type**      |*__number__*|
+| :----------------- | :--------- |
+|**Value Default**   |80|
+|**Command Line Arg**|*__-cll \| --changelog-line-len__*|
+
+The maximum line length to use when parsing commits to populate the changelog file.
+
+### changelogSkip
+
+|**Value Type**      |*__boolean__*|
+| :----------------- | :--------- |
+|**Value Default**   |false|
+|**Command Line Arg**|*__-clnt \| --changelog-skip__*|
+
+Ignore / skip the changelog file stage.  Will not validate changelog file version.

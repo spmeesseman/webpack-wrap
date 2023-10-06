@@ -11,9 +11,6 @@
         "options": {
             "banner": {
                 "enabled": true
-            },
-            "licensefiles": {
-                "enabled": true
             }
         }
     },
@@ -62,6 +59,17 @@
     },
     "production": {
         "builds": [{
+            "name": "webpack-wrap",
+            "options": {
+                "analyze": {
+                    "circular": true
+                },
+                "licensefiles": {
+                    "enabled": true
+                }
+            }
+        },
+        {
             "name": "examples",
             "type": "script",
             "log": {
@@ -82,6 +90,27 @@
                             ".wpcrc.json",
                             "webpack.config",
                             "../../vscode-taskexplorer/.wpcrc.json"
+                        ]
+                    }]
+                }
+            }
+        },
+        {
+            "name": "help",
+            "type": "script",
+            "log": {
+                "color": "yellow"
+            },
+            "options": {
+                "script": {
+                    "mode": "synchronous",
+                    "items": [{
+                        "type": "node",
+                        "output": "src/core/cli.js",
+                        "path": "script/create-help.js",
+                        "args": [ "--quiet" ],
+                        "input": [
+                            "README.md"
                         ]
                     }]
                 }
@@ -137,12 +166,7 @@
             "paths": {
                 "dist": "dist/doc"
             }
-        }],
-        "options": {
-            "analyze": {
-                "circular": true
-            }
-        }
+        }]
     },
     "test": {
         "builds": [{
@@ -170,9 +194,6 @@
         "valueMaxLineLength": 100,
         "pad": {
             "value": 40
-        },
-        "colors": {
-            "default": "grey"
         }
     },
     "paths": {

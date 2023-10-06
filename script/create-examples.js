@@ -9,7 +9,7 @@
 
 
 const { resolve } = require("path");
-const WpwLogger = require("../src/utils/console");
+const WpwLogger = require("../src/utils/log");
 const { readFile, writeFile, mkdir } = require("fs/promises");
 
 
@@ -32,7 +32,7 @@ const cliWrap = (/** @type {(arg0: string[]) => Promise<any> } */ exe) =>
 cliWrap(async(argv) =>
 {
     if (!(argv.includes("--quiet") || argv.includes("-q"))) {
-        const name = "generating rc configuration file type definitions";
+        const name = "script: generate examples";
         logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "examples" });
     }
 

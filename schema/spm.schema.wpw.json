@@ -92,7 +92,7 @@
             "type": "string",
             "maxLength": 150,
             "description": "relative or absolute path to a directory",
-            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/:]+)$",
+            "pattern": "^(?:\\.{1,2}|(?:\\.[\\\\/])?[\\w][~@!:\\*\\w\\.\\-\\\\/:]+)$",
             "if": {
                 "pattern": "^\\.$"
             },
@@ -162,7 +162,7 @@
             "minLength": 5,
             "maxLength": 150,
             "descriptiont": "relative or absolute path to a file",
-            "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\w\\.\\-\\\\/]+)?\\.[a-z0-9\\.]+$"
+            "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\*\\w\\.\\-\\\\/]+)?\\.[a-z0-9\\.]+$"
         },
         "FilePathJs": {
             "$id": "#/FilePathJs",
@@ -1489,6 +1489,180 @@
             },
             {
                 "const": "linen"
+            },
+            {
+                "const": "maroon"
+            },
+            {
+                "const": "mediumaquamarine"
+            },
+            {
+                "const": "mediumblue"
+            },
+            {
+                "const": "mediumorchid"
+            },
+            {
+                "const": "mediumpurple"
+            },
+            {
+                "const": "mediumseagreen"
+            },
+            {
+                "const": "mediumslateblue"
+            },
+            {
+                "const": "mediumspringgreen"
+            },
+            {
+                "const": "mediumturquoise"
+            },
+            {
+                "const": "mediumvioletred"
+            },
+            {
+                "const": "midnightblue"
+            },
+            {
+                "const": "mintcream"
+            },
+            {
+                "const": "mistyrose"
+            },
+            {
+                "const": "moccasin"
+            },
+            {
+                "const": "navajowhite"
+            },
+            {
+                "const": "navy"
+            },
+            {
+                "const": "oldlace"
+            },
+            {
+                "const": "olive"
+            },
+            {
+                "const": "olivedrab"
+            },
+            {
+                "const": "orange"
+            },
+            {
+                "const": "orangered"
+            },
+            {
+                "const": "orchid"
+            },
+            {
+                "const": "palegoldenrod"
+            },
+            {
+                "const": "palegreen"
+            },
+            {
+                "const": "paleturquoise"
+            },
+            {
+                "const": "palevioletred"
+            },
+            {
+                "const": "papayawhip"
+            },
+            {
+                "const": "peachpuff"
+            },
+            {
+                "const": "peru"
+            },
+            {
+                "const": "pink"
+            },
+            {
+                "const": "plum"
+            },
+            {
+                "const": "powderblue"
+            },
+            {
+                "const": "purple"
+            },
+            {
+                "const": "rebeccapurple"
+            },
+            {
+                "const": "rosybrown"
+            },
+            {
+                "const": "royalblue"
+            },
+            {
+                "const": "saddlebrown"
+            },
+            {
+                "const": "salmon"
+            },
+            {
+                "const": "sandybrown"
+            },
+            {
+                "const": "seagreen"
+            },
+            {
+                "const": "seashell"
+            },
+            {
+                "const": "sienna"
+            },
+            {
+                "const": "silver"
+            },
+            {
+                "const": "skyblue"
+            },
+            {
+                "const": "slateblue"
+            },
+            {
+                "const": "slategrey"
+            },
+            {
+                "const": "snow"
+            },
+            {
+                "const": "springgreen"
+            },
+            {
+                "const": "steelblue"
+            },
+            {
+                "const": "tan"
+            },
+            {
+                "const": "teal"
+            },
+            {
+                "const": "thistle"
+            },
+            {
+                "const": "tomato"
+            },
+            {
+                "const": "turquoise"
+            },
+            {
+                "const": "violet"
+            },
+            {
+                "const": "wheat"
+            },
+            {
+                "const": "whitesmoke"
+            },
+            {
+                "const": "yellowgreen"
             }]
         },
         "WpwModuleName": {

@@ -149,7 +149,7 @@ interface IWebpackRuntimeArgs extends Record<string, string[] | string | boolean
 }
 type WebpackRuntimeArgs = IWebpackRuntimeArgs;
 
-interface IWebpackRuntimeEnvArgs { WEBPACK_WATCH?: boolean; watch?: boolean }
+interface IWebpackRuntimeEnvArgs { WEBPACK_BUILD?: boolean; WEBPACK_BUNDLE?: boolean; WEBPACK_WATCH?: boolean; watch?: boolean }
 type WebpackRuntimeEnvArgs = IWebpackRuntimeEnvArgs;
 
 type WebpackSnapshot = ReturnType<WebpackCompilation["fileSystemInfo"]["mergeSnapshots"]>;

@@ -70,39 +70,34 @@ class WpwHashPlugin extends WpwPlugin
      */
     logAssetInfo = (rotated) =>
     {
-        const logger = this.build.logger,
-              hashInfo = this.globalCache,
-              labelLength = this.build.log.pad.value || 45;
-        logger.write(`${rotated ? "read" : "saved"} asset state for build environment ${logger.withColor(this.build.mode, logger.colors.italic)}`, 1);
-        logger.write("   previous:", 2);
+        const l = this.build.logger,
+              hashInfo = this.globalCache;
+        l.write("   previous:", 2);
+        if (!isObjectEmpty(hashInfo.previous))
+        {
+            Object.keys(hashInfo.previous).forEach(k => l.writeMsgTag(`      ${k}`, hashInfo.current[k], 2, "", null, l.colors.grey));
+        }
+        else {
+            l.write("      there are no previous hashes stored", 2);
+        }
+        l.write("   current:", 2);
         if (!isObjectEmpty(hashInfo.current))
         {
-            Object.keys(hashInfo.previous).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.current[k]), 2, "", 0, logger.colors.grey)
-            );
+            Object.keys(hashInfo.current).forEach(k => l.writeMsgTag(`      ${k}`, hashInfo.current[k], 2, "", null, l.colors.grey));
         }
         else if (!isObjectEmpty(hashInfo.previous) && rotated === true) {
-            logger.write("      there are no previous hashes stored", 2);
+            l.write("      values cleared and moved to 'previous'", 2);
         }
-        logger.write("   current:", 2);
-        if (!isObjectEmpty(hashInfo.current))
-        {
-            Object.keys(hashInfo.current).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.current[k]), 2, "", 0, logger.colors.grey)
-            );
+        else {
+            l.write("      there are no current hashes stored", 2);
         }
-        else if (!isObjectEmpty(hashInfo.previous) && rotated === true) {
-            logger.write("      values cleared and moved to 'previous'", 2);
-        }
-        logger.write("   next:", 2);
+        l.write("   next:", 2);
         if (!isObjectEmpty(hashInfo.next))
         {
-            Object.keys(hashInfo.next).forEach(
-                (k) => logger.write(`      ${k.padEnd(labelLength - 7)} ` + logger.tag(hashInfo.next[k]), 2, "", 0, logger.colors.grey)
-            );
+            Object.keys(hashInfo.current).forEach(k => l.writeMsgTag(`      ${k}`, hashInfo.next[k], 2, "", null, l.colors.grey));
         }
         else if (!isObjectEmpty(hashInfo.current) && rotated === true) {
-            logger.write("      values cleared and moved to 'current'", 2);
+            l.write("      values cleared and moved to 'current'", 2);
         }
     };
 
@@ -115,6 +110,8 @@ class WpwHashPlugin extends WpwPlugin
      */
     readAssetState(_params)
     {
+        const l = this.logger;
+        l.write(`read asset state for build environment ${l.withColor(this.build.mode, l.colors.italic)}`, 1);
         const cache = this.cache.get();
         // apply(this.globalCache, cache);
         merge(this.globalCache, cache);
@@ -122,6 +119,7 @@ class WpwHashPlugin extends WpwPlugin
         this.globalCache.current = merge(this.globalCache.current, this.globalCache.next);
         this.globalCache.next = {};
         this.logAssetInfo(true);
+        l.write("asset state read and cached", 1);
     };
 
 
@@ -175,9 +173,12 @@ class WpwHashPlugin extends WpwPlugin
      */
     saveAssetState()
     {
+        const l = this.logger;
+        l.write(`save asset state for build environment ${l.withColor(this.build.mode, l.colors.italic)}`, 1);
         this.cache.set(this.globalCache);
         this.cache.save();
         this.logAssetInfo();
+        l.write("asset state saved", 1);
     }
 
 
@@ -201,7 +202,7 @@ class WpwHashPlugin extends WpwPlugin
             else {
                 this.build.addMessage({
                     code: WpwError.Code.ERROR_GENERAL,
-                    message: "failed to extrat contenthash from chunk " + chunk.name
+                    message: "failed to extract contenthash from chunk " + chunk.name
                 });
             }
         }

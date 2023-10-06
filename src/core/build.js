@@ -128,7 +128,8 @@ class WpwBuild extends WpwBase
         super(config);
         objUtils.apply(this, { disposables: [], info: [], errors: [], warnings: [], wrapper });
         this.initConfig(config);
-        this.initLogger();
+        this.logger = new WpwLogger(this.log);
+        this.logger.write(`initializing configured build '${this.name}'`, 1);
         this.configureDependencies();
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.source = new WpwSource(objUtils.clone(config.source), this);
@@ -193,9 +194,26 @@ class WpwBuild extends WpwBase
 	 */
     configureDependencies()
     {
+        this.configureDependenciesByCmdLine();
         this.configureDependenciesByMode();
         this.configureDependenciesByOptions();
         this.configureDependenciesByType();
+    }
+
+
+	/**
+	 * @private
+	 */
+    configureDependenciesByCmdLine()
+    {
+        if (this.cmdLine.clean)
+        {
+            this.setOptionEnabled("clean", true, "full");
+        }
+        if (this.cmdLine.cleanCache)
+        {
+            this.setOptionEnabled("clean", true, "cache");
+        }
     }
 
 
@@ -262,6 +280,9 @@ class WpwBuild extends WpwBase
         if (this.type === "app")
         {
             this.setOptionEnabled("externals", false, "defaults");
+            if (this.source.type === "typescript") {
+                this.setOptionEnabled("tscheck");
+            }
         }
         else if (this.type === "jsdoc")
         {
@@ -285,12 +306,7 @@ class WpwBuild extends WpwBase
         }
         else if (this.type === "webapp")
         {
-        }
-
-        if (this.type !== "types")
-        {
-            if (this.source.type === "typescript")
-            {
+            if (this.source.type === "typescript") {
                 this.setOptionEnabled("tscheck");
             }
         }
@@ -491,16 +507,6 @@ class WpwBuild extends WpwBase
         this.validateConfig(config);
         objUtils.apply(this, config);
         objUtils.apply(this.log, { envTag1: this.name, envTag2: this.target });
-    }
-
-
-    /**
-     * @private
-     */
-    initLogger()
-    {
-        this.logger = new WpwLogger(this.log);
-        this.logger.write(`initializing configured build '${this.name}'`, 1);
     }
 
 

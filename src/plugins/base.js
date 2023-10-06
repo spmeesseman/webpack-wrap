@@ -446,10 +446,10 @@ class WpwPlugin extends WpwBaseModule
     {
         this.compilation = compilation;
         this.wpCacheCompilation = compilation.getCache(this.cacheName);
-        if (!WpwPlugin.dependenciesLogged) {
+        if (!WpwPlugin.dependenciesLogged && this.logger.level >= 3) {
             compilation.hooks.beforeCodeGeneration.tap("onBeforeCodeGeneration_" + this.name, () => this.printCompilationDependencies());
-            WpwPlugin.dependenciesLogged = true;
         }
+        WpwPlugin.dependenciesLogged = true;
     }
 
 
@@ -479,25 +479,25 @@ class WpwPlugin extends WpwBaseModule
     printCompilationDependencies()
     {
         const l = this.logger;
-		l.value("   # of build dependencies", this.compilation.buildDependencies.size, 2);
-		if (this.compilation.buildDependencies.size > 0 && l.level >= 3) {
-			l.write("   build dependencies:", 3);
-			this.compilation.buildDependencies.forEach(d => l.write("      " + d, 3));
+		l.value("   # of build dependencies", this.compilation.buildDependencies.size, 3);
+		if (this.compilation.buildDependencies.size > 0 && l.level >= 4) {
+			l.write("   build dependencies:", 4);
+			this.compilation.buildDependencies.forEach(d => l.write("      " + d, 4));
 		}
-		l.value("   # of context dependencies", this.compilation.contextDependencies.size, 2);
-		if (this.compilation.contextDependencies.size > 0 && l.level >= 3) {
-			l.write("   context dependencies:", 3);
-			this.compilation.contextDependencies.forEach(d => l.write("      " + d, 3));
+		l.value("   # of context dependencies", this.compilation.contextDependencies.size, 3);
+		if (this.compilation.contextDependencies.size > 0 && l.level >= 4) {
+			l.write("   context dependencies:", 4);
+			this.compilation.contextDependencies.forEach(d => l.write("      " + d, 4));
 		}
-		l.value("   # of file dependencies", this.compilation.fileDependencies.size, 2);
-		if (this.compilation.fileDependencies.size > 0 && l.level >= 3) {
-			l.write("   file dependencies:", 3);
-			this.compilation.fileDependencies.forEach(d => l.write("      " + d, 3));
+		l.value("   # of file dependencies", this.compilation.fileDependencies.size, 3);
+		if (this.compilation.fileDependencies.size > 0 && l.level >= 4) {
+			l.write("   file dependencies:", 4);
+			this.compilation.fileDependencies.forEach(d => l.write("      " + d, 4));
 		}
-		l.value("   # of missing dependencies", this.compilation.missingDependencies.size, 2);
-		if (this.compilation.missingDependencies.size > 0 && l.level >= 3) {
-			l.write("   missing dependencies:", 3);
-			this.compilation.missingDependencies.forEach(d => l.write("      " + d, 3));
+		l.value("   # of missing dependencies", this.compilation.missingDependencies.size, 3);
+		if (this.compilation.missingDependencies.size > 0 && l.level >= 4) {
+			l.write("   missing dependencies:", 4);
+			this.compilation.missingDependencies.forEach(d => l.write("      " + d, 4));
 		}
     }
 

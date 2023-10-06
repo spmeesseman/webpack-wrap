@@ -92,10 +92,6 @@ class WpwWrapper extends WpwBase
      */
     production;
     /**
-     * @type {boolean}
-     */
-    publicInfoProject;
-    /**
      * @type {string}
      */
     $schema;
@@ -111,10 +107,6 @@ class WpwWrapper extends WpwBase
      * @type {typedefs.WpwBuildBaseConfig}
      */
     test;
-    /**
-     * @type {typedefs.WpwVersionString}
-     */
-    version;
     /**
      * @type {typedefs.WpwVsCode}
      */
@@ -189,7 +181,6 @@ class WpwWrapper extends WpwBase
     applyPackageJson()
     {
         this.pkgJsonPath = this.applyJsonFromFile(this.pkgJson, "package.json", resolve(), ...WpwPackageJsonKeys);
-        this.version = this.pkgJson.version;
         const nameData = this.pkgJson.name.split("/");
         apply(this.pkgJson, {
             scopedName: {
@@ -293,14 +284,6 @@ class WpwWrapper extends WpwBase
                 applyIf(depBuild.options.wait, { mode: "event" });
             }
         }
-
-        // for (const build of this.builds)
-        // {
-        //     if (!build.isOnlyBuild && !!this.builds.find(b => b.options.wait?.enabled && !!b.options.wait.items?.find(i => i.name === build.name || i.name === build.type)))
-        //     {
-        //         build.options.wait = applyIf(build.options.wait, { enabled: true, mode: "event" });
-        //     }
-        // }
 
         if (dependentBuilds.length > 0)
         {
@@ -434,11 +417,10 @@ class WpwWrapper extends WpwBase
      */
     initLogger()
     {
-        const name = `Build ${this.pkgJson.displayName || this.pkgJson.scopedName.name}`,
-              l = this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main", name }));
-        l.write("   Mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
-        l.write("   Argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);
-        l.write("   Env   : " + l.withColor(this.jsonStringifySafe(this.arge), l.colors.grey), 1, "", 0, l.colors.white);
+        const l = this.logger = new WpwLogger(merge({}, this.log, { envTag1: "wpw", envTag2: "main", name: this.pkgJson.displayName }));
+        l.write("   mode  : " + l.withColor(this.mode, l.colors.grey), 1, "", 0, l.colors.white);
+        l.write("   argv  : " + l.withColor(this.jsonStringifySafe(this.argv), l.colors.grey), 1, "", 0, l.colors.white);
+        l.write("   env   : " + l.withColor(this.jsonStringifySafe(this.arge), l.colors.grey), 1, "", 0, l.colors.white);
         l.sep();
     }
 

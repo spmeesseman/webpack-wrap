@@ -47,7 +47,7 @@ interface IWpwGlobalEnvironment {
 };
 
 interface IWpwRuntimeEnvArgs {
-    analyze?: boolean; build?: string; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
+    analyze?: boolean; build?: string; cleanCache?: boolean; mode?: WpwWebpackMode; loglevel?: WpwLoggerLevel | WebpackLogLevel;
 };
 type WpwRuntimeEnvArgs = IWpwRuntimeEnvArgs;
 

@@ -1,5 +1,5 @@
 
-const wpwCliOptions =
+const WpwOptions =
 {
     help: [
         true,
@@ -24,4 +24,5 @@ const wpwCliOptions =
     ]
 };
 
-module.exports = wpwCliOptions;
+
+module.exports = WpwOptions;

@@ -34,6 +34,7 @@
         "build-app-test:analyze": "webpack --env build=app --mode none --env mode=test --env analyze --config ./webpack.config.js && npm run view-statistics",
         "build-docs": "webpack --env build=docs --mode production --config ./webpack.config.js",
         "build-examples": "webpack --env build=examples --mode production --config ./webpack.config.js",
+        "build-help": "webpack --env build=help --mode production --config ./webpack.config.js",
         "build-schema": "webpack --env build=schema --mode production --config ./webpack.config.js",
         "build-test-suite": "webpack --env build=tests --env mode=test --config ./webpack.config.js",
         "build-types": "webpack --env build=types --mode none --env mode=test --config ./webpack.config.js",
@@ -68,16 +69,21 @@
     },
     "files": [
         "bin",
-        "examples",
-        "res",
         "schema",
-        "dist"
+        "dist/doc",
+        "dist/examples",
+        "dist/types.d.ts",
+        "dist/runtime.js",
+        "dist/vendor.js",
+        "dist/webpack-wrap.js",
+        "dist/*.LICENSE"
     ],
     "publishConfig": {
         "access": "public"
     },
     "keywords": [
         "webpack",
+        "utility",
         "javascript",
         "typescript",
         "wrapper",
@@ -85,7 +91,6 @@
     ],
     "main": "./dist/webpack-wrap.js",
     "bin": {
-        "wpw": "./bin/wpwrap.js",
         "wpwrap": "./bin/wpwrap.js",
         "webpack-wrap": "./bin/wpwrap.js"
     },

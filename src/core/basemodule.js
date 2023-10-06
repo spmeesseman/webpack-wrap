@@ -187,8 +187,8 @@ class WpwBaseModule extends WpwBase
             this.global[baseProp] = {};
         }
         this.globalCache = this.global[baseProp];
-        this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.global[p]).forEach(
-            (/** @type {string} */p) => { this.global[p] = {}; }
+        this.options.globalCacheProps?.filter((/** @type {string} */p) => !this.globalCache[p]).forEach(
+            (/** @type {string} */p) => { this.globalCache[p] = {}; }
         );
     }
 

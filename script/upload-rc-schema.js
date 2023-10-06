@@ -9,8 +9,8 @@
 
 
 const { resolve } = require("path");
+const WpwLogger = require("../src/utils/log");
 const { execAsync } = require("../src/utils/utils");
-const WpwLogger = require("../src/utils/console");
 
 
 //
@@ -47,7 +47,7 @@ cliWrap(async(argv) =>
 
     const quiet = argv.includes("--quiet") || argv.includes("-q");
     if (!quiet) {
-        const name = "generating rc configuration file type definitions";
+        const name = "script: upload schema definition files";
         logger = new WpwLogger({ name, envTag1: "wpwrap", envTag2: "upload", level: 5 });
     }
 
