@@ -492,7 +492,7 @@
                             "propertyNames": {
                                 "enum": [
                                     "analyze", "banner", "cache", "clean", "copy", "devtool", "entry",
-                                    "environment", "experiments", "externals", "hash", "html", "ignore",
+                                    "experiments", "externals", "hash", "html", "ignore",
                                     "ignorewarnings", "istanbul", "jsdoc", "licensefiles", "loghooks",
                                     "minification", "mocha", "progress", "release", "resolve", "rules",
                                     "runscripts", "runtimevars", "scm", "script", "stats", "testsuite",
@@ -569,9 +569,6 @@
                     "$ref": "#/definitions/WpwExportConfigDevTool"
                 },
                 "entry": {
-                    "$ref": "#/definitions/WpwModuleConfigInternal"
-                },
-                "environment": {
                     "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "experiments": {
@@ -2531,81 +2528,26 @@
             "type": "object",
             "minProperties": 1,
             "additionalProperties": false,
+            "description": "app-publisher integration for releases (npm install @spmeesseman/app-publisher)",
             "properties": {
                 "enabled": {
                     "type": "boolean"
                 },
-                "github": {
-                    "type": "boolean"
-                },
-                "gitlab": {
-                    "type": "boolean"
-                },
-                "npm": {
-                    "type": "boolean"
-                },
-                "preTag": {
-                    "type": "string",
-                    "default": "v"
-                },
-                "promptVersion": {
-                    "type": "boolean"
+                "config": {
+                    "$ref": "#/definitions/FilePathJson",
+                    "description": "relative or absolute path to app-publisher configuration file"
                 }
             },
             "examples": [{
                 "enabled": true
             },
             {
+                "enabled": true,
+                "config": ".publishrc.json"
+            },
+            {
                 "enabled": false
-            }],
-            "dependencies": {
-                "github": {
-                    "if": {
-                        "properties": {
-                            "github": {
-                                "const": true
-                            }
-                        }
-                    },
-                    "then": {
-                        "oneOf": [{
-                            "properties": {
-                                "gitlab": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "gitlab": {
-                                    "const": false
-                                }
-                            }
-                        }]
-                    }
-                },
-                "gitlab": {
-                    "if": {
-                        "properties": {
-                            "gitlab": {
-                                "const": true
-                            }
-                        }
-                    },
-                    "then": {
-                        "oneOf": [{
-                            "properties": {
-                                "github": false
-                            }
-                        },
-                        {
-                            "properties": {
-                                "github": {
-                                    "const": false
-                                }
-                            }
-                        }]
-                    }
-                }
-            }
+            }]
         },
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
