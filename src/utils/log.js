@@ -146,6 +146,7 @@ class WpwLogger
     {
         const msg = !this.options.envTagDisable ? this.withColor("   force reset console color to system default", this.colors.grey) : "";
         this.write(msg + this.withColor(" ", this.colors.system, true));
+        // console.log = WpwLogger.stdConsole;
     };
 
 
@@ -172,8 +173,6 @@ class WpwLogger
 
 
     /**
-     * Performs inline text coloring e.g. a message can contain ""..finished italic(main module) in 2.3s"
-     *
      * @private
      * @param {any} msg
      * @returns {string}
@@ -200,12 +199,10 @@ class WpwLogger
     formatObjectMessage(msg, isValue)
     {
         let sMsg = "";
-        if (typeUtils.isString(msg))
-        {
+        if (typeUtils.isString(msg)) {
             sMsg = msg;
         }
-        else if (typeUtils.isPrimitive(msg))
-        {
+        else if (typeUtils.isPrimitive(msg)) {
             sMsg = msg.toString();
         }
         else if (typeUtils.isError(msg))
@@ -233,16 +230,13 @@ class WpwLogger
                 sMsg = "[ " + msg.join(", ") + " ]";
             }
         }
-        else if (typeUtils.isDate(msg))
-        {
+        else if (typeUtils.isDate(msg)) {
             sMsg = msg.toLocaleString();
         }
-        else if (typeUtils.isFunction(msg))
-        {
+        else if (typeUtils.isFunction(msg)) {
             sMsg = `function:${msg.name}`;
         }
-        else if (typeUtils.isPromise(msg))
-        {
+        else if (typeUtils.isPromise(msg)) {
             sMsg = "<promise>";
         }
         else if (typeUtils.isObject<{}>(msg))
@@ -267,16 +261,13 @@ class WpwLogger
                 }
             }
         }
-        else if (msg === null)
-        {
+        else if (msg === null) {
             sMsg = "null";
         }
-        else if (msg === undefined)
-        {
+        else if (msg === undefined) {
             sMsg = "undefined";
         }
-        else if (typeUtils.isNulled(msg))
-        {
+        else if (typeUtils.isNulled(msg)) {
             sMsg = "nulled";
         }
         return this.formatToMaxLine(sMsg.trimEnd(), isValue);
@@ -441,8 +432,6 @@ class WpwLogger
 
 
     /**
-     * Equivalent to {@link WpwLogger.write write()}, but writes regardless of current logging level
-     *
      * @param {any} msg
      * @param {string} [pad]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
@@ -452,7 +441,8 @@ class WpwLogger
 
     /**
      * Wrapper function for {@link write write()} to intercept raw console.log calls from webpack
-     * @see exports/stats.js Do not call internally.
+     * @see exports/stats.js Do not call internally
+     *
      * @param {string} msg
      * @param {...any} args
      */
@@ -618,8 +608,7 @@ class WpwLogger
     tag(tagMsg, bracketColor, msgColor)
     {
         const bClr = bracketColor || this.tagBracketColor();
-        return tagMsg ?
-            (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
+        return tagMsg ? (this.withColor("[", bClr) + this.withColor(tagMsg, msgColor || this.colors.grey) + this.withColor("]", bClr)) : "";
     }
 
 
@@ -698,6 +687,7 @@ class WpwLogger
     /**
      * Wrapper function for {@link write write()} to intercept raw console.log calls from webpack
      * @see exports/stats.js Do not call internally.
+     *
      * @param {string} msg
      * @param {...any} _args
      */
@@ -749,7 +739,7 @@ class WpwLogger
      * @param {string | undefined | null | 0 | false} [icon]
      * @param {typedefs.WpwLogColorMapping | null | undefined} [color]
      * @param {boolean | null | undefined} [isValue]
-     * @param {string | undefined} [tag]
+     * @param {string | undefined} [tag] internal use omly
      * @returns {this}
      */
     write(msg, level, pad, icon, color, isValue, tag)
