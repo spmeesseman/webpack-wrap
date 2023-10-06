@@ -41,19 +41,98 @@ class WpwReleasePlugin extends WpwPlugin
      */
     onApply()
     {
-        return {
-            executeRelease: {
-                hook: "done",
-                callback: this.executeRelease.bind(this)
+        /** @type {typedefs.WpwPluginTapOptions} */
+        const hooksConfig = {
+            setNewVersion: {
+                hook: "environment",
+                callback: this.setNewVersion.bind(this)
+            },
+            updateChangelog: {
+                hook: "afterEnvironment",
+                callback: this.updateChangelog.bind(this)
             }
         };
+
+        if (this.buildOptions.github)
+        {
+            hooksConfig.executeGithubRelease = {
+                hook: "done",
+                callback: this.executeGithubRelease.bind(this)
+            };
+        }
+
+        if (this.buildOptions.gitlab)
+        {
+            hooksConfig.executeGitlabRelease = {
+                hook: "done",
+                callback: this.executeGitlabRelease.bind(this)
+            };
+        }
+
+        if (this.buildOptions.mantis)
+        {
+            hooksConfig.executeMantisRelease = {
+                hook: "done",
+                callback: this.executeMantisRelease.bind(this)
+            };
+        }
+
+        if (this.buildOptions.npm)
+        {
+            hooksConfig.executeNpmRelease = {
+                hook: "done",
+                callback: this.executeNpmRelease.bind(this)
+            };
+        }
+
+        return hooksConfig;
     }
 
 
     /**
      * @private
      */
-    executeRelease()
+    executeGithubRelease()
+    {
+    }
+
+
+    /**
+     * @private
+     */
+    executeGitlabRelease()
+    {
+    }
+
+
+    /**
+     * @private
+     */
+    executeMantisRelease()
+    {
+    }
+
+
+    /**
+     * @private
+     */
+    executeNpmRelease()
+    {
+    }
+
+
+    /**
+     * @private
+     */
+    setNewVersion()
+    {
+    }
+
+
+    /**
+     * @private
+     */
+    updateChangelog()
     {
     }
 

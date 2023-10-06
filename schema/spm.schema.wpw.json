@@ -2536,6 +2536,25 @@
                 "config": {
                     "$ref": "#/definitions/FilePathJson",
                     "description": "relative or absolute path to app-publisher configuration file"
+                },
+                "github": {
+                    "type": "boolean"
+                },
+                "gitlab": {
+                    "type": "boolean"
+                },
+                "mantis": {
+                    "type": "boolean"
+                },
+                "npm": {
+                    "type": "boolean"
+                },
+                "preTag": {
+                    "type": "string",
+                    "default": "v"
+                },
+                "promptVersion": {
+                    "type": "boolean"
                 }
             },
             "examples": [{
@@ -2547,7 +2566,55 @@
             },
             {
                 "enabled": false
-            }]
+            }],
+            "dependencies": {
+                "github": {
+                    "if": {
+                        "properties": {
+                            "github": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "oneOf": [{
+                            "properties": {
+                                "gitlab": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "gitlab": {
+                                    "const": false
+                                }
+                            }
+                        }]
+                    }
+                },
+                "gitlab": {
+                    "if": {
+                        "properties": {
+                            "gitlab": {
+                                "const": true
+                            }
+                        }
+                    },
+                    "then": {
+                        "oneOf": [{
+                            "properties": {
+                                "github": false
+                            }
+                        },
+                        {
+                            "properties": {
+                                "github": {
+                                    "const": false
+                                }
+                            }
+                        }]
+                    }
+                }
+            }
         },
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",
