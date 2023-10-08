@@ -245,7 +245,7 @@ class WpwJsDocPlugin extends WpwBaseTaskPlugin
         //
         // Execute jsdoc command
         //
-        const code = await this.exec(`npx jsdoc ${cmdLineArgs}`, "jsdoc");
+        const code = await this.exec2(`npx jsdoc ${cmdLineArgs}`, "jsdoc");
         if (code !== 0)
         {
             return build.addMessage({

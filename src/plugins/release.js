@@ -20,6 +20,28 @@ const { isString, apply, isObjectEmpty, merge } = require("@spmeesseman/type-uti
 class WpwReleasePlugin extends WpwPlugin
 {
     /**
+     * @private
+     * @type {string}
+     */
+    currentVersion;
+    /**
+     * @private
+     * @type {string}
+     */
+    nextVersion;
+    /**
+     * @private
+     * @type {boolean}
+     */
+    hasFileUpdates;
+    /**
+     * @private
+     * @type {string}
+     */
+    versionBump;
+
+
+    /**
      * @param {typedefs.WpwPluginOptions} options Plugin options to be applied
      */
 	constructor(options)
@@ -43,13 +65,24 @@ class WpwReleasePlugin extends WpwPlugin
     {
         /** @type {typedefs.WpwPluginTapOptions} */
         const hooksConfig = {
-            setNewVersion: {
-                hook: "environment",
-                callback: this.setNewVersion.bind(this)
+            getVersions: {
+                hook: "run",
+                async: true,
+                callback: this.getVersions.bind(this)
+            },
+            updateVersionFiles: {
+                hook: "beforeCompile",
+                async: true,
+                callback: this.updateVersionFiles.bind(this)
             },
             updateChangelog: {
-                hook: "afterEnvironment",
+                hook: "done",
                 callback: this.updateChangelog.bind(this)
+            },
+            cleanup: {
+                hook: "shutdown",
+                forceRun: true,
+                callback: this.cleanup.bind(this)
             }
         };
 
@@ -57,6 +90,7 @@ class WpwReleasePlugin extends WpwPlugin
         {
             hooksConfig.executeGithubRelease = {
                 hook: "done",
+                async: true,
                 callback: this.executeGithubRelease.bind(this)
             };
         }
@@ -65,6 +99,7 @@ class WpwReleasePlugin extends WpwPlugin
         {
             hooksConfig.executeGitlabRelease = {
                 hook: "done",
+                async: true,
                 callback: this.executeGitlabRelease.bind(this)
             };
         }
@@ -73,6 +108,7 @@ class WpwReleasePlugin extends WpwPlugin
         {
             hooksConfig.executeMantisRelease = {
                 hook: "done",
+                async: true,
                 callback: this.executeMantisRelease.bind(this)
             };
         }
@@ -81,6 +117,7 @@ class WpwReleasePlugin extends WpwPlugin
         {
             hooksConfig.executeNpmRelease = {
                 hook: "done",
+                async: true,
                 callback: this.executeNpmRelease.bind(this)
             };
         }
@@ -92,48 +129,116 @@ class WpwReleasePlugin extends WpwPlugin
     /**
      * @private
      */
-    executeGithubRelease()
+    async cleanup()
     {
+        if (this.buildOptions.dryRun || (this.build.hasError && this.hasFileUpdates))
+        {
+            await this.execAp("--task-revert");
+        }
+    }
+
+
+    /**
+     * @param {string[]} args
+     * @returns {Promise<typedefs.ExecAsyncResult>} Promise<ExecAsyncResult>
+     */
+    execAp(...args)
+    {
+        if (this.buildOptions.dryRun) {
+            args.push("--dry-run");
+        }
+        return this.exec(`app-publisher --no-ci ${args.join(" ")}`, "app-publisher");
     }
 
 
     /**
      * @private
      */
-    executeGitlabRelease()
+    async executeGithubRelease()
     {
+        await this.execAp("--task-release-github");
     }
 
 
     /**
      * @private
      */
-    executeMantisRelease()
+    async executeGitlabRelease()
     {
+        await this.execAp("--task-release-gitlab");
     }
 
 
     /**
      * @private
      */
-    executeNpmRelease()
+    async executeMantisRelease()
     {
+        await this.execAp("--task-release-mantis");
+    }
+
+
+    /**
+     * @private
+     * @returns {Promise<void>}
+     */
+    async executeNpmRelease()
+    {
+        await this.execAp("--task-release-npm");
     }
 
 
     /**
      * @private
      */
-    setNewVersion()
+    async getVersions()
     {
+        let versions;
+        const preTag = this.buildOptions.preVersion;
+        if (!preTag)
+        {
+            versions = (await this.execAp("--task-version-current")).stdout.split("|");
+        }
+        else {
+            versions = (await this.execAp("--task-version-current", "--version-pre-release-id", preTag)).stdout.split("|");
+        }
+        this.currentVersion = versions[0];
+        this.nextVersion = versions[1];
+        this.versionBump = versions[2];
+        this.logger.value("current version", this.currentVersion, 1);
+        this.logger.value("next version", this.nextVersion, 1);
+        this.logger.value("version bump", this.versionBump, 2);
     }
 
 
     /**
      * @private
      */
-    updateChangelog()
+    async updateChangelog()
     {
+        await this.execAp("--task-release-changelog");
+        this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
+    }
+
+
+    /**
+     * @private
+     */
+    async updateVersionFiles()
+    {
+        const preTag = this.buildOptions.preVersion;
+        this.logger.write("update version files", 1);
+        if (this.buildOptions.promptVersion)
+        {
+            // TODO - prompt for version
+        }
+        if (!preTag) {
+            await this.execAp("--task-version-update", "--version-force-next", this.nextVersion);
+        }
+        else {
+            await this.execAp("--task-version-update", "--version-pre-release-id", preTag, "--version-force-next", this.nextVersion);
+        }
+        this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
     }
 
 }

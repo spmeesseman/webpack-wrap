@@ -274,6 +274,7 @@
 /** @typedef {import("./constants").isWpwExportConfigDevToolType} isWpwExportConfigDevToolType */
 /** @typedef {import("./constants").isWpwPluginConfigTypesMethod} isWpwPluginConfigTypesMethod */
 /** @typedef {import("./constants").WpwPluginConfigTypesBundlers} WpwPluginConfigTypesBundlers */
+/** @typedef {import("./rc").WpwPluginConfigReleasePreVersion} WpwPluginConfigReleasePreVersion */
 /** @typedef {import("./rc").WpwPluginConfigRunScriptsItemDef} WpwPluginConfigRunScriptsItemDef */
 /** @typedef {import("./constants").isWpwPluginConfigTypesBundler} isWpwPluginConfigTypesBundler */
 /** @typedef {import("./constants").WpwPluginConfigJsDocTemplates} WpwPluginConfigJsDocTemplates */
@@ -297,7 +298,9 @@
 /** @typedef {import("./constants").WpwSourceNodeJsModuleResolutions} WpwSourceNodeJsModuleResolutions */
 /** @typedef {import("./rc").IWpwSourceConfigCompilerOptionsPaths} IWpwSourceConfigCompilerOptionsPaths */
 /** @typedef {import("./constants").isWpwSourceNodeJsModuleResolution} isWpwSourceNodeJsModuleResolution */
+/** @typedef {import("./constants").WpwPluginConfigReleasePreVersions} WpwPluginConfigReleasePreVersions */
 /** @typedef {import("./rc").WpwPluginConfigLogHooksCompilationKey} WpwPluginConfigLogHooksCompilationKey */
+/** @typedef {import("./constants").isWpwPluginConfigReleasePreVersion} isWpwPluginConfigReleasePreVersion */
 /** @typedef {import("./rc").WpwSourceConfigCompilerOptionsPathsKey} WpwSourceConfigCompilerOptionsPathsKey */
 /* END_RC_DEFS */
 
@@ -355,7 +358,7 @@
  ***********************************************************************************************************************/
 
 /** @typedef {import("./generic").IDisposable} IDisposable */
-/** @typedef {import("./generic").ExecAsynResult} ExecAsynResult */
+/** @typedef {import("./generic").ExecAsyncResult} ExecAsyncResult */
 /** @template T @template {keyof T} K @typedef {import("./generic").RequireKeys<T, K>} RequireKeys */
 /** @template {WpwBuildOptionsKey} T @typedef {Exclude<WpwBuildOptions[T], undefined>} WpwBuildOptionsType<T> */
 /**

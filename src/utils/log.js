@@ -144,7 +144,7 @@ class WpwLogger
 
     dispose = () =>
     {
-        const msg = !this.options.envTagDisable ? this.withColor("   force reset console color to system default", this.colors.grey) : "";
+        const msg = !this.options.envTagDisable ? this.withColor(`${this.staticPad ?? "   "}dispose console logger`, this.colors.grey) : "";
         this.write(msg + this.withColor(" ", this.colors.system, true));
         // console.log = WpwLogger.stdConsole;
     };

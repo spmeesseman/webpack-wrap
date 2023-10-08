@@ -22,7 +22,6 @@ const experiments = require("./experiments");
 const typedefs = require("../types/typedefs");
 const minification = require("./minification");
 const optimization = require("./optimization");
-const ignorewarnings = require("./ignorewarnings");
 const { isEmpty } = require("@spmeesseman/type-utils");
 
 
@@ -62,7 +61,6 @@ const webpackExports = (build) =>
     experiments(build);    // Set any experimental flags that will be used
     entry(build);          // Entry points for built output
     externals(build);      // External modules
-    ignorewarnings(build); // Warnings from the compiler to ignore
     optimization(build);   // Build optimization
     minification(build);   // Minification / Terser plugin options
     output(build);         // Output specifications

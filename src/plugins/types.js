@@ -258,7 +258,7 @@ class WpwTypesPlugin extends WpwBaseTaskPlugin
 		logger.write(`   execute tsc command [ config file @ ${configFile.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);
 
-		const result = await this.exec(command, "tsc");
+		const result = await this.exec2(command, "tsc");
 		if (result !== 0)
 		{
 			this.build.addMessage({

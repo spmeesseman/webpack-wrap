@@ -16,7 +16,7 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, isDirectory, apply, pushUniq } = require("@spmeesseman/type-utils");
+const { asArray, capitalize, isDirectory, apply, lowerCaseFirstChar, pushUniq } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     dot: true,
@@ -25,61 +25,10 @@ const globOptions = {
 
 
 /**
- * @param {string} value
- * @returns {string}
- */
-const capitalize = (value) =>
-{
-    if (value) {
-        value = value.charAt(0).toUpperCase() + value.substring(1);
-    }
-    if (value === "Webapp") { value = "WebApp"; }
-    else if (value === "Webmodule") { value = "WebModule"; }
-    return value || "";
-};
-
-
-// /**
-//  * @param {string} value
-//  * @returns {string}
-//  */
-// const uncapitalize = (value) =>
-// {
-//     if (value) {
-//         value = value.charAt(0).toLowerCase() + value.substr(1);
-//     }
-//     return value || '';
-// };
-
-
-// /**
-//  * @param {string} value
-//  * @param {number} length
-//  * @param {string} word
-//  * @returns {string}
-//  */
-// const ellipsis = (value, length, word) =>
-// {
-//     if (value && value.length > length)
-//     {
-//         if (word) {
-//             const vs = value.substring(0, length - 2),
-//                 index = Math.max(vs.lastIndexOf(' '), vs.lastIndexOf('.'), vs.lastIndexOf('!'), vs.lastIndexOf('?'));
-//             if (index !== -1 && index >= (length - 15)) {
-//                 return vs.substring(0, index) + "...";
-//             }
-//         }
-//         return value.substring(0, length - 3) + "...";
-//     }
-//     return value;
-// };
-
-
-/**
  * Executes node.eXec() wrapped in a promise via util.promisify()
  * @async
  * @param {typedefs.ExecAsyncOptions} options
- * @returns {Promise<typedefs.ExecAsynResult>}
+ * @returns {Promise<typedefs.ExecAsyncResult>}
  */
 const execAsync = async (options) =>
 {
@@ -112,7 +61,7 @@ const execAsync = async (options) =>
         });
     };
 
-    const _out = (/** @type {string} */ name, /** @type {any[]} */ out) =>
+    const _checkOutputForErrors = (/** @type {string} */ name, /** @type {any[]} */ out) =>
     {
         if (out.length > 0)
         {
@@ -138,13 +87,13 @@ const execAsync = async (options) =>
             logger.log(`${logPad}${program} returned exit code bold(${clrCode})`, "internal");
         }
         exitCode = code;
-        _out("stdout", stdout);
-        _out("stderr", stderr);
+        _checkOutputForErrors("stdout", stdout);
+        _checkOutputForErrors("stderr", stderr);
     });
 
     try { await procPromise; } catch{}
 
-    return { code: exitCode, errors };
+    return { code: exitCode, errors, stdout: stdout.join("") };
 };
 
 
@@ -267,28 +216,6 @@ const getExcludes = (build, allowTest, allowTypes, allowDts, allowNodeModules) =
         ex.push(/\.d\.ts$/);
     }
     return ex;
-};
-
-
-/**
- * @param {string} s
- * @param {boolean} [removeSpaces]
- * @returns {string}
- */
-const lowerCaseFirstChar = (s, removeSpaces) =>
-{
-    let fs = "";
-    if (s)
-    {
-        fs = s[0].toString().toLowerCase();
-        if (s.length > 1) {
-            fs += s.substring(1);
-        }
-        if (removeSpaces) {
-            fs = fs.replace(/ /g, "");
-        }
-    }
-    return fs;
 };
 
 

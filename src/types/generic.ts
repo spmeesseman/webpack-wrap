@@ -32,7 +32,7 @@ type NoExtraProperties<T, U extends T = T> = U extends (infer V)[] ? NoExtraProp
 
 interface IDisposable { dispose: () => Required<void | PromiseLike<void>> }
 
-interface ExecAsynResult { code: number | null; errors: string[] }
+interface ExecAsyncResult { code: number | null; errors: string[]; stdout: string }
 
 
 export {
@@ -42,7 +42,7 @@ export {
     ConvertType2,
     ConvertType3,
     ConvertTypeExcludeNon,
-    ExecAsynResult,
+    ExecAsyncResult,
     // ExtractTypings,
     IDisposable,
     Impossible,

@@ -95,10 +95,7 @@ class WpwPlugin extends WpwBaseModule
 	constructor(options)
     {
         super(options);
-        apply(this, {
-            plugins: [],
-            cache: new WpwCache(this.build, this.cacheFilename())
-        });
+        apply(this, { plugins: [], cache: new WpwCache(this.build, this.cacheFilename()) });
     }
 
 
@@ -124,13 +121,6 @@ class WpwPlugin extends WpwBaseModule
         this.compiler = compiler;
         this.wpCache = compiler.getCache(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
-        //
-        // Set up a plugin wait hook if necessary
-        //
-        // const waitConfig = this.build.options.wait;
-        // if (!this.build.isOnlyBuild && waitConfig?.items && waitConfig.items.length > 0) {
-        //     compiler.hooks.beforeRun.tapAsync("onBeforeRunWait_" + this.build.name, () => this.build.eventManager.wait(this.build));
-        // }
         //
         // Set up a hook so that the compiltion instance can be stored before it actually begins,
         // and the compilation dependencies can be logged if a high enough logging level is set
@@ -314,19 +304,20 @@ class WpwPlugin extends WpwBaseModule
 	{
 		return new Promise((resolve, reject) =>
 		{
-			this.compilation.fileSystemInfo.createSnapshot(startTime, [ dependency ], // @ts-ignore
-				undefined, undefined, null, (e, snapshot) => { if (e) { reject(e); } else { resolve(snapshot); }}
+			this.compilation.fileSystemInfo.createSnapshot(
+                startTime, [ dependency ], [], [], null, (e, snapshot) => { if (e) { reject(e); } else { resolve(snapshot); }}
 			);
 		});
 	};
 
 
-	/**
-	 * Executes a command via a promisified node exec()
+    /**
+	 * Executes a command using promisified node.exec()
+     *
 	 * @param {string} command
 	 * @param {string} program
 	 * @param {string | string[]} [ignoreOut]
-	 * @returns {Promise<number | null>} Promise<number | null>
+	 * @returns {Promise<typedefs.ExecAsyncResult>} Promise<typedefs.ExecAsyncResult>
 	 */
 	async exec(command, program, ignoreOut)
     {
@@ -336,8 +327,19 @@ class WpwPlugin extends WpwBaseModule
         for (const message of result.errors) {
             this.build.addMessage({ message, compilation: this.compilation, code: WpwError.Code.ERROR_NON_ZERO_EXIT_CODE });
         }
-        return result.code;
+        return result;
     };
+
+
+	/**
+	 * Executes a command using promisified node.exec() and returns exit code
+     *
+	 * @param {string} command
+	 * @param {string} program
+	 * @param {string | string[]} [ignoreOut]
+	 * @returns {Promise<number | null>} Promise<number | null>
+	 */
+	async exec2(command, program, ignoreOut) { return (await this.exec(command, program, ignoreOut)).code; };
 
 
     /**
@@ -544,9 +546,7 @@ class WpwPlugin extends WpwBaseModule
         const stageEnum = options.stage ? this.compiler.webpack.Compilation[`PROCESS_ASSETS_STAGE_${options.stage}`] : null,
               name = `${this.name}_${options.stage}`,
               hook = compilation.hooks[options.hookCompilation];
-
         if (!this.isTapable(hook)) { return; }
-
         if (stageEnum && options.hookCompilation === "processAssets")
         {
             if (!options.async) {
@@ -596,26 +596,28 @@ class WpwPlugin extends WpwBaseModule
      * @private
      * @param {typedefs.WebpackCompiler} compiler
      * @param {typedefs.WpwPluginTapOptions} options
-     * @throws {WpwError}
      */
 	validateApplyOptions(compiler, options)
     {
         if (!options) { return; }
+        const pre = "Invalid hook parameters specified: ";
         for (const o of Object.values(options))
         {
             if (!o.hook) {
-                return this.addError("Invalid hook parameters specified: hook name is undefined");
+                this.addError(`${pre}hook name is undefined`);
             }
-            if (o.async && !this.isAsyncHook(compiler.hooks[o.hook])) {
-                return this.addError(`Invalid hook parameters specified: ${o.hook} is not asynchronous`);
+            else if (o.async && !this.isAsyncHook(compiler.hooks[o.hook])) {
+                this.addError(`${pre}${o.hook} is not asynchronous, unset 'async' flag and ensure handler is synchronous`);
+            }
+            else if (!o.async && this.isAsyncHook(compiler.hooks[o.hook])) {
+                this.addError(`${pre}${o.hook} is asynchronous, set 'async' flag and ensure handler is asynchronous`);
             }
         }
     }
 
 
     /**
-     * Wraps a vendor plugin to give it access to the WpwBuild instance, and couples it with
-     * the the WpwPlugin instance.
+     * Convenience function for plugin class instantitation, for use by overriden {@link WpwBaseModule.create create()}
      *
      * @param {typedefs.WpwBuild} build current build wrapper
      * @returns {WpwPlugin | undefined} WpwPlugin | undefined
@@ -636,6 +638,8 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
+     * Wraps a webpack hook callback with started/complted logging and other higher level processing
+     *
      * @private
      * @template {boolean | undefined} T
      * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R

@@ -80,7 +80,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 		logger.write(`   execute tsc command [ config file @ ${configFile.path}]`, 1);
 		logger.write("      command: " + command.slice(4), 2);
 
-		let result = await this.exec(command, "tsc");
+		let result = await this.exec2(command, "tsc");
 		if (result !== 0)
 		{
 			this.build.addMessage({
@@ -112,7 +112,7 @@ class WpwTestSuitePlugin extends WpwPlugin
 			// Note that `tsc-alias` requires a filename e.g. tsconfig.json in it's path argument
 			//
 			command = `tsc-alias -p ${configFile.path}`;
-			result = await this.exec(command, "typescript path aliasing");
+			result = await this.exec2(command, "typescript path aliasing");
 			if (result !== 0)
 			{
 				this.build.addMessage({

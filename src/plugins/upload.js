@@ -207,11 +207,11 @@ class WpwUploadPlugin extends WpwPlugin
         try
         {
             logger.write("   plink: create / clear remmote directory", 1);
-            let rc = await this.exec("plink " + plinkArgs.join(" "), "plink", [ "cannot create directory", "File exists" ]);
+            let rc = await this.exec2("plink " + plinkArgs.join(" "), "plink", [ "cannot create directory", "File exists" ]);
             if (rc === 0)
             {
                 logger.write("   pscp:  upload files", 1, "");
-                rc = await this.exec("pscp " + pscpArgs.join(" "), "pscp");
+                rc = await this.exec2("pscp " + pscpArgs.join(" "), "pscp");
                 if (rc === 0)
                 {
                     filesToUpload.forEach((f) =>

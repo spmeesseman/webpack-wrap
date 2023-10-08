@@ -2535,7 +2535,10 @@
                 },
                 "config": {
                     "$ref": "#/definitions/FilePathJson",
-                    "description": "relative or absolute path to app-publisher configuration file"
+                    "description": "relative or absolute path to app-publisher configuration file (by default is ./.publishrc.json)"
+                },
+                "dryRun": {
+                    "type": "boolean"
                 },
                 "github": {
                     "type": "boolean"
@@ -2549,9 +2552,8 @@
                 "npm": {
                     "type": "boolean"
                 },
-                "preTag": {
-                    "type": "string",
-                    "default": "v"
+                "preVersion": {
+                    "$ref": "#/definitions/WpwPluginConfigReleasePreVersion"
                 },
                 "promptVersion": {
                     "type": "boolean"
@@ -2561,11 +2563,18 @@
                 "enabled": true
             },
             {
-                "enabled": true,
-                "config": ".publishrc.json"
+                "enabled": false
             },
             {
-                "enabled": false
+                "enabled": true,
+                "config": ".publishrc.json",
+                "dryRun": false,
+                "github": true,
+                "gitlab": false,
+                "mantis": false,
+                "npm": true,
+                "preVersion": "",
+                "promptVersion": false
             }],
             "dependencies": {
                 "github": {
@@ -2615,6 +2624,12 @@
                     }
                 }
             }
+        },
+        "WpwPluginConfigReleasePreVersion": {
+            "$id": "#/WpwPluginConfigReleasePreVersion",
+            "enum": [
+                "alpha", "beta", "gamma", "pre", "test"
+            ]
         },
         "WpwPluginConfigRunScripts": {
             "$id": "#/WpwPluginConfigRunScripts",

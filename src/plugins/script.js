@@ -61,12 +61,12 @@ class WpwScriptPlugin extends WpwBaseTaskPlugin
         if (this.buildOptions.mode === "parallel")
         {
             codes.push(...(await Promise.all(
-                scripts.map(script => this.exec(this.buildCommand(script), "script"))
+                scripts.map(script => this.exec2(this.buildCommand(script), "script"))
             )));
         }
         else {
             for (const script of scripts) {
-                codes.push(await this.exec(this.buildCommand(script), "script"));
+                codes.push(await this.exec2(this.buildCommand(script), "script"));
             }
         }
 

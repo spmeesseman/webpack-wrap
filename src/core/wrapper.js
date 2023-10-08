@@ -13,10 +13,11 @@ const os = require("os");
 const JSON5 = require("json5");
 const WpwBase = require("./base");
 const WpwBuild = require("./build");
-const { resolvePath } = require("../utils");
-const WpwError = require("../utils/message");
-const typedefs = require("../types/typedefs");
 const WpwLogger = require("../utils/log");
+const WpwError = require("../utils/message");
+const getConfig = require("../utils/config");
+const typedefs = require("../types/typedefs");
+const { resolvePath } = require("../utils/utils");
 const { readFileSync, existsSync, mkdirSync } = require("fs");
 const { resolve, basename, join, dirname, sep } = require("path");
 const { WpwPackageJsonKeys, WpwBuildBaseConfigKeys } = require("../types/constants");
@@ -407,8 +408,9 @@ class WpwWrapper extends WpwBase
             buildConfigs: [], errors: [], pkgJson: {}, plugins: [], warnings: []
         });
         applySchemaDefaults(this, "WpwSchema");
-        this.applyJsonFromFile(this, ".wpwrc.json");
         this.applyPackageJson();
+        // this.applyJsonFromFile(this, ".wpwrc.json");
+        merge(this, getConfig(dirname(this.pkgJsonPath)));
     }
 
 

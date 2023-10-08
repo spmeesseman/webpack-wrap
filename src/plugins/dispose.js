@@ -37,10 +37,10 @@ class WpwDisposePlugin extends WpwPlugin
     {
         return {
             buildCleanupOnShutdown: {
-                hook: "shutdown",
+                // hook: "shutdown",
                 forceRun: true,
-                // hook: "compilation",
-                // hookCompilation: "processWarnings",
+                hook: "compilation",
+                hookCompilation: "processWarnings",
                 callback: this.dispose.bind(this)
             }
         };
