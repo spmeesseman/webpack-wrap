@@ -609,9 +609,6 @@ class WpwPlugin extends WpwBaseModule
             else if (o.async && !this.isAsyncHook(compiler.hooks[o.hook])) {
                 this.addError(`${pre}${o.hook} is not asynchronous, unset 'async' flag and ensure handler is synchronous`);
             }
-            else if (!o.async && this.isAsyncHook(compiler.hooks[o.hook])) {
-                this.addError(`${pre}${o.hook} is asynchronous, set 'async' flag and ensure handler is asynchronous`);
-            }
         }
     }
 

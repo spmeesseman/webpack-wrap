@@ -23,10 +23,13 @@ class WpwDisposePlugin extends WpwPlugin
     /**
      * @param {typedefs.IWpwBaseModuleOptions} options
      */
-    constructor(options)
-    {
-        super(options);
-    }
+    constructor(options) { super(options); }
+
+
+	/**
+     * @override
+     */
+	static create = WpwDisposePlugin.wrap.bind(this);
 
 
     /**
@@ -49,6 +52,7 @@ class WpwDisposePlugin extends WpwPlugin
 
     dispose()
     {
+        console.log("111");
         this.logger.write("build complete, perform shutdown stage cleanup", 2);
         let tmpPath = join(this.build.getTempPath(), this.build.name);
 		if (existsSync(tmpPath)) {
@@ -63,11 +67,4 @@ class WpwDisposePlugin extends WpwPlugin
 }
 
 
-/**
- * @param {typedefs.WpwBuild} build
- * @returns {WpwDisposePlugin}
- */
-const dispose = (build) => new WpwDisposePlugin({ build });
-
-
-module.exports = dispose;
+module.exports = WpwDisposePlugin.create;

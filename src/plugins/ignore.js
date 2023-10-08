@@ -21,7 +21,7 @@ const ignore = (build) =>
 {
     /** @type {typedefs.WebpackIgnorePlugin | undefined} */
     let plugin;
-    if (build.options.ignore) //  && build.mode === "production")
+    if (build.options.ignore?.momentLocales) //  && build.mode === "production")
     {
         plugin = new webpack.IgnorePlugin(
         {

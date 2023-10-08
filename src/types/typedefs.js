@@ -110,6 +110,7 @@
 /** @typedef {import("./rc").IWpwPluginConfigTypes} IWpwPluginConfigTypes */
 /** @typedef {import("./rc").WebpackConfigOverride} WebpackConfigOverride */
 /** @typedef {import("./rc").WpwBuildBaseConfigKey} WpwBuildBaseConfigKey */
+/** @typedef {import("./rc").WpwExportConfigIgnore} WpwExportConfigIgnore */
 /** @typedef {import("./rc").WpwExportConfigOutput} WpwExportConfigOutput */
 /** @typedef {import("./rc").WpwModuleNameWithType} WpwModuleNameWithType */
 /** @typedef {import("./rc").WpwPackageJsonScripts} WpwPackageJsonScripts */
@@ -124,6 +125,7 @@
 /** @typedef {import("./rc").WpwWebpackEntryObject} WpwWebpackEntryObject */
 /** @typedef {import("./constants").WpwBuildConfigKeys} WpwBuildConfigKeys */
 /** @typedef {import("./constants").WpwPackageJsonKeys} WpwPackageJsonKeys */
+/** @typedef {import("./rc").IWpwExportConfigIgnore} IWpwExportConfigIgnore */
 /** @typedef {import("./rc").IWpwExportConfigOutput} IWpwExportConfigOutput */
 /** @typedef {import("./rc").IWpwPackageJsonScripts} IWpwPackageJsonScripts */
 /** @typedef {import("./rc").IWpwPluginConfigBanner} IWpwPluginConfigBanner */
@@ -170,6 +172,7 @@
 /** @typedef {import("./rc").WpwDirectoryPathRelative} WpwDirectoryPathRelative */
 /** @typedef {import("./rc").WpwExportConfigCacheMode} WpwExportConfigCacheMode */
 /** @typedef {import("./rc").WpwExportConfigExternals} WpwExportConfigExternals */
+/** @typedef {import("./rc").WpwExportConfigIgnoreKey} WpwExportConfigIgnoreKey */
 /** @typedef {import("./rc").WpwExportConfigOutputKey} WpwExportConfigOutputKey */
 /** @typedef {import("./rc").WpwPackageJsonRepository} WpwPackageJsonRepository */
 /** @typedef {import("./rc").WpwPackageJsonScopedName} WpwPackageJsonScopedName */

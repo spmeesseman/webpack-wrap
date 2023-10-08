@@ -90,7 +90,7 @@ const stats = (build) =>
 		}
 	}
 
-	if (build.options.ignorewarnings?.enabled !== false)
+	if (build.options.ignore?.warnings)
 	{
 		build.wpc.ignoreWarnings = [
 			/Critical dependency\: the request of a dependency is an expression/,

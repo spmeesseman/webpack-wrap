@@ -491,12 +491,11 @@
                         "options": {
                             "propertyNames": {
                                 "enum": [
-                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "entry",
-                                    "experiments", "externals", "hash", "html", "ignore",
-                                    "ignorewarnings", "istanbul", "jsdoc", "licensefiles", "loghooks",
-                                    "minification", "mocha", "progress", "release", "resolve", "rules",
-                                    "runscripts", "runtimevars", "scm", "script", "stats", "testsuite",
-                                    "tscheck", "types", "upload", "vendormod", "wait", "web"
+                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "entry", "experiments",
+                                    "externals", "hash", "html", "ignore", "istanbul", "jsdoc", "licensefiles",
+                                    "loghooks", "minification", "mocha", "progress", "release", "resolve", "rules",
+                                    "runscripts", "runtimevars", "scm", "script", "stats", "testsuite", "tscheck",
+                                    "types", "upload", "vendormod", "wait", "web"
                                 ]
                             }
                         }
@@ -584,10 +583,7 @@
                     "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "ignore": {
-                    "$ref": "#/definitions/WpwModuleConfig"
-                },
-                "ignorewarnings": {
-                    "$ref": "#/definitions/WpwModuleConfig"
+                    "$ref": "#/definitions/WpwExportConfigIgnore"
                 },
                 "istanbul": {
                     "$ref": "#/definitions/WpwPluginConfigIstanbul"
@@ -1054,6 +1050,42 @@
                     },
                     "then": {
                         "minProperties": 2
+                    }
+                }
+            }
+        },
+        "WpwExportConfigIgnore": {
+            "$id": "#/WpwExportConfigIgnore",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "default": {
+                "enabled": true,
+                "momentLocales": true,
+                "warnings": true
+            },
+            "properties": {
+                "enabled": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "momentLocales": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                },
+                "warnings": {
+                    "$ref": "#/definitions/BooleanDefaultTrue"
+                }
+            },
+            "if": {
+                "properties": {
+                    "enabled": {
+                        "const": false
+                    }
+                }
+            },
+            "then": {
+                "properties": {
+                    "enabled": {
+                        "const": true
                     }
                 }
             }

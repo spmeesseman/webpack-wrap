@@ -206,9 +206,6 @@
     "options": {
         "cache": {
             "enabled": true
-        },
-        "ignorewarnings": {
-            "enabled": true
         }
     }
 }

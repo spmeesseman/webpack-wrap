@@ -409,7 +409,6 @@ class WpwWrapper extends WpwBase
         });
         applySchemaDefaults(this, "WpwSchema");
         this.applyPackageJson();
-        // this.applyJsonFromFile(this, ".wpwrc.json");
         merge(this, getConfig(dirname(this.pkgJsonPath)));
     }
 
