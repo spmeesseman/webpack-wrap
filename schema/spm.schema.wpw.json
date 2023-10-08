@@ -491,11 +491,10 @@
                         "options": {
                             "propertyNames": {
                                 "enum": [
-                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "entry", "experiments",
-                                    "externals", "hash", "html", "ignore", "istanbul", "jsdoc", "licensefiles",
-                                    "loghooks", "minification", "mocha", "progress", "release", "resolve", "rules",
-                                    "runscripts", "runtimevars", "scm", "script", "stats", "testsuite", "tscheck",
-                                    "types", "upload", "vendormod", "wait", "web"
+                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "dispose", "entry", "experiments",
+                                    "externals", "hash", "html", "ignore", "istanbul", "jsdoc", "licensefiles", "loghooks",
+                                    "minification", "mocha", "progress", "release", "resolve", "rules", "runscripts", "runtimevars",
+                                    "scm", "script", "stats", "testsuite", "tscheck", "types", "upload", "vendormod", "wait", "web"
                                 ]
                             }
                         }
@@ -566,6 +565,9 @@
                 },
                 "devtool": {
                     "$ref": "#/definitions/WpwExportConfigDevTool"
+                },
+                "dispose": {
+                    "$ref": "#/definitions/WpwModuleConfigInternal"
                 },
                 "entry": {
                     "$ref": "#/definitions/WpwModuleConfigInternal"

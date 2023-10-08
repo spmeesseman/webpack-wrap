@@ -39,7 +39,7 @@ class WpwDisposePlugin extends WpwPlugin
     onApply()
     {
         return {
-            buildCleanupOnShutdown: {
+            buildCleanupAndShutdown: {
                 // hook: "shutdown",
                 forceRun: true,
                 hook: "compilation",
@@ -52,16 +52,18 @@ class WpwDisposePlugin extends WpwPlugin
 
     dispose()
     {
-        console.log("111");
         this.logger.write("build complete, perform shutdown stage cleanup", 2);
         let tmpPath = join(this.build.getTempPath(), this.build.name);
 		if (existsSync(tmpPath)) {
+            this.logger.write("delete temporary directories,", 3);
 			rmSync(tmpPath, { recursive: true, force: true });
 		}
         tmpPath = dirname(tmpPath);
+        this.logger.write("delete temporary files,", 3);
         if (findFilesSync("*", { cwd: tmpPath }).length === 0) {
             rmSync(tmpPath, { recursive: true, force: true });
         }
+        this.logger.write("release build disposables", 3);
         this.build.dispose();
     }
 }

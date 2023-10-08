@@ -198,6 +198,7 @@ class WpwBuild extends WpwBase
         this.configureDependenciesByMode();
         this.configureDependenciesByOptions();
         this.configureDependenciesByType();
+        this.setOptionEnabled("dispose", true);
     }
 
 
@@ -317,12 +318,12 @@ class WpwBuild extends WpwBase
     {
         const l = this.logger;
         if (this.info.length > 0) {
-            l.write("FEEDBACK MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info);
-            this.info.splice(0).forEach(e => l.info(e));
+            l.write("FEEDBACK MESSAGES FOR THIS BUILD:", undefined, "", l.icons.blue.info, l.colors.white);
+            this.info.splice(0).forEach(e => l.info(e, "   "));
         }
         if (this.warnings.length > 0) {
-            l.warning("NON-FATAL WARNINGS FOR THIS BUILD:");
-            this.warnings.splice(0).forEach(w => l.warning(w));
+            l.warning("NON-FATAL WARNINGS FOR THIS BUILD:", l.icons.blue.warning, l.colors.yellow);
+            this.warnings.splice(0).forEach(w => l.warning(w, "   "));
         }
         this.disposables.splice(0).forEach(d => d.dispose());
         if (++WpwBuild.disposeCount === this.buildCount) {

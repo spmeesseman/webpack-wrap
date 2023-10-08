@@ -61,28 +61,31 @@ const stats = (build) =>
 			apply(build.wpc.stats, {
 				// preset: logLevel < 3 ? "errors-warnings" : "error-details",
 				assets: true,
-				builtAt: true,
-				cachedAssets: logLevel >= 3,
-				cachedModules: logLevel >= 2,
-				chunkModules: logLevel >= 3,
+				builtAt: logLevel >= 4,
+				chunkModules: logLevel >= 4,
 				colors: true,
-				entrypoints: logLevel >= 3,
+				entrypoints: logLevel >= 4,
 				env: true,
 				errors: true,
 				errorsCount: true,
 				errorDetails: logLevel >= 3,
-				hash: logLevel >= 3,
-				modules: true,
+				hash: logLevel >= 4,
+				modules: logLevel >= 4,
 				orphanModules: logLevel >= 2,
 				outputPath: logLevel >= 3,
 				performance: logLevel >= 3,
 				relatedAssets: logLevel >= 2,
 				runtimeModules: logLevel >= 4,
 				timings: true,
-				usedExports: logLevel >= 4,
+				usedExports: logLevel >= 3,
 				warnings: true,
 				warningsCount: true
 			});
+
+			if (build.options.cache && build.options.cache.enabled !== false)
+			{
+				apply(build.wpc.stats, { cachedAssets: logLevel >= 3, cachedModules: logLevel >= 2 });
+			}
 		}
 		else {
 			apply(build.wpc.stats, { all: true });

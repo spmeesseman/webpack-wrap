@@ -144,8 +144,8 @@ class WpwLogger
 
     dispose = () =>
     {
-        const msg = !this.options.envTagDisable ? this.withColor(`${this.staticPad ?? "   "}dispose console logger`, this.colors.grey) : "";
-        this.write(msg + this.withColor(" ", this.colors.system, true));
+        const msg = !this.options.envTagDisable ? this.withColor("dispose console logger", this.colors.grey) : "";
+        this.write(msg + this.withColor(" ", this.colors.system, true), undefined, this.staticPad ? "" : "   ");
         // console.log = WpwLogger.stdConsole;
     };
 
