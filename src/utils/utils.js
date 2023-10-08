@@ -378,6 +378,12 @@ const resolvePath = (baseDir, p, o) =>
     return /** @type {R} */(path);
 };
 
+/**
+ * @param {number} ms
+ * @returns {Promise<void>} Promise<void>
+ */
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 const wpwVersion = () => JSON.parse(readFileSync(resolve(__dirname, "../../package.json"), "utf8")).version;
 
@@ -385,5 +391,5 @@ const wpwVersion = () => JSON.parse(readFileSync(resolve(__dirname, "../../packa
 module.exports = {
     asArray, capitalize, execAsync, existsAsync, findFiles, findFilesSync, findFileUp,
     getExcludes, lowerCaseFirstChar, randomNumber, requireResolve, relativePath, resolvePath,
-    findExPath, findExPathSync, forwardSlash, wpwVersion
+    findExPath, findExPathSync, forwardSlash, sleep, wpwVersion
 };

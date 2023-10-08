@@ -12,6 +12,7 @@ const WpwPlugin = require("./base");
 const WpwError = require("../utils/message");
 const typedefs = require("../types/typedefs");
 const { isString, apply, isObjectEmpty, merge } = require("@spmeesseman/type-utils");
+const { sleep } = require("../utils");
 
 
 /**
@@ -69,57 +70,59 @@ class WpwReleasePlugin extends WpwPlugin
                 hook: "run",
                 async: true,
                 callback: this.getVersions.bind(this)
-            },
-            updateVersionFiles: {
-                hook: "beforeCompile",
-                async: true,
-                callback: this.updateVersionFiles.bind(this)
-            },
-            updateChangelog: {
-                hook: "done",
-                callback: this.updateChangelog.bind(this)
-            },
-            cleanup: {
-                hook: "shutdown",
-                forceRun: true,
-                callback: this.cleanup.bind(this)
             }
         };
 
-        if (this.buildOptions.github)
+        if (!this.buildOptions.printVersionsOnly)
         {
-            hooksConfig.executeGithubRelease = {
-                hook: "done",
-                async: true,
-                callback: this.executeGithubRelease.bind(this)
-            };
-        }
-
-        if (this.buildOptions.gitlab)
-        {
-            hooksConfig.executeGitlabRelease = {
-                hook: "done",
-                async: true,
-                callback: this.executeGitlabRelease.bind(this)
-            };
-        }
-
-        if (this.buildOptions.mantis)
-        {
-            hooksConfig.executeMantisRelease = {
-                hook: "done",
-                async: true,
-                callback: this.executeMantisRelease.bind(this)
-            };
-        }
-
-        if (this.buildOptions.npm)
-        {
-            hooksConfig.executeNpmRelease = {
-                hook: "done",
-                async: true,
-                callback: this.executeNpmRelease.bind(this)
-            };
+            apply(hooksConfig, {
+                updateVersionFiles: {
+                    hook: "beforeCompile",
+                    async: true,
+                    callback: this.updateVersionFiles.bind(this)
+                },
+                cleanup: {
+                    hook: "shutdown",
+                    forceRun: true,
+                    callback: this.cleanup.bind(this)
+                },
+                updateChangelog: {
+                    hook: "done",
+                    callback: this.updateChangelog.bind(this)
+                }
+            });
+            if (this.buildOptions.github)
+            {
+                hooksConfig.executeGithubRelease = {
+                    hook: "done",
+                    async: true,
+                    callback: this.executeGithubRelease.bind(this)
+                };
+            }
+            else if (this.buildOptions.gitlab)
+            {
+                hooksConfig.executeGitlabRelease = {
+                    hook: "done",
+                    async: true,
+                    callback: this.executeGitlabRelease.bind(this)
+                };
+            }
+            if (this.buildOptions.mantis)
+            {
+                hooksConfig.executeMantisRelease = {
+                    hook: "done",
+                    async: true,
+                    callback: this.executeMantisRelease.bind(this)
+                };
+            }
+            if (this.buildOptions.npm)
+            {
+                hooksConfig.executeNpmRelease = {
+                    hook: "done",
+                    async: true,
+                    callback: this.executeNpmRelease.bind(this)
+                };
+            }
         }
 
         return hooksConfig;
@@ -164,8 +167,14 @@ class WpwReleasePlugin extends WpwPlugin
      * @private
      */
     async executeGitlabRelease()
-    {
-        await this.execAp("--task-release-gitlab");
+    {   //
+        // TODO - app-publisher gitlab release
+        //
+        // await this.execAp("--task-release-gitlab");
+        this.build.addMessage({
+            code: WpwError.Code.ERROR_NOT_IMPLEMENTED, message: "app-publisher: --task-release-gitlab"
+        });
+        await sleep(1);
     }
 
 

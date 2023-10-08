@@ -55,17 +55,30 @@
         }
     }],
     "development": {
-        "builds": []
+        "builds": [{
+            "name": "webpack-wrap",
+            "options": {
+                "release": {
+                    "enabled": true,
+                    "onCmdLineOnly": true,
+                    "printVersionsOnly": true
+                }
+            }
+        }]
     },
     "production": {
         "builds": [{
             "name": "webpack-wrap",
             "options": {
-                "analyze": {
-                    "circular": true
-                },
                 "licensefiles": {
                     "enabled": true
+                },
+                "release": {
+                    "enabled": true,
+                    "dryRun": true,
+                    "github": true,
+                    "npm": true,
+                    "onCmdLineOnly": true
                 }
             }
         },
@@ -204,6 +217,9 @@
         "type": "javascript"
     },
     "options": {
+        "analyze": {
+            "circular": true
+        },
         "cache": {
             "enabled": true
         }

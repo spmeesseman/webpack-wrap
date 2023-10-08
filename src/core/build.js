@@ -215,6 +215,10 @@ class WpwBuild extends WpwBase
         {
             this.setOptionEnabled("clean", true, "cache");
         }
+        if (this.cmdLine.release)
+        {
+            this.setOptionEnabled("release", true, "onCmdLineOnly");
+        }
     }
 
 

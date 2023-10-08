@@ -487,18 +487,47 @@
                     }]
                 },
                 "options": {
-                    "properties": {
-                        "options": {
-                            "propertyNames": {
-                                "enum": [
-                                    "analyze", "banner", "cache", "clean", "copy", "devtool", "dispose", "entry", "experiments",
-                                    "externals", "hash", "html", "ignore", "istanbul", "jsdoc", "licensefiles", "loghooks",
-                                    "minification", "mocha", "progress", "release", "resolve", "rules", "runscripts", "runtimevars",
-                                    "scm", "script", "stats", "testsuite", "tscheck", "types", "upload", "vendormod", "wait", "web"
-                                ]
+                    "allOf": [{
+                        "dependencies": {
+                            "release": {
+                                "if": {
+                                    "anyOf": [{
+                                        "properties": {
+                                            "enabled": false
+                                        }
+                                    },
+                                    {
+                                        "properties": {
+                                            "enabled": {
+                                                "const": true
+                                            }
+                                        }
+                                    }]
+                                },
+                                "then": {
+                                    "properties": {
+                                        "type": {
+                                            "enum": [
+                                                "webapp", "app"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "properties": {
+                            "options": {
+                                "propertyNames": {
+                                    "enum": [
+                                        "analyze", "banner", "cache", "clean", "copy", "devtool", "dispose", "entry", "experiments",
+                                        "externals", "hash", "html", "ignore", "istanbul", "jsdoc", "licensefiles", "loghooks",
+                                        "minification", "mocha", "progress", "release", "resolve", "rules", "runscripts", "runtimevars",
+                                        "scm", "script", "stats", "testsuite", "tscheck", "types", "upload", "vendormod", "wait", "web"
+                                    ]
+                                }
                             }
                         }
-                    }
+                    }]
                 }
             }
         },
@@ -2567,9 +2596,11 @@
                 "enabled": {
                     "type": "boolean"
                 },
-                "config": {
-                    "$ref": "#/definitions/FilePathJson",
-                    "description": "relative or absolute path to app-publisher configuration file (by default is ./.publishrc.json)"
+                "configKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16,
+                    "description": "config file key (i.e. .wpwrc.__key__.json)"
                 },
                 "dryRun": {
                     "type": "boolean"
@@ -2586,31 +2617,48 @@
                 "npm": {
                     "type": "boolean"
                 },
+                "onCmdLineOnly": {
+                    "$ref": "#/definitions/BooleanDefaultTrue",
+                    "description": "run release options only when the `--env release` command line flag is set"
+                },
                 "preVersion": {
                     "$ref": "#/definitions/WpwPluginConfigReleasePreVersion"
+                },
+                "printVersionsOnly": {
+                    "type": "boolean"
                 },
                 "promptVersion": {
                     "type": "boolean"
                 }
             },
             "examples": [{
-                "enabled": true
+                "enabled": true,
+                "printVersionsOnly": true
+            },
+            {
+                "enabled": true,
+                "dryRun": true,
+                "npm": true
             },
             {
                 "enabled": false
             },
             {
                 "enabled": true,
-                "config": ".publishrc.json",
+                "configKey": "",
                 "dryRun": false,
                 "github": true,
                 "gitlab": false,
                 "mantis": false,
                 "npm": true,
+                "onCmdLineOnly": true,
                 "preVersion": "",
                 "promptVersion": false
             }],
             "dependencies": {
+                "onCmdLineOnly": {
+                    "minProperties": 2
+                },
                 "github": {
                     "if": {
                         "properties": {
@@ -2620,7 +2668,7 @@
                         }
                     },
                     "then": {
-                        "oneOf": [{
+                        "anyOf": [{
                             "properties": {
                                 "gitlab": false
                             }
@@ -2643,7 +2691,7 @@
                         }
                     },
                     "then": {
-                        "oneOf": [{
+                        "anyOf": [{
                             "properties": {
                                 "github": false
                             }
@@ -2657,6 +2705,30 @@
                         }]
                     }
                 }
+            },
+            "if": {
+                "properties": {
+                    "enabled": {
+                        "const": true
+                    }
+                }
+            },
+            "then": {
+                "anyOf": [{
+                    "required": [ "github" ]
+                },
+                {
+                    "required": [ "gitlab" ]
+                },
+                {
+                    "required": [ "mantis" ]
+                },
+                {
+                    "required": [ "npm" ]
+                },
+                {
+                    "required": [ "printVersionsOnly" ]
+                }]
             }
         },
         "WpwPluginConfigReleasePreVersion": {
