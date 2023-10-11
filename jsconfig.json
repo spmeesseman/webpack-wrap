@@ -16,6 +16,7 @@
       "noImplicitOverride": false,
       "noImplicitReturns" : false,
       "noImplicitUseStrict": true,
+      "ignoreDeprecations": "5.0",
       "noImplicitThis": false,
       "noPropertyAccessFromIndexSignature": false,
       "noResolve": false,
