@@ -33,13 +33,14 @@ const globOptions = {
 const execAsync = async (options) =>
 {
     let exitCode = null;
-    const procPromise = exec(options.command, { encoding: "utf8", ...options.execOptions }),
-          child = procPromise.child,
+    const execIo = options.stdin ? { stdio: [ "pipe", "pipe", "pipe" ] } : {},
           ignores = asArray(options.ignoreOut),
           logPad = options.logPad || "",
           logger = options.logger,
           program = options.program || options.command.split(" ")[0],
-          /** @type {string[]} */stdout = [], /** @type {string[]} */stderr = [], /** @type {string[]} */errors = [];
+          /** @type {string[]} */stdout = [],
+          /** @type {string[]} */stderr = [],
+          /** @type {string[]} */errors = [];
 
     const _handleOutput = (out, stdarr) =>
     {
@@ -57,6 +58,15 @@ const execAsync = async (options) =>
                 else {
                     stdarr.push(o);
                 }
+                if (options.stdin && (/prompt|enter|input/).test(stdarr[stdarr.length - 1]))
+                {
+                    if (logger) {
+                        logger.write(stdarr.pop());
+                    } 
+                    else {
+                        console.log(stdarr.pop());
+                    }
+                }
             }
         });
     };
@@ -65,33 +75,68 @@ const execAsync = async (options) =>
     {
         if (out.length > 0)
         {
-            const hdr = logger ? logger.withColor(`${program} ${name}:`, exitCode !== 0 ? logger.colors.red : logger.colors.yellow) : "";
+            const hdr = logger?.withColor(`${program} ${name}:`, exitCode !== 0 ? logger.colors.red : logger.colors.yellow) || "";
             out.forEach((m) =>
             {
                 const msgHasError = WpwRegex.MessageContainsError.test(m);
                 if (logger && (options.stdout || msgHasError)) {
                     logger.log(`${logPad}${hdr} ${logger.withColor(m, logger.colors.grey)}`, "internal");
                 }
-                if (msgHasError) { pushUniq(errors, m); }
+                if (msgHasError) {
+                    pushUniq(errors, m);
+                }
             });
         }
     };
 
+    const execOptions = { encoding: "utf8", ...options.execOptions, ...execIo, timeout: 20000 };
+    if (logger) {
+        logger.write("execute asynchronous shell command", 1, logPad);
+        logger.value("   command", options.command, 2, logPad);
+        logger.object("   options", options, 2, logPad);
+        logger.object("   commandOptions", execOptions, 3, logPad);
+    }
+
+    const procPromise = exec(options.command, execOptions),
+          child = procPromise.child,
+          childStdIn = child.stdin,
+          stdInHandler = () => {};
+
     child.stdout?.on("data", (data) => _handleOutput(data, stdout));
     child.stderr?.on("data", (data) => _handleOutput(data, stderr));
 
+    if (options.stdin && childStdIn)
+    {
+        process.stdin.once("data", (data) =>
+        {
+            childStdIn.cork();
+            childStdIn.write(data + "\n", stdInHandler.bind(this));
+            childStdIn.uncork();
+            childStdIn.end();
+        });
+    }
+
     child.on("close", (code) =>
     {
-        if (logger) {
-            const clrCode = logger.withColor(code?.toString(), code === 0 ? logger.colors.green : logger.colors.red);
+        if (logger)
+        {
+            const clrCode = logger.withColor(code || code === 0 ? code.toString() : "null", code === 0 ? logger.colors.green :
+                            (code === null ? logger.colors.yellow : logger.colors.red));
             logger.log(`${logPad}${program} returned exit code bold(${clrCode})`, "internal");
+        }
+        if (options.stdin)
+        {
+            process.stdin.unref();
+            logger?.log(`${logPad}${program} returned stdout bold(${stdout.join("")})`, "internal");
         }
         exitCode = code;
         _checkOutputForErrors("stdout", stdout);
         _checkOutputForErrors("stderr", stderr);
     });
 
-    try { await procPromise; } catch{}
+    try {
+        await procPromise;
+    } catch{}
 
     return { code: exitCode, errors, stdout: stdout.join("") };
 };

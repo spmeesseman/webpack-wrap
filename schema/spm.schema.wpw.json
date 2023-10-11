@@ -2596,6 +2596,12 @@
                 "enabled": {
                     "type": "boolean"
                 },
+                "ap": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "additionalProperties": true,
+                    "description": "properties (overrides) to be applied directly to the underlying app-publisher configuration"
+                },
                 "configKey": {
                     "type": "string",
                     "minLength": 1,
@@ -2629,6 +2635,12 @@
                 },
                 "promptVersion": {
                     "type": "boolean"
+                },
+                "verbose": {
+                    "type": "boolean"
+                },
+                "veryVerbose": {
+                    "type": "boolean"
                 }
             },
             "examples": [{
@@ -2653,7 +2665,9 @@
                 "npm": true,
                 "onCmdLineOnly": true,
                 "preVersion": "",
-                "promptVersion": false
+                "promptVersion": false,
+                "verbose": false,
+                "veryVerbose": false
             }],
             "dependencies": {
                 "onCmdLineOnly": {

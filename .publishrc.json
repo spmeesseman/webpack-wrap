@@ -15,7 +15,7 @@
     "npmRegistry":              "https://registry.npmjs.org",
     "npmRelease":               "Y",
     "npmScope":                 "@spmeesseman",
-    "promptVersion":            "Y",
+    "promptVersion":            "N",
     "repo":                     "https://github.com/spmeesseman/webpack-wrap.git",
     "repoType":                 "git",
     "skipChangelogEdits":       "N",

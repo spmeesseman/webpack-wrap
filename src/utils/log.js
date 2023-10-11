@@ -514,10 +514,10 @@ class WpwLogger
         if (incHdrLine) {
             this.write(`${name.toLowerCase()} property values:`, level, pad);
         }
-        Object.entries(obj).filter(o => incNonPrimValues || typeUtils.isPrimitive(o[1])).forEach(([ key, value ]) =>
-        {
-            this.value(`${name}.${key}`, value, level, !incHdrLine ? pad : pad + "   ");
-        });
+        Object.entries(obj).filter(o => o[0] !== "pad" && o[0] !== "logPad" && (incNonPrimValues || typeUtils.isPrimitive(o[1])))
+        .forEach(
+            ([ key, value ]) => { this.value(`${name}.${key}`, value, level, !incHdrLine ? pad : pad + "   "); }
+        );
     }
 
 

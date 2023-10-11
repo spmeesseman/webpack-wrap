@@ -373,6 +373,7 @@
  * @property {WpwLogger} [logger] a WpwLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
  * @property {boolean} [stdout]
+ * @property {boolean} [stdin]
  */
 
 

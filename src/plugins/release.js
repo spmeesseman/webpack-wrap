@@ -136,21 +136,38 @@ class WpwReleasePlugin extends WpwPlugin
     {
         if (this.buildOptions.dryRun || (this.build.hasError && this.hasFileUpdates))
         {
-            await this.execAp("--task-revert");
+            await this.execAp(false, "--task-revert");
         }
     }
 
 
     /**
+     * @param {boolean} isReadStdOut
      * @param {string[]} args
      * @returns {Promise<typedefs.ExecAsyncResult>} Promise<ExecAsyncResult>
      */
-    execAp(...args)
+    execAp(isReadStdOut, ...args)
     {
         if (this.buildOptions.dryRun) {
             args.push("--dry-run");
         }
-        return this.exec(`app-publisher --no-ci ${args.join(" ")}`, "app-publisher");
+        if (this.buildOptions.promptVersion) {
+           args.push("--prompt-version");
+        }
+        //
+        // Can't be verbose if we are readibg stdout as a value i.e. versions
+        //
+        if (!isReadStdOut)
+        {
+            if (this.buildOptions.verbose) {
+                args.push("--verbose");
+            }
+            if (this.buildOptions.veryVerbose) {
+                args.push("--verboseEx");
+            }
+        }
+
+        return this.exec(`app-publisher --no-ci ${args.join(" ")}`, "app-publisher", isReadStdOut);
     }
 
 
@@ -159,7 +176,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeGithubRelease()
     {
-        await this.execAp("--task-release-github");
+        await this.execAp(false, "--task-release-github");
     }
 
 
@@ -183,7 +200,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeMantisRelease()
     {
-        await this.execAp("--task-release-mantis");
+        await this.execAp(false, "--task-release-mantis");
     }
 
 
@@ -193,7 +210,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeNpmRelease()
     {
-        await this.execAp("--task-release-npm");
+        await this.execAp(false, "--task-release-npm");
     }
 
 
@@ -202,15 +219,18 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async getVersions()
     {
-        let versions;
-        const preTag = this.buildOptions.preVersion;
-        if (!preTag)
-        {
-            versions = (await this.execAp("--task-version-current")).stdout.split("|");
+        const args = [ "--task-version-info" ],
+              preTag = this.buildOptions.preVersion;
+        //
+        // a 1st release will auto-prompt, disable if not explicitly set
+        //
+        if (this.build.pkgJson.version === "0.0.1" && !this.buildOptions.promptVersion) {
+            args.push("--version-force-next", "0.0.1");
         }
-        else {
-            versions = (await this.execAp("--task-version-current", "--version-pre-release-id", preTag)).stdout.split("|");
+        if (preTag) {
+            args.push("--version-pre-release-id", preTag);
         }
+        const versions = (await this.execAp(true, ...args)).stdout.split("|");
         this.currentVersion = versions[0];
         this.nextVersion = versions[1];
         this.versionBump = versions[2];
@@ -225,7 +245,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async updateChangelog()
     {
-        await this.execAp("--task-release-changelog");
+        await this.execAp(false, "--task-release-changelog");
         this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
     }
 
@@ -242,10 +262,10 @@ class WpwReleasePlugin extends WpwPlugin
             // TODO - prompt for version
         }
         if (!preTag) {
-            await this.execAp("--task-version-update", "--version-force-next", this.nextVersion);
+            await this.execAp(false, "--task-version-update", "--version-force-next", this.nextVersion);
         }
         else {
-            await this.execAp("--task-version-update", "--version-pre-release-id", preTag, "--version-force-next", this.nextVersion);
+            await this.execAp(false, "--task-version-update", "--version-pre-release-id", preTag, "--version-force-next", this.nextVersion);
         }
         this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
     }
