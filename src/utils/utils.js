@@ -16,7 +16,7 @@ const { access } = require("fs/promises");
 const typedefs = require("../types/typedefs");
 const exec = promisify(require("child_process").exec);
 const { resolve, isAbsolute, relative, sep, join } = require("path");
-const { asArray, capitalize, isDirectory, apply, lowerCaseFirstChar, pushUniq } = require("@spmeesseman/type-utils");
+const { asArray, capitalize, isDirectory, apply, lowerCaseFirstChar, pushUniq, pickNot } = require("@spmeesseman/type-utils");
 
 const globOptions = {
     dot: true,
@@ -33,14 +33,15 @@ const globOptions = {
 const execAsync = async (options) =>
 {
     let exitCode = null;
-    const execIo = options.stdin ? { stdio: [ "pipe", "pipe", "pipe" ] } : {},
-          ignores = asArray(options.ignoreOut),
-          logPad = options.logPad || "",
+    const logPad = options.logPad || "",
           logger = options.logger,
-          program = options.program || options.command.split(" ")[0],
           /** @type {string[]} */stdout = [],
           /** @type {string[]} */stderr = [],
-          /** @type {string[]} */errors = [];
+          /** @type {string[]} */errors = [],
+          ignores = asArray(options.ignoreOut),
+          program = options.program || options.command.split(" ")[0],
+          execIo = options.stdin ? { stdio: [ "pipe", "pipe", "pipe" ] } : {},
+          execOptions = { encoding: "utf8", ...options.execOptions, ...execIo, timeout: 30000 };
 
     const _handleOutput = (out, stdarr) =>
     {
@@ -63,15 +64,13 @@ const execAsync = async (options) =>
                     if (logger) {
                         logger.write(stdarr.pop());
                     } 
-                    else {
-                        console.log(stdarr.pop());
-                    }
+                    else { console.log(stdarr.pop()); }
                 }
             }
         });
     };
 
-    const _checkOutputForErrors = (/** @type {string} */ name, /** @type {any[]} */ out) =>
+    const _writeOutput = (/** @type {string} */ name, /** @type {any[]} */ out) =>
     {
         if (out.length > 0)
         {
@@ -80,7 +79,12 @@ const execAsync = async (options) =>
             {
                 const msgHasError = WpwRegex.MessageContainsError.test(m);
                 if (logger && (options.stdout || msgHasError)) {
-                    logger.log(`${logPad}${hdr} ${logger.withColor(m, logger.colors.grey)}`, "internal");
+                    if (msgHasError || !options.raw) {
+                        logger.write(`${hdr} ${logger.withColor(m, logger.colors.grey)}`, 1, logPad);
+                    }
+                    else {
+                        logger.write(m, 1, logPad);
+                    }
                 }
                 if (msgHasError) {
                     pushUniq(errors, m);
@@ -89,28 +93,28 @@ const execAsync = async (options) =>
         }
     };
 
-    const execOptions = { encoding: "utf8", ...options.execOptions, ...execIo, timeout: 20000 };
-    if (logger) {
+    if (logger)
+    {
         logger.write("execute asynchronous shell command", 1, logPad);
         logger.value("   command", options.command, 2, logPad);
-        logger.object("   options", options, 2, logPad);
-        logger.object("   commandOptions", execOptions, 3, logPad);
+        logger.object("   wpw options", pickNot(options, "command"), 2, logPad);
+        logger.object("   exec options", execOptions, 3, logPad);
     }
 
+    let isOptsStdIn = options.stdin;
     const procPromise = exec(options.command, execOptions),
           child = procPromise.child,
-          childStdIn = child.stdin,
-          stdInHandler = () => {};
+          childStdIn = child.stdin;
 
     child.stdout?.on("data", (data) => _handleOutput(data, stdout));
     child.stderr?.on("data", (data) => _handleOutput(data, stderr));
 
-    if (options.stdin && childStdIn)
+    if (isOptsStdIn && childStdIn)
     {
         process.stdin.once("data", (data) =>
         {
             childStdIn.cork();
-            childStdIn.write(data + "\n", stdInHandler.bind(this));
+            childStdIn.write(data + "\n", () =>{ process.stdin.unref(); isOptsStdIn = false; });
             childStdIn.uncork();
             childStdIn.end();
         });
@@ -118,20 +122,22 @@ const execAsync = async (options) =>
 
     child.on("close", (code) =>
     {
+        exitCode = code;
+        if (isOptsStdIn) {
+            process.stdin.unref();
+            isOptsStdIn = false;
+        }
         if (logger)
         {
             const clrCode = logger.withColor(code || code === 0 ? code.toString() : "null", code === 0 ? logger.colors.green :
                             (code === null ? logger.colors.yellow : logger.colors.red));
-            logger.log(`${logPad}${program} returned exit code bold(${clrCode})`, "internal");
+            logger.write(`${program} returned exit code bold(${clrCode})`, 1, logPad);
+            if (options.stdin) {
+                logger.write(`${program} returned stdout bold(${stdout.join("")})`, 1, logPad);
+            }
         }
-        if (options.stdin)
-        {
-            process.stdin.unref();
-            logger?.log(`${logPad}${program} returned stdout bold(${stdout.join("")})`, "internal");
-        }
-        exitCode = code;
-        _checkOutputForErrors("stdout", stdout);
-        _checkOutputForErrors("stderr", stderr);
+        _writeOutput("stdout", stdout);
+        _writeOutput("stderr", stderr);
     });
 
     try {

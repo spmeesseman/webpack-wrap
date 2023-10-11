@@ -66,6 +66,11 @@ class WpwReleasePlugin extends WpwPlugin
     {
         /** @type {typedefs.WpwPluginTapOptions} */
         const hooksConfig = {
+            printApInfo: {
+                hook: "beforeRun",
+                async: true,
+                callback: this.printApInfo.bind(this)
+            },
             getVersions: {
                 hook: "run",
                 async: true,
@@ -136,18 +141,19 @@ class WpwReleasePlugin extends WpwPlugin
     {
         if (this.buildOptions.dryRun || (this.build.hasError && this.hasFileUpdates))
         {
-            await this.execAp(false, "--task-revert");
+            await this.execAp(null, "--task-revert");
         }
     }
 
 
     /**
-     * @param {boolean} isReadStdOut
+     * @param {Partial<typedefs.ExecAsyncOptions> | null | undefined} options
      * @param {string[]} args
      * @returns {Promise<typedefs.ExecAsyncResult>} Promise<ExecAsyncResult>
      */
-    execAp(isReadStdOut, ...args)
+    execAp(options, ...args)
     {
+        args.push("--no-ci");
         if (this.buildOptions.dryRun) {
             args.push("--dry-run");
         }
@@ -157,7 +163,7 @@ class WpwReleasePlugin extends WpwPlugin
         //
         // Can't be verbose if we are readibg stdout as a value i.e. versions
         //
-        if (!isReadStdOut)
+        if (!options?.stdin)
         {
             if (this.buildOptions.verbose) {
                 args.push("--verbose");
@@ -167,7 +173,7 @@ class WpwReleasePlugin extends WpwPlugin
             }
         }
 
-        return this.exec(`app-publisher --no-ci ${args.join(" ")}`, "app-publisher", isReadStdOut);
+        return this.exec(`app-publisher ${args.join(" ")}`, "app-publisher", options || undefined);
     }
 
 
@@ -176,7 +182,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeGithubRelease()
     {
-        await this.execAp(false, "--task-release-github");
+        await this.execAp(null, "--task-release-github");
     }
 
 
@@ -200,7 +206,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeMantisRelease()
     {
-        await this.execAp(false, "--task-release-mantis");
+        await this.execAp(null, "--task-release-mantis");
     }
 
 
@@ -210,7 +216,7 @@ class WpwReleasePlugin extends WpwPlugin
      */
     async executeNpmRelease()
     {
-        await this.execAp(false, "--task-release-npm");
+        await this.execAp(null, "--task-release-npm");
     }
 
 
@@ -231,7 +237,7 @@ class WpwReleasePlugin extends WpwPlugin
         if (preTag) {
             args.push("--version-pre-release-id", preTag);
         }
-        const versions = (await this.execAp(true, ...args)).stdout.split("|");
+        const versions = (await this.execAp({ stdin: true }, ...args)).stdout.split("|");
         this.currentVersion = versions[0];
         this.nextVersion = versions[1];
         this.versionBump = versions[2];
@@ -244,9 +250,19 @@ class WpwReleasePlugin extends WpwPlugin
     /**
      * @private
      */
+    async printApInfo()
+    {
+        await this.execAp({ stdout: true, raw: true }, "--version");
+        this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
+    }
+
+
+    /**
+     * @private
+     */
     async updateChangelog()
     {
-        await this.execAp(false, "--task-release-changelog");
+        await this.execAp(null, "--task-release-changelog");
         this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
     }
 
@@ -263,10 +279,10 @@ class WpwReleasePlugin extends WpwPlugin
             // TODO - prompt for version
         }
         if (!preTag) {
-            await this.execAp(false, "--task-version-update", "--version-force-next", this.nextVersion);
+            await this.execAp(null, "--task-version-update", "--version-force-next", this.nextVersion);
         }
         else {
-            await this.execAp(false, "--task-version-update", "--version-pre-release-id", preTag, "--version-force-next", this.nextVersion);
+            await this.execAp(null, "--task-version-update", "--version-pre-release-id", preTag, "--version-force-next", this.nextVersion);
         }
         this.hasFileUpdates = this.hasFileUpdates || !this.build.hasError;
     }

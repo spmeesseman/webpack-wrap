@@ -316,14 +316,13 @@ class WpwPlugin extends WpwBaseModule
      *
 	 * @param {string} command
 	 * @param {string} program
-	 * @param {boolean} [stdin]
-	 * @param {string | string[]} [ignoreOut]
+	 * @param {Partial<typedefs.ExecAsyncOptions>} [options]
 	 * @returns {Promise<typedefs.ExecAsyncResult>} Promise<typedefs.ExecAsyncResult>
 	 */
-	async exec(command, program, stdin, ignoreOut)
+	async exec(command, program, options)
     {
         const result = await execAsync({
-            command, program, ignoreOut, stdin, logger: this.logger, logPad: "   ", execOptions: { cwd: this.wpc.context }
+            command, program, logger: this.logger, logPad: "   ", execOptions: { cwd: this.wpc.context }, ...options
         });
         for (const message of result.errors) {
             this.build.addMessage({ message, compilation: this.compilation, code: WpwError.Code.ERROR_NON_ZERO_EXIT_CODE });
@@ -337,10 +336,10 @@ class WpwPlugin extends WpwBaseModule
      *
 	 * @param {string} command
 	 * @param {string} program
-	 * @param {string | string[]} [ignoreOut]
+	 * @param {Partial<typedefs.ExecAsyncOptions>} [options]
 	 * @returns {Promise<number | null>} Promise<number | null>
 	 */
-	async exec2(command, program, ignoreOut) { return (await this.exec(command, program, false, ignoreOut)).code; };
+	async exec2(command, program, options) { return (await this.exec(command, program, options)).code; };
 
 
     /**

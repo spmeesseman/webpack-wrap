@@ -511,12 +511,13 @@ class WpwLogger
     object(name, obj, level, pad, incHdrLine, incNonPrimValues)
     {
         if (level !== undefined && level > this.options.level) { return; }
+        const fName = !name.includes(" ") ? name : name.replace(/[a-z]+/i, (v) => "[" + v) + "]";
         if (incHdrLine) {
-            this.write(`${name.toLowerCase()} property values:`, level, pad);
+            this.write(`${fName.toLowerCase()} property values:`, level, pad);
         }
         Object.entries(obj).filter(o => o[0] !== "pad" && o[0] !== "logPad" && (incNonPrimValues || typeUtils.isPrimitive(o[1])))
         .forEach(
-            ([ key, value ]) => { this.value(`${name}.${key}`, value, level, !incHdrLine ? pad : pad + "   "); }
+            ([ key, value ]) => { this.value(`${fName}.${key}`, value, level, !incHdrLine ? pad : pad + "   "); }
         );
     }
 

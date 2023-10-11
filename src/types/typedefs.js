@@ -367,13 +367,14 @@
 /**
  * @typedef {object} ExecAsyncOptions
  * @property {string} command command to execute, with arguments
- * @property {import("child_process").ExecOptions} [execOptions] options to pass to child_process.exec()
+ * @property {Partial<import("child_process").ExecOptionsWithStringEncoding>} [execOptions] options to pass to child_process.exec()
  * @property {string | string[]} [ignoreOut] stdout or stderr lines to ignore
  * @property {string} [program] program name to diasplay in any logging
  * @property {WpwLogger} [logger] a WpwLogger instance
  * @property {string} [logPad] a padding to prepend any log messages with
  * @property {boolean} [stdout]
  * @property {boolean} [stdin]
+ * @property {boolean} [raw]
  */
 
 
@@ -388,7 +389,7 @@
  * LOGGER
  ***********************************************************************************************************************/
 
-/** @typedef {import("../utils").WpwLogger} WpwLogger */
+/** @typedef {import("../utils/log")} WpwLogger */
 /** @typedef {import("./logger").WpwLoggerIcon} WpwLoggerIcon */
 /** @typedef {import("./logger").WpwLogColorValue} WpwLogColorValue */
 /** @typedef {import("./logger").WpwLoggerIconSet} WpwLoggerIconSet */
