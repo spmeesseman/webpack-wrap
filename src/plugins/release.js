@@ -151,7 +151,7 @@ class WpwReleasePlugin extends WpwPlugin
         if (this.buildOptions.dryRun) {
             args.push("--dry-run");
         }
-        if (this.buildOptions.promptVersion) {
+        if (this.buildOptions.promptVersion && !args.includes("--prompt-version-disable")) {
            args.push("--prompt-version");
         }
         //
@@ -225,7 +225,8 @@ class WpwReleasePlugin extends WpwPlugin
         // a 1st release will auto-prompt, disable if not explicitly set
         //
         if (this.build.pkgJson.version === "0.0.1" && !this.buildOptions.promptVersion) {
-            args.push("--version-force-next", "0.0.1");
+            // args.push("--version-force-next", "0.0.1");
+            args.push("--prompt-version-disable");
         }
         if (preTag) {
             args.push("--version-pre-release-id", preTag);
