@@ -91,6 +91,10 @@ class WpwBuild extends WpwBase
      */
     sourceConfig;
     /**
+     * @type {typedefs.WpwBuildState}
+     */
+    state;
+    /**
      * @type {typedefs.WebpackTarget}
      */
     target;
@@ -126,7 +130,7 @@ class WpwBuild extends WpwBase
     constructor(config, wrapper)
     {
         super(config);
-        objUtils.apply(this, { disposables: [], info: [], errors: [], warnings: [], wrapper });
+        objUtils.apply(this, { disposables: [], info: [], errors: [], warnings: [], wrapper, state: "initializing" });
         this.initConfig(config);
         this.logger = new WpwLogger(this.log);
         this.logger.write(`initializing configured build '${this.name}'`, 1);
@@ -134,6 +138,7 @@ class WpwBuild extends WpwBase
         validateSchema(this, "WpwBuildConfig", this.logger);
         this.source = new WpwSource(objUtils.clone(config.source), this);
         this.disposables.push(this.source, this.logger);
+        this.state = "initialized";
         this.logger.write(`successfully initialized build wrapper instance '${this.name}'`, 2);
     }
 
@@ -333,6 +338,7 @@ class WpwBuild extends WpwBase
         if (++WpwBuild.disposeCount === this.buildCount) {
             this.wrapper.dispose();
         }
+        this.state = "done";
     }
 
 

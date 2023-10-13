@@ -5,7 +5,7 @@
  * @file plugin/upload.js
  * !!! This module uses 'plink' and 'pscp' from the PuTTY package: https://www.putty.org
  * !!! For first time build on fresh os install:
- * !!!   - create the environment variables WPBUILD_APP1_SSH_AUTH_*
+ * !!!   - create the environment variables WPW_APP1_SSH_AUTH_*
  * !!!   - run a plink command manually to generate and trust the fingerprints:
  * !!!       plink -ssh -batch -pw <PWD> smeesseman@app1.spmeesseman.com "echo hello"
  * @version 0.0.1
@@ -197,7 +197,7 @@ class WpwUploadPlugin extends WpwPlugin
             sshAuth,      // auth key
             "-q",         // quiet, don't show statistics
             "-r",         // copy directories recursively
-            toUploadPath, // directory containing the files to upload, the "directpory" itself (prod/dev/test) will be
+            toUploadPath, // directory containing the files to upload, the "directory" itself (prod/dev/test) will be
             `${user}@${host}:"${rBasePath}/${name}/v${build.pkgJson.version}"` // uploaded, and created if not exists
         ];
 
@@ -207,7 +207,7 @@ class WpwUploadPlugin extends WpwPlugin
         try
         {
             logger.write("   plink: create / clear remmote directory", 1);
-            let rc = await this.exec2("plink " + plinkArgs.join(" "), "plink", [ "cannot create directory", "File exists" ]);
+            let rc = await this.exec2("plink " + plinkArgs.join(" "), "plink", { ignoreOut: [ "cannot create directory", "File exists" ]});
             if (rc === 0)
             {
                 logger.write("   pscp:  upload files", 1, "");

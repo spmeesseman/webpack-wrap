@@ -13,27 +13,8 @@
  *
  * @description
  *
- * Provides types to interface the plugin sysem in this project.
+ * Provides types to interface the project's plugin system
  *
- * When adding a new extending plugin, perform the following tasks:
- *
- *     1. Add the plugin filename (w/o extnsion) to the `WpwPluginName` type near the
- *        top of the types file
- *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\types\wpwbuild.ts
- *
- *     2. Adjust the schema file by adding the plugin name to relevant areas, and adding a
- *        new config definition object.
- *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\schema\spm.schema.wpw.json
- *
- *     3. Run the `generate-rc-types` script / npm task to rebuild rc.ts definition file
- *        file:///c:\Projects\@spmeesseman\webpack-wrap\script\generate-rc-types.js
- *
- *     4. Add a module reference to plugin directory index file and add to it's module.exports
- *        file://c:\Projects\@spmeesseman\webpack-wrap\src\plugin\index.js
- *
- *     5.  Add the plugin into the webpack exports by importing and placing it in an appropriate
- *         position in the exports.plugins array.
- *         file:///c:\Projects\@spmeesseman\webpack-wrap\src\exports\plugins.js
  *//** */
 
 import { RequireKeys } from "./generic";
@@ -41,9 +22,11 @@ import { WpwPluginConfigWaitItem } from "./rc";
 import { IWpwBaseModule, WpwBaseModuleOptions } from "./base";
 import {
     WebpackCompilationHookName, WebpackCompilerHookName, WebpackCompiler, WebpackPluginInstance,
-    WebpackCompilationHookStage, WebpackCompilation
+    WebpackCompilationHookStage, WebpackCompilation, WebpackAsyncHook
 } from "./webpack";
 
+// declare function isAsyncHook<T>(v: any): v is WebpackAsyncHook<T>;
+// declare function isTapable<T>(v: any):v is WebpackHook<T>
 
 type WpwPluginOptions = WpwBaseModuleOptions;
 
@@ -53,17 +36,19 @@ type WpwPluginWaitOptions = WpwPluginConfigWaitItem & { callback: WpwPluginWrapp
 
 type WpwPluginMultiWaitOptions = WpwPluginWaitOptions[];
 
+type WpwPluginHookHandler = string | ((...args: any[]) => WpwPluginHookHandlerResult);
+
 type WpwPluginHookWaitStage = "done" | "inprocess" | "start" | undefined;
 
 type WpwPluginHookHandlerResult = void | Promise<void> | WpwPluginHookWaitStage | Promise<WpwPluginHookWaitStage>;
 
-type WpwPluginWrappedHookHandlerSync = (...args: any[]) => void;
+type WpwPluginWrappedHookHandlerSync = (...args: any[]) => any;
 
-type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => Promise<void>;
+type WpwPluginWrappedHookHandlerAsync = (...args: any[]) => Promise<any>;
 
 type WpwPluginWrappedHookHandler = WpwPluginWrappedHookHandlerAsync | WpwPluginWrappedHookHandlerSync;
 
-type WpwPluginHookHandler = string | ((...args: any[]) => WpwPluginHookHandlerResult);
+type WpwPluginWrappedHookHandlerResult<T> = T extends true ? WpwPluginWrappedHookHandlerAsync : WpwPluginWrappedHookHandlerSync;
 
 type WpwPluginTapOptions  = Record<string, WpwPluginBaseTapOptions | WpwPluginCompilationTapOptions>;
 
@@ -105,6 +90,7 @@ export {
     WpwPluginTapOptions,
     WpwPluginWaitOptions,
     WpwPluginWrappedHookHandler,
+    WpwPluginWrappedHookHandlerResult,
     WpwPluginWrappedHookHandlerAsync,
     WpwPluginWrappedHookHandlerSync
 };

@@ -107,7 +107,7 @@
             "$id": "#/definitions/DirectoryPathGlob",
             "type": "string",
             "minLength": 4,
-            "descriptiont": "directory type glob path",
+            "description": "directory type glob path",
             "pattern": "^(?:\\.{1,2}[\\\\/])\\*{0,2}(?:\\.|(?:\\.[\\\\/])?[\\w][~@!\\w\\.\\-\\\\/]+)\\*{0,2}$",
             "if": {
                 "pattern": "^\\.{1,2}[\\\\/]"
@@ -133,7 +133,7 @@
             "minLength": 3,
             "maxLength": 150,
             "pattern": "^[\\w\\.\\-]+\\.(?:[cm]?jsx?|tsx?|d\\.ts|[a-z0-9]{2,4})$",
-            "descriptiont": "a valid filename, without path, e.g 'main.js', 'app.tsx', etc"
+            "description": "a valid filename, without path, e.g 'main.js', 'app.tsx', etc"
         },
         "FileOrDirectoryPath": {
             "$id": "#/WpwFileOrDirectoryPath",
@@ -161,7 +161,7 @@
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
-            "descriptiont": "relative or absolute path to a file",
+            "description": "relative or absolute path to a file",
             "pattern": "^(?:(?:\\.[\\\\/])?[~@!:\\*\\w\\.\\-\\\\/]+)?\\.[a-z0-9\\.]+$"
         },
         "FilePathJs": {
@@ -181,7 +181,7 @@
             "type": "string",
             "minLength": 6,
             "maxLength": 150,
-            "descriptiont": "relative path to a file, with leading ./ or .\\",
+            "description": "relative path to a file, with leading ./ or .\\",
             "pattern": "^\\.{1,2}[\\\\/][\\w\\.\\-\\\\/]+?\\.\\w+$"
         },
         "FilePathRelative": {
@@ -189,7 +189,7 @@
             "type": "string",
             "minLength": 5,
             "maxLength": 150,
-            "descriptiont": "relative path to a file",
+            "description": "relative path to a file",
             "pattern": "^\\.[\\\\/][\\w\\.\\-\\\\/]+\\.([cm]?jsx?|tsx?)$"
         },
         "UrlString": {
@@ -246,6 +246,9 @@
                 },
                 "source": {
                     "$ref": "#/definitions/WpwSourceConfig"
+                },
+                "state": {
+                    "$ref": "#/definitions/WpwBuildState"
                 },
                 "target": {
                     "$ref": "#/definitions/WebpackTarget"
@@ -847,9 +850,14 @@
                 }
             }
         },
+        "WpwBuildState": {
+            "$id": "#/WpwBuildState",
+            "enum": [
+                "initializing", "initialized", "started", "waiting", "done"
+            ]
+        },
         "WpwBuildType": {
             "$id": "#/WpwBuildType",
-            "type": "string",
             "default": "app",
             "enum": [
                 "app", "jsdoc", "script", "tests", "types", "webapp"
@@ -1731,7 +1739,7 @@
             "minLength": 3,
             "maxLength": 50,
             "pattern": "^(?:@[a-z0-9\\-_]{2,}\\/)?[a-z0-9\\-\\.\\/_]{3,}$",
-            "descriptiont": "node module package name (with scope if applicable)",
+            "description": "node module package name (with scope if applicable)",
             "examples": [
                 "webpack",
                 "@spmeesseman/type-utils"
@@ -1743,7 +1751,7 @@
             "minLength": 7,
             "maxLength": 70,
             "pattern": "^(?:[a-z\\-]{2,}2? )?(?:@[a-z0-9\\-\\.\\/_]{2,}\\/)?[a-z0-9\\-\\.\\/_]{3,}$",
-            "descriptiont": "node module package export type, plus package name (with scope if applicable)",
+            "description": "node module package export type, plus package name (with scope if applicable)",
             "examples": [
                 "commonjs webpack",
                 "commonjs @spmeesseman/type-utils"
@@ -1810,7 +1818,7 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/FileOrDirectoryPath",
-                        "descriptiont": "relative or absolute path to a file or directory"
+                        "description": "relative or absolute path to a file or directory"
                     }
                 },
                 "main": {
@@ -2260,11 +2268,11 @@
             "properties": {
                 "to": {
                     "$ref": "#/definitions/FileOrDirectoryPath",
-                    "descriptiont": "relative or absolute path to a file or directory"
+                    "description": "relative or absolute path to a file or directory"
                 },
                 "from": {
                     "$ref": "#/definitions/FileOrDirectoryPath",
-                    "descriptiont": "relative or absolute path to a file or directory"
+                    "description": "relative or absolute path to a file or directory"
                 },
                 "context": {
                     "$ref": "#/definitions/DirectoryPathRelative"

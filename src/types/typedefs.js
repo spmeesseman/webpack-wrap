@@ -29,6 +29,7 @@
 /** @typedef {import("./rc").WpwUrlString} WpwUrlString */
 /** @typedef {import("./rc").WpwVsCodeKey} WpwVsCodeKey */
 /** @typedef {import("./rc").WebpackTarget} WebpackTarget */
+/** @typedef {import("./rc").WpwBuildState} WpwBuildState */
 /** @typedef {import("./rc").WpwModuleName} WpwModuleName */
 /** @typedef {import("./rc").WpwRcPathsKey} WpwRcPathsKey */
 /** @typedef {import("./rc").WpwSourceType} WpwSourceType */
@@ -69,6 +70,7 @@
 /** @typedef {import("./constants").isWpwBuildType} isWpwBuildType */
 /** @typedef {import("./constants").isWpwSchemaKey} isWpwSchemaKey */
 /** @typedef {import("./constants").WebpackTargets} WebpackTargets */
+/** @typedef {import("./constants").WpwBuildStates} WpwBuildStates */
 /** @typedef {import("./constants").WpwRcPathsKeys} WpwRcPathsKeys */
 /** @typedef {import("./constants").WpwSourceTypes} WpwSourceTypes */
 /** @typedef {import("./rc").IWpwSourceTsConfig} IWpwSourceTsConfig */
@@ -81,6 +83,7 @@
 /** @typedef {import("./rc").WpwSourceConfigKey} WpwSourceConfigKey */
 /** @typedef {import("./rc").WpwSourceExtension} WpwSourceExtension */
 /** @typedef {import("./constants").isWebpackTarget} isWebpackTarget */
+/** @typedef {import("./constants").isWpwBuildState} isWpwBuildState */
 /** @typedef {import("./constants").isWpwRcPathsKey} isWpwRcPathsKey */
 /** @typedef {import("./constants").isWpwSourceType} isWpwSourceType */
 /** @typedef {import("./constants").WpwWebpackModes} WpwWebpackModes */
@@ -438,6 +441,10 @@
 /**
  * @template T
  * @typedef {import("./plugin").WpwPluginConstructor<T>} WpwPluginConstructor<T>
+ */
+/**
+ * @template T
+ * @typedef {import("./plugin").WpwPluginWrappedHookHandlerResult<T>} WpwPluginWrappedHookHandlerResult<T>
  */
 
 

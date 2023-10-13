@@ -11,9 +11,9 @@
  *
  * When adding a new extending plugin, perform the following tasks:
  *
- *     1. Add the plugin filename (w/o extnsion) to the `WpwPluginName` type near the
+ *     1. Add the plugin filename (w/o extension) to the `WpwPluginName` type near the
  *        top of the types file
- *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\types\wpwbuild.ts
+ *        file:///c:\Projects\@spmeesseman\webpack-wrap\src\types\rc.ts
  *
  *     2. Adjust the schema file by adding the plugin name to relevant areas, and adding a
  *        new config definition object.
@@ -112,7 +112,7 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Main webpack plugin initializtion handler, called by webpack runtime to initialize this plugin.
+     * Main webpack plugin initialization handler, called by webpack runtime to initialize this plugin.
      *
      * @param {typedefs.WebpackCompiler} compiler
      */
@@ -122,13 +122,13 @@ class WpwPlugin extends WpwBaseModule
         this.wpCache = compiler.getCache(this.name);
         this.hashDigestLength = compiler.options.output.hashDigestLength || this.build.wpc.output.hashDigestLength || 20;
         //
-        // Set up a hook so that the compiltion instance can be stored before it actually begins,
+        // Set up a hook so that the compilation instance can be stored before it actually begins,
         // and the compilation dependencies can be logged if a high enough logging level is set
         //
         compiler.hooks.compilation.tap("onBeforeCompilationStart_" + this.name, this.onCompilation.bind(this));
         //
         // if there's any wrapped vendor plugin(s) that specify the 'hookVendorPluginFirst' flag, create
-        // those hooks before the internl WpwPlugin hooks.  After applying internal hooks, then apply any
+        // those hooks before the internal WpwPlugin hooks.  After applying internal hooks, then apply any
         // vendor plugins that do not specify the flag;
         //
         for (const p of this.plugins.filter(p => !!p.applyFirst)) { p.apply.call(p, compiler); }
@@ -155,7 +155,7 @@ class WpwPlugin extends WpwBaseModule
                 const hook = compiler.hooks[tapOpts.hook];
                 if (!tapOpts.async || !(/** @type {any} */(hook).tapPromise))
                 {
-                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts));
+                    hook.tap(`${this.name}_${name}`, this.wrapCallback(name, tapOpts, false));
                 }
                 else
                 {   if (this.isAsyncHook(hook)) {
@@ -169,7 +169,7 @@ class WpwPlugin extends WpwBaseModule
         }
         //
         // if there's any wrapped vendor plugin(s) that does not specify the 'hookVendorPluginFirst'
-        // flag, create those hooks now that the internl WpwPlugin hooks have been created.
+        // flag, create those hooks now that the internal WpwPlugin hooks have been created.
         //
         for (const p of this.plugins.filter(p => !p.applyFirst)) { p.apply.call(p, compiler); }
     }
@@ -409,7 +409,6 @@ class WpwPlugin extends WpwBaseModule
      * @param {string|any} hook
      * @returns {boolean} hook is WebpackAsyncHook
      */
-    // * @returns {hook is typedefs.WebpackAsyncHook} hook is WebpackAsyncHook
     isAsyncHook(hook) { return isFunction(hook.tapPromise); }
 
 
@@ -425,7 +424,6 @@ class WpwPlugin extends WpwBaseModule
      * @param {any} hook
      * @returns {boolean} hook is WebpackHook
      */
-    // * @returns {hook is typedefs.WebpackHook} <-- "is" causes jsdoc errors
     isTapable(hook) { return isFunction(hook.tap) || isFunction(hook.tapPromise); }
 
 
@@ -550,7 +548,7 @@ class WpwPlugin extends WpwBaseModule
         if (stageEnum && options.hookCompilation === "processAssets")
         {
             if (!options.async) {
-                /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(optionName, options));
+                /** @type {typedefs.WebpackSyncHook} */(hook).tap({ name, stage: stageEnum }, this.wrapCallback(optionName, options, false));
             }
             else {
                 /** @type {typedefs.WebpackAsyncHook} */(hook).tapPromise({ name, stage: stageEnum }, this.wrapCallback(optionName, options, true));
@@ -558,7 +556,7 @@ class WpwPlugin extends WpwBaseModule
         }
         else
         {   if (!options.async) {
-                /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options));
+                /** @type {typedefs.WebpackSyncHook} */(hook).tap(name, this.wrapCallback(optionName, options, false));
             }
             else
             {   if (this.isAsyncHook(hook)) {
@@ -614,7 +612,7 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Convenience function for plugin class instantitation, for use by overriden {@link WpwBaseModule.create create()}
+     * Convenience function for plugin class instantitation, for use by overridden {@link WpwBaseModule.create create()}
      *
      * @param {typedefs.WpwBuild} build current build wrapper
      * @returns {WpwPlugin | undefined} WpwPlugin | undefined
@@ -635,47 +633,49 @@ class WpwPlugin extends WpwBaseModule
 
 
     /**
-     * Wraps a webpack hook callback with started/complted logging and other higher level processing
+     * Wraps a webpack hook callback with started/completed logging and other higher level processing
      *
      * @private
      * @template {boolean | undefined} T
-     * @template {T extends true ? typedefs.WpwPluginWrappedHookHandlerAsync : typedefs.WpwPluginWrappedHookHandlerSync} R
      * @param {string} name tap options hook name, if camel-cased, will be formatted with {@link WpwPlugin.breakProp breakProp()}
      * @param {typedefs.WpwPluginBaseTapOptions} options
-     * @param {T} [async]
-     * @returns {R} WpwPluginWrappedHookHandler
+     * @param {T} async
+     * @returns {typedefs.WpwPluginWrappedHookHandlerResult<T>} WpwPluginWrappedHookHandlerResult<T>
      */
     wrapCallback(name, options, async)
     {
-        return /** @type {R} */((/** @type {...any} */...args) =>
+        return (/** @type {...any} */...args) =>
         {
             const l = this.logger;
             let hookConfigName = this.breakProp(name);
-            l.start(hookConfigName, 1);
             if (options.stage && options.hookCompilation === "processAssets") {
                 hookConfigName = hookConfigName.padEnd(l.valuePad - 3) + l.tag(`processassets: ${options.stage} stage`);
             }
+
             const eCt = this.build.errorCount,
                   doneMsg = hookConfigName.replace("      ", ""),
-                  callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback;
-            const _done = () => {
-                l.staticPad = "";
-                if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg);
-            };
+                  callback = isString(options.callback) ? this[options.callback].bind(this) : options.callback,
+                  _done = () => {
+                      l.staticPad = "";
+                      if (this.build.errorCount === eCt) l.success(doneMsg.replace("  ", " "), 1); else l.failed(doneMsg);
+                  };
+
             if (eCt === 0 || options.forceRun)
             {
+                l.start(hookConfigName, 1);
                 l.staticPad = "   ";
+                this.build.state = "started";
                 const result = callback(...args);
                 if (isPromise(result)) { result.then(() => { _done(); }, () => { _done(); }); } else { _done(); }
                 return result;
             }
             else
             {   if (!async) {
-                    l.start(`skip plugin hook - ${hookConfigName}`);
+                    l.start(`skip plugin hook - ${hookConfigName}`, 1);
                 }
-                else { return new Promise((resolve) => { l.start(`skip plugin hook - ${hookConfigName}`); resolve(); }); }
+                else { return /** @type {Promise<void>} */(new Promise((r) => { l.start(`skip plugin hook - ${hookConfigName}`, 1); r(); })); }
             }
-        });
+        };
     }
 
 }
